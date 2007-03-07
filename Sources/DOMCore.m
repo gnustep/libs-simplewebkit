@@ -1,0 +1,361 @@
+//
+//  DOM.m
+//  SimpleWebKit
+//
+//  Created by Nikolaus Schaller on 28.01.07.
+//  Copyright 2007 __MyCompanyName__. All rights reserved.
+//
+//  some parts how it works and what return values should be, has been identified by running the DOMTreeView sample code from Apple
+//
+
+#import "DOM.h"
+#import "Private.h"
+
+@implementation DOMObject
+
+- (id) copyWithZone:(NSZone *) z;
+{
+	return [self retain];
+}
+
+@end
+
+@implementation DOMNode
+
+- (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri document:(RENAME(DOMDocument) *) document;
+{
+	if((self=[self init]))
+		{
+		_nodeName=[name retain];
+		_namespaceURI=[uri retain];
+		_document=document;
+		_parentNode=nil;	// until we get added somewhere
+		}
+	return self;
+}
+
+- (void) dealloc;
+{
+	[_nodeName release];
+	[_nodeValue release];
+	[_namespaceURI release];
+	[_childNodes release];
+	// [_parentNode release];
+	// [_document release];
+	[_prefix release];
+	[super dealloc];
+}
+
+- (NSString *) description;
+{
+	NSString *str=[NSString stringWithFormat:@"%@:\n", _nodeName];
+	int i;
+	for(i=0; i<[_childNodes length]; i++)
+		{
+		NSEnumerator *e=[[[[_childNodes item:i] description] componentsSeparatedByString:@"\n"] objectEnumerator];
+		NSString *d;
+		while((d=[e nextObject]))		// append line by line and indent each one by @"  "
+			{
+			if([d length] > 0)
+				str=[str stringByAppendingFormat:@"  %@\n", d];
+			}
+		}
+	return str;
+}
+
+- (DOMNode *) appendChild:(DOMNode *) node;
+{
+	if(!_childNodes)
+		_childNodes=[[DOMNodeList alloc] init];	// create list
+	[[_childNodes _list] addObject:node];
+	[node _setParent:self];
+	return node;
+}
+
+- (DOMNodeList *) childNodes;
+{
+	if(!_childNodes)
+		_childNodes=[[DOMNodeList alloc] init];	// create list
+	return _childNodes;
+}
+
+- (DOMNode *) cloneNode:(BOOL) deep;
+{
+	// make new and copy child nodes
+	return NIMP;
+}
+
+- (DOMNode *) firstChild; { return _childNodes?[_childNodes item:0]:nil; }
+
+- (BOOL) hasAttributes; { return NO; }
+
+- (BOOL) hasChildNodes; { return _childNodes && [_childNodes length] > 0; }
+
+- (DOMNode *) insertBefore:(DOMNode *) node :(DOMNode *) ref;
+{
+	NSMutableArray *l;
+	if(!_childNodes)
+		_childNodes=[[DOMNodeList alloc] init];	// create list
+	l=[_childNodes _list];
+	[l insertObject:node atIndex:[l indexOfObject:ref]];
+	[node _setParent:self];
+	return node;
+}
+
+- (BOOL) isSupported:(NSString *) feature :(NSString *) version; { return NO; }
+
+- (DOMNode *) lastChild; { return _childNodes?[_childNodes item:[_childNodes length]-1]:nil; }
+
+- (NSString *) localName; { return @"local name"; }
+
+- (NSString *) namespaceURI; { return _namespaceURI; }
+
+- (DOMNode *) nextSibling;
+{
+	NSMutableArray *l;
+	unsigned idx;
+	if(!_parentNode)
+		return nil;
+	l=[[_parentNode childNodes] _list];
+	idx=[l indexOfObject:self]+1;	// my index+1
+	if(idx == [l count])
+		return nil;	// we are the last one
+	return [l objectAtIndex:idx+1];
+}
+
+- (NSString *) nodeName; { return _nodeName; }
+- (unsigned short) nodeType; { return _nodeType; }
+- (NSString *) nodeValue; { return _nodeValue; }
+
+- (void) normalize;
+{
+	return;
+}
+
+- (RENAME(DOMDocument) *) ownerDocument; { return _document; }
+- (DOMNode *) parentNode; { return _parentNode; }
+- (NSString *) prefix; { return _prefix; }
+
+- (DOMNode *) previousSibling;
+{
+	NSMutableArray *l;
+	unsigned idx;
+	if(!_parentNode)
+		return nil;
+	l=[[_parentNode childNodes] _list];
+	idx=[l indexOfObject:self];	// my index
+	if(idx == 0)
+		return nil;	// we are the first one
+	return [l objectAtIndex:idx];
+}
+
+- (DOMNode *) removeChild:(DOMNode *) node;
+{ // CHECKME: what is the semantics of the return value?
+	[node _setParent:nil];
+	if(_childNodes)
+		[[_childNodes _list] removeObject:node];
+	return node;
+}
+
+- (DOMNode *) replaceChild:(DOMNode *) node :(DOMNode *) old;
+{ // CHECKME: what is the semantics of the return value?
+	NSMutableArray *l;
+	if(!_childNodes)
+		_childNodes=[[DOMNodeList alloc] init];	// create list
+	[old _setParent:nil];
+	l=[_childNodes _list];
+	[l replaceObjectAtIndex:[l indexOfObject:old] withObject:node];
+	[node _setParent:self];
+	return node;
+}
+
+- (void) _setParent:(DOMNode *) p; { _parentNode=p; }
+- (void) setNodeValue:(NSString *) string; { ASSIGN(_nodeValue, string); }
+- (void) setPrefix:(NSString *) prefix; { ASSIGN(_prefix, prefix); }
+
+@end
+
+@implementation DOMNodeList
+
+- (id) init; { if((self=[super init])) { _list=[[NSMutableArray alloc] initWithCapacity:5]; } return self; }
+- (void) dealloc; { [_list release]; [super dealloc]; }
+- (NSMutableArray *) _list;	{ return _list; }
+- (DOMNode *) item:(unsigned long) index; { return [_list objectAtIndex:index]; }
+- (unsigned long) length; { return [_list count]; }
+
+@end
+
+@implementation DOMAttr
+
+- (id) _initWithName:(NSString *) str value:(NSString *) value;
+{ // value can be nil
+	if((self=[super init]))
+		{
+		_name=[str retain];
+		_value=[value retain];
+		}
+	return self;
+}
+
+- (void) _setOwner:(DOMElement *) owner; { _ownerElement=owner; }
+
+- (void) dealloc; { [_name release]; [_value release]; [super dealloc]; }
+- (NSString *) description; { return [NSString stringWithFormat:_value?@"%@=%@":@"%@", _name, _value]; }
+
+- (NSString *) name; { return _name; }
+- (DOMElement *) ownerElement; { return _ownerElement; }
+- (void) setValue:(NSString *) value; { ASSIGN(_value, value); }
+- (BOOL) specified; { return _value != nil; }
+- (NSString *) value; { return _value; }
+
+@end
+
+@implementation DOMElement
+
+- (void) dealloc; { [_attributes release]; [super dealloc]; }
+- (NSArray *) _attributes; { return [_attributes allValues]; }
+
+- (NSString *) getAttribute:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
+- (DOMAttr *) getAttributeNode:(NSString *) name; { return [_attributes objectForKey:name]; }
+
+- (DOMAttr *) getAttributeNodeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
+- (NSString *) getAttributeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
+
+- (DOMNodeList *) getElementsByTagName:(NSString *) name; { return NIMP; } // filter by tag name
+- (DOMNodeList *) getElementsByTagNameNS:(NSString *) uri :(NSString *) name; { return NIMP; }
+
+- (BOOL) hasAttribute:(NSString *) name; { return [_attributes objectForKey:name] != nil; }
+- (BOOL) hasAttributeNS:(NSString *) uri :(NSString *) name; { NIMP; return NO; }
+
+- (void) removeAttribute:(NSString *) name; { [_attributes removeObjectForKey:name]; }
+- (DOMAttr *) removeAttributeNode:(DOMAttr *) attr; { [_attributes removeObjectForKey:[attr name]]; [attr _setOwner:nil]; return attr; }
+
+- (void) removeAttributeNS:(NSString *) uri :(NSString *) name; { NIMP; }
+
+- (void) setAttribute:(NSString *) name :(NSString *) value;
+{
+	[self setAttributeNode:[[[DOMAttr alloc] _initWithName:name value:value] autorelease]];
+}
+
+- (DOMAttr *) setAttributeNode:(DOMAttr *) attr;
+{
+	if(!_attributes)
+		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
+	[_attributes setObject:attr forKey:[attr name]]; return attr;
+	[attr _setOwner:self];
+}
+
+- (DOMAttr *) setAttributeNodeNS:(DOMAttr *) attr; { return NIMP; }
+- (void) setAttributeNS:(NSString *) uri :(NSString *) name :(NSString *) value; { NIMP; }
+- (NSString *) tagName; { return _nodeName; }
+
+@end
+
+@implementation RENAME(DOMDocument)
+
+- (DOMAttr *) createAttribute:(NSString *) name; { return [[[DOMAttr alloc] _initWithName:name value:nil] autorelease]; }
+
+- (DOMAttr *) createAttributeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
+
+- (DOMCDATASection *) createCDATASection:(NSString *) data;
+{
+	DOMCDATASection *r=[[[DOMCDATASection alloc] _initWithName:@"#cdata" namespaceURI:nil document:self] autorelease];
+	[r setData:data];
+	return r;
+}
+
+- (DOMComment *) createComment:(NSString *) data;
+{
+	DOMComment *r=[[[DOMComment alloc] _initWithName:@"<!--" namespaceURI:nil document:self] autorelease];
+	[r setData:data];
+	return r;
+}
+
+- (DOMDocumentFragment *) createDocumentFragment; { return NIMP; }
+
+- (DOMElement *) createElement:(NSString *) tag;
+{
+	DOMElement *r=[[[DOMElement alloc] _initWithName:tag namespaceURI:nil document:self] autorelease];
+	return r;
+}
+
+- (DOMElement *) createElementNS:(NSString *) uri :(NSString *) tag;
+{
+	DOMElement *r=[[[DOMElement alloc] _initWithName:tag namespaceURI:uri document:self] autorelease];
+	return r;
+}
+
+- (DOMEntityReference *) createEntityReference:(NSString *) name;
+{
+//	DOMEntityReference *r=[[[DOMEntityReference alloc] _initWithName:@"entity" namespaceURI:nil document:self] autorelease];
+//	return r;
+	return NIMP;
+}
+
+- (DOMProcessingInstruction *) createProcessingInstruction:(NSString *) target :(NSString *) data; { return NIMP; }
+
+- (DOMText *) createTextNode:(NSString *) data;
+{
+	DOMText *r=[[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:self] autorelease];
+	[r setData:data];
+	return r;
+}
+
+- (DOMDocumentType *) doctype; {return  NIMP; }
+
+- (DOMElement *) documentElement;
+{
+	return NIMP;	// ??? is this the root element of the document?
+}
+
+- (DOMElement *) getElementById:(NSString *) element; {return NIMP; }
+- (DOMNodeList *) getElementsByTagName:(NSString * ) name; { return NIMP; }
+- (DOMNodeList *) getElementsByTagNameNS:(NSString *) uri :(NSString *) name; { return NIMP; }
+- (DOMImplementation *) implementation; { return NIMP; }
+- (DOMNode *) importNode:(DOMNode *) node :(BOOL) deep; { return NIMP; }
+
+@end
+
+@implementation DOMCharacterData
+
+- (id) init; { if((self=[super init])) { _nodeValue=[[NSMutableString alloc] initWithCapacity:30]; } return self; }
+- (void) dealloc; { [_nodeValue release]; [super dealloc]; }
+
+- (NSString *) description;
+{
+	return [NSString stringWithFormat:@"%@: %@\n", _nodeName, _nodeValue];
+}
+
+
+- (void) appendData:(NSString *) arg; { [(NSMutableString *) _nodeValue appendString:arg]; }
+- (NSString *) data; { return _nodeValue; }
+- (void) deleteData:(unsigned long) offset :(unsigned long) count; { [(NSMutableString *) _nodeValue deleteCharactersInRange:NSMakeRange(offset, count)]; }
+- (void) insertData:(unsigned long) offset :(NSString *) arg; { [(NSMutableString *) _nodeValue insertString:arg atIndex:offset]; }
+- (void) replaceData:(unsigned long) offset :(unsigned long) count :(NSString *) arg; { [(NSMutableString *) _nodeValue replaceCharactersInRange:NSMakeRange(offset, count) withString:arg]; }
+- (unsigned long) length; { return [_nodeValue length]; }
+- (void) setNodeValue:(NSString *) data; { [(NSMutableString *) _nodeValue setString:data]; }
+- (void) setData:(NSString *) data; { [(NSMutableString *) _nodeValue setString:data]; }
+- (NSString *) substringData:(unsigned long) offset :(unsigned long) count; { return [_nodeValue substringWithRange:NSMakeRange(offset, count)]; }
+
+@end
+
+@implementation DOMText
+
+- (DOMText *) splitText:(unsigned long) offset
+{ // FIXME: what is the semantics of this method? return first part, shrink self to second or vice versa? or split into two #text nodes as children of common parent???
+	DOMText *r;
+	NSString *first=[_nodeValue substringWithRange:NSMakeRange(0, offset)];	// first part
+	NSString *last=[_nodeValue substringWithRange:NSMakeRange(offset, [_nodeValue length]-offset)];	// second part
+	[(NSMutableString *) _nodeValue setString:last];	// keep last
+	r=[[DOMText new] autorelease];
+	[r setData:first];	// return first part
+	return r;
+}
+
+@end
+
+@implementation DOMComment
+@end
+
+@implementation DOMCDATASection
+@end

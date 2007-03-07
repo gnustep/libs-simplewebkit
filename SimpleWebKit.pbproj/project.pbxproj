@@ -1,0 +1,832 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 34;
+	objects = {
+		014CEA440018CDF011CA2923 = {
+			buildRules = (
+			);
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				OPTIMIZATION_CFLAGS = "-O0";
+			};
+			isa = PBXBuildStyle;
+			name = Development;
+		};
+		014CEA450018CDF011CA2923 = {
+			buildRules = (
+			);
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+			};
+			isa = PBXBuildStyle;
+			name = Deployment;
+		};
+//010
+//011
+//012
+//013
+//014
+//030
+//031
+//032
+//033
+//034
+		034768DFFF38A50411DB9C8B = {
+			children = (
+				034768E0FF38A50411DB9C8B,
+			);
+			isa = PBXGroup;
+			name = Products;
+			refType = 4;
+		};
+		034768E0FF38A50411DB9C8B = {
+			isa = PBXFrameworkReference;
+			path = WebKit.framework;
+			refType = 3;
+		};
+//030
+//031
+//032
+//033
+//034
+//080
+//081
+//082
+//083
+//084
+		0867D690FE84028FC02AAC07 = {
+			buildStyles = (
+				014CEA440018CDF011CA2923,
+				014CEA450018CDF011CA2923,
+			);
+			isa = PBXProject;
+			mainGroup = 0867D691FE84028FC02AAC07;
+			productRefGroup = 034768DFFF38A50411DB9C8B;
+			projectDirPath = "";
+			targets = (
+				0867D69CFE84028FC02AAC07,
+			);
+		};
+		0867D691FE84028FC02AAC07 = {
+			children = (
+				08FB77AEFE84172EC02AAC07,
+				089C1665FE841158C02AAC07,
+				0867D69AFE84028FC02AAC07,
+				034768DFFF38A50411DB9C8B,
+			);
+			isa = PBXGroup;
+			name = SimpleWebKit;
+			refType = 4;
+		};
+		0867D69AFE84028FC02AAC07 = {
+			children = (
+				1058C7B0FEA5585E11CA2CBB,
+				1058C7B2FEA5585E11CA2CBB,
+			);
+			isa = PBXGroup;
+			name = "External Frameworks and Libraries";
+			refType = 4;
+		};
+		0867D69BFE84028FC02AAC07 = {
+			isa = PBXFrameworkReference;
+			name = Foundation.framework;
+			path = /System/Library/Frameworks/Foundation.framework;
+			refType = 0;
+		};
+		0867D69CFE84028FC02AAC07 = {
+			buildPhases = (
+				0867D69DFE84028FC02AAC07,
+				0867D69EFE84028FC02AAC07,
+				0867D69FFE84028FC02AAC07,
+				0867D6A0FE84028FC02AAC07,
+				0867D6A2FE84028FC02AAC07,
+			);
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_VERSION = A;
+				HEADER_SEARCH_PATHS = "";
+				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = WebKit;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = framework;
+			};
+			dependencies = (
+			);
+			isa = PBXFrameworkTarget;
+			name = SimpleWebKit;
+			productInstallPath = "$(HOME)/Library/Frameworks";
+			productName = SimpleWebKit;
+			productReference = 034768E0FF38A50411DB9C8B;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist SYSTEM \"file://localhost/System/Library/DTDs/PropertyList.dtd\">
+<plist version=\"0.9\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>WebKit</string>
+	<key>CFBundleIconFile</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string>org.GNUstep.SimpleWebKit</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>0.0.1d1</string>
+	<key>NSPrincipalClass</key>
+	<string></string>
+</dict>
+</plist>
+";
+			shouldUseHeadermap = 1;
+		};
+		0867D69DFE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				F51E75978B9F4A2701A8012E,
+				F51E75988B9F4A2701A8012E,
+				F51E75998B9F4A2701A8012E,
+				F51E759A8B9F4A2701A8012E,
+				F51E759B8B9F4A2701A8012E,
+				F51E759C8B9F4A2701A8012E,
+				F51E759D8B9F4A2701A8012E,
+				F51E759E8B9F4A2701A8012E,
+				F51E759F8B9F4A2701A8012E,
+				F51E75A08B9F4A2701A8012E,
+				F51E75A18B9F4A2701A8012E,
+				F51E75A28B9F4A2701A8012E,
+				F51E75A38B9F4A2701A8012E,
+				F51E75A48B9F4A2701A8012E,
+				F51E75A58B9F4A2701A8012E,
+				F51E75A68B9F4A2701A8012E,
+				F51E75A78B9F4A2701A8012E,
+				F51E75A88B9F4A2701A8012E,
+				F51E75A98B9F4A2701A8012E,
+				F51E75AA8B9F4A2701A8012E,
+				F51E75AB8B9F4A2701A8012E,
+				F51E75AC8B9F4A2701A8012E,
+				F51E75AD8B9F4A2701A8012E,
+			);
+			isa = PBXHeadersBuildPhase;
+			name = Headers;
+		};
+		0867D69EFE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				089C1668FE841158C02AAC07,
+			);
+			isa = PBXResourcesBuildPhase;
+			name = "Bundle Resources";
+		};
+		0867D69FFE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				F51E75AE8B9F4A2701A8012E,
+				F51E75AF8B9F4A2701A8012E,
+				F51E75B08B9F4A2701A8012E,
+				F51E75B18B9F4A2701A8012E,
+				F51E75B28B9F4A2701A8012E,
+				F51E75B38B9F4A2701A8012E,
+				F51E75B48B9F4A2701A8012E,
+				F51E75B58B9F4A2701A8012E,
+				F51E75B68B9F4A2701A8012E,
+				F51E75B78B9F4A2701A8012E,
+				F51E75B88B9F4A2701A8012E,
+				F51E75B98B9F4A2701A8012E,
+				F51E75BA8B9F4A2701A8012E,
+				F51E75BB8B9F4A2701A8012E,
+				F51E75BC8B9F4A2701A8012E,
+				F51E75BD8B9F4A2701A8012E,
+			);
+			isa = PBXSourcesBuildPhase;
+			name = Sources;
+		};
+		0867D6A0FE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				1058C7B3FEA5585E11CA2CBB,
+			);
+			isa = PBXFrameworksBuildPhase;
+			name = "Frameworks & Libraries";
+		};
+		0867D6A2FE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			name = "ResourceManager Resources";
+		};
+		0867D6A5FE840307C02AAC07 = {
+			isa = PBXFrameworkReference;
+			name = AppKit.framework;
+			path = /System/Library/Frameworks/AppKit.framework;
+			refType = 0;
+		};
+		089C1665FE841158C02AAC07 = {
+			children = (
+				089C1666FE841158C02AAC07,
+			);
+			isa = PBXGroup;
+			name = Resources;
+			refType = 4;
+		};
+		089C1666FE841158C02AAC07 = {
+			children = (
+				089C1667FE841158C02AAC07,
+			);
+			isa = PBXVariantGroup;
+			name = InfoPlist.strings;
+			refType = 4;
+		};
+		089C1667FE841158C02AAC07 = {
+			fileEncoding = 10;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		089C1668FE841158C02AAC07 = {
+			fileRef = 089C1666FE841158C02AAC07;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		08FB77AEFE84172EC02AAC07 = {
+			children = (
+				F51E75708B9F4A2701A8012E,
+				F51E75718B9F4A2701A8012E,
+				F51E75728B9F4A2701A8012E,
+				F51E75738B9F4A2701A8012E,
+				F51E75748B9F4A2701A8012E,
+				F51E75758B9F4A2701A8012E,
+				F51E75768B9F4A2701A8012E,
+				F51E75778B9F4A2701A8012E,
+				F51E75788B9F4A2701A8012E,
+				F51E75798B9F4A2701A8012E,
+				F51E757A8B9F4A2701A8012E,
+				F51E757B8B9F4A2701A8012E,
+				F51E757C8B9F4A2701A8012E,
+				F51E757D8B9F4A2701A8012E,
+				F51E757E8B9F4A2701A8012E,
+				F51E757F8B9F4A2701A8012E,
+				F51E75808B9F4A2701A8012E,
+				F51E75818B9F4A2701A8012E,
+				F51E75828B9F4A2701A8012E,
+				F51E75838B9F4A2701A8012E,
+				F51E75848B9F4A2701A8012E,
+				F51E75858B9F4A2701A8012E,
+				F51E75868B9F4A2701A8012E,
+				F51E75878B9F4A2701A8012E,
+				F51E75888B9F4A2701A8012E,
+				F51E75898B9F4A2701A8012E,
+				F51E758A8B9F4A2701A8012E,
+				F51E758B8B9F4A2701A8012E,
+				F51E758C8B9F4A2701A8012E,
+				F51E758D8B9F4A2701A8012E,
+				F51E758E8B9F4A2701A8012E,
+				F51E758F8B9F4A2701A8012E,
+				F51E75908B9F4A2701A8012E,
+				F51E75918B9F4A2701A8012E,
+				F51E75928B9F4A2701A8012E,
+				F51E75938B9F4A2701A8012E,
+				F51E75948B9F4A2701A8012E,
+				F51E75958B9F4A2701A8012E,
+				F51E75968B9F4A2701A8012E,
+			);
+			isa = PBXGroup;
+			name = Classes;
+			refType = 4;
+		};
+//080
+//081
+//082
+//083
+//084
+//100
+//101
+//102
+//103
+//104
+		1058C7B0FEA5585E11CA2CBB = {
+			children = (
+				1058C7B1FEA5585E11CA2CBB,
+			);
+			isa = PBXGroup;
+			name = "Linked Frameworks";
+			refType = 4;
+		};
+		1058C7B1FEA5585E11CA2CBB = {
+			isa = PBXFrameworkReference;
+			name = Cocoa.framework;
+			path = /System/Library/Frameworks/Cocoa.framework;
+			refType = 0;
+		};
+		1058C7B2FEA5585E11CA2CBB = {
+			children = (
+				0867D69BFE84028FC02AAC07,
+				0867D6A5FE840307C02AAC07,
+			);
+			isa = PBXGroup;
+			name = "Other Frameworks";
+			refType = 4;
+		};
+		1058C7B3FEA5585E11CA2CBB = {
+			fileRef = 1058C7B1FEA5585E11CA2CBB;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+//100
+//101
+//102
+//103
+//104
+//F50
+//F51
+//F52
+//F53
+//F54
+		F51E75708B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = DOMCore.m;
+			path = Sources/DOMCore.m;
+			refType = 4;
+		};
+		F51E75718B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = DOM.h;
+			path = Sources/DOM.h;
+			refType = 4;
+		};
+		F51E75728B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = DOMCore.h;
+			path = Sources/DOMCore.h;
+			refType = 4;
+		};
+		F51E75738B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = DOMHTML.h;
+			path = Sources/DOMHTML.h;
+			refType = 4;
+		};
+		F51E75748B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = DOMHTML.m;
+			path = Sources/DOMHTML.m;
+			refType = 4;
+		};
+		F51E75758B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = Private.h;
+			path = Sources/Private.h;
+			refType = 4;
+		};
+		F51E75768B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebBackForwardList.h;
+			path = Sources/WebBackForwardList.h;
+			refType = 4;
+		};
+		F51E75778B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebBackForwardList.m;
+			path = Sources/WebBackForwardList.m;
+			refType = 4;
+		};
+		F51E75788B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebDataSource.h;
+			path = Sources/WebDataSource.h;
+			refType = 4;
+		};
+		F51E75798B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebDataSource.m;
+			path = Sources/WebDataSource.m;
+			refType = 4;
+		};
+		F51E757A8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebDocument.h;
+			path = Sources/WebDocument.h;
+			refType = 4;
+		};
+		F51E757B8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebDOMOperations.h;
+			path = Sources/WebDOMOperations.h;
+			refType = 4;
+		};
+		F51E757C8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebDOMOperations.m;
+			path = Sources/WebDOMOperations.m;
+			refType = 4;
+		};
+		F51E757D8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebFrame.h;
+			path = Sources/WebFrame.h;
+			refType = 4;
+		};
+		F51E757E8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebFrame.m;
+			path = Sources/WebFrame.m;
+			refType = 4;
+		};
+		F51E757F8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebFrameLoadDelegate.h;
+			path = Sources/WebFrameLoadDelegate.h;
+			refType = 4;
+		};
+		F51E75808B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebFrameView.h;
+			path = Sources/WebFrameView.h;
+			refType = 4;
+		};
+		F51E75818B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebFrameView.m;
+			path = Sources/WebFrameView.m;
+			refType = 4;
+		};
+		F51E75828B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHistory.h;
+			path = Sources/WebHistory.h;
+			refType = 4;
+		};
+		F51E75838B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHistory.m;
+			path = Sources/WebHistory.m;
+			refType = 4;
+		};
+		F51E75848B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHistoryItem.h;
+			path = Sources/WebHistoryItem.h;
+			refType = 4;
+		};
+		F51E75858B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHistoryItem.m;
+			path = Sources/WebHistoryItem.m;
+			refType = 4;
+		};
+		F51E75868B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHTMLDocumentRepresentation.h;
+			path = Sources/WebHTMLDocumentRepresentation.h;
+			refType = 4;
+		};
+		F51E75878B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHTMLDocumentRepresentation.m;
+			path = Sources/WebHTMLDocumentRepresentation.m;
+			refType = 4;
+		};
+		F51E75888B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHTMLDocumentView.h;
+			path = Sources/WebHTMLDocumentView.h;
+			refType = 4;
+		};
+		F51E75898B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebHTMLDocumentView.m;
+			path = Sources/WebHTMLDocumentView.m;
+			refType = 4;
+		};
+		F51E758A8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebKit.h;
+			path = Sources/WebKit.h;
+			refType = 4;
+		};
+		F51E758B8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebPDFDocumentRepresentation.h;
+			path = Sources/WebPDFDocumentRepresentation.h;
+			refType = 4;
+		};
+		F51E758C8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebPDFDocumentRepresentation.m;
+			path = Sources/WebPDFDocumentRepresentation.m;
+			refType = 4;
+		};
+		F51E758D8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebPlugin.h;
+			path = Sources/WebPlugin.h;
+			refType = 4;
+		};
+		F51E758E8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebResource.h;
+			path = Sources/WebResource.h;
+			refType = 4;
+		};
+		F51E758F8B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebResource.m;
+			path = Sources/WebResource.m;
+			refType = 4;
+		};
+		F51E75908B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebScriptObject.h;
+			path = Sources/WebScriptObject.h;
+			refType = 4;
+		};
+		F51E75918B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebScriptObject.m;
+			path = Sources/WebScriptObject.m;
+			refType = 4;
+		};
+		F51E75928B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebUIDelegate.h;
+			path = Sources/WebUIDelegate.h;
+			refType = 4;
+		};
+		F51E75938B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebView.h;
+			path = Sources/WebView.h;
+			refType = 4;
+		};
+		F51E75948B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebView.m;
+			path = Sources/WebView.m;
+			refType = 4;
+		};
+		F51E75958B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebXMLDocumentRepresentation.h;
+			path = Sources/WebXMLDocumentRepresentation.h;
+			refType = 4;
+		};
+		F51E75968B9F4A2701A8012E = {
+			isa = PBXFileReference;
+			name = WebXMLDocumentRepresentation.m;
+			path = Sources/WebXMLDocumentRepresentation.m;
+			refType = 4;
+		};
+		F51E75978B9F4A2701A8012E = {
+			fileRef = F51E75718B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75988B9F4A2701A8012E = {
+			fileRef = F51E75728B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75998B9F4A2701A8012E = {
+			fileRef = F51E75738B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E759A8B9F4A2701A8012E = {
+			fileRef = F51E75758B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E759B8B9F4A2701A8012E = {
+			fileRef = F51E75768B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E759C8B9F4A2701A8012E = {
+			fileRef = F51E75788B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E759D8B9F4A2701A8012E = {
+			fileRef = F51E757A8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E759E8B9F4A2701A8012E = {
+			fileRef = F51E757B8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E759F8B9F4A2701A8012E = {
+			fileRef = F51E757D8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A08B9F4A2701A8012E = {
+			fileRef = F51E757F8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A18B9F4A2701A8012E = {
+			fileRef = F51E75808B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A28B9F4A2701A8012E = {
+			fileRef = F51E75828B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A38B9F4A2701A8012E = {
+			fileRef = F51E75848B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A48B9F4A2701A8012E = {
+			fileRef = F51E75868B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A58B9F4A2701A8012E = {
+			fileRef = F51E75888B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A68B9F4A2701A8012E = {
+			fileRef = F51E758A8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A78B9F4A2701A8012E = {
+			fileRef = F51E758B8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A88B9F4A2701A8012E = {
+			fileRef = F51E758D8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75A98B9F4A2701A8012E = {
+			fileRef = F51E758E8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75AA8B9F4A2701A8012E = {
+			fileRef = F51E75908B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75AB8B9F4A2701A8012E = {
+			fileRef = F51E75928B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75AC8B9F4A2701A8012E = {
+			fileRef = F51E75938B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75AD8B9F4A2701A8012E = {
+			fileRef = F51E75958B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75AE8B9F4A2701A8012E = {
+			fileRef = F51E75708B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75AF8B9F4A2701A8012E = {
+			fileRef = F51E75748B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B08B9F4A2701A8012E = {
+			fileRef = F51E75778B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B18B9F4A2701A8012E = {
+			fileRef = F51E75798B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B28B9F4A2701A8012E = {
+			fileRef = F51E757C8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B38B9F4A2701A8012E = {
+			fileRef = F51E757E8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B48B9F4A2701A8012E = {
+			fileRef = F51E75818B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B58B9F4A2701A8012E = {
+			fileRef = F51E75838B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B68B9F4A2701A8012E = {
+			fileRef = F51E75858B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B78B9F4A2701A8012E = {
+			fileRef = F51E75878B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B88B9F4A2701A8012E = {
+			fileRef = F51E75898B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75B98B9F4A2701A8012E = {
+			fileRef = F51E758C8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75BA8B9F4A2701A8012E = {
+			fileRef = F51E758F8B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75BB8B9F4A2701A8012E = {
+			fileRef = F51E75918B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75BC8B9F4A2701A8012E = {
+			fileRef = F51E75948B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F51E75BD8B9F4A2701A8012E = {
+			fileRef = F51E75968B9F4A2701A8012E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+	};
+	rootObject = 0867D690FE84028FC02AAC07;
+}
