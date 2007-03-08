@@ -1,10 +1,10 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 
 FRAMEWORK_NAME=SimpleWebKit
-SimpleWebKit_INCLUDE_DIRS = -I../
 
 SimpleWebKit_HEADER_FILES = \
 DOM.h \
+DOMCore.h \
 DOMHTML.h \
 Private.h \
 WebBackForwardList.h \
@@ -45,7 +45,6 @@ WebResource.m \
 WebScriptObject.m \
 WebView.m \
 WebXMLDocumentRepresentation.m
-
 
 include $(GNUSTEP_MAKEFILES)/framework.make
 
