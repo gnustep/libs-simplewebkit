@@ -14,6 +14,7 @@ WebDocument.h \
 WebFrame.h \
 WebFrameLoadDelegate.h \
 WebFrameView.h \
+WebHTMLDocumentView.h \
 WebHTMLDocumentRepresentation.h \
 WebHistory.h \
 WebHistoryItem.h \
@@ -30,12 +31,14 @@ WebXMLDocumentRepresentation.h
 SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
 
 SimpleWebKit_OBJC_FILES = \
+DOMCore.m \
 DOMHTML.m \
 WebBackForwardList.m \
 WebDOMOperations.m \
 WebDataSource.m \
 WebFrame.m \
 WebFrameView.m \
+WebHTMLDocumentView.m \
 WebHTMLDocumentRepresentation.m \
 WebHistory.m \
 WebHistoryItem.m \

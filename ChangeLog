@@ -1,5 +1,10 @@
 2007-03-08  Riccardo Mottola <riccardo@kaffe.org>
 
+	* Sources/GNUmakefile: Added missing classes and headers.
+
+
+2007-03-08  Riccardo Mottola <riccardo@kaffe.org>
+
 	* Sources/*.[h,m]: updated FSF copyright and LGPL license
 
 2007-03-08  Nicola Pero  <nicola.pero@meta-innovation.com>
