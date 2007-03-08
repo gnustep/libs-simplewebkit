@@ -1,5 +1,9 @@
+2007-03-08  Riccardo Mottola <riccardo@kaffe.org>
+
+	* Sources/*.[h,m]: updated FSF copyright and LGPL license
+
 2007-03-08  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* GNUmakefile (SimpleWebKit_INCLUDE_DIRS): Variable removed.
-	* Source/GNUmakefile (SimpleWebKit_INCLUDE_DIRS): Variable removed.
+	* Sources/GNUmakefile (SimpleWebKit_INCLUDE_DIRS): Variable removed.
 	* Sources/GNUmakefile (SimpleWebKit_HEADER_FILES): Added DOMCore.h

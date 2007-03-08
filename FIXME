@@ -1,5 +1,6 @@
 The copyright assignment needs updating to mention that the copyright
 has been assigned to the FSF.
+-- Updated headers to FSF and LGPL - RM 
 
 Also, the code probably needs reindenting to fit in the GNUstep coding
 style. ;-)
