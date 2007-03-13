@@ -29,11 +29,15 @@
 #import "WebHTMLDocumentRepresentation.h"
 #import <WebKit/WebDocument.h>
 
-#ifdef __APPLE__
+#ifdef __APPLE__ 
 #define USE_FOUNDATION_XML_PARSER 0	// no - Apple Foundation's NSXMLParser does not support -_setEncoding and _tagPath
 #else
 #define USE_FOUNDATION_XML_PARSER 1	// yes - don't include twice
 #endif
+
+// temporary for GNUstrep too
+// #### FIXME
+#define USE_FOUNDATION_XML_PARSER 0
 
 #if USE_FOUNDATION_XML_PARSER
 
@@ -44,8 +48,8 @@
 #define NSXMLParser WebKitXMLParser				// rename to avoid linker conflicts with Foundation
 #define __WebKit__ 1							// this disables some includes in mySTEP NSXMLParser.h/.m
 
-#include "../Foundation/Sources/NSXMLParser.h"	// directly include header here
-#include "../Foundation/Sources/NSXMLParser.m"	// directly include sources here
+#include "NSXMLParser.h"	// directly include header here
+#include "NSXMLParser.m"	// directly include sources here
 
 #endif
 

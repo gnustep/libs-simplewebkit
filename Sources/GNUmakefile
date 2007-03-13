@@ -3,6 +3,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 FRAMEWORK_NAME=SimpleWebKit
 
 SimpleWebKit_HEADER_FILES = \
+NSXMLParser.h \
 DOM.h \
 DOMCore.h \
 DOMHTML.h \
@@ -31,6 +32,7 @@ WebXMLDocumentRepresentation.h
 SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
 
 SimpleWebKit_OBJC_FILES = \
+NSXMLParser.m \
 DOMCore.m \
 DOMHTML.m \
 WebBackForwardList.m \
