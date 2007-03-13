@@ -25,7 +25,7 @@
 
 #import <WebKit/WebFrame.h>
 #import <WebKit/DOM.h>
-#import "NSXMLParser.h
+#import <Foundation/NSXMLParser.h>
 #import "Private.h"
 
 @implementation WebFrame

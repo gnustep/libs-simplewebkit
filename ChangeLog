@@ -1,3 +1,12 @@
+2007-03-13  Rrichard Frith-Macdonald <fm@gnu.org>
+
+	* Sources/NSXMLParser.h:
+	* Sources/GNUmakefile:
+	* Sources/NSXMLParser.m:
+	* Sources/WebHTMLDocumentRepresentation.m: Use standard NSXMLParser
+	API rather than duplicating code.
+	* Sources/WebFrame.m: Fix broken include that was stopping compile.
+
 2007-03-08  Riccardo Mottola <riccardo@kaffe.org>
 
 	* Sources/GNUmakefile: Added missing classes and headers.

@@ -28,35 +28,7 @@
 #import "Private.h"
 #import "WebHTMLDocumentRepresentation.h"
 #import <WebKit/WebDocument.h>
-
-#ifdef __APPLE__ 
-#define USE_FOUNDATION_XML_PARSER 0	// no - Apple Foundation's NSXMLParser does not support -_setEncoding and _tagPath
-#else
-#define USE_FOUNDATION_XML_PARSER 1	// yes - don't include twice
-#endif
-
-// temporary for GNUstrep too
-// #### FIXME
-#define USE_FOUNDATION_XML_PARSER 0
-
-#if USE_FOUNDATION_XML_PARSER
-
 #import <Foundation/NSXMLParser.h>
-
-#else		// always make mySTEP XMLParser available
-
-#define NSXMLParser WebKitXMLParser				// rename to avoid linker conflicts with Foundation
-#define __WebKit__ 1							// this disables some includes in mySTEP NSXMLParser.h/.m
-
-#include "NSXMLParser.h"	// directly include header here
-#include "NSXMLParser.m"	// directly include sources here
-
-#endif
-
-@interface NSXMLParser (NSPrivate)
-- (NSArray *) _tagPath;					// path of all tags
-- (void) _setEncoding:(NSStringEncoding) enc;
-@end
 
 @implementation _WebHTMLDocumentRepresentation
 
@@ -150,7 +122,6 @@ static NSDictionary *tagtable;
 	_parser=[[NSXMLParser alloc] initWithData:data];
 	// FIXME:  install the HTML entity translation table
 	// FIXME: translate encoding from dataSource/response settings
-//	[_parser _setEncoding:NSUTF8StringEncoding];
 	[_parser setDelegate:self];
 	_doc=[[source webFrame] DOMDocument];
 	[_doc removeChild:[_doc lastChild]];	// remove current HTML DOM tree to build up a new one
@@ -260,14 +231,11 @@ static NSDictionary *tagtable;
 	id newElement;
 	NSEnumerator *e;
 	NSString *key;
-#if 0
-	NSLog(@"%@ %@: <%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
-#endif
 	
 	if(!c)
 		{
 #if 1
-		NSLog(@"%@ %@: <%@> ignored", NSStringFromClass(isa), [parser _tagPath], tag);
+		NSLog(@"%@: <%@> ignored", NSStringFromClass(isa), tag);
 #endif
 		return;	// ignore
 		}
@@ -313,9 +281,6 @@ static NSDictionary *tagtable;
 - (void) parser:(NSXMLParser *) parser didEndElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name;
 { // handle closing tags
 	Class c=[tagtable objectForKey:tag];
-#if 0
-	NSLog(@"%@ %@: </%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
-#endif
 	if(!c)
 		return;	// ignore
 	if([c _ignore])
