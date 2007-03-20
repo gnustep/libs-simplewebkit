@@ -1,3 +1,11 @@
+2007-03-20  Riccardo Mottola <riccardo@kaffe.org>
+
+	* WebDocumentRepresentation.h,
+	WebDocumentRepresentation.m,
+	WebCSSDocumentRepresentation.h,
+	WebCSSDocumentRepresentation.m:
+	added from myStep
+
 2007-03-13  Rrichard Frith-Macdonald <fm@gnu.org>
 
 	* Sources/NSXMLParser.h:
