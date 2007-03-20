@@ -8,6 +8,8 @@ DOMCore.h \
 DOMHTML.h \
 Private.h \
 WebBackForwardList.h \
+WebCSSDocumentRepresentation.h \
+WebDocumentRepresentation.h \
 WebDOMOperations.h \
 WebDataSource.h \
 WebDocument.h \
@@ -34,6 +36,8 @@ SimpleWebKit_OBJC_FILES = \
 DOMCore.m \
 DOMHTML.m \
 WebBackForwardList.m \
+WebCSSDocumentRepresentation.m \
+WebDocumentRepresentation.m \
 WebDOMOperations.m \
 WebDataSource.m \
 WebFrame.m \
