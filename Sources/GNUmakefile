@@ -7,12 +7,14 @@ DOM.h \
 DOMCore.h \
 DOMHTML.h \
 Private.h \
+WebArchive.h \
 WebBackForwardList.h \
 WebCSSDocumentRepresentation.h \
 WebDocumentRepresentation.h \
 WebDOMOperations.h \
 WebDataSource.h \
 WebDocument.h \
+WebDownload.h \
 WebFrame.h \
 WebFrameLoadDelegate.h \
 WebFrameView.h \
@@ -35,6 +37,7 @@ SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
 SimpleWebKit_OBJC_FILES = \
 DOMCore.m \
 DOMHTML.m \
+WebArchive.m \
 WebBackForwardList.m \
 WebCSSDocumentRepresentation.m \
 WebDocumentRepresentation.m \
