@@ -5,7 +5,9 @@ FRAMEWORK_NAME=SimpleWebKit
 SimpleWebKit_HEADER_FILES = \
 DOM.h \
 DOMCore.h \
+DOMCSS.h \
 DOMHTML.h \
+DOMRange.h \
 Private.h \
 WebArchive.h \
 WebBackForwardList.h \
@@ -36,7 +38,9 @@ SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
 
 SimpleWebKit_OBJC_FILES = \
 DOMCore.m \
+DOMCSS.m \
 DOMHTML.m \
+DOMRange.m \
 WebArchive.m \
 WebBackForwardList.m \
 WebCSSDocumentRepresentation.m \
