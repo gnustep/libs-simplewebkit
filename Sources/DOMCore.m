@@ -33,6 +33,9 @@
 	return [self retain];
 }
 
+- (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view; { _visualRepresentation=view; }	// not retained!
+- (NSObject <WebDocumentView> *) _visualRepresentation;	{ return _visualRepresentation; }
+
 @end
 
 @implementation DOMNode
@@ -61,6 +64,12 @@
 	[super dealloc];
 }
 
+- (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view;
+{
+	[super _setVisualRepresentation:view];
+	[_visualRepresentation setNeedsLayout:YES];	// first notification!
+}
+
 - (NSString *) description;
 {
 	NSString *str=[NSString stringWithFormat:@"%@:\n", _nodeName];
@@ -84,6 +93,7 @@
 		_childNodes=[[DOMNodeList alloc] init];	// create list
 	[[_childNodes _list] addObject:node];
 	[node _setParent:self];
+	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
 	return node;
 }
 
@@ -114,6 +124,7 @@
 	l=[_childNodes _list];
 	[l insertObject:node atIndex:[l indexOfObject:ref]];
 	[node _setParent:self];
+	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
 	return node;
 }
 
@@ -168,7 +179,10 @@
 { // CHECKME: what is the semantics of the return value?
 	[node _setParent:nil];
 	if(_childNodes)
+		{
 		[[_childNodes _list] removeObject:node];
+		[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+		}
 	return node;
 }
 
@@ -181,11 +195,23 @@
 	l=[_childNodes _list];
 	[l replaceObjectAtIndex:[l indexOfObject:old] withObject:node];
 	[node _setParent:self];
+	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
 	return node;
 }
 
-- (void) _setParent:(DOMNode *) p; { _parentNode=p; }
-- (void) setNodeValue:(NSString *) string; { ASSIGN(_nodeValue, string); }
+- (void) _setParent:(DOMNode *) p;
+{
+	_parentNode=p;
+	if(!_visualRepresentation)
+		_visualRepresentation=[p _visualRepresentation];	// inherit our parent's visual representation
+}
+
+- (void) setNodeValue:(NSString *) string;
+{
+	ASSIGN(_nodeValue, string);
+	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+}
+
 - (void) setPrefix:(NSString *) prefix; { ASSIGN(_prefix, prefix); }
 
 @end
@@ -202,24 +228,30 @@
 
 @implementation DOMAttr
 
-- (id) _initWithName:(NSString *) str value:(NSString *) value;
+- (id) _initWithName:(NSString *) str value:(NSString *) val;
 { // value can be nil
 	if((self=[super init]))
 		{
 		_name=[str retain];
-		_value=[value retain];
+		_value=[val retain];
 		}
 	return self;
 }
-
-- (void) _setOwner:(DOMElement *) owner; { _ownerElement=owner; }
 
 - (void) dealloc; { [_name release]; [_value release]; [super dealloc]; }
 - (NSString *) description; { return [NSString stringWithFormat:_value?@"%@=%@":@"%@", _name, _value]; }
 
 - (NSString *) name; { return _name; }
-- (DOMElement *) ownerElement; { return _ownerElement; }
-- (void) setValue:(NSString *) value; { ASSIGN(_value, value); }
+- (DOMElement *) ownerElement; { return (DOMElement *) _parentNode; }
+
+- (void) setValue:(NSString *) val;
+{
+	if([_value isEqual:val])
+		return;	// unchanged
+	ASSIGN(_value, val);
+	[_visualRepresentation setNeedsLayout:YES];
+}
+
 - (BOOL) specified; { return _value != nil; }
 - (NSString *) value; { return _value; }
 
@@ -231,6 +263,7 @@
 - (NSArray *) _attributes; { return [_attributes allValues]; }
 
 - (NSString *) getAttribute:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
+
 - (DOMAttr *) getAttributeNode:(NSString *) name; { return [_attributes objectForKey:name]; }
 
 - (DOMAttr *) getAttributeNodeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
@@ -242,14 +275,26 @@
 - (BOOL) hasAttribute:(NSString *) name; { return [_attributes objectForKey:name] != nil; }
 - (BOOL) hasAttributeNS:(NSString *) uri :(NSString *) name; { NIMP; return NO; }
 
+- (BOOL) hasAttributes; { return YES; }
+
 - (void) removeAttribute:(NSString *) name; { [_attributes removeObjectForKey:name]; }
-- (DOMAttr *) removeAttributeNode:(DOMAttr *) attr; { [_attributes removeObjectForKey:[attr name]]; [attr _setOwner:nil]; return attr; }
+- (DOMAttr *) removeAttributeNode:(DOMAttr *) attr;
+{
+	[_attributes removeObjectForKey:[attr name]];
+	[attr _setParent:nil];
+	[_visualRepresentation setNeedsLayout:YES];
+	return attr;
+}
 
 - (void) removeAttributeNS:(NSString *) uri :(NSString *) name; { NIMP; }
 
-- (void) setAttribute:(NSString *) name :(NSString *) value;
+- (void) setAttribute:(NSString *) name :(NSString *) val;
 {
-	[self setAttributeNode:[[[DOMAttr alloc] _initWithName:name value:value] autorelease]];
+	DOMAttr *attr=[_attributes objectForKey:name];
+	if(attr)
+		[attr setValue:val];	// already exists
+	else
+		[self setAttributeNode:[[[DOMAttr alloc] _initWithName:name value:val] autorelease]];	// create new
 }
 
 - (DOMAttr *) setAttributeNode:(DOMAttr *) attr;
@@ -257,7 +302,8 @@
 	if(!_attributes)
 		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
 	[_attributes setObject:attr forKey:[attr name]]; return attr;
-	[attr _setOwner:self];
+	[attr _setParent:self];	// this will make the attr inherit my _visualRepresentation
+	[_visualRepresentation setNeedsLayout:YES];
 }
 
 - (DOMAttr *) setAttributeNodeNS:(DOMAttr *) attr; { return NIMP; }
@@ -338,18 +384,60 @@
 
 - (NSString *) description;
 {
+	if([_nodeValue hasSuffix:@"\n"])
+		return [NSString stringWithFormat:@"%@: %@<lf>\n", _nodeName, _nodeValue];
 	return [NSString stringWithFormat:@"%@: %@\n", _nodeName, _nodeValue];
 }
 
 
-- (void) appendData:(NSString *) arg; { [(NSMutableString *) _nodeValue appendString:arg]; }
+- (void) appendData:(NSString *) arg;
+{
+	[(NSMutableString *) _nodeValue appendString:arg];
+	if([arg length] > 0)
+		[_visualRepresentation setNeedsLayout:YES];
+}
+
 - (NSString *) data; { return _nodeValue; }
-- (void) deleteData:(unsigned long) offset :(unsigned long) count; { [(NSMutableString *) _nodeValue deleteCharactersInRange:NSMakeRange(offset, count)]; }
-- (void) insertData:(unsigned long) offset :(NSString *) arg; { [(NSMutableString *) _nodeValue insertString:arg atIndex:offset]; }
-- (void) replaceData:(unsigned long) offset :(unsigned long) count :(NSString *) arg; { [(NSMutableString *) _nodeValue replaceCharactersInRange:NSMakeRange(offset, count) withString:arg]; }
+
+- (void) deleteData:(unsigned long) offset :(unsigned long) count;
+{
+	[(NSMutableString *) _nodeValue deleteCharactersInRange:NSMakeRange(offset, count)];
+	if(count > 0)
+		[_visualRepresentation setNeedsLayout:YES];
+}
+
+- (void) insertData:(unsigned long) offset :(NSString *) arg;
+{
+	[(NSMutableString *) _nodeValue insertString:arg atIndex:offset];
+	if([arg length] > 0)
+		[_visualRepresentation setNeedsLayout:YES];
+}
+
+- (void) replaceData:(unsigned long) offset :(unsigned long) count :(NSString *) arg;
+{
+	[(NSMutableString *) _nodeValue replaceCharactersInRange:NSMakeRange(offset, count) withString:arg];
+	if([arg length] > 0)
+		[_visualRepresentation setNeedsLayout:YES];
+}
+
 - (unsigned long) length; { return [_nodeValue length]; }
-- (void) setNodeValue:(NSString *) data; { [(NSMutableString *) _nodeValue setString:data]; }
-- (void) setData:(NSString *) data; { [(NSMutableString *) _nodeValue setString:data]; }
+
+- (void) setNodeValue:(NSString *) data;
+{
+	if([_nodeValue isEqual:data])
+		return;	// unchanged
+	[(NSMutableString *) _nodeValue setString:data];
+	[_visualRepresentation setNeedsLayout:YES];
+}
+
+- (void) setData:(NSString *) data;
+{
+	if([_nodeValue isEqual:data])
+		return;	// unchanged
+	[(NSMutableString *) _nodeValue setString:data];
+	[_visualRepresentation setNeedsLayout:YES];
+}
+
 - (NSString *) substringData:(unsigned long) offset :(unsigned long) count; { return [_nodeValue substringWithRange:NSMakeRange(offset, count)]; }
 
 @end
@@ -364,6 +452,7 @@
 	[(NSMutableString *) _nodeValue setString:last];	// keep last
 	r=[[DOMText new] autorelease];
 	[r setData:first];	// return first part
+	[_visualRepresentation setNeedsLayout:YES];
 	return r;
 }
 

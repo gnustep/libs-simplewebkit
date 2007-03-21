@@ -43,6 +43,8 @@
 	NSURLResponse *_response;
 	NSMutableData *_loadedData;
 	NSMutableDictionary *_subresources;
+	NSMutableDictionary *_loadingSubresources;
+	WebDataSource *_parent;
 	WebFrame *_webFrame;
 	NSURL *_unreachableURL;
 	BOOL _isLoading;	// initially set, reset by being the delegate of an NSURLConnection when done

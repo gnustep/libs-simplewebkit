@@ -23,9 +23,10 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#import <WebKit/WebFrame.h>
-#import <WebKit/DOM.h>
 #import <Foundation/NSXMLParser.h>
+#import <WebKit/WebFrame.h>
+#import <WebKit/WebFrameLoadDelegate.h>
+#import <WebKit/DOM.h>
 #import "Private.h"
 
 @implementation WebFrame
@@ -71,6 +72,7 @@
 	[_children release];
 	[_request release];
 	[_dataSource release];
+	[_frameElement release];	// within our parent's DOM tree
 	[_domDocument release];
 	[super dealloc];
 }
@@ -81,14 +83,20 @@
 	NSLog(@"%@ loadRequest:%@", self, req);
 #endif
 	[_request autorelease];
-	_request=[req copy];	// make a copy so that we can reload any time
+	_request=[req copy];	// make a copy so that we can reload it any time
 	[self reload];
 }
 
 - (void) stopLoading;
 {
+#if 1
+	NSLog(@"stop loading");
+#endif
+	// FIXME: we should be the only one who retains the dataSource...
+	// if we really had been loading anything, notify webView
 	[_provisionalDataSource release];
 	_provisionalDataSource=nil;
+	[_children makeObjectsPerformSelector:_cmd];		// recursively stop loading of all child frames!
 }
 
 - (void) reload;
@@ -99,13 +107,6 @@
 #endif
 	_provisionalDataSource=[[WebDataSource alloc] initWithRequest:_request];
 	[_provisionalDataSource _setWebFrame:self];
-}
-
-// FIXME: shouldn't this be based on a Notification?
-
-- (void) _startedLoading;
-{
-	[[_webView UIDelegate] webView:_webView didStartProvisionalLoadForFrame:self];
 }
 
 - (void) _receivedData:(WebDataSource *) dataSource;
@@ -120,16 +121,14 @@
 	NSLog(@"WebFrame finishedLoading");
 #endif
 	[_dataSource autorelease];	// previous - if any
-	_dataSource=_provisionalDataSource;
+	_dataSource=_provisionalDataSource;	// become new owner
 	_provisionalDataSource=nil;
-	[[_webView UIDelegate] webView:_webView didFinishLoadForFrame:self];	// set status "Done."
+	[[_webView frameLoadDelegate] webView:_webView didFinishLoadForFrame:self];	// set status "Done."
 }
 
 - (void) loadAlternateHTMLString:(NSString *) string baseURL:(NSURL *) url forUnreachableURL:(NSURL *) unreach;
 { // render HTML string
-	_provisionalDataSource=[[_WebNSDataSource alloc] initWithData:[string dataUsingEncoding:NSUTF8StringEncoding] MIMEType:@"text/html" textEncodingName:@"utf-8" baseURL:url];
-	[_provisionalDataSource _setUnreachableURL:unreach];
-	[_provisionalDataSource _setWebFrame:self];	// this triggers loading for _WebNSDataSource
+	[self loadRequest:[[_NSURLRequestNSData alloc] initWithData:[string dataUsingEncoding:NSUTF8StringEncoding] mime:@"text/html" textEncodingName:@"utf-8" baseURL:url]];
 }
 
 - (void) loadArchive:(WebArchive *) archive;
@@ -139,8 +138,7 @@
 
 - (void) loadData:(NSData *) data MIMEType:(NSString *) mime textEncodingName:(NSString *) encoding baseURL:(NSURL *) url;
 { // NOTE: data might be incomplete, i.e. we will be called again as soon as new data arrives
-	_provisionalDataSource=[[_WebNSDataSource alloc] initWithData:data MIMEType:mime textEncodingName:encoding baseURL:url];
-	[_provisionalDataSource _setWebFrame:self];	// this triggers loading
+	[self loadRequest:[[_NSURLRequestNSData alloc] initWithData:data mime:mime textEncodingName:encoding baseURL:url]];
 }
 
 - (void) loadHTMLString:(NSString *) string baseURL:(NSURL *) url;
@@ -151,22 +149,45 @@
 		   baseURL:url];
 }
 
+- (WebFrame *) _findFrameNamed:(NSString *) n;
+{ // recursively search full tree
+	NSEnumerator *e=[_children objectEnumerator];
+	WebFrame *child;
+	WebFrame *result;
+	if([n isEqualToString:_name])
+		return self;	// found
+	while((child=[e nextObject]))
+		{
+		if((result=[child _findFrameNamed:n]))
+			return result;	// found!
+		}
+	return nil;
+}
+
 - (WebFrame *) findFrameNamed:(NSString *) n;
 {
+	WebFrame *f, *r;
 	if([n isEqualToString:@"_self"] || [n isEqualToString:@"_current"])
 		return self;
 	if([n isEqualToString:@"_parent"])
 		return _parent?_parent:self;
 	if([n isEqualToString:@"_top"])
-		{
-		WebFrame *f=self;
-		while([f parentFrame])
-			f=[f parentFrame];	// search top element
-		return f;
+		{ // find root element
+		f=self;
+		while((r=[f parentFrame]))
+			f=r;	// search top element
+		return r;
 		}
 	if([n isEqualToString:_name])
 		return self;
-	// FIXME: search descendents and parents
+	f=self;
+	while(f)
+		{ // search in full child tree
+		if((r=[f _findFrameNamed:n]))
+			return r;	// found
+		f=[f parentFrame];	// try next level
+		}
+	// FIXME: searh other main frame hierarchies (how to find those???)
 	return nil;
 }
 
@@ -177,16 +198,45 @@
 - (WebFrameView *) frameView; { return _frameView; }
 - (WebView *) webView; { return _webView; }
 - (NSString *) name; { return _name; }
+- (void) _setFrameName:(NSString *) n; { ASSIGN(_name, n); }
+- (RENAME(DOMDocument) *) DOMDocument; { return _domDocument; }
+- (DOMHTMLElement *) frameElement; { return _frameElement; }
+- (void) _setFrameElement:(DOMHTMLElement *) e; { ASSIGN(_frameElement, e); }
 
-- (RENAME(DOMDocument) *) DOMDocument;
-{
-	return _domDocument;	// root document
-}
+// we are the delegate of the NSTextView that renders the <body>
 
-- (DOMHTMLElement *) frameElement;
+- (BOOL) textView:(NSTextView *) tv clickedOnLink:(id) link atIndex:(unsigned) charIndex;
 {
-	id rep=[_dataSource representation];
-	return [rep respondsToSelector:@selector(frameElement)]?[rep frameElement]:nil;
+	if(link)
+		{
+		NSString *target=@"_blank";	// FIXME: get from ???
+		WebFrame *newFrame=nil;
+		// CHECKME: shouldn't we already resolve the link when processing the DOMHTMLAnchorElement to allow text drag&drop?
+		NSURL *url=[[NSURL URLWithString:link relativeToURL:[[_dataSource response] URL]] absoluteURL];	// normalize
+		// FIXME: check for "javascript" scheme
+		NSURLRequest *request=[NSURLRequest requestWithURL:url];
+		// find out if we have a DOMHTMLTargetAttribute which names the window (frame) we should reload
+#if 1
+		NSLog(@"jump to link %@ for target %@", link, target);
+#endif
+		if([target isEqualToString:@"_blank"])
+			{ // create new window
+			// there should be a context menu for a link so that we can call this manually
+			WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// create a new window - or return nil
+			if(newView)
+				{
+				[[_webView UIDelegate] webViewShow:newView];	// and show
+				return YES;	// done
+				}
+			}
+		else if(target)
+			newFrame=[self findFrameNamed:target];	// find by name
+		if(!newFrame)
+			newFrame=self;
+		// push current location to history
+		[newFrame loadRequest:request];	// make page load (new) URL
+		}
+	return YES;	// handled
 }
 
 @end

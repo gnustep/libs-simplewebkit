@@ -25,6 +25,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <Foundation/NSURLRequest.h>
+#import <WebKit/WebFrameLoadDelegate.h>
 #import <WebKit/WebUIDelegate.h>
 
 @class WebBackForwardList, WebHistoryItem;
@@ -80,6 +81,7 @@ extern NSString *WebViewProgressStartedNotification;
 	id _resourceLoadDelegate;
 	id /*<WebUIDelegate>*/ _uiDelegate;
 	float _textSizeMultiplier;
+	int _textSize;
 	BOOL _continuousSpellChecking;
 	BOOL _editable;
 	BOOL _smartInsertDelete;

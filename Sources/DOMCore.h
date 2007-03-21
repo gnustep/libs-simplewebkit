@@ -38,6 +38,7 @@
 // #import <WebKit/DOMCore.h>
 
 #import <WebKit/WebScriptObject.h>
+#import <WebKit/WebDocument.h>
 
 @class DOMAttr;
 @class DOMCDATASection;
@@ -54,7 +55,12 @@
 
 @interface DOMObject : WebScriptObject <NSCopying>
 {
+	NSObject <WebDocumentView> *_visualRepresentation;			// non-retained NSView or NSCell that represents the element - notified on changes
 }
+
+- (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view;
+- (NSObject <WebDocumentView> *) _visualRepresentation;	// received DOMObject update notifications
+
 @end
 
 @interface DOMNode : DOMObject
@@ -163,7 +169,6 @@
 }
 
 - (id) _initWithName:(NSString *) str value:(NSString *) value;
-- (void) _setOwner:(DOMElement *) owner;
 
 - (NSString *) name;
 - (DOMElement *) ownerElement;

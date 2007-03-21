@@ -25,6 +25,11 @@
 
 #import <WebKit/DOMCore.h>
 
+@class DOMCSSStyleDeclaration;
+@class WebDataSource;
+@class WebFrame;
+@class _WebDocumentRepresentation;
+
 @interface DOMHTMLElement : DOMElement
 
 + (BOOL) _closeNotRequired;				// has no (explicit) close tag
@@ -35,10 +40,29 @@
 - (NSString *) outerHTML;
 - (NSString *) innerHTML;
 - (NSAttributedString *) attributedString;
+- (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
+- (WebFrame *) webFrame;
+
+- (DOMCSSStyleDeclaration *) _style;		// get appropriate CSS definition by tag, tag level, id, class, etc.
+- (void) _layout:(NSView *) parent index:(unsigned) idx;
+- (void) _trimSpaces:(NSMutableAttributedString *) str;
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 
 @end
 
-@interface DOMHTMLDocument : DOMHTMLElement		// the whole document - not the same as DOMDocument!?!
+@class WebFrame;
+
+@interface DOMHTMLDocument : DOMHTMLElement			// the whole document
+{
+	WebDataSource *_dataSource;		// the datasource we belong to - not retained!
+	WebFrame *_webFrame;			// the webframe we belong to - not retained!
+}
+
+- (void) _setWebFrame:(WebFrame *) frame;
+- (WebFrame *) webFrame;
+- (void) _setWebDataSource:(WebDataSource *) src;
+- (WebDataSource *) _webDataSource;
+
 @end
 
 @interface DOMHTMLHtmlElement : DOMHTMLElement		// <html> - has <head> and <body> and <frameset> children
@@ -62,6 +86,12 @@
 @interface DOMHTMLScriptElement : DOMHTMLElement	// <script>
 @end
 
+@interface DOMHTMLObjectElement : DOMHTMLElement	// <object>
+@end
+
+@interface DOMHTMLParamElement : DOMHTMLElement	// <param>
+@end
+
 @interface DOMHTMLFrameSetElement : DOMHTMLElement		// <frameset>
 @end
 
@@ -69,6 +99,9 @@
 @end
 
 @interface DOMHTMLIFrameElement : DOMHTMLFrameElement	// <iframe>
+@end
+
+@interface DOMHTMLObjectFrameElement : DOMHTMLFrameElement	// <applet> or <object>
 @end
 
 @interface DOMHTMLBodyElement : DOMHTMLElement	// <body>
@@ -114,6 +147,15 @@
 @end
 
 @interface DOMHTMLButtonElement : DOMHTMLElement	// <button>
+@end
+
+@interface DOMHTMLSelectElement : DOMHTMLElement	// <select>
+@end
+
+@interface DOMHTMLOptionElement : DOMHTMLElement	// <option>
+@end
+
+@interface DOMHTMLOptGroupElement : DOMHTMLElement	// <optgroup>
 @end
 
 @interface DOMHTMLLabelElement : DOMHTMLElement	// <label>

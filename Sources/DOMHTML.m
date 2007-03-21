@@ -25,6 +25,9 @@
 
 #import "DOMHTML.h"
 
+static NSString *DOMHTMLElementAttribute=@"DOMHTMLElementAttribute";
+static NSString *DOMHTMLAnchorElementTargetName=@"DOMHTMLAnchorElementTargetName";
+
 @interface NSString (HTMLAttributes)
 - (BOOL) htmlBoolValue;
 - (NSColor *) htmlColor;
@@ -197,7 +200,27 @@
 @end
 
 @implementation DOMHTMLScriptElement
+
 + (BOOL) _streamline;	{ return YES; }
+
+- (NSAttributedString *) attributedString;
+{ // contents is script (may be inside a comment)
+	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
+}
+
+@end
+
+@implementation DOMHTMLObjectElement
+
+- (NSAttributedString *) attributedString;
+{ // contents is script (may be inside a comment)
+	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
+}
+
+@end
+
+@implementation DOMHTMLParamElement
+
 @end
 
 @implementation DOMHTMLFrameSetElement
@@ -364,6 +387,53 @@
 	return [[[NSMutableAttributedString alloc] initWithString:value] autorelease];	// using default font...
 }
 
+@end
+
+@implementation DOMHTMLSelectElement
+
+- (NSAttributedString *) attributedString;
+{
+	NSMutableAttributedString *str;
+	NSTextAttachment *attachment;
+	NSCell *cell;
+	// search for enclosing <form> element to know how to set target/action etc.
+	NSString *name=[self getAttribute:@"name"];
+	NSString *val=[self getAttribute:@"value"];
+	NSString *size=[self getAttribute:@"size"];
+	BOOL multiSelect=[self hasAttribute:@"multiple"];
+	if(!val)
+		val=@"";
+#if 1
+	NSLog(@"<button>: %@", [self _attributes]);
+#endif
+	if([size intValue] <= 1)
+		{ // dropdown
+		// how to handle multiSelect flag?
+		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
+		cell=(NSCell *) [attachment attachmentCell];	// get the real cell
+		[cell setTitle:val];
+		[cell setTarget:self];
+		[cell setAction:@selector(_formAction:)];
+		}
+	else
+		{ // embed NSTableView with [size intValue] visible lines
+		attachment=nil;
+		cell=nil;
+		}
+#if 1
+	NSLog(@"  cell: %@", cell);
+#endif
+	str=(NSMutableAttributedString *) [NSMutableAttributedString attributedStringWithAttachment:attachment];
+	[str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
+	return str;
+}
+
+@end
+
+@implementation DOMHTMLOptionElement
+@end
+
+@implementation DOMHTMLOptGroupElement
 @end
 
 @implementation DOMHTMLLabelElement

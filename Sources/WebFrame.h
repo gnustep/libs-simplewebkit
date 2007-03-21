@@ -26,11 +26,10 @@
 #import <Cocoa/Cocoa.h>
 #import <Foundation/NSURLRequest.h>
 #import <WebKit/WebDataSource.h>
-#import <WebKit/WebFrameView.h>
-#import <WebKit/WebView.h>
 #import <WebKit/WebDOMOperations.h>
 
-@class DOMHTMLElement;	// not yet implemented
+@class WebFrameView;
+@class WebView;
 
 @class WebArchive;		// not yet implemented
 
@@ -41,6 +40,7 @@
 	NSString *_name;			// our name
 	WebFrameView *_frameView;	// our frame view
 	RENAME(DOMDocument) *_domDocument;
+	DOMHTMLElement *_frameElement;
 	WebView *_webView;			// our web view
 	WebFrame *_parent;
 	NSMutableArray *_children;	// loading will create children

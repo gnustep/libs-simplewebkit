@@ -25,13 +25,12 @@
 
 #import <Foundation/Foundation.h>
 #import <WebKit/WebDataSource.h>
-#import <WebKit/WebDocument.h>
 #import <WebKit/DOM.h>
+#import "WebDocumentRepresentation.h"
 
-@interface _WebHTMLDocumentRepresentation : NSObject <WebDocumentRepresentation>
+@interface _WebHTMLDocumentRepresentation : _WebDocumentRepresentation
 {
-	WebDataSource *_dataSource;
-	RENAME(DOMDocument) *_doc;		// current document - just a pointer
+	RENAME(DOMDocument) *_doc;		// current document - just a pointer to the object created by WebFrame
 	DOMHTMLElement *_root;			// current root - just a pointer
 	DOMHTMLHeadElement *_head;		// current head - just a pointer
 	DOMHTMLBodyElement *_body;		// current body - just a pointer

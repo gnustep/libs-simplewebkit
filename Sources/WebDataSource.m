@@ -26,6 +26,9 @@
 #import "Private.h"
 #import <WebKit/WebDataSource.h>
 #import <WebKit/WebResource.h>
+#import <WebKit/WebFrameLoadDelegate.h>
+
+#define ROBUSTNESS_TEST 0
 
 @implementation WebDataSource
 
@@ -39,9 +42,6 @@
 		_initial=[request copy];
 		_request=[_initial mutableCopy];
 		// modify request webView:resource:willSendRequest:redirectResponse:fromDataSource:
-		_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
-		_isLoading=YES;
-
 #if 0
 		NSLog(@"WebDataSource load URL %@", [[_initial URL] absoluteString]);
 #endif
@@ -54,6 +54,8 @@
 #if 1
 	NSLog(@"dealloc %@", self);
 #endif
+	if(_isLoading)
+		;
 	[_connection cancel];	// cancel any pending actions 
 	[_connection release];
 	[_initial release];
@@ -61,9 +63,19 @@
 	[_response release];
 	[_loadedData release];
 	[_subresources release];
+	[_loadingSubresources release];
 	[_unreachableURL release];
 	[(NSObject *) _representation release];
 	[super dealloc];
+}
+
+- (NSString *) description; { return [NSString stringWithFormat:@"%@: %@ -> %@", [super description], _request, _response]; }
+- (void) _cancel;
+{
+	[_connection cancel];
+	[_connection release];
+	_connection=nil;
+	// cancel all still loading subresources
 }
 
 - (BOOL) isLoading; { return _isLoading; }
@@ -79,9 +91,50 @@
 
 - (NSURLRequest *) initialRequest; { return _initial; }
 
-- (WebResource *) mainResource; { return NIMP; }
+- (void) _setParentDataSource:(WebDataSource *) parent;
+{
+	_parent=parent;
+}
 
-- (NSString *) pageTitle; { return _representation?[_representation title]:nil; }
+- (void) _loadSubresourceWithURL:(NSURL *) url;
+{
+	url=[url absoluteURL];
+	if(![_subresources objectForKey:url] && ![_loadingSubresources objectForKey:url])
+		{ // not yet known
+		WebDataSource *sub=[[[isa alloc] initWithRequest:[NSURLRequest requestWithURL:url]] autorelease];	// make new request
+#if 1
+		NSLog(@"load subresource from %@", url);
+#endif
+		[sub _setParentDataSource:self];
+		if(!_loadingSubresources)
+			_loadingSubresources=[[NSMutableDictionary alloc] initWithCapacity:10];
+		[_loadingSubresources setObject:sub forKey:url];	// add to list of resources currently loading
+		// FIXME: this triggers a frameload callback but the subresource must learn about the webFrame it belongs to!?!
+		[sub _setWebFrame:_webFrame];
+		}
+	else
+		NSLog(@"already loading %@", url);
+}
+
+- (void) _commitSubresource:(WebDataSource *) source;
+{ // subresource is done
+#if 1
+	NSLog(@"subresource committed: %@", source);
+#endif
+	[self addSubresource:[source mainResource]];	// save
+	[_loadingSubresources removeObjectForKey:[[source request] URL]];
+}
+
+- (WebResource *) mainResource;
+{
+	return [[[WebResource alloc] initWithData:_loadedData
+										  URL:[_response URL]
+									 MIMEType:[_response MIMEType]
+							 textEncodingName:[self textEncodingName]
+									frameName:[_webFrame name]] autorelease];
+}
+
+- (NSString *) pageTitle; { return [_representation title]; }
 	
 - (id <WebDocumentRepresentation>) representation; { return _representation; }
 
@@ -89,7 +142,7 @@
 
 - (NSURLResponse *) response; { return _response; }
 
-- (NSArray *) subresources; { return [_subresources allValues]; }
+- (NSArray *) subresources; { return _subresources?[_subresources allValues]:[NSArray array]; }
 
 - (WebResource *) subresourceForURL:(NSURL *) url;
 {
@@ -106,12 +159,18 @@
 	return encoding;
 }
 
+- (NSStringEncoding) _stringEncoding;
+{
+	// convert to string encoding value
+	return NSUTF8StringEncoding;	// default
+}
+
 - (NSURL *) unreachableURL; { return _unreachableURL; }
 - (void) _setUnreachableURL:(NSURL *) url; { ASSIGN(_unreachableURL, url); }
 
 - (WebArchive *) webArchive;
 {
-	// parse data into webArchive
+	// parse data or _webFrame into webArchive
 	return NIMP;
 }
 
@@ -121,16 +180,37 @@
 }
 
 - (void) _setWebFrame:(WebFrame *) wf;
-{
+{ // this triggers loading
+	WebView *webView=[wf webView];
 	_webFrame=wf;
+	_isLoading=YES;
+	if([_request isKindOfClass:[_NSURLRequestNSData class]])
+		{
+		[[webView frameLoadDelegate] webView:webView didStartProvisionalLoadForFrame:wf];
+		[self connection:nil didReceiveResponse:[(_NSURLRequestNSData *) _request response]];	// simulate callbacks from NSURLConnection
+		[self connection:nil didReceiveData:[(_NSURLRequestNSData *) _request data]];
+		[self connectionDidFinishLoading:nil];	// notify
+		}
+	else
+		{
+		_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
+		[[webView frameLoadDelegate] webView:webView didStartProvisionalLoadForFrame:wf];
+		}
 }
 
 // delegate callbacks during data reception - pass to representation
 
 - (void) connection:(NSURLConnection *) connection didFailWithError:(NSError *) error;
 {
+#if 1
 	NSLog(@"WebDataSource error: %@", error);
+#endif
+	_isLoading=NO;
 	[_representation receivedError:(NSError *)error withDataSource:self];
+	// how do we indicate the error???
+	// should we really commit?
+	// can the WebResource denote an erroneous resource???
+	[_parent _commitSubresource:self]; 
 }
 
 - (NSURLRequest *) connection:(NSURLConnection *) connection willSendRequest:(NSURLRequest *) request redirectResponse:(NSURLResponse *) redirectResponse;
@@ -142,13 +222,11 @@
 }
 
 - (void) connection:(NSURLConnection *) connection didReceiveResponse:(NSURLResponse *) response;
-{
+{ // we have received the header - set up the WebRepresentation object determined by the MIME type
 	long long len=[response expectedContentLength];
 	Class repclass;
-	Class viewclass;
-	NSView <WebDocumentView> *view;
 	_response=[response retain];
-#if 1
+#if 0
 	NSLog(@"response received: %@", response);
 	if([response respondsToSelector:@selector(allHeaderFields)])
 		NSLog(@"status code: %d all headers: %@", [(NSHTTPURLResponse *) response statusCode], [(NSHTTPURLResponse *) response allHeaderFields]);
@@ -157,29 +235,33 @@
 	NSLog(@"suggestedFilename: %@", [response suggestedFilename]);
 	NSLog(@"textEncodingName: %@", [response textEncodingName]);
 #endif
+	// [[webView frameLoadDelegate] webView:webView didCommitLoadForFrame:_webFrame];
 	if(!_loadedData && len > 0 && len < 2000000)
 		_loadedData=[[NSMutableData alloc] initWithCapacity:len];	// preallocate up to 2 MByte
 	repclass=[WebView _representationClassForMIMEType:[response MIMEType]];
-#if 1
-	NSLog(@"repclass=%@", NSStringFromClass(repclass));
-#endif
 	if(repclass == Nil)
-		return;	// don't know what to do now...
+		{ // don't know what to do now...
+#if 1
+		NSLog(@"repclass=%@", NSStringFromClass(repclass));
+		NSLog(@"response: %@", response);
+		NSLog(@"URL: %@", [response URL]);
+		NSLog(@"textEncodingName: %@", [response textEncodingName]);
+#endif
+		[_connection cancel];	// cancel any pending actions 
+		return;
+		}
+	if(_representation && [(NSObject *) _representation class] == repclass)
+		;	// we are already initialized...
+	[(NSObject *) _representation release];	// delete existing representation
 	_representation=[[repclass alloc] init];	// should conform to <WebDocumentRepresentation>
 	[_representation setDataSource:self];		// we are the data source
-#if 1
+#if 0
 	NSLog(@"representation: %@", _representation);
 #endif
-	// FIXME: shouldn't this better be handled by a notification handler???
-	viewclass=[WebView _viewClassForMIMEType:[response MIMEType]];
-	view=[[viewclass alloc] initWithFrame:[[_webFrame frameView] frame]];
-	[[_webFrame frameView] _setDocumentView:view];
-	[view setNeedsLayout:YES];
-	[view release];
 }
 
 - (void) connection:(NSURLConnection *) connection didReceiveData:(NSData *) data;
-{ // new data received, append
+{ // new data received, append and notify representation and view
 #if 0
 	NSLog(@"data received: %@", data);
 #endif
@@ -187,42 +269,71 @@
 		_loadedData=[data mutableCopy];	// first segment
 	else
 		[_loadedData appendData:data];
-	// determine if we have received enough to reparse again, i.e. compare with expectedContentLength
-	[_representation receivedData:_loadedData withDataSource:self];
+	// we should not reparse for every byte we receive...
+	// determine if we have already received enough to reparse again, i.e. compare with [response expectedContentLength]
+#if !ROBUSTNESS_TEST
+	[_representation receivedData:_loadedData withDataSource:self];	// pass on what we have
+    [(NSView <WebDocumentView> *)[[_webFrame frameView] documentView] dataSourceUpdated:self];
+#endif
 }
 
 -(void) connectionDidFinishLoading:(NSURLConnection *) connection;
 {
 	NSLog(@"connectionDidFinishLoading: %@", connection);
+#if ROBUSTNESS_TEST
+	{ // try to make the html parser fail by passing incomplete HTML source
+		int i;
+		for(i=1; i<[_loadedData length]; i++)
+			[_representation receivedData:[_loadedData subdataWithRange:NSMakeRange(0, i)] withDataSource:self];	// parse with every length we have
+	}
+#endif
+	// FIXME: shouldn't we notify only after all subresources have finished loading as well???
 	_isLoading=NO;	// finished
 	[_representation finishedLoadingWithDataSource:self];	// notify
+	[_parent _commitSubresource:self]; 
 }
 
 @end
 
-@implementation _WebNSDataSource
+@implementation _NSURLRequestNSData
 
-- (id) initWithData:(NSData *) data MIMEType:(NSString *) mime textEncodingName:(NSString *) encoding baseURL:(NSURL *) url;
+- (id) initWithData:(NSData *) data mime:(NSString *) mime textEncodingName:(NSString *) encoding baseURL:(NSURL *) url;
 {
-	if((self=[super init]))
+	if((self=[super initWithURL:[NSURL URLWithString:@"about:"]]))	// we must supply a dummy URL...
 		{
-		_loadedData=[data retain];
+		_data=[data retain];
 		_response=[[NSURLResponse alloc] initWithURL:url MIMEType:mime expectedContentLength:[data length] textEncodingName:encoding];
 		}
 	return self;
 }
 
-- (void) _setWebFrame:(WebFrame *) wf;
-{ // set web frame and simulate loading
-	_webFrame=wf;
-	_isLoading=YES;
-	[_response autorelease];	// will be retained once more
-	[self connection:nil didReceiveResponse:_response];	// we have no connection...
-#if 0
-	NSLog(@"data received: %@", _loadedData);
-#endif
-	[_representation receivedData:_loadedData withDataSource:self];
-	[self connectionDidFinishLoading:nil];	// notify
+- (id) copyWithZone:(NSZone *) zone;
+{
+	_NSURLRequestNSData *c=[super copyWithZone:zone];
+	if(c)
+		{
+		c->_data=[_data retain];
+		c->_response=[_response retain];
+		}
+	return c;
 }
+
+- (id) mutableCopyWithZone:(NSZone *) zone;
+{
+	return [self copyWithZone:zone];	// we are not really mutable!
+}
+
+- (void) dealloc;
+{
+	[_data release];
+	[_response release];
+	[super dealloc];
+}
+
+- (NSURLResponse *) response; { return _response; }
+- (NSData *) data { return _data; }
+- (BOOL) HTTPShouldHandleCookies; { return NO; }
+
+-(NSURL *) URL { return [NSURL URLWithString:@""]; }
 
 @end
