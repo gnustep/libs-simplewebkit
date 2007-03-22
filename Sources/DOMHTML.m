@@ -125,6 +125,8 @@ static NSString *DOMHTMLAnchorElementTargetName=@"DOMHTMLAnchorElementTargetName
 	return [str autorelease];
 }
 
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep; { return; }	// ignore
+
 @end
 
 @implementation DOMCharacterData (DOMHTMLElement)
@@ -169,6 +171,10 @@ static NSString *DOMHTMLAnchorElementTargetName=@"DOMHTMLAnchorElementTargetName
 @end
 
 @implementation DOMHTMLDocument
+- (WebFrame *) webFrame; { return _webFrame; }
+- (void) _setWebFrame:(WebFrame *) f; { _webFrame=f; }
+- (WebDataSource *) _webDataSource; { return _dataSource; }
+- (void) _setWebDataSource:(WebDataSource *) src; { _dataSource=src; }
 @end
 
 @implementation DOMHTMLHtmlElement
@@ -190,8 +196,35 @@ static NSString *DOMHTMLAnchorElementTargetName=@"DOMHTMLAnchorElementTargetName
 @end
 
 @implementation DOMHTMLLinkElement
+
 + (BOOL) _closeNotRequired; { return YES; }
 + (BOOL) _goesToHead;	{ return YES; }
+
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+{ // e.g. <link rel="stylesheet" type="text/css" href="test.css" />
+	NSString *rel=[self getAttribute:@"rel"];
+	if([rel isEqualToString:@"stylesheet"] && [[self getAttribute:@"type"] isEqualToString:@"text/css"])
+		{ // load stylesheet
+		[self _loadSubresourceWithAttributeString:@"href"];
+		}
+	else if([rel isEqualToString:@"home"])
+		{
+		NSLog(@"<link>: %@", [self _attributes]);
+		}
+ 	else if([rel isEqualToString:@"alternate"])
+		{
+		NSLog(@"<link>: %@", [self _attributes]);
+		}
+	else if([rel isEqualToString:@"index"])
+		{
+		NSLog(@"<link>: %@", [self _attributes]);
+		}
+	else
+		{
+		NSLog(@"<link>: %@", [self _attributes]);
+		}
+}
+
 @end
 
 @implementation DOMHTMLStyleElement
