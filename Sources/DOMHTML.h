@@ -29,6 +29,14 @@
 @class WebDataSource;
 @class WebFrame;
 @class _WebDocumentRepresentation;
+@class NSTextTable, NSTextTableBlock;	// we don't explicitly import since we can't rely on its existence
+
+#ifndef NIMP
+#define NIMP NSLog(@"not implemented: %@", NSStringFromSelector(_cmd)), (id) nil
+#endif
+#ifndef ASSIGN
+#define ASSIGN(var, val) ([var release], var=[val retain])
+#endif
 
 @interface DOMHTMLElement : DOMElement
 
@@ -46,7 +54,9 @@
 - (DOMCSSStyleDeclaration *) _style;		// get appropriate CSS definition by tag, tag level, id, class, etc.
 - (void) _layout:(NSView *) parent index:(unsigned) idx;
 - (void) _trimSpaces:(NSMutableAttributedString *) str;
+- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table;
 - (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (void) _elementLoaded;	// element has been loaded
 
 @end
 

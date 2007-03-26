@@ -30,10 +30,11 @@
 #import <WebKit/WebDocument.h>
 #import <WebKit/WebHistoryItem.h>
 #import <WebKit/WebView.h>
+#import "WebDocumentRepresentation.h"
 
-@interface _WebXMLDocumentRepresentation : NSObject <WebDocumentRepresentation>
+@interface _WebXMLDocumentRepresentation : _WebDocumentRepresentation
 {
-	WebDataSource *_dataSource;
+	RENAME(DOMDocument) *_root;		// if not (X)HTML - XML document root
 }
 
 @end

@@ -44,19 +44,12 @@
 #endif
 }
 
-- (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
-{
-	NSLog(@"WebXMLDocumentRepresentation receivedError: %@", error);
-}
-
-- (void) setDataSource:(WebDataSource *) dataSource; { _dataSource=dataSource; }
-
 - (NSString *) title; { return [[[_dataSource response] URL] absoluteString]; }
 
 - (BOOL) canProvideDocumentSource; { return YES; }
 
 - (NSString *) documentSource;
-{ // should be in UTF8...
+{ // XML should be in UTF8...
 	return [[[NSString alloc] initWithData:[_dataSource data] encoding:NSUTF8StringEncoding] autorelease];
 }
 

@@ -24,88 +24,74 @@
 */
 
 #import "Private.h"
+#import <WebKit/WebFrameLoadDelegate.h>
 #import "WebHTMLDocumentView.h"
 
-@interface NSView (_WebHTMLDocumentView)
-- (void) _updateWithDOMHTMLElement:(DOMHTMLElement *) tree;
-@end
-
-@implementation NSView (_WebHTMLDocumentView)
-
-- (BOOL) textView:(NSTextView *) tv clickedOnLink:(id) link atIndex:(unsigned) charIndex;
-{
-	// FIXME: we must make someone else the delegate who knows the baseURL...
-	// e.g. the _WebHTMLDocumentView
-	//	if(link)
-	//		link=[[NSURL URLWithString:link relativeToURL:nil] absoluteString];	// normalize
-	NSLog(@"jump to link %@", link);
-	return YES;	// handled
-}
-
-- (void) _updateWithDOMHTMLElement:(DOMHTMLElement *) tree
-{ // adjust subviews so that they display the DOM tree content
-	DOMNodeList *children=[tree childNodes];
-	NSLog(@"_updateWithDOMHTMLElement: %@", tree);
-	NSLog(@"attribs: %@", [tree _attributes]);
-	if([tree class] == [DOMHTMLFrameSetElement class])
-		{ // handle frameset
-		
-		}
-	else if([tree class] == [DOMHTMLFrameElement class])
-		{ // handle frame
-		
-		}
-	else if([tree class] == [DOMHTMLBodyElement class])
-		{ // handle view background
-		NSTextView *t=[[self subviews] lastObject];
-		if(![t isKindOfClass:[NSTextView class]])
-			{
-			[t removeFromSuperviewWithoutNeedingDisplay];
-			t=[[NSTextView alloc] initWithFrame:[self frame]];
-			[t setDelegate:self];
-//			[t setAutoresizingMask:NSViewWidthSizable|NSViewMaxXMargin|NSViewHeightSizable|NSViewMaxYMargin];
-			[t setAutoresizingMask:NSViewWidthSizable|NSViewMaxXMargin|NSViewMinYMargin];
-			// set other attributes (selectable, editable etc.)
-			[self addSubview:t];
-			[t release];
-			}
-		[[t textStorage] setAttributedString:[tree attributedString]];
-		}
-	// adjust subview classes/types first - then recursively go down one level
-	[self setNeedsDisplay:YES];
-}
-
-@end
 
 @implementation _WebHTMLDocumentView
 
 // NSView overrides
 
-// init -> attach defalt context menu
+- (id) initWithFrame:(NSRect) rect;
+{
+	if((self=[super initWithFrame:rect]))
+		{
+		// attach a defalt context menu (Back, Forward etc.) for HTML pages
+		}
+	return self;
+}
 
-#if OLD
 - (void) drawRect:(NSRect) rect;
 {
+#if 1
 	NSLog(@"%@ drawRect:%@", self, NSStringFromRect(rect));
-	if(_needsLayout)
-		[self layout];
-	[super drawRect:rect];
-}
 #endif
+	if(_needsLayout)
+		{
+		// is it safe to call this here? It needs very precise tracking of dirty rects...
+		// well, we can move th subviews since they are usually drawn afterwards
+		// but changing the layout may call setFrame:
+		[self layout];
+		[super drawRect:rect];
+		[self setNeedsDisplay:YES];	// and again
+		}
+	else
+		[super drawRect:rect];
+}
 
 // @protocol WebDocumentView
 
 - (void) dataSourceUpdated:(WebDataSource *) source;
 {
-	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[source webFrame] DOMDocument] firstChild] firstChild];
-	if(html)
-		[self _updateWithDOMHTMLElement:(DOMHTMLElement *) [html lastChild]];
+	WebFrame *webFrame=[source webFrame];
+	WebView *webView=[webFrame webView];
+	NSString *title;
+#if 1
+	NSLog(@"dataSourceUpdated");
+#endif
+	[self setDataSource:source];
+#if 1	// show view hierarchy
+	while(self)
+		NSLog(@"%p: %@", self, self), self=(_WebHTMLDocumentView *) [self superview];
+#endif	
+	if((title=[[source representation] title]))
+		{
+		NSLog(@"notify delegate for title %@: %@", title, [webView frameLoadDelegate]);
+		[[webView frameLoadDelegate] webView:webView didReceiveTitle:title forFrame:webFrame];	// update title
+		}
 }
 
 - (void) layout;
-{
+{ // do the layout especially of subviews
+	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
+	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or a <frameset>
+#if 1
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
+#endif
 	_needsLayout=NO;
+	[body _layout:self index:0];	// process first child
+	// check if we did load with an anchor and it is already defined
+	// if possible scroll us to the anchor position
 }
 
 - (void) setDataSource:(WebDataSource *) source;
@@ -115,7 +101,10 @@
 
 - (void) setNeedsLayout:(BOOL) flag;
 {
+	NSLog(@"setNeedsLayout");
 	_needsLayout=flag;
+	[self setNeedsDisplay:YES];
+//	[[webFrame frameView] setNeedsDisplay:YES];
 }
 
 - (void) viewDidMoveToHostWindow;
@@ -138,3 +127,62 @@
 
 @end
 
+@implementation NSText (NSTextAttachment)
+
+- (NSText *) currentEditor;
+{
+	return nil;	// someone calls that...
+}
+
+@end
+
+@implementation NSTextAttachmentCell (NSTextAttachment)
+
++ (NSTextAttachment *) textAttachmentWithCellOfClass:(Class) class;
+{
+	NSTextAttachment *attachment=[[[NSTextAttachment alloc] initWithFileWrapper:nil] autorelease];
+	[attachment setAttachmentCell:[[[class alloc] init] autorelease]];		
+	return attachment;
+}
+
+@end
+
+@implementation NSButtonCell (NSTextAttachment)
+
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+- (BOOL) wantsToTrackMouse; { return YES; }
+
+// add missing methods
+
+@end
+
+@implementation NSActionCell (NSTextAttachment)
+
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+- (BOOL) wantsToTrackMouse; { return YES; }
+
+	// add missing methods
+
+@end
+
+@implementation NSTextFieldCell (NSTextAttachment)
+
+- (NSSize) cellSize; { return NSMakeSize(200.0, 22.0); }		// should depend on font&SIZE parameter
+
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+- (BOOL) wantsToTrackMouse; { return YES; }
+
+// add missing methods
+
+@end
+
+@implementation NSPopUpButtonCell (NSTextAttachment)
+
+- (NSSize) cellSize; { return NSMakeSize(200.0, 22.0); }		// should depend on font&SIZE parameter
+
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+- (BOOL) wantsToTrackMouse; { return YES; }
+
+	// add missing methods
+
+@end

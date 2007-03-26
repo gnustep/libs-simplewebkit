@@ -40,3 +40,19 @@
 }
 @end
 
+@interface NSTextAttachmentCell (NSTextAttachment)
+
++ (NSTextAttachment *) textAttachmentWithCellOfClass:(Class) class;	// manage an arbitrary NSCell as attachment cell
+
+@end
+
+@interface NSAnyViewAttachmentCell : NSTextAttachmentCell
+{ // embed any NSView in an attachment cell - e.g. an NSTableView (<select size=5>) or NSTextView (<textarea>)
+	NSView *_view;
+}
+
+- (NSSize) cellSize;
+- (void) setView:(NSView *) view;
+- (NSView *) view;
+
+@end

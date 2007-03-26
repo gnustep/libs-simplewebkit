@@ -310,6 +310,31 @@
 - (void) setAttributeNS:(NSString *) uri :(NSString *) name :(NSString *) value; { NIMP; }
 - (NSString *) tagName; { return _nodeName; }
 
+// WebScript bridging
+
+- (NSString *) _get:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
+
+- (void) _put:(NSString *) name :(id) val;
+{
+	DOMAttr *attr=[_attributes objectForKey:name];
+	if(attr)
+		[attr setValue:val];	// already exists
+	else
+		[self setAttributeNode:[[[DOMAttr alloc] _initWithName:name value:val] autorelease]];	// create new
+}
+
+- (BOOL) _canPut:(NSString *) property; { return YES; }
+
+- (BOOL) _hasProperty:(NSString *) property;  { return [_attributes objectForKey:property] != nil; }
+
+- (BOOL) _delete:(NSString *) property;
+{
+	if(![_attributes objectForKey:property])
+		return NO;
+	[_attributes removeObjectForKey:property];
+	return YES;
+}
+
 @end
 
 @implementation RENAME(DOMDocument)

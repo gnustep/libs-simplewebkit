@@ -1,3 +1,15 @@
+2007-03-26  Riccardo Mottola <riccardo@kaffe.org>
+	* Sources/DOMCore.m,
+	Sources/WebXMLDocumentRepresentation.h,
+	Sources/WebXMLDocumentRepresentation.m,
+	Sources/WebHTMLDocumentView.h,
+	Sources/WebHTMLDocumentView.m,
+	Sources/WebImageDocumentRepresentation.h,
+	Sources/DOMHTML.h,
+	Sources/DOMHTML.m,
+	Sources/WebDOMOperations.h,
+	Sources/WebFrameLoadDelegate.h: updated from myStep
+
 2007-03-21  Riccardo Mottola <riccardo@kaffe.org>
 	* DOMRange.*, DOMCSS.h, GNUMakefile:
 	added files from myStep
@@ -8,10 +20,10 @@
 	
 2007-03-20  Riccardo Mottola <riccardo@kaffe.org>
 
-	* WebDocumentRepresentation.h,
-	WebDocumentRepresentation.m,
-	WebCSSDocumentRepresentation.h,
-	WebCSSDocumentRepresentation.m:
+	* Sources/WebDocumentRepresentation.h,
+	Sources/WebDocumentRepresentation.m,
+	Sources/WebCSSDocumentRepresentation.h,
+	Sources/WebCSSDocumentRepresentation.m:
 	added from myStep
 
 2007-03-13  Rrichard Frith-Macdonald <fm@gnu.org>

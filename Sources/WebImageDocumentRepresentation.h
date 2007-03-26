@@ -24,16 +24,20 @@
 */
 
 #import <Foundation/Foundation.h>
+#import <AppKit/NSImage.h>
 #import <WebKit/WebFrameView.h>
 #import <WebKit/WebFrame.h>
 #import <WebKit/WebDataSource.h>
 #import <WebKit/WebDocument.h>
 #import <WebKit/WebHistoryItem.h>
 #import <WebKit/WebView.h>
+#import "WebDocumentRepresentation.h"
 
-@interface _WebImageDocumentRepresentation : NSObject <WebDocumentRepresentation>
+@interface _WebImageDocumentRepresentation : _WebDocumentRepresentation
 {
-	WebDataSource *_dataSource;
+	NSImage *_image;
 }
+
+- (NSImage *) getImage;	// get as good as we can - may be a placeholder
 
 @end
