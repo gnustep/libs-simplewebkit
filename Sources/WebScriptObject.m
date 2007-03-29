@@ -21,63 +21,142 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-
 #import <WebKit/WebDOMOperations.h>
+#import <WebKit/WebScriptObject.h>
+#import <WebKit/WebUndefined.h>
+#import "ECMAScriptParser.h"
+#import "ECMAScriptEvaluator.h"
+
 #import "Private.h"
+
+NSString *WebScriptException=@"WebScriptException";
+
+/* implementation of public methods */
 
 @implementation WebScriptObject
 
++ (void) initialize;
+{
+	/* predefine global variables so that they return a prototype object
+		Array, Boolean, Date, Function, Math, Number, Object, RegExp, String
+	with predefined WebScriptBuiltinFunction for methods like length, size etc.
+	
+		Browser predefines variables through the context like
+	navigator
+	document
+	event
+	window
+	
+	*/
+}
+
 + (BOOL) throwException:(NSString *) message;
 {
-	NIMP;
+	[[NSException exceptionWithName:WebScriptException reason:message userInfo:nil] raise];
 	return NO;
 }
 
 - (id) callWebScriptMethod:(NSString *) name withArguments:(NSArray *) args;
 {
-	return NIMP;
+	return [[[self _get:name] _getValue] _call:self arguments:args];
 }
 
 - (id) evaluateWebScript:(NSString *) script;
-{
-	return NIMP;
+{ // evaluate for given node
+	id r=nil;
+		NS_DURING
+			{
+				NSScanner *sc=[NSScanner scannerWithString:script];
+				r=[_WebScriptTreeNode _programWithScanner:sc];
+				// how do we pass the environment context (windows, event, etc.)?
+				// well, if we are a DOMElement we should know our DOMDocument and that should know everything
+				r=[r _evaluate];	// evaluate
+				r=[r _getValue];	// dereference if needed
+				r=[r _toString];	// always convert to NSString
+			}
+		NS_HANDLER
+			r=[NSString stringWithFormat:@"<WebScript Internal Exception: %@>", [localException reason]];
+		NS_ENDHANDLER
+		return r;
 }
 
 - (void) removeWebScriptKey:(NSString *) key;
 {
-	NIMP;
+	[self _delete:key];
 }
 
 - (void) setException:(NSString *) message;
 {
-	NIMP;
+	[[NSException exceptionWithName:WebScriptException reason:message userInfo:[NSDictionary dictionaryWithObject:self forKey:@"this"]] raise];
 }
 
-- (void) setWebScriptValueAtIndex:(unsigned int) index value:(id) value;
+- (void) setWebScriptValueAtIndex:(unsigned int) index value:(id) val;
 {
 	NIMP;
+	[self _put:@"key from index" value:val];
 }
 
 - (NSString *) stringRepresentation;
 {
+	// should we format an array or object in JavaScript language?
 	return NIMP;
 }
 
 - (id) webScriptValueAtIndex:(unsigned int) index;
 {
 	return NIMP;
+	[self _get:@"key from index"];
 }
 
 	// KVC
 
 - (void) setValue:(id) val forKey:(NSString *) path;
 {
+	// or superclass?
 	NIMP;
 }
 
 - (id) valueForKey:(NSString *) path;
 {
+	// or superclass?
 	return NIMP;
 }
 
 @end
+
+@implementation NSObject (WebScripting)
+
+// NIMP - we don't do that until we need it and understand the security implications (if a webscript can access any Cocoa class and method)
+// it appears that it is Full-WebKits way of bridging Cocoa objects to the JavaScript execution space
+
++ (BOOL) isKeyExcludedFromWebScript:(const char *) name; { return YES; }
++ (BOOL) isSelectorExcludedFromWebScript:(SEL) sel; { return YES; }
++ (NSString *) webScriptNameForKey:(const char *) name; { return @"?"; }
++ (NSString *) webScriptNameForSelector:(SEL) sel; { return @"?"; }
+- (void) finalizeForWebScript; { return; }
+- (id) invokeDefaultMethodWithArguments:(NSArray *) args; { return NIMP; }
+- (id) invokeUndefinedMethodFromWebScript:(NSString *) name
+														withArguments:(NSArray *) args; { return NIMP; }
+
+@end
+
+@implementation WebUndefined
+
++ (id) _alloc; { return [super alloc]; }
++ (id) alloc; { return NIMP; }	// don't call explicitly...
+
++ (WebUndefined *) undefined
+{ // constant like NSNull but used by WebScript
+	static WebUndefined *undef=nil;
+	if(!undef)
+		undef=[[self _alloc] init];
+	return undef;
+}
+
+- (NSString *) description;
+{
+	return @"undefined";
+}
+
+@end
+

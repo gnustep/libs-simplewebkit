@@ -8,6 +8,9 @@ DOMCore.h \
 DOMCSS.h \
 DOMHTML.h \
 DOMRange.h \
+ECMAScriptEvaluator.h \
+ECMAScriptParser.h \
+ECMAScriptPrototypes.h \
 Private.h \
 WebArchive.h \
 WebBackForwardList.h \
@@ -31,6 +34,7 @@ WebPlugin.h \
 WebResource.h \
 WebScriptObject.h \
 WebUIDelegate.h \
+WebUndefined.h \
 WebView.h \
 WebXMLDocumentRepresentation.h 
 
@@ -41,6 +45,9 @@ DOMCore.m \
 DOMCSS.m \
 DOMHTML.m \
 DOMRange.m \
+ECMAScriptEvaluator.m \
+ECMAScriptParser.m \
+ECMAScriptPrototypes.m \
 WebArchive.m \
 WebBackForwardList.m \
 WebCSSDocumentRepresentation.m \

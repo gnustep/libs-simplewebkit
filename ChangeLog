@@ -1,4 +1,7 @@
 2007-03-29  Riccardo Mottola <riccardo@kaffe.org>
+	* Sources/ECMA*.[h,m]: added ECMAScript
+
+2007-03-29  Riccardo Mottola <riccardo@kaffe.org>
 	* Sources/*.[h,m]: corrected licenses
 	
 2007-03-26  Riccardo Mottola <riccardo@kaffe.org>
