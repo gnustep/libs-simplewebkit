@@ -132,6 +132,8 @@
 		EE428B340A4819A2003437D2 /* WebResource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebResource.h; sourceTree = "<group>"; };
 		EE428B350A4819A2003437D2 /* WebResource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebResource.m; sourceTree = "<group>"; };
 		EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = HTMLEntities.strings; sourceTree = "<group>"; };
+		EE4440B20BDBEA8E0031F556 /* FIXME */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FIXME; sourceTree = "<group>"; };
+		EE4440B30BDBEA980031F556 /* ChangeLog */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
 		EE45355C0A166D6F00C660D5 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		EE4536030A166D7F00C660D5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		EE4537030A166D9A00C660D5 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -246,6 +248,8 @@
 			isa = PBXGroup;
 			children = (
 				EE27270005426A7F0000013C /* mySTEP.make */,
+				EE4440B30BDBEA980031F556 /* ChangeLog */,
+				EE4440B20BDBEA8E0031F556 /* FIXME */,
 				EECC1E600BA14EA20001C219 /* ToDo */,
 				EE9BE9BF0AFA53B800D445DA /* Private */,
 				EED0DD400BAED3CB005B0381 /* ECMA Script */,

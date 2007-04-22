@@ -1,0 +1,162 @@
+// !$*UTF8*$!
+{
+	29B97313FDCFA39411CA2CEA /* Project object */ = {
+		activeBuildConfigurationName = Development;
+		activeExecutable = EE4440220BDBEA410031F556 /* GNUstep Web */;
+		activeTarget = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
+		addToTargets = (
+		);
+		codeSenseManager = EE4440B10BDBEA6B0031F556 /* Code sense */;
+		executables = (
+			EE4440220BDBEA410031F556 /* GNUstep Web */,
+			EE4440230BDBEA410031F556 /* WebKitBrowser */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					619,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.XCSCMDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_SCM_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					595,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_SCM_ColumnID,
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 198961729;
+			PBXWorkspaceStateSaveDate = 198961729;
+		};
+		sourceControlManager = EE4440B00BDBEA6B0031F556 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	EE01D4520B7786570089A538 /* WebKitBrowser */ = {
+		activeExec = 0;
+		executables = (
+			EE4440230BDBEA410031F556 /* WebKitBrowser */,
+		);
+	};
+	EE147E830A16668700E60AF8 /* GNUstep Web */ = {
+		activeExec = 0;
+		executables = (
+			EE4440220BDBEA410031F556 /* GNUstep Web */,
+		);
+	};
+	EE4440220BDBEA410031F556 /* GNUstep Web */ = {
+		isa = PBXExecutable;
+		activeArgIndex = 2147483647;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = "GNUstep Web";
+		sourceDirectories = (
+		);
+	};
+	EE4440230BDBEA410031F556 /* WebKitBrowser */ = {
+		isa = PBXExecutable;
+		activeArgIndex = 2147483647;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = WebKitBrowser;
+		sourceDirectories = (
+		);
+	};
+	EE4440B00BDBEA6B0031F556 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 1;
+		scmConfiguration = {
+		};
+		scmType = scm.subversion;
+	};
+	EE4440B10BDBEA6B0031F556 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	EE4440B20BDBEA8E0031F556 /* FIXME */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {817, 448}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {817, 448}}";
+		};
+	};
+	EE4440B30BDBEA980031F556 /* ChangeLog */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {817, 854}}";
+			sepNavSelRange = "{71, 0}";
+			sepNavVisRect = "{{0, 0}, {817, 448}}";
+		};
+	};
+	EE6FE351076F05AF009CC969 /* SimpleWebKit */ = {
+		activeExec = 0;
+	};
+	EECC1E600BA14EA20001C219 /* ToDo */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {884, 980}}";
+			sepNavSelRange = "{2746, 0}";
+			sepNavVisRect = "{{0, 532}, {817, 448}}";
+		};
+	};
+}
