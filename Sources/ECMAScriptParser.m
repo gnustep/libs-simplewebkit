@@ -331,8 +331,8 @@
 			}
 		else
 			{ // invalid symbol
-//			NSLog(@"unexpected character %C", [[sc string] characterAtIndex:[sc scanLocation]]);
 			[self throwException:[NSString stringWithFormat:@"unexpected character %C", [[sc string] characterAtIndex:[sc scanLocation]]]];
+//			NSLog(@"unexpected character %C", [[sc string] characterAtIndex:[sc scanLocation]]);
 //			[sc setScanLocation:[sc scanLocation]+1];	// skip at least one character each time
 			r=nil;
 			}

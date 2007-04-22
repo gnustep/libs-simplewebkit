@@ -1,26 +1,11 @@
-/* simplewebkit
-   WebDataSource.h
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
-
+//
+//  WebDataSource.h
+//  mySTEP
+//
+//  Created by Dr. H. Nikolaus Schaller on Mon Jan 05 2004.
+//  Revised May 2006
+//  Copyright (c) 2004 DSITRI. All rights reserved.
+//
 
 #import <Cocoa/Cocoa.h>
 #import <Foundation/NSURLConnection.h>
@@ -34,18 +19,19 @@
 
 @interface WebDataSource : NSObject
 {
-	NSURLConnection *_connection;	// our connection
+	NSURLConnection *_connection;								// our connection while we are loading
 	id <WebDocumentRepresentation> _representation;	// representation - created as soon as header has been received
 	NSURLRequest *_initial;
 	NSMutableURLRequest *_request;
 	NSURLResponse *_response;
 	NSMutableData *_loadedData;
-	NSMutableDictionary *_subresources;
-	NSMutableDictionary *_loadingSubresources;
-	WebDataSource *_parent;
+	NSMutableDictionary *_subresources;					// WebResource objects
+	NSMutableDictionary *_subdatasources;				// the WebDataSource objects that are still loading
+	WebDataSource *_parent;											// if we are a subresource
+	id _ident;																	// identifier for WebResourceLoadDelegate
 	WebFrame *_webFrame;
 	NSURL *_unreachableURL;
-	BOOL _isLoading;	// initially set, reset by being the delegate of an NSURLConnection when done
+	BOOL _finishedLoading;
 }
 
 - (void) addSubresource:(WebResource *) res;
@@ -64,7 +50,5 @@
 - (NSURL *) unreachableURL;
 - (WebArchive *) webArchive;
 - (WebFrame *) webFrame;
-
-- (void) _setWebFrame:(WebFrame *) wf;
 
 @end

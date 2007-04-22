@@ -1,0 +1,49 @@
+/* 
+ * keep this in strings file format!
+ * should also be in UTF-8 or UCS-16 encoding
+ * conversion to XML property list will create a recursion in the XML/HTML Parser
+ */
+
+quot = "U+0022";
+amp = "&";
+lt = "<";
+gt = ">";
+cent = "¢";
+pound = "£";
+brvbar = "¦";
+brkbar = "¦";
+sect = "§";
+copy = "©";
+reg = "®";
+deg = "°";
+plusm = "±";
+sup2 = "²";
+sup3 = "³";
+middot = "·";
+sup1 = "¹";
+frac14 = "¼";
+frac12 = "½";
+frac34 = "¾";
+AELig = "Æ";
+aelig = "æ";
+szlig = "ß";
+Eacute = "É";
+eacute = "é";
+auml = "ä";
+ouml = "ö";
+uuml = "ü";
+Auml = "Ä";
+Ouml = "Ö";
+Uuml = "Ü";
+trade = "™";
+mdash = "—";
+ndash = "–";
+
+nbsp = "U+00A0";
+euro = "€";
+raquo = "»";
+null = " null ";
+
+"nonbreaking-hyphen" = "U+2011";
+newline = "U+2028";
+newparagraph = "U+2029";

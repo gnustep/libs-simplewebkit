@@ -23,13 +23,12 @@
 
 // default implementations for all WebScriptObjects
 
+// CHEKME: how does this interact/relate to the WebScriptObject methods like KVC calls?
+
 - (WebScriptObject *) _prototype; { return nil; }
 - (NSString *) _class; { return NSStringFromClass(isa); }	// default...
-- (id) _get:(NSString *) property; { return NIMP; }
-- (void) _put:(NSString *) property value:(id) val; { [self setException:@"can't put"]; }
 - (BOOL) _canPut:(NSString *) property; { return NO; }
 - (BOOL) _hasProperty:(NSString *) property; { return NO; }
-- (BOOL) _delete:(NSString *) property; { return NO; }
 - (id) _defaultValue:(Class) hint; { return NIMP; }
 - (WebScriptObject *) _construct:(NSArray *) arguments; { return NIMP; }
 - (WebScriptObject *) _call:(WebScriptObject *) this arguments:(NSArray *) arguments; {	return NIMP; }
@@ -167,15 +166,15 @@
 { // 8.7.1
 	if([left isKindOfClass:[NSNull class]])
 		[self setException:@"ReferenceError"];	// 3. - is not an lvalue
-	return [left _get:right];
+	return _GET(left, right);
 }
 
 - (void) _putValue:(id) val;
 { // 8.7.2
 	if([left isKindOfClass:[NSNull class]])
-		; //	[globalObject _put:propertyName value:val];
+		; //	[globalObject setValue:val forKey:propertyName];
 	else
-		[left _put:right value:val];
+		_PUT(left, right, val);
 }
 
 @end
@@ -253,9 +252,9 @@ typedef struct _WebScriptScope
 			continue;	// elision
 		r=[r _evaluate];
 		r=[r _getValue];
-		[l _put:[NSString stringWithFormat:@"%u", idx++] value:r];	// store at next position
+		_PUT(l, ([NSString stringWithFormat:@"%u", idx++]), r);	// store at next position
 		}
-	[l _put:@"length" value:[NSNumber numberWithInt:idx]];
+	_PUT(l, @"length", [NSNumber numberWithInt:idx]);
 	return l;
 }
 
@@ -283,7 +282,7 @@ typedef struct _WebScriptScope
 			}
 		val=[val _evaluate];
 		val=[val _getValue];
-		[l _put:key value:val];
+		_PUT(l, key, val);
 		}
 	return l;
 }
@@ -460,7 +459,12 @@ typedef struct _WebScriptScope
 				r=[right _evaluate];			
 				if(![r _isReference])
 					return [NSNumber numberWithBool:YES];
-				return [NSNumber numberWithBool:[[r getBase] _delete:[r getPropertyName]]];
+				NS_DURING
+					[[r getBase] removeWebScriptKey:[r getPropertyName]];
+				NS_HANDLER
+					return [NSNumber numberWithBool:NO];	// wasn't able to delete
+				NS_ENDHANDLER
+				return [NSNumber numberWithBool:YES];
 			}
 		case Void:
 			{ // 11.4.2
@@ -812,6 +816,27 @@ typedef struct _WebScriptScope
 
 @end
 
+// FIXME: check what we should do exactly with Spec
+
+@implementation _WebScriptTreeNodeStatementList (_WebScriptEvaluation)
+
+- (id) _evaluate;
+{ // 11.
+	[left _evaluate];
+	return [right _evaluate];
+}
+
+@end
+
+@implementation _WebScriptTreeNodeVar (_WebScriptEvaluation)
+
+// define variable and handle assignment
+
+@end
+
+// @interface _WebScriptTreeNodeExpression : _WebScriptTreeNode
+/// @end
+
 @implementation _WebScriptTreeNodeIf (_WebScriptEvaluation)
 
 - (id) _evaluate;
@@ -824,6 +849,18 @@ typedef struct _WebScriptScope
 	else
 		return [otherwise _evaluate];	// return nil if not present!?
 }
+
+@end
+
+@implementation  _WebScriptTreeNodeIteration (_WebScriptEvaluation)
+// {	@public enum { Do, While, ForIn, Continue, Break } op;
+//	_WebScriptTreeNode *inc; /* optional inc expression in For loop */ }
+// for loops: add a timer to regularly call the Runloop/NSApp nextEvent
+
+@end
+
+@implementation _WebScriptTreeNodeReturn (_WebScriptEvaluation)
+// {	@public enum { Return, Throw } op; }
 
 @end
 
@@ -843,5 +880,24 @@ typedef struct _WebScriptScope
 	// remove from the front of the scope chain	// 7.
 	return r;
 }
+
+@end
+
+@implementation _WebScriptTreeNodeSwitch (_WebScriptEvaluation)
+// {	@public _WebScriptTreeNode *expr, *otherwise; /* default option */ }
+
+@end
+
+@implementation _WebScriptTreeNodeLabel (_WebScriptEvaluation)
+@end
+
+@implementation _WebScriptTreeNodeTry (_WebScriptEvaluation)
+// {	@public _WebScriptTreeNode *catch, *finally; }
+
+@end
+
+@implementation _WebScriptTreeNodeFunction (_WebScriptEvaluation)
+// {	@public NSArray *params; /* parameter list */ }
+// for loops: add a timer to regularly call the Runloop/NSApp nextEvent and/or check stack overflow 
 
 @end

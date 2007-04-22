@@ -23,6 +23,8 @@
 
 @implementation _ConcreteWebScriptObject
 
+// CHECKME: we should replace all calls to _get: etc. by methods defined by our superclass WebScriptObject
+
 - (id) init;
 {
 	if((self=[super init]))
@@ -49,18 +51,19 @@
 - (WebScriptObject *) _prototype; { return prototype; }
 - (NSString *) _class; { return NSStringFromClass(isa); }	// default...
 
-- (id) _get:(NSString *) property;
+- (id) valueForKey:(NSString *) property;
 { // 8.6.2.1
 	id val;
 	if((val=[properties objectForKey:property]))	// 1. & 2.
 		return val;	// 3. got it
 	if(!prototype)
 		return [WebUndefined undefined];	// 4.
-	return [prototype _get:property];	// 5. & 6.ask prototype
+	return _GET(prototype, property);	// 5. & 6.ask prototype
 }
 
-// override by Array object  15.4.5.1
-- (void) _put:(NSString *) property value:(id) val;
+// override in Array object  15.4.5.1
+
+- (void) setValue:(id) val forKey:(NSString *) property;
 { // 8.6.2.2
 	if(![self _canPut:property])
 		return;
@@ -82,15 +85,13 @@
 	return [properties objectForKey:property] || [prototype _hasProperty:property];
 }
 
-- (BOOL) _delete:(NSString *) property;
+- (void) removeWebScriptKey:(NSString *) property;
 { // 8.6.2.5
 	if(![properties objectForKey:property])
-		return YES;
-	if(([[attributes objectForKey:property] intValue]&WebScriptPropertyAttributeDontDelete) != 0)
-		return NO;
+		return;	// did not exist
+	NSAssert(!([[attributes objectForKey:property] intValue]&WebScriptPropertyAttributeDontDelete), @"can't delete property");	// raises exceprion
 	[properties removeObjectForKey:property];
 	[attributes removeObjectForKey:property];
-	return YES;	// success
 }
 
 - (id) _defaultValue:(Class) hint;
@@ -98,14 +99,14 @@
 	id val;
 	if([hint isKindOfClass:[NSString class]] || [self isKindOfClass:[NSDate class]])	// Fixme...
 		{ // rules for String or Date hint
-		val=[self _get:@"toString"];
+		val=_GET(self, @"toString");
 		if([val isKindOfClass:isa])
 			{ // is an object (step 3-4)
 			val=[val _call:self arguments:nil];
 			if(![val isKindOfClass:isa])
 				return val;	// appears to be a primitive value
 			}
-		val=[self _get:@"valueOf"];
+		val=_GET(self, @"valueOf");	// look for valueOf method
 		if([val isKindOfClass:isa])
 			{ // is an object (step 7-8)
 			val=[val _call:self arguments:nil];
@@ -115,14 +116,14 @@
 		}
 	else
 		{ // rules for Number or nil hint
-		val=[self _get:@"valueOf"];
+		val=_GET(self, @"valueOf");
 		if([val isKindOfClass:isa])
 			{ // is an object (step 3-4)
 			val=[val _call:self arguments:nil];
 			if(![val isKindOfClass:isa])
 				return val;	// appears to be a primitive value
 			}
-		val=[self _get:@"toString"];
+		val=_GET(self, @"toString");
 		if([val isKindOfClass:isa])
 			{ // is an object (step 7-8)
 			val=[val _call:self arguments:nil];

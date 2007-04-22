@@ -1,23 +1,67 @@
-/* simplewebkit
-   WebView.m
-   Copyright (C) 2007 Free Software Foundation, Inc.
+//
+//  WebView.m
+//  mySTEP
+//
+//  Created by Dr. H. Nikolaus Schaller on Mon Jan 05 2004.
+//  Revised May 2006
+//  Copyright (c) 2004 DSITRI. All rights reserved.
+//
 
-   Author: Dr. H. Nikolaus Schaller
+/* short description how this all works togehter
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+1. the WebView
+* is the master view object and there is only one per browser (or browser tab)
+* it holds the mainFrame which represents either the normal <body> or the top level <frame> or <frameset>
+* if there is a <frameset> hierarchy, there are additional child WebFrames
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+2. the WebFrame
+* is repsonsible for loading and rendering content from a specific URL
+* it uses a WebDataSource to trigger loading and get callbacks
+* it is also the owner of the DOMDocument tree
+* JavaScript statements are evaluated in a frame context
+* it is also the target of user clicks on links since it knows the base URL (through the WebDataSource)
 
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+3. the WebDataSource
+* is responsible for loading data from an URL
+* it may cache data and handle/synchronize loading fo subresources (e.g. for an embedded <img> tag)
+* it translates the request and the response URLs
+* it provides an estimated content length (for a progress indicator) and the MIMEType of the incoming data stream
+* as soon as the header comes in a WebDocomentRepresentation is created and incoming segments are notified
+* it also collects the incoming data, so that a WebDocomentRepresentation can handle either segments or the collected data
+
+4. the WebDocumentRepresentation(s)
+* there is one for each MIME type (the WebView provides a mapping database)
+* it is responsible for parsing the incoming data stream (either completely when finished, or partially)
+* and provide a better suitable representation, e.g. an NSImage or a DOMHTMLTree
+* finally, it creates a WebDocumentView as the child of the WebView and attaches it to the WebFrame as the -webFrameView
+* so, if you want to handle an additional MIME type, write a class that conforms to the WebDocumentRepresentation protocol
+
+5. the DOMHTMLTree
+* is only for HTML content
+* is (re)built each time a new segment of HTML data comes in
+* any change in the DOMHTMLTree is notified to the WebDocumentView (or one of its subviews) by setNeedsLayout
+
+6. the WebDocumentView(s) an its subviews
+* are responsible for displaying the contents of its WebDataRepresentation
+* either HTML, Images, PDF or whatever (e.g. SVG, XML, ...)
+* they gets notified about changes either by updates of the WebDataSource (-dadaSourceUpdated:) or directly (-setNeedsLayout:)
+* if one needs layout, it must go to the DOM Tree to find out what has changed and update its size, content, children, layout etc.
+* this is a little tricky/risky since the -layout method is called within -drawRect: - so changing e.g. the View frame is very
+  critical and may result in drawing glitches
+* for HTML, we do a simple trick: the WebDocumentView is an NSTextView and the DOMHTMLTree objects can be traversed to
+  return an attributedString with embedded Tables and NSTextAttachments
+
+7. the JavaScript engine
+* is programmed according to the specificaion of ECMA-262
+* uses a simple recursive stateless parser (could be optimized in stack useage and speed by a state-table driven approach)
+* parses the script into a Tree representation in a first step
+* then, evaluates the expressions and statements according to the current environement
+* this allows to store scripts in translated form and reevaluate them when needed (e.g. on mouse events)
+* uses Foundation for basic types (string, number, boolean, null)
+* uses WebScriptObject as the base Object representation
+* DOMObjects are a subclass of WebScriptObjects and therefore provide bridging, so that changing a DOMHTML tree element through
+  JavaScript automativally triggers the appropriate WebDocumentView notification
+
 */
 
 #import "Private.h"
@@ -25,12 +69,46 @@
 #import <WebKit/WebFrame.h>
 #import <WebKit/WebBackForwardList.h>
 
+#import "ECMAScriptParser.h"
+#import "ECMAScriptEvaluator.h"
+
 // default document representations we understand
 #import "WebHTMLDocumentRepresentation.h"
 #import "WebHTMLDocumentView.h"
-#import "WebImageDocumentRepresentation.h"
 #import "WebPDFDocumentRepresentation.h"
 #import "WebXMLDocumentRepresentation.h"
+#import "WebTextDocumentRepresentation.h"		// text/*
+#import "WebImageDocumentRepresentation.h"	// image/*
+
+NSString *WebElementDOMNodeKey=@"WebElementDOMNode";
+NSString *WebElementFrameKey=@"WebElementFrame";
+NSString *WebElementImageAltStringKey=@"WebElementImageAltString";
+NSString *WebElementImageKey=@"WebElementImage";
+NSString *WebElementImageRectKey=@"WebElementImageRect";
+NSString *WebElementImageURLKey=@"WebElementImageURL";
+NSString *WebElementIsSelectedKey=@"WebElementIsSelected";
+NSString *WebElementLinkURLKey=@"WebElementLinkURL";
+NSString *WebElementLinkTargetFrameKey=@"WebElementLinkTargetFrame";
+NSString *WebElementLinkTitleKey=@"WebElementLinkTitle";
+NSString *WebElementLinkLabelKey=@"WebElementLinkLabel";
+
+NSString *WebViewDidBeginEditingNotification=@"WebViewDidBeginEditing";
+NSString *WebViewDidChangeNotification=@"WebViewDidChange";
+NSString *WebViewDidChangeSelectionNotification=@"WebViewDidChangeSelection";
+NSString *WebViewDidChangeTypingStyleNotification=@"WebViewDidChangeTypingStyle";
+NSString *WebViewDidEndEditingNotification=@"WebViewDidEndEditing";
+NSString *WebViewProgressEstimateChangedNotification=@"WebViewProgressEstimateChanged";
+NSString *WebViewProgressFinishedNotification=@"WebViewProgressFinished";
+NSString *WebViewProgressStartedNotification=@"WebViewProgressStarted";
+
+@interface _WindowScriptObject : WebScriptObject
+{
+	DOMHTMLDocument *document; 
+}
+@end
+
+@implementation _WindowScriptObject
+@end
 
 @implementation WebView
 
@@ -57,7 +135,7 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:[_WebHTMLDocumentView class]
 		representationClass:[_WebHTMLDocumentRepresentation class]
 				forMIMEType:@"text/html"];	// we are ourselves the default for HTML
-	[self registerViewClass:[NSImageView class]
+	[self registerViewClass:[_WebImageDocumentView class]
 		representationClass:[_WebImageDocumentRepresentation class]
 				forMIMEType:@"image/"];		// match all images
 	[self registerViewClass:self	// [_WebPDFDocumentView class] - subclass of NSPDFView
@@ -66,6 +144,9 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:self	// [_WebXMLDocumentView class]
 		representationClass:[_WebXMLDocumentRepresentation class]
 				forMIMEType:@"text/xml"];
+	[self registerViewClass:[_WebTextDocumentRepresentation class]
+			representationClass:[NSTextView class]
+							forMIMEType:@"text/"];		// match all other text files
 }
 
 + (NSArray *) MIMETypesShownAsHTML; { return _htmlMimeTypes; }
@@ -148,7 +229,8 @@ static NSArray *_htmlMimeTypes;
 		[frameView release];
 		_groupName=[group retain];
 		_drawsBackground=YES;
-		_textSize=4;	// default size
+		_textSizeMultiplier=1.0;	// set default size multiplier (should load from defaults)
+//		[_mainFrame loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
 		}
 	return self;
 }
@@ -173,9 +255,17 @@ static NSArray *_htmlMimeTypes;
 
 - (WebFrame *) mainFrame;   { return _mainFrame; }
 - (id) UIDelegate; { return _uiDelegate; }
-- (void) setUIDelegate:(id) uid; { _uiDelegate=uid; }
+- (void) setUIDelegate:(id) d; { _uiDelegate=d; }
 - (id) frameLoadDelegate; { return _frameLoadDelegate; }
-- (void) setFrameLoadDelegate:(id) uid; { _frameLoadDelegate=uid; }
+- (void) setFrameLoadDelegate:(id) d; { _frameLoadDelegate=d; }
+- (id) resourceLoadDelegate; { return _resourceLoadDelegate; }
+- (void) setResourceLoadDelegate:(id) d; { _resourceLoadDelegate=d; }
+- (id) downloadDelegate; { return _downloadDelegate; }
+- (void) setDownloadDelegate:(id) d; { _downloadDelegate=d; }
+- (id) editingDelegate; { return _editingDelegate; }
+- (void) setEditingDelegate:(id) d; { _editingDelegate=d; }
+- (id) policyDelegate; { return _policyDelegate; }
+- (void) setPolicyDelegate:(id) d; { _policyDelegate=d; }
 - (NSString *) groupName; { return _groupName; }
 - (void) setGroupName:(NSString *) str; { ASSIGN(_groupName, str); }
 
@@ -189,6 +279,11 @@ static NSArray *_htmlMimeTypes;
 		[_backForwardList release], _backForwardList=nil;
 }
 
+- (BOOL) canGoBack; { return _backForwardList?([_backForwardList backItem] != nil):NO; }
+- (BOOL) canGoForward; { return _backForwardList?([_backForwardList forwardItem] != nil):NO; }
+- (IBAction) goBack:(id) sender; { [_backForwardList goBack]; }
+- (IBAction) goForward:(id) sender; { [_backForwardList goForward]; }
+
 - (NSString *) applicationNameForUserAgent; { return _applicationName; }
 - (void) setApplicationNameForUserAgent:(NSString *) name; { _applicationName=[name retain]; }
 - (NSString *) customUserAgent; { return _customAgent; }
@@ -196,25 +291,50 @@ static NSArray *_htmlMimeTypes;
 - (NSString *) customTextEncodingName; { return _customTextEncoding; }
 - (void) setCustomTextEncodingName:(NSString *) name; { _customTextEncoding=[name retain]; }
 
-	// FIXME
-
-- (BOOL) canGoBack; { return NO; }
-- (BOOL) canGoForward; { return NO; }
-
 - (IBAction) takeStringURLFrom:(id) sender;
 {
-	// add http:// prefix if there is none yet
-	NSURL *u=[NSURL URLWithString:[sender stringValue]];
-#if 0
-	NSLog(@"takeStringURL %@", u);
+	NSString *str;
+	NSURL *u;
+	str=[sender stringValue];
+	u=[NSURL URLWithString:str];
+	if([[u scheme] length] == 0)
+		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// add default prefix
+#if 1
+	NSLog(@"takeStringURL %@ -> %@", str, u);
 #endif
-	[_mainFrame loadRequest:[NSURLRequest requestWithURL:u]];
+	if(u)
+		{
+		[_mainFrame loadRequest:[NSURLRequest requestWithURL:u]];
+		}
+	else
+		;	// ???
 }
 
 - (double) estimatedProgress;
 {
-// FIXME
-	return 0.0;
+	long long loaded=0;
+	long long expected=0;
+	unsigned l;
+	long long e;
+	WebDataSource *s;
+	// FIXME
+	while(NO)
+		{ // scan all subresources on this page
+		l=[[s data] length];	// how much did we load so far?
+		if([s isLoading])
+			{
+			e=[[s response] expectedContentLength];
+			if(e < l)
+				e=2*l;	// if we can't determine or did already load more than expected, simply assume more to come...
+			}
+		else
+			e=l;	// everything is loaded as expected
+		expected+=e;
+		loaded+=l;
+		}
+	if(expected == 0)
+		return 1.0;
+	return ((double) loaded)/((double) expected);
 }
 
 - (IBAction) reload:(id) sender;
@@ -229,11 +349,8 @@ static NSArray *_htmlMimeTypes;
 
 - (NSString *) stringByEvaluatingJavaScriptFromString:(NSString *) script;
 {
-	return @"JavaScript not implemented";
+	return [[_mainFrame DOMDocument] evaluateWebScript:script];
 }
-
-- (IBAction) goBack:(id) sender; { NIMP; }
-- (IBAction) goForward:(id) sender; { NIMP; }
 
 - (void) drawRect:(NSRect) rect;
 {
@@ -266,76 +383,43 @@ static NSArray *_htmlMimeTypes;
 	_drawsBackground=flag;
 }
 
-// FIXME: no - we should modify/use the textSizeMultiplier and keep the NSFont logic in the WebHTMLDocument!
+#define ENLARGE	1.2
+#define MAXENLARGE	(ENLARGE*ENLARGE*ENLARGE*ENLARGE)
+#define MINENLARGE	(1.0/(ENLARGE*ENLARGE*ENLARGE*ENLARGE))
 
-static NSMutableArray *fonts;
-static NSMutableArray *hfonts;
-
-- (NSArray *) _fontsForSize;
-{ // 7 default fonts for the <font size="x"> tag - 0 (size=1) is smallest, 6 is largest, 2 is default
-	if(!fonts)
-		{
-		fonts=[[NSMutableArray alloc] initWithCapacity:7];
-		// adjust these sizes by the _textSize so that text is scaled
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:8.0]];		// 1
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:10.0]];		// 2
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:12.0]];		// 3=default
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:14.0]];		// 4 - <h3>
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:16.0]];		// 5 - <h2>
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:18.0]];		// 6 - <h1>
-		[fonts addObject:[NSFont fontWithName:@"Helvetica" size:24.0]];		// 7
-		}
-	return fonts;
-}
-
-- (NSArray *) _fontsForHeader;
-{ // 6 fonts for the <h#> tags - 0 (<h1>) is largest, 5 is smallest
-	if(!hfonts)
-		{
-		hfonts=[[NSMutableArray alloc] initWithCapacity:6];
-		// adjust these sizes by the _textSize so that text is scaled
-		[hfonts addObject:[NSFont fontWithName:@"Helvetica-Bold" size:24.0]];	// 1 - <h1>
-		[hfonts addObject:[NSFont fontWithName:@"Helvetica-Bold" size:18.0]];	// 2 - <h2>
-		[hfonts addObject:[NSFont fontWithName:@"Helvetica-Bold" size:16.0]];	// 3 - <h3>
-		[hfonts addObject:[NSFont fontWithName:@"Helvetica-Bold" size:14.0]];	// 4 - <h4>
-		[hfonts addObject:[NSFont fontWithName:@"Helvetica-Bold" size:12.0]];	// 5 - <h5>
-		[hfonts addObject:[NSFont fontWithName:@"Helvetica-Bold" size:10.0]];	// 6 - <h6>
-		}
-	return hfonts;
-}
-
-// FIXME: modify the multiplier factor to increase in steps of 1.2 or decrease by 1/1.2
 - (BOOL) canMakeTextLarger;
 {
-	return _textSize < 9;
+	return _textSizeMultiplier < MAXENLARGE;
 }
 
 - (BOOL) canMakeTextSmaller;
 {
-	return _textSize > 0;
+	return _textSizeMultiplier >= MINENLARGE;
 }
 
-- (void) _setTextSize:(int) sz
+- (float) textSizeMultiplier; { return _textSizeMultiplier; }
+
+- (void) setTextSizeMultiplier:(float) f
 {
-	if(_textSize != sz)
+	if(f < MINENLARGE) f=MINENLARGE;
+	else if(f > MAXENLARGE) f=MAXENLARGE;
+	if(_textSizeMultiplier != f)
 		{
-		_textSize=sz;
-		[fonts release];
-		fonts=nil;
-		// make our subviews reparse from DOM tree [xxx setNeedsLayout:YES];
+		_textSizeMultiplier=f;
+		[self _recursivelySetNeedsLayout];		// make all our subviews reparse from DOM tree [xxx setNeedsLayout:YES];
 		}
 }
 
 - (IBAction) makeTextLarger:(id) sender;
 {
 	if([self canMakeTextLarger])
-		[self _setTextSize:_textSize+1];
+		[self setTextSizeMultiplier:_textSizeMultiplier*ENLARGE];
 }
 
 - (IBAction) makeTextSmaller:(id) sender;
 {
 	if([self canMakeTextSmaller])
-		[self _setTextSize:_textSize-1];
+		[self setTextSizeMultiplier:_textSizeMultiplier*(1.0/ENLARGE)];
 }
 
 - (NSString *) mediaStyle; { return _mediaStyle; }
@@ -358,6 +442,37 @@ static NSMutableArray *hfonts;
 - (void) startSpeaking:(id) sender; { [(NSTextView *) [[_mainFrame frameView] documentView] startSpeaking:sender]; }
 - (void) stopSpeaking:(id) sender; { [(NSTextView *) [[_mainFrame frameView] documentView] stopSpeaking:sender]; }
 
+#if 1	// debugging because someone tries to call this method...
+- (id) webFrame; { abort(); }
+#endif
+
+- (WebScriptObject *) windowScriptObject
+{
+	WebScriptObject *o;
+	/*
+	should be the 'window' object - or is this the "global" object???
+	but also handle
+	[[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
+	*/
+	// FIXME: there is also a webView:windowScriptObjectAvailable: frameload delegate method
+	// probably called when the mainFrame has its DOMDocument initialized
+	o=[[_WindowScriptObject new] autorelease];
+	 // initialize 'document' property with [_mainFrame DOMDocument]
+	return o;
+}
+
+
+- (NSDictionary *) elementAtPoint:(NSPoint) point;
+{
+	/* should be like
+	WebElementDOMNode = <DOMHTMLDivElement [DIV]: 0x159a37f8 ''>; 
+	WebElementFrame = <WebFrame: 0x381780>; 
+	WebElementIsSelected = 0; 
+	WebElementTargetFrame = <WebFrame: 0x381780>; 
+	*/
+	return nil;
+}
+
 /* incomplete implementation of class 'WebView'
 
 method definition for '+URLTitleFromPasteboard:' not found
@@ -367,16 +482,13 @@ method definition for '-writeElement:withPasteboardTypes:toPasteboard:' not foun
 method definition for '-windowScriptObject' not found
 method definition for '-userAgentForURL:' not found
 method definition for '-undoManager' not found
-method definition for '-textSizeMultiplier' not found
 method definition for '-supportsTextEncoding' not found
 method definition for '-spellCheckerDocumentTag' not found
 method definition for '-smartInsertDeleteEnabled' not found
 method definition for '-showGuessPanel:' not found
 method definition for '-setTypingStyle:' not found
-method definition for '-setTextSizeMultiplier:' not found
 method definition for '-setSmartInsertDeleteEnabled:' not found
 method definition for '-setSelectedDOMRange:affinity:' not found
-method definition for '-setResourceLoadDelegate:' not found
 method definition for '-setPreferencesIdentifier:' not found
 method definition for '-setPreferences:' not found
 method definition for '-setPolicyDelegate:' not found
@@ -389,7 +501,6 @@ method definition for '-setContinuousSpellCheckingEnabled:' not found
 method definition for '-selectionAffinity' not found
 method definition for '-selectedDOMRange' not found
 method definition for '-searchFor:direction:caseSensitive:wrap:' not found
-method definition for '-resourceLoadDelegate' not found
 method definition for '-replaceSelectionWithText:' not found
 method definition for '-replaceSelectionWithNode:' not found
 method definition for '-replaceSelectionWithMarkupString:' not found
@@ -412,7 +523,7 @@ method definition for '-hostWindow' not found
 method definition for '-goToBackForwardItem:' not found
 method definition for '-goForward' not found
 method definition for '-goBack' not found
-method definition for '-elementAtPoint:' not found
+
 method definition for '-editingDelegate' not found
 method definition for '-editableDOMRangeForPoint:' not found
 method definition for '-downloadDelegate' not found
@@ -457,7 +568,7 @@ method definition for '-alignCenter:' not found
 - (BOOL) webView:(WebView *) sender runJavaScriptConfirmPanelWithMessage:(NSString *) message; { return NO; }
 - (NSString *) webView:(WebView *) sender runJavaScriptTextInputPanelWithPrompt:(NSString *) prompt defaultText:(NSString *) text; { return @""; }
 - (void) webView:(WebView *) sender runOpenPanelForFileButtonWithResultListener:(id<WebOpenPanelResultListener>) listener; { return; }
-//- (void) webView:(WebView *) sender setContentRect:(NSRect) rect; { [self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; }
+- (void) webView:(WebView *) sender setContentRect:(NSRect) rect; { [self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; }
 - (void) webView:(WebView *) sender setFrame:(NSRect) frame; { [[sender window] setFrame:frame display:YES]; }
 - (void) webView:(WebView *) sender setResizable:(BOOL) flag; { [[sender window] setShowsResizeIndicator:flag]; }
 - (void) webView:(WebView *) sender setStatusBarVisible:(BOOL) flag; { return; }
@@ -496,5 +607,19 @@ method definition for '-alignCenter:' not found
 - (void) webView:(WebView *) sender willCloseFrame:(WebFrame *) frame; { return; }
 - (void) webView:(WebView *) sender willPerformClientRedirectToURL:(NSURL *) url delay:(NSTimeInterval) seconds fireDate:(NSDate *) date forFrame:(WebFrame *) frame; { return; }
 - (void) webView:(WebView *) sender windowScriptObjectAvailable:(WebScriptObject *) script; { return; }
+
+@end
+
+@implementation NSObject (WebResourceLoadDelegate)
+
+- (id) webView:(WebView *) sender identifierForInitialRequest:(NSURLRequest *) req fromDataSource:(WebDataSource *) src; { return [[NSObject new] autorelease]; }
+- (void) webView:(WebView *) sender plugInFailedWithError:(NSError *) error dataSource:(WebDataSource *) src; { return; }
+- (void) webView:(WebView *) sender resource:(id) ident didCancelAuthenticationChallenge:(NSURLAuthenticationChallenge *) ch fromDataSource:(WebDataSource *) src; { return; }
+- (void) webView:(WebView *) sender resource:(id) ident didFailLoadingWithError:(NSError *) error fromDataSource:(WebDataSource *) src; { return; }
+- (void) webView:(WebView *) sender resource:(id) ident didFinishLoadingFromDataSource:(WebDataSource *) src; { return; }
+- (void) webView:(WebView *) sender resource:(id) ident didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *) ch fromDataSource:(WebDataSource *) src; { return; }
+- (void) webView:(WebView *) sender resource:(id) ident didReceiveContentLength:(unsigned) len fromDataSource:(WebDataSource *) src; { return; }
+- (void) webView:(WebView *) sender resource:(id) ident didReceiveResponse:(NSURLResponse *) resp fromDataSource:(WebDataSource *) src; { return; }
+- (NSURLRequest *) webView:(WebView *) sender resource:(id) ident willSendRequest:(NSURLRequest *) req redirectResponse:(NSURLResponse *) resp fromDataSource:(WebDataSource *) src; { return req; }
 
 @end

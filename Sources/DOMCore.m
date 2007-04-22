@@ -1,25 +1,12 @@
-/* simplewebkit
-   DOMCore.m
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+//
+//  DOM.m
+//  SimpleWebKit
+//
+//  Created by Nikolaus Schaller on 28.01.07.
+//  Copyright 2007 __MyCompanyName__. All rights reserved.
+//
+//  some parts how it works and what return values should be, has been identified by running the DOMTreeView sample code from Apple
+//
 
 #import "DOM.h"
 #import "Private.h"
@@ -153,6 +140,14 @@
 
 - (void) normalize;
 {
+	// aggregate all consecutive DOMText children into a single one
+	// while not at end
+	//   normalize child
+	//   while(child is not DOMText)
+	//     go to next
+	//   while(next child exists and is DOMText)
+	//     merge into single
+	NIMP;
 	return;
 }
 
@@ -310,9 +305,9 @@
 
 // WebScript bridging
 
-- (NSString *) _get:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
+- (NSString *) valueForKey:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
 
-- (void) _put:(NSString *) name :(id) val;
+- (void) setValue:(id) val forKey:(NSString *) name;
 {
 	DOMAttr *attr=[_attributes objectForKey:name];
 	if(attr)
@@ -325,7 +320,7 @@
 
 - (BOOL) _hasProperty:(NSString *) property;  { return [_attributes objectForKey:property] != nil; }
 
-- (BOOL) _delete:(NSString *) property;
+- (BOOL) removeWebScriptKey:(NSString *) property;
 {
 	if(![_attributes objectForKey:property])
 		return NO;
@@ -355,7 +350,10 @@
 	return r;
 }
 
-- (DOMDocumentFragment *) createDocumentFragment; { return NIMP; }
+- (DOMDocumentFragment *) createDocumentFragment;
+{
+	return NIMP;
+}
 
 - (DOMElement *) createElement:(NSString *) tag;
 {

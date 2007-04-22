@@ -1,33 +1,18 @@
-/* simplewebkit
-   WebHTMLDocumentRepresentation.m
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
-
+//
+//  WebHTMLDocumentRepresentation.m
+//  mySTEP
+//
+//  Created by Dr. H. Nikolaus Schaller on Mon Jan 05 2006.
+//  Revised May 2006
+//  Copyright (c) 2004 DSITRI. All rights reserved.
+//
 //  parse HTML document into DOMHTML node structure (using NSXMLParser as the scanner)
 
 #import "Private.h"
 #import "WebHTMLDocumentRepresentation.h"
 #import <WebKit/WebDocument.h>
 
-#if defined(__mySTEP__) || defined(GNUSTEP)
+#if __mySTEP__
 #define USE_FOUNDATION_XML_PARSER 1	// yes - don't include twice since we have it in our own Foundation
 #else
 #define USE_FOUNDATION_XML_PARSER 0	// no - Apple Foundation's NSXMLParser does not support -_setEncoding and _tagPath and other HTML compatibility extensions
@@ -154,6 +139,11 @@ static NSDictionary *tagtable;
 	return [NSString stringWithFormat:@"%@\n%@", [super description], _doc];
 }
 
+- (void) abortParsing;
+{
+	[_parser abortParsing];
+}
+
 // methods from WebDocumentRepresentation protocol
 
 - (void) setDataSource:(WebDataSource *) dataSource;
@@ -166,18 +156,22 @@ static NSDictionary *tagtable;
 	// well, we should know that...
 	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];
 	view=[[viewclass alloc] initWithFrame:[frameView frame]];
+	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
 	[[frame DOMDocument] _setVisualRepresentation:view];	// make the view receive change notifications
 	[view release];
+	[[[frame webView] frameLoadDelegate] webView:[frame webView] didCommitLoadForFrame:frame];
 }
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 {
 #if 1
-	NSLog(@"WebHTMLDocumentRepresentation finishedLoadingWithDataSource");
+	NSLog(@"WebHTMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
-	// FIXME: if we are still loading - prefer provisionalDataSource
-	[[[[source webFrame] parentFrame] dataSource] addSubresource:[source mainResource]];	// frame has been loaded
+	//	[self receivedData:[source data] withDataSource:source];	// final parsing
+	
+	// should we execute all ECMAScripts here that we have collected only
+	
 	[[source webFrame] _finishedLoading];	// notify
 }
 
@@ -191,6 +185,7 @@ static NSDictionary *tagtable;
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // we are repeatedly called!
 	DOMHTMLHtmlElement *html;
+	NSString *title;
 #if 1
 	NSLog(@"WebHTMLDocumentRepresentation receivedData");
 //	NSLog(@"document source: %@", [self documentSource]);
@@ -218,7 +213,7 @@ static NSDictionary *tagtable;
 #if 0
 	NSLog(@"parser: %@", _parser);
 #endif
-	// FIXME: we should have incremental parsing...
+	// FIXME: we should have incremental parsing and modify the DOM tree only...
 	if(![_parser parse])	// as far as we come :-)
 		{ // partial load
 #if 1
@@ -226,7 +221,16 @@ static NSDictionary *tagtable;
 #endif
 		}
 	[_parser release];
-	[[source webFrame] _receivedData:source];	// notify a new DOM tree
+	if((title=[self title]))
+		{
+		WebFrame *webFrame=[source webFrame];
+		WebView *webView=[webFrame webView];
+#if 1
+		NSLog(@"notify delegate for title %@: %@", title, [webView frameLoadDelegate]);
+#endif
+		[[webView frameLoadDelegate] webView:webView didReceiveTitle:title forFrame:webFrame];	// update title
+		}
+	[(NSView <WebDocumentView> *)[[[source webFrame] frameView] documentView] dataSourceUpdated:source];	// notify frame view
 }
 
 - (NSString *) title;
@@ -393,6 +397,7 @@ static NSDictionary *tagtable;
 		return;	// ignore
 	if([c _ignore])
 		return;	// ignore
+	[[_elementStack lastObject] _elementLoaded];	// any finalizing code
 	// if([currentElement _streamline] - add </tag> to the current element
 	if(![c _closeNotRequired])
 		[_elementStack removeLastObject];	// go up one level

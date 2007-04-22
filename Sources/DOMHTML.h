@@ -1,25 +1,10 @@
-/* simplewebkit
-   DOMHTML.h
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+//
+//  DOMHTML.h
+//  SimpleWebKit
+//
+//  Created by Nikolaus Schaller on 28.01.07.
+//  Copyright 2007 __MyCompanyName__. All rights reserved.
+//
 
 #import <WebKit/DOMCore.h>
 
@@ -27,14 +12,6 @@
 @class WebDataSource;
 @class WebFrame;
 @class _WebDocumentRepresentation;
-@class NSTextTable, NSTextTableBlock;	// we don't explicitly import since we can't rely on its existence
-
-#ifndef NIMP
-#define NIMP NSLog(@"not implemented: %@", NSStringFromSelector(_cmd)), (id) nil
-#endif
-#ifndef ASSIGN
-#define ASSIGN(var, val) ([var release], var=[val retain])
-#endif
 
 @interface DOMHTMLElement : DOMElement
 
@@ -47,13 +24,15 @@
 - (NSString *) innerHTML;
 - (NSAttributedString *) attributedString;
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
+- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string;
 - (WebFrame *) webFrame;
 
-- (DOMCSSStyleDeclaration *) _style;		// get appropriate CSS definition by tag, tag level, id, class, etc.
-- (void) _layout:(NSView *) parent index:(unsigned) idx;
+- (DOMCSSStyleDeclaration *) _cssStyle;
+- (NSMutableDictionary *) _style;		// get appropriate CSS definition by tag, tag level, id, class, etc. recursively going upwards
+- (void) _layout:(NSView *) view;		// layout view according to the DOM node (may swap the view within its superview!)
 - (void) _trimSpaces:(NSMutableAttributedString *) str;
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table;
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
 - (void) _elementLoaded;	// element has been loaded
 
 @end
@@ -64,12 +43,14 @@
 {
 	WebDataSource *_dataSource;		// the datasource we belong to - not retained!
 	WebFrame *_webFrame;			// the webframe we belong to - not retained!
+	NSTimer *_timer;					// redirection timer
 }
 
 - (void) _setWebFrame:(WebFrame *) frame;
 - (WebFrame *) webFrame;
 - (void) _setWebDataSource:(WebDataSource *) src;
 - (WebDataSource *) _webDataSource;
+- (void) _setRedirectTimer:(NSTimer *) timer;
 
 @end
 

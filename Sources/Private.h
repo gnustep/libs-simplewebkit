@@ -1,25 +1,10 @@
-/* simplewebkit
-   Private.h
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+//
+//  Private.h
+//  mySTEP
+//
+//  Created by Dr. H. Nikolaus Schaller on Tue Sep 01 2005.
+//  Copyright (c) 2005 DSITRI. All rights reserved.
+//
 
 #import <Foundation/Foundation.h>
 #import <WebKit/WebDataSource.h>
@@ -45,9 +30,11 @@
 - (NSStringEncoding) _stringEncoding;
 - (void) _setUnreachableURL:(NSURL *) url;
 - (void) _setWebFrame:(WebFrame *) wframe;
-- (void) _loadSubresourceWithURL:(NSURL *) url;
+- (WebDataSource *) _subresourceWithURL:(NSURL *) url delegate:(id <WebDocumentRepresentation>) rep;	// triggers loading if not (yet) available and optionally stalls main data source
 - (void) _setParentDataSource:(WebDataSource *) source;
 - (void) _commitSubresource:(WebDataSource *) source;
+- (void) _setRepresentation:(id <WebDocumentRepresentation>) rep;	// the object that receives notifications
+- (BOOL) _isSubresource;
 @end
 
 @interface _NSURLRequestNSData : NSURLRequest
@@ -62,9 +49,9 @@
 
 @end
 
-@interface _WebNSDataSource : WebDataSource
-- (id) initWithData:(NSData *) data MIMEType:(NSString *) mime textEncodingName:(NSString *) encoding baseURL:(NSURL *) url;
-@end
+// @interface _WebNSDataSource : WebDataSource
+// - (id) initWithData:(NSData *) data MIMEType:(NSString *) mime textEncodingName:(NSString *) encoding baseURL:(NSURL *) url;
+// @end
 
 @interface WebFrame (Private)
 - (void) _setParentFrame:(WebFrame *) parent;	// weak pointer
@@ -86,6 +73,8 @@
 + (Class) _viewClassForMIMEType:(NSString *) type;
 - (BOOL) drawsBackground;
 - (void) setDrawsBackground:(BOOL) flag;
-- (NSArray *) _fontsForSize;	// 7 entries for the <font size="x"> tag
-- (NSArray *) _fontsForHeader;	// 6 entries for the <h#> tags
+@end
+
+@interface NSView (WebDocumentView)
+- (void) _recursivelySetNeedsLayout;
 @end

@@ -1,0 +1,50 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {
+                back = id; 
+                flip = id; 
+                forward = id; 
+                home = id; 
+                load = id; 
+                searchGoogle = id; 
+                stopLoading = id; 
+            }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {loadPageFromMenuItem = id; script = id; scriptFromMenuItem = id; }; 
+            CLASS = MyApplication; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                activity = NSOutlineView; 
+                command = NSTextField; 
+                currentURL = NSComboBoxCell; 
+                docSource = NSTextView; 
+                experiment = NSTextView; 
+                result = NSTextField; 
+                status = NSTextField; 
+                webView = WebView; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }, 
+        {
+            ACTIONS = {loadPageFromMenuItem = id; script = id; scriptFromMenuItem = id; }; 
+            CLASS = MyDocument; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                command = NSTextField; 
+                currentURL = NSComboBoxCell; 
+                docSource = NSTextView; 
+                result = NSTextField; 
+                status = NSTextField; 
+                webView = WebView; 
+            }; 
+            SUPERCLASS = NSDocument; 
+        }
+    ); 
+    IBVersion = 1; 
+}

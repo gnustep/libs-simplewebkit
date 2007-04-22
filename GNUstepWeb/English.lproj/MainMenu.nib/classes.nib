@@ -1,0 +1,29 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {
+                back = id; 
+                flip = id; 
+                forward = id; 
+                home = id; 
+                load = id; 
+                loadPageFromMenuItem = id; 
+                openJavaScriptConsole = id; 
+                searchGoogle = id; 
+                showSource = id; 
+                stopLoading = id; 
+            }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = MyApplication; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {activity = NSOutlineView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }
+    ); 
+    IBVersion = 1; 
+}

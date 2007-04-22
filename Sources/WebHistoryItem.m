@@ -1,26 +1,10 @@
-/* simplewebkit
-   WebHistoryItem.m
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
-
+//
+//  WebHistoryItem.m
+//  mySTEP
+//
+//  Created by Dr. H. Nikolaus Schaller on Tue May 16 2006.
+//  Copyright (c) 2006 DSITRI. All rights reserved.
+//
 
 #import "Private.h"
 #import <WebKit/WebHistoryItem.h>
@@ -58,17 +42,26 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 
 - (id) copyWithZone:(NSZone *) zone;
 {
-	return NIMP;
+	WebHistoryItem *c;
+	if((c=[[NSObject allocWithZone:zone] init]))
+		{
+		c->_originalURLString=[_originalURLString retain];
+		c->_URLString=[_URLString retain];
+		c->_title=[_title retain];
+		c->_lastVisitedTimeInterval=_lastVisitedTimeInterval;
+		}
+	return c;
 }
 
 - (NSTimeInterval) lastVisitedTimeInterval; { return _lastVisitedTimeInterval; }
 - (NSString *) originalURLString; { return _originalURLString; }
-- (void) setAlternateTitle:(NSString *) title; { ASSIGN(_alternateTitle, title); }
+- (void) setAlternateTitle:(NSString *) title; { ASSIGN(_alternateTitle, title); [self _notify]; }
 - (NSString *) title; { return _title; }
 - (NSString *) URLString; { return _URLString; }
 
+- (void) _notify; { [[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryItemChangedNotification object:self]; }
 - (void) _touch; { _lastVisitedTimeInterval=[NSDate timeIntervalSinceReferenceDate]; }
-- (void) _setIcon:(NSImage *) icon; { ASSIGN(_icon, icon); }
-- (void) _setURL:(NSURL *) url; { ASSIGN(_URLString, url); }
+- (void) _setIcon:(NSImage *) icon; { ASSIGN(_icon, icon); [self _notify]; }
+- (void) _setURL:(NSURL *) url; { ASSIGN(_URLString, url); [self _notify]; }
 
 @end

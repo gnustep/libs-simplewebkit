@@ -46,18 +46,22 @@
 
 @interface WebScriptObject (_WebScriptObjectAccess)
 
+// FIXME: this appears to be redundant to some of the WebScriptObject methods!!!
+
 // internal properties 8.6.2
 
 - (WebScriptObject *) _prototype; 
 - (NSString *) _class;
-- (id) _get:(NSString *) property;
-- (void) _put:(NSString *) property value:(id) value;
+
+#define _GET(O, P) [(O) valueForKey:(P)]
+#define _PUT(O, P, VAL) [(O) setValue:(VAL) forKey:(P) ]
 - (BOOL) _canPut:(NSString *) property;
 - (BOOL) _hasProperty:(NSString *) property;
-- (BOOL) _delete:(NSString *) property;
+#define _DELETE(O, P) [(O) removeWebScriptKey:(P)]
 - (id) _defaultValue:(Class) hint;
 - (WebScriptObject *) _construct:(NSArray *) arguments;
 - (WebScriptObject *) _call:(WebScriptObject *) this arguments:(NSArray *) arguments;
+// --> - (id) callWebScriptMethod:(NSString *) name withArguments:(NSArray *) args;
 - (BOOL) _hasInstance:(WebScriptObject *) value;
 - (id) _scope;
 - (id /*<MatchResult>*/) _match:(NSString *) pattern index:(unsigned) index;

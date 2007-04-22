@@ -1,0 +1,25 @@
+<head>
+
+<script>
+
+// this appears first, i.e. during loading phase
+
+window.alert("during <script>");
+
+// endless loop
+// NOTE: Safari/WebKit completely spin-locks and you can only force-quit Safari
+
+// while(true) { }
+
+function test()
+{
+	window.alert("<body onload>");
+}
+
+</script>
+
+</head>
+
+<body onload="test();">
+Here is some body text that does not appear before the test() function completes.
+</body>

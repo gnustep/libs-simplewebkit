@@ -1,38 +1,26 @@
-/* simplewebkit
-   WebFrameView.h
-
-   Copyright (C) 2007 Free Software Foundation, Inc.
-
-   Author: Dr. H. Nikolaus Schaller
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
-
+//
+//  WebFrameView.h
+//  mySTEP
+//
+//  Created by Dr. H. Nikolaus Schaller on Mon Jan 05 2004.
+//  Revised May 2006
+//  Copyright (c) 2004 DSITRI. All rights reserved.
+//
 
 #import <Cocoa/Cocoa.h>
+#import <WebKit/WebDocument.h>
+
 @class WebFrame;
 
 @interface WebFrameView : NSView
 {
+	NSScrollView *_scrollView;	// the scroll view
 	WebFrame *_webFrame;		// the frame we are asked to display
 }
 
 // The first level below this WebFrameView is a NSScrollView (if we allow scrolling).
 // The elements to be displayed are laid out properly in the subviews of that scroll view.
-// They can be e.g. NSTextView, NSPopUpButton, NSTextField, NSButton, and WebFrameView depending
+// They can be e.g. NSTextView, NSPopUpButton, NSTextField, NSButton, or another WebFrameView depending
 // on the tags found in the HTML source
 
 
