@@ -20,6 +20,7 @@
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
+
 // FIXME: learn from http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html
 // FIXME: add additional attributes (e.g. images, anchors etc. for DOMHTMLDocument) and DOMHTMLCollection type
 // FIXME: we should separate code from DOM Tree management, HTML parsing, and visual representation
@@ -174,7 +175,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			[str deleteCharactersInRange:NSMakeRange([str length]-1, 1)];	// remove final whitespace
 		if([str length] > 0)
 			{ // yes, add a newline with same formatting as previous character
-			NSDictionary *prev;
 			[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this inherits attributes of previous section
 			}
 		}
@@ -195,6 +195,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return str;
 }
 
+- (WebFrame *) webFrame
+{
+	return [(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame];
+}
 
 - (NSString *) outerHTML;
 {
@@ -242,26 +246,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	return [sub data];	// may return incomplete data or even nil!
 }
-
-- (WebFrame *) webFrame
-{
-	return [(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame];
-}
-
-#if OLD
-// deprecate
-
-- (void) _trimSpaces:(NSMutableAttributedString *) str;
-{
-	if([str length] > 0 && [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[[str string] characterAtIndex:0]])
-		[str deleteCharactersInRange:NSMakeRange(0, 1)];	// remove initial whitespace or newline
-}
-
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
-{
-	return [self attributedString];	// default is to return unformatted content
-}
-#endif
 
 - (void) _layout:(NSView *) parent;
 {
@@ -362,24 +346,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:s attributes:[(DOMHTMLElement *) _parentNode _style]] autorelease]];
 }
 
-#if OLD
-- (NSAttributedString *) attributedString;
-{ // trim embedded newline and tabs into multiple spaces and apply the default font size
-	NSMutableDictionary *s=[(DOMHTMLElement *) _parentNode _style];	// determine character and paragraph style
-	NSMutableString *str=[[[self data] mutableCopy] autorelease];
-	[str replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [str length])];
-	[str replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [str length])];	// convert to space
-	while([str replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [str length])])
-		;	// trim multiple spaces while we find them
-	return [[[NSMutableAttributedString alloc] initWithString:str attributes:s] autorelease];
-}
-
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
-{
-	return [self attributedString];	// default is to return formatted content
-}
-#endif
-
 - (void) _layout:(NSView *) parent;
 {
 	return;	// ignore if mixed with <frame> and <frameset> elements
@@ -398,13 +364,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // ignore CData
 }
 
-#if OLD
-- (NSAttributedString *) attributedString;
-{ // ignore CData
-	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
-}
-#endif
-
 @end
 
 @implementation DOMComment (DOMHTMLElement)
@@ -417,13 +376,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // ignore comments
 }
-
-#if OLD
-- (NSAttributedString *) attributedString;
-{ // ignore comments in rendered output
-	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
-}
-#endif
 
 @end
 
@@ -585,13 +537,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // ignore scripts for rendering
 }
 
-#if OLD
-- (NSAttributedString *) attributedString;
-{ // contents is the script (may be inside a comment) - don't return for rendering
-	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
-}
-#endif
-
 - (void) _elementLoaded;
 { // <script> element has been loaded
 	NSString *type=[self getAttribute:@"type"];	// should be "text/javascript" or "application/javascript"
@@ -658,13 +603,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLObjectElement
-
-#if OLD
-- (NSAttributedString *) attributedString;
-{ // contents is script (may be inside a comment)
-	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
-}
-#endif
 
 @end
 
@@ -917,7 +855,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (NSMutableDictionary *) _style;
 { // provide default styles
-	// FIXME: cache result until we are modified
 	NSMutableDictionary *s=[super _style];	// inherit style
 	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
 	NSString *align=[self getAttribute:@"align"];
@@ -931,16 +868,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 {
 	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
 }
-
-#if OLD
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
-	NSAttributedString *newline=[[[NSAttributedString alloc] initWithString:@"\n"] autorelease];
-	[str appendAttributedString:newline];
-	return str;
-}
-#endif
 
 @end
 
@@ -1140,7 +1067,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[super _spliceTo:str];
 }
 
-
 #if OLD	// move as much as possible to to _style
 - (NSAttributedString *) attributedString;
 {
@@ -1259,16 +1185,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return YES;
 }
 
-#if OLD
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
-	NSAttributedString *newline=[[[NSAttributedString alloc] initWithString:@"\n"] autorelease];
-	[str appendAttributedString:newline];
-	return str;
-}
-#endif
-
 @end
 
 @implementation DOMHTMLParagraphElement
@@ -1280,16 +1196,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// FIXME: only if str does not end with a newline?
 	return YES;
 }
-
-#if OLD
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
-	NSAttributedString *newline=[[[NSAttributedString alloc] initWithString:@"\n"] autorelease];
-	[str appendAttributedString:newline];
-	return str;
-}
-#endif
 
 @end
 
@@ -1308,19 +1214,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// should set attributes!
 	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"----------------------------\n"];
 }
-
-#if OLD
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
-	NSAttributedString *newline=[[[NSAttributedString alloc] initWithString:@"\n"] autorelease];
-	// FIXME: should we add a text attachment - but how to manage the variable size???
-	// or we can set a special paragraph style?
-	[str insertAttributedString:newline atIndex:0];
-	[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"-----------------------------\n"] autorelease]];
-	return str;
-}
-#endif
 
 @end
 
