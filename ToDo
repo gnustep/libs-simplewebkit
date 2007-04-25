@@ -23,9 +23,6 @@ HTML parsing and error robustness:
 - ignore <body> in <body><frameset>...</frameset></body>
 
 Text Formatting/Typesetting:
-- splicing of text fragments with newlines at one or both ends is not perfect (e.g.<h1>&<h2> or <h1>&<p>)
-- <p> and <br> do not create correct newparagraph/newline separators
-- should we embrace all <h>, <p> and <br> with double-newline and remove one if spliced?
 - color does only understand #rrggbb and no plain text names
 - <hr> does not draw a nice line
 - <table> does not handle colspan, rowspan
@@ -35,34 +32,37 @@ View:
 - <frame> not tested if it loads and displays subframes
 
 Forms:
-- <input type="radio" name="group"> does not yet have radio behaviour - if none is defined as CHECKED, it should select the first one
-- <form> does not yet send anything
+- <input type="radio" name="group"> does not yet have radio behaviour
+- if none is defined as CHECKED, it should select the first one
+- <form> does not yet send anything (should form a "POST" NSURLRequest)
 
 JavaScript:
 - add execution context ("this", global variables, document/event/etc.)
 - add prototype objects Array, Number, Object, String, etc. with their methods
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
-- add triggers like <body onload="..."> or <... onmouse="...">
-- how do we "stop" a running script (especially if it gets trapped in an endless loop)? Answer: we don't. WebKit/Safari spin-locks in this case.
+- handle triggers like <body onload="..."> or <... onmouse="...">
+- how do we "stop" a running script (especially if it gets trapped in an endless loop)?
+  Answer: we don't. WebKit/Safari spin-locks in this case as well.
 
-Other:
+Others:
 - (DOMText *) splitText: what is the semantics?
 
 Feature requests:
 - CSS & full formatting attributes
 - attributedString for <li>, <ol>, <ul>, <dd> etc. not implemented
 - <textarea>, <select>/<option> not completely implemented
-- <button>formatted button text</button>
-- history not implemented
-- go back&forth not implemented (how do we cache the pages, DOMTrees etc.?
+- should be <button>formatted button text</button>
+- history not fully implemented
+- go back&forth not fully implemented (how do we cache the pages, DOMTrees etc.?
 	Or do we reload/reparse everything and just keep a history of visited URLRequests?
 	We should also remember scroller position(s)
+	We should cache pages in NSURLCache
 - link color definition by <body> and if link was visited recently (history)
 
 mySTEP's NSURLConnection needs:
 - cookies
 - cache
-- https (add libopenssl to NSSocketStream)
+- https (add libopenssl to NSSocketInputOutputStream)
 - sending / POST&GET methods
 - header compression
 
