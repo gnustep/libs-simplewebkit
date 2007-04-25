@@ -11,6 +11,7 @@
 // FIXME: we should separate code from DOM Tree management, HTML parsing, and visual representation
 
 #import <WebKit/WebView.h>
+#import <WebKit/WebResource.h>
 #import "WebHTMLDocumentView.h"
 #import "Private.h"
 
@@ -20,9 +21,22 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 #if !defined(__APPLE__)
 
-// declare headers of optional classes - don't include since we can't rely on their existence
+// surrogate declarations for headers of optional classes
 
 @interface NSTextBlock : NSObject
+- (void) setBackgroundColor:(NSColor *) color;
+- (void) setBorderColor:(NSColor *) color;
+- (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
+// FIXME: values must nevertheless match implementation in AppKit!
+#define NSTextBlockBorder 0
+#define NSTextBlockPadding 1
+#define NSTextBlockMargin 2
+#define NSTextBlockAbsoluteValueType 0
+#define NSTextBlockPercentageValueType 1
+#define NSTextBlockTopAlignment	0
+#define NSTextBlockMiddleAlignment 1
+#define NSTextBlockBottomAlignment 2
+#define NSTextBlockBaselineAlignment 3
 @end
 
 @interface NSTextTable : NSTextBlock
@@ -126,12 +140,47 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
-@implementation DOMHTMLElement
+@implementation DOMElement (DOMHTMLElement)
 
 + (BOOL) _closeNotRequired; { return NO; }	// default implementation
 + (BOOL) _goesToHead;		{ return NO; }
 + (BOOL) _ignore;			{ return NO; }
 + (BOOL) _streamline;		{ return NO; }
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{ // default - subclasses can also check if str ends with a newline and add one only if there isn't one or YES to force to add a new one
+	return NO;	
+}
+
+- (void) _splicePrefix:(NSMutableAttributedString *) str;
+{
+	if([self _shouldSpliceNewline:str])
+		{
+		if([[str string] hasSuffix:@" "])
+			[str deleteCharactersInRange:NSMakeRange([str length]-1, 1)];	// remove final whitespace
+		if([str length] > 0)
+			{ // yes, add a newline with same formatting as previous character
+			NSDictionary *prev;
+			[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this inherits attributes of previous section
+			}
+		}
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // splice node and subnodes taking end of last fragment into account
+	unsigned i;
+	[self _splicePrefix:str];	// add any prefix
+	for(i=0; i<[_childNodes length]; i++)
+		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];	// splice child segments
+}
+
+- (NSAttributedString *) attributedString;
+{
+	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
+	[self _spliceTo:str];	// recursively splice all element strings into our string
+	return str;
+}
+
 
 - (NSString *) outerHTML;
 {
@@ -151,55 +200,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		str=[str stringByAppendingString:d];
 		}
 	return str;
-}
-
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str=[[NSMutableAttributedString alloc] initWithString:@""];
-	NSString *node=[self nodeName];
-	unsigned i;
-	if([node hasPrefix:@"NOFRAMES"])
-		return [[[NSMutableAttributedString alloc] initWithString:@""] autorelease];	// empty
-	for(i=0; i<[_childNodes length]; i++)
-		{ // splice segments together
-		/* FIXME: trimming rules are not correct
-		 * should be:
-		 * we may get multiple spaces by splicing fragments together -> reduce to single one
-		 * we may get \n\n\n sequences - should be reduced to single one
-		 * but what about <table>? we store the table with a @"\n\n" string
-		 * fragments are already reduced before splicing
-		 *
-		 * the outcome must be
-		 * 1. \n in the source are converted to space (ok, done in DOMCharacterData)
-		 * 2. multiple spaces are reduced to single one (mostly ok)
-		 * 3. leading spaces of each paragraph are ignored (not ok - what is a paragraph?)
-		 * e.g. <body> firstParagraph <p> secondParagraph </body> is as valid as
-		 *      <body> <p> firstParagraph </p> <p> secondParagraph </p> </body> is as valid as
-		 * what to do with <p/><p/>
-		 * when should we ignore a <p> after <h#>?
-		 * and finally: for <pre> we should be able to switch off trimming and keep all the newline characters
-		 */
-		NSMutableAttributedString *rstr=(NSMutableAttributedString *) [(DOMHTMLElement *) [_childNodes item:i] attributedString];
-		if(0 && [str length])
-			{ // trim right side before splicing
-			if([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[[str string] characterAtIndex:[str length]-1]])
-				[self _trimSpaces:rstr];	// trim beginning newline or space
-			}
-		[str appendAttributedString:rstr];	// splice
-		}
-	if([node isEqualToString:@"CENTER"] || [node hasPrefix:@"H"])
-		{ // make it a paragraph
-		NSAttributedString *newline=[[[NSAttributedString alloc] initWithString:@"\n" attributes:[self _style]] autorelease];
-		[self _trimSpaces:str];
-		[str insertAttributedString:newline atIndex:0];	// embrace with line breaks
-		[str appendAttributedString:newline];
-		}
-	else if([node hasPrefix:@"PRE"])
-		{
-		// get string without applying trimming and style
-		// make paragraphs non-breaking (i.e. extending the width of the NSTextView as required)
-		}
-	return [str autorelease];
 }
 
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
@@ -234,6 +234,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame];
 }
 
+#if OLD
+// deprecate
+
 - (void) _trimSpaces:(NSMutableAttributedString *) str;
 {
 	if([str length] > 0 && [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[[str string] characterAtIndex:0]])
@@ -244,6 +247,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 {
 	return [self attributedString];	// default is to return unformatted content
 }
+#endif
 
 - (void) _layout:(NSView *) parent;
 {
@@ -254,17 +258,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
 	NSString *node=[self nodeName];
 	NSMutableDictionary *s;
-	if([node isEqualToString:@"PRE"])
-		{ // return preformatted text style, i.e. an infinitely wide paragraph with predefined font
-		NSLog(@"apply <PRE> style");
-		}
-	s=[(DOMHTMLElement *) _parentNode _style];	// inherit style
+	s=[(DOMHTMLElement *) _parentNode _style];	// inherit style from parent
 	if(!s)
 		{
 		s=[NSMutableDictionary dictionary];	// empty (e.g. no parentNode)
 		[s setObject:self forKey:WebElementDOMNodeKey];
 		[s setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
-//		WebElementIsSelected = 0; 
+    [s setObject:[[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease] forKey:NSParagraphStyleAttributeName];
+		//		WebElementIsSelected = 0; 
 //		WebElementTargetFrame = <WebFrame: 0x381780>; 
 		}
 	if([node isEqualToString:@"B"])
@@ -284,35 +285,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		f=[NSFont fontWithDescriptor:fd size:[fd pointSize]];
 		if(f)
 			[s setObject:f forKey:NSFontAttributeName];
-		}
-	else if([node isEqualToString:@"CENTER"])
-		{ // make centered alignment for the enclosed paragraph
-		NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
-		[paragraph setAlignment:NSCenterTextAlignment];
-		}
-	else if([node hasPrefix:@"H"])
-		{ // make header
-		int level=[[node substringFromIndex:1] intValue];
-		if(level >= 1 && level <= 6)
-			{ // ignore otherwise
-			WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-			float size=[NSFont systemFontSize]*[webView textSizeMultiplier];
-			switch(level)
-				{
-				case 1:
-					size *= 24.0/12.0;	// 12 -> 24
-					break;
-				case 2:
-					size *= 18.0/12.0;	// 12 -> 18
-					break;
-				case 3:
-					size *= 14.0/12.0;	// 12 -> 14
-					break;
-				default:
-					break;	// standard
-				}
-			[s setObject:[NSFont boldSystemFontOfSize:size] forKey:NSFontAttributeName];	// set header font
-			}
 		}
 	// FIXME: apply CSS styles here
 	return s;
@@ -338,6 +310,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
+@implementation DOMHTMLElement
+@end
+
 @implementation DOMCharacterData (DOMHTMLElement)
 
 - (NSString *) outerHTML;
@@ -350,6 +325,30 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [self data];
 }
 
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{
+	NSMutableString *s=[[[self data] mutableCopy] autorelease];
+	[s replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0, [s length])];	// remove
+	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+#if QUESTIONABLE_OPTIMIZATION
+	while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
+		;
+#endif
+	while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
+		;	// trim multiple spaces as long as we find them
+	if([s length] == 0)
+		return;
+	if([s hasPrefix:@" "])
+		{ // remove any remaining initial space if str already ends with as space or a \n
+		NSString *ss=[str string];
+		if([ss hasSuffix:@" "] || [ss hasSuffix:@"\n"])
+			[s deleteCharactersInRange:NSMakeRange(0, 1)];	// delete trailing space
+		}
+	[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:s attributes:[(DOMHTMLElement *) _parentNode _style]] autorelease]];
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 { // trim embedded newline and tabs into multiple spaces and apply the default font size
 	NSMutableDictionary *s=[(DOMHTMLElement *) _parentNode _style];	// determine character and paragraph style
@@ -365,6 +364,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 {
 	return [self attributedString];	// default is to return formatted content
 }
+#endif
 
 - (void) _layout:(NSView *) parent;
 {
@@ -380,10 +380,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [NSString stringWithFormat:@"<!CDATA>\n%@\n</!CDATA>", [(DOMHTMLElement *)self innerHTML]];
 }
 
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // ignore CData
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 { // ignore CData
 	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
 }
+#endif
 
 @end
 
@@ -394,10 +400,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [NSString stringWithFormat:@"<!-- %@ -->\n", [(DOMHTMLElement *)self innerHTML]];
 }
 
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // ignore comments
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 { // ignore comments in rendered output
 	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
 }
+#endif
 
 @end
 
@@ -419,12 +431,18 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	WebView *webView=[_webFrame webView];
 	if([_timer isValid])
 		{ // exists and did not yet trigger
+#if 1
+		NSLog(@"redirect timer cancelled");
+#endif
 		[_timer invalidate];
 		[[webView frameLoadDelegate] webView:webView didCancelClientRedirectForFrame:_webFrame];
 		}
 	if(timer)
 		[[webView frameLoadDelegate] webView:webView willPerformClientRedirectToURL:[(NSURLRequest *) [timer userInfo] URL] delay:[timer timeInterval] fireDate:[timer fireDate] forFrame:_webFrame];
 	ASSIGN(_timer, timer);
+#if 1
+		NSLog(@"will redirect with %@", timer);
+#endif
 }
 
 @end
@@ -449,6 +467,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (void) _loadRequestFromTimer:(NSTimer *) timer;
 {
+#if 1
+	NSLog(@"load request from redirect timer: %@", timer);
+#endif	
 	[[self webFrame] loadRequest:[timer userInfo]];
 }
 
@@ -546,10 +567,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _streamline;	{ return YES; }
 
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // ignore scripts for rendering
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 { // contents is the script (may be inside a comment) - don't return for rendering
 	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
 }
+#endif
 
 - (void) _elementLoaded;
 { // <script> element has been loaded
@@ -618,14 +645,24 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLObjectElement
 
+#if OLD
 - (NSAttributedString *) attributedString;
 { // contents is script (may be inside a comment)
 	return [[[NSAttributedString alloc] initWithString:@""] autorelease];
 }
+#endif
 
 @end
 
 @implementation DOMHTMLParamElement
+
+@end
+
+@implementation DOMHTMLNoFramesElement
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // ignore content
+}
 
 @end
 
@@ -771,6 +808,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLIFrameElement
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // make a NSTextAttachmentCell which controls a NSTextView (not part of the view hierarchy???) that loads and renders the frame
+}
+
 @end
 
 @implementation DOMHTMLObjectFrameElement
@@ -836,7 +878,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 	NSLog(@"astr length for NSTextView=%u", [str length]);
 #endif
-	[self _trimSpaces:str];
+//	[self _trimSpaces:str];
 	[[(NSTextView *) view textStorage] setAttributedString:str];	// update content
 	[(NSTextView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 //	[view setLinkTextAttributes: ]	// update for link color
@@ -871,6 +913,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 {
 	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
@@ -878,6 +926,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[str appendAttributedString:newline];
 	return str;
 }
+#endif
 
 @end
 
@@ -893,6 +942,92 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		[paragraph setAlignment:[align _htmlAlignment]];
 	// and modify others...
 	return s;
+}
+
+@end
+
+@implementation DOMHTMLCenterElement
+
+- (NSMutableDictionary *) _style;
+{
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	[paragraph setAlignment:NSCenterTextAlignment];	// modify paragraph alignment
+	return s;
+}
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // handle special cases
+	[super _spliceTo:str];	// add content according to standard rules
+	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
+}
+
+@end
+
+@implementation DOMHTMLHeadingElement
+
+- (NSMutableDictionary *) _style;
+{ // make header (bold)
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	int level=[[[self nodeName] substringFromIndex:1] intValue];
+	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	float size=[NSFont systemFontSize]*[webView textSizeMultiplier];
+	switch(level)
+				{
+				case 1:
+					size *= 24.0/12.0;	// 12 -> 24
+					break;
+				case 2:
+					size *= 18.0/12.0;	// 12 -> 18
+					break;
+				case 3:
+					size *= 14.0/12.0;	// 12 -> 14
+					break;
+				default:
+					break;	// standard
+				}
+	[s setObject:[NSFont boldSystemFontOfSize:size] forKey:NSFontAttributeName];	// set header font
+	return s;
+}
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // handle special cases
+	[super _spliceTo:str];	// add content according to standard rules
+	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
+}
+
+@end
+
+@implementation DOMHTMLPreElement
+
+- (NSMutableDictionary *) _style;
+{
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	// make monospaced and unlimited length and/or determine length from content
+	return s;
+}
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // handle special cases
+	[super _spliceTo:str];	// add content according to standard rules
+	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
 }
 
 @end
@@ -984,6 +1119,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // 
+	// check if we are an empty but named anchor
+	// then, insert an invisible NSTextAttachmentCell
+	[super _spliceTo:str];
+}
+
+
+#if OLD	// move as much as possible to to _style
 - (NSAttributedString *) attributedString;
 {
 	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
@@ -1002,6 +1146,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		}
 	return str;
 }
+#endif
 
 @end
 
@@ -1018,7 +1163,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// we can also set the link attribute with the URL for the text attachment
 }
 
-- (NSAttributedString *) attributedString;
+- (void) _spliceTo:(NSMutableAttributedString *) str;
 {
 		NSCell *cell;
 		NSData *data;
@@ -1041,7 +1186,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	if(!src)
 		{
 		if(!alt) alt=@" <img> ";
-		return [[[NSMutableAttributedString alloc] initWithString:alt] autorelease];
+		[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:alt];
+		return;
 		}
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
@@ -1068,7 +1214,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
 #endif
 	// we can also overlay the text attachment with the URL as a link
-	return [NSMutableAttributedString attributedStringWithAttachment:attachment];
+	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
 }
 
 // WebDocumentRepresentation callbacks (source is the subresource)
@@ -1094,6 +1240,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return YES; }
 
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return YES;
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 {
 	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
@@ -1101,6 +1253,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[str appendAttributedString:newline];
 	return str;
 }
+#endif
 
 @end
 
@@ -1108,6 +1261,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return YES; }
 
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	// FIXME: only if str does not end with a newline?
+	return YES;
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 {
 	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
@@ -1115,6 +1275,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[str appendAttributedString:newline];
 	return str;
 }
+#endif
 
 @end
 
@@ -1122,6 +1283,19 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return YES; }
 
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return YES;
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{
+	[super _spliceTo:str];
+	// should set attributes!
+	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"----------------------------\n"];
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 {
 	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
@@ -1132,6 +1306,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"-----------------------------\n"] autorelease]];
 	return str;
 }
+#endif
 
 @end
 
@@ -1139,6 +1314,59 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return NO; }	// be lazy
 
+- (void) dealloc; { [table release]; [super dealloc]; }
+
+- (NSMutableDictionary *) _style;
+{
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	NSString *align=[[self getAttribute:@"align"] lowercaseString];
+	NSString *alignchar=[self getAttribute:@"char"];
+	NSString *offset=[self getAttribute:@"charoff"];
+	NSString *width=[self getAttribute:@"width"];
+	if([align isEqualToString:@"left"])
+		[paragraph setAlignment:NSLeftTextAlignment];
+	if([align isEqualToString:@"center"])
+		[paragraph setAlignment:NSCenterTextAlignment];
+	if([align isEqualToString:@"right"])
+		[paragraph setAlignment:NSRightTextAlignment];
+	if([align isEqualToString:@"justify"])
+		[paragraph setAlignment:NSJustifiedTextAlignment];
+	//			 if([align isEqualToString:@"char"])
+	//				 [paragraph setAlignment:NSNaturalTextAlignment];
+	if(!table)
+		{ // cache table element
+			NSString *valign=[self getAttribute:@"valign"];
+			NSString *background=[self getAttribute:@"background"];
+			unsigned border=[[self getAttribute:@"border"] intValue];
+			unsigned spacing=[[self getAttribute:@"cellspacing"] intValue];
+			unsigned padding=[[self getAttribute:@"cellpadding"] intValue];
+			unsigned cols=[[self getAttribute:@"cols"] intValue];
+#if 1
+			NSLog(@"<table>: %@", [self _attributes]);
+#endif
+			table=[[NSClassFromString(@"NSTextTable") alloc] init];
+			[table setHidesEmptyCells:YES];
+			[table setNumberOfColumns:cols > 0?cols:0];	// will be increased automatically as needed!
+			[table setBackgroundColor:[NSColor whiteColor]];
+			[table setBorderColor:[NSColor blackColor]];
+			// get from attributes...
+			[table setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+			[table setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+			// NSTextBlockVerticalAlignment
+		}
+#if 1
+		NSLog(@"<table> _style=%@", s);
+#endif
+	return s;
+}
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return YES;
+}
+
+#if OLD
 - (NSAttributedString *) attributedString;
 {
 	NSTextTable *textTable;
@@ -1163,11 +1391,17 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		unsigned cols=[[self getAttribute:@"cols"] intValue];
 		unsigned row=1;
 		unsigned col=1;
-		// to handle these attributes properly, we might need a subclass of NSTextTable to store them
-		str=[[[NSMutableAttributedString alloc] initWithString:@"\n\n"] autorelease];
+		// to handle all these attributes properly, we might need a subclass of NSTextTable to store them
+		str=[[[NSMutableAttributedString alloc] initWithString:@"\n"] autorelease];	// finish last object
 		textTable=[[textTableClass alloc] init];
 		[textTable setHidesEmptyCells:YES];
-		[textTable setNumberOfColumns:cols];	// will be increased automatically as needed!
+		[textTable setNumberOfColumns:cols > 0?cols:0];	// will be increased automatically as needed!
+		[textTable setBackgroundColor:[NSColor whiteColor]];
+		[textTable setBorderColor:[NSColor blackColor]];
+		// get from attributes...
+		[textTable setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+		[textTable setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+		// NSTextBlockVerticalAlignment
 		children=[self childNodes];
 		cnt=[children length];	// should be a list of DOMHTMLTableRowElements
 		for(i=0; i<cnt; i++)
@@ -1179,15 +1413,18 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 				i=-1;
 				continue;
 				}
-			[str appendAttributedString:[(DOMHTMLElement *) [children item:i] _tableCellsForTable:textTable row:&row col:&col]];
+			if(str)
+				[str appendAttributedString:[(DOMHTMLElement *) [children item:i] _tableCellsForTable:textTable row:&row col:&col]];
 			}
 		[(NSObject *) textTable release];
+		[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"\n"] autorelease]];	// finish table
 		}
 #if 1
 	NSLog(@"<table>: %@", str);
 #endif
 	return str;
 }
+#endif
 
 @end
 
@@ -1195,26 +1432,60 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return NO; }	// be lazy
 
+- (NSMutableDictionary *) _style;
+{
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	NSString *align=[[self getAttribute:@"align"] lowercaseString];
+	NSString *alignchar=[self getAttribute:@"char"];
+	NSString *offset=[self getAttribute:@"charoff"];
+	NSString *valign=[self getAttribute:@"valign"];
+	if([align isEqualToString:@"left"])
+		[paragraph setAlignment:NSLeftTextAlignment];
+	if([align isEqualToString:@"center"])
+		[paragraph setAlignment:NSCenterTextAlignment];
+	if([align isEqualToString:@"right"])
+		[paragraph setAlignment:NSRightTextAlignment];
+	if([align isEqualToString:@"justify"])
+		[paragraph setAlignment:NSJustifiedTextAlignment];
+	//			 if([align isEqualToString:@"char"])
+	//				 [paragraph setAlignment:NSNaturalTextAlignment];
+#if 1
+		NSLog(@"<tr> _style=%@", s);
+#endif
+		return s;
+}
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return YES;
+}
+
+#if OLD
 - (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
 { // go down and merge
 	NSMutableAttributedString *str=[[NSMutableAttributedString alloc] initWithString:@""];
 	unsigned int i=0;
-	unsigned r;
-		NSString *align=[self getAttribute:@"align"];
-		NSString *alignchar=[self getAttribute:@"char"];
-		NSString *offset=[self getAttribute:@"charoff"];
-		NSString *valign=[self getAttribute:@"valign"];
-	// FIXME: apply attributes to all enclosed cells, i.e. use _tableStyle;
+	unsigned maxrow=*row;
+//		NSString *align=[self getAttribute:@"align"];
+	//	NSString *alignchar=[self getAttribute:@"char"];
+	//	NSString *offset=[self getAttribute:@"charoff"];
+	//	NSString *valign=[self getAttribute:@"valign"];
 	*col=1;	// start over leftmost
 	while(i<[_childNodes length])
 		{ // should be <th> or <td> entries
-		r=*row;
+		unsigned r=*row;	// have them all start on the same row
 		[str appendAttributedString:[(DOMHTMLElement *) [_childNodes item:i++] _tableCellsForTable:table row:&r col:col]];
 		if(r > *row)
-			*row=r;	// determine max of all rowspans
+			maxrow=r;	// determine maximum of all rowspans
+		if(*col > [table numberOfColumns])
+			[table setNumberOfColumns:*col];	// new max column
 		}
+	*row=maxrow;	// take maximum
 	return str;
 }
+
+#endif
 
 - (NSAttributedString *) attributedString;
 { // if we are called we can't use the NSTextTable mechanism - try the best with tabs and new line
@@ -1236,6 +1507,77 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return NO; }	// be lazy
 
+- (void) dealloc; { [cell release]; [super dealloc]; }
+
+- (NSMutableDictionary *) _style;
+{ // derive default style within a cell
+		NSMutableDictionary *s=[super _style];
+		NSTextTable *table=[s objectForKey:@"<table>"];	// get property from enclosing DOMHTMLTableNode (parent->parent->)
+		NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+		NSString *axis=[self getAttribute:@"axis"];
+		NSString *align=[[self getAttribute:@"align"] lowercaseString];
+		NSString *valign=[[self getAttribute:@"valign"] lowercaseString];
+		NSString *alignchar=[self getAttribute:@"char"];
+		NSString *offset=[self getAttribute:@"charoff"];
+		int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
+		int rowspan=[[self getAttribute:@"rowspan"] intValue];
+		int col=1;
+		int colspan=[[self getAttribute:@"colspan"] intValue];
+		NSString *width=[self getAttribute:@"width"];	// in pixels or % of <table>
+		if([[self nodeName] isEqualToString:@"TH"])
+			{ // make centered and bold paragraph for header cells
+			NSFont *f=[s objectForKey:NSFontAttributeName];
+			NSFontDescriptor *fd=[f fontDescriptor];
+			fd=[fd fontDescriptorWithFace:@"bold"];
+			f=[NSFont fontWithDescriptor:fd size:[fd pointSize]];
+			if(f)
+				[s setObject:f forKey:NSFontAttributeName];
+			[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
+			}
+		if([align isEqualToString:@"left"])
+			[paragraph setAlignment:NSLeftTextAlignment];
+		if([align isEqualToString:@"center"])
+			[paragraph setAlignment:NSCenterTextAlignment];
+		if([align isEqualToString:@"right"])
+			[paragraph setAlignment:NSRightTextAlignment];
+		if([align isEqualToString:@"justify"])
+			[paragraph setAlignment:NSJustifiedTextAlignment];
+		//			 if([align isEqualToString:@"char"])
+		//				 [paragraph setAlignment:NSNaturalTextAlignment];
+		if(!cell)
+			{ // needs to allocate one
+			cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table 
+																														 startingRow:row
+																																 rowSpan:rowspan
+																													startingColumn:col
+																															columnSpan:colspan];
+		// get from attributes or inherit from parent/table
+			[cell setBackgroundColor:[NSColor lightGrayColor]];
+			[cell setBorderColor:[NSColor blackColor]];
+			[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+			[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+			[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
+			if([valign isEqualToString:@"top"])
+				// [block setVerticalAlignment:...]
+				;
+			if(col+colspan > [table numberOfColumns])
+				[table setNumberOfColumns:col+colspan];	// adjust number of columns of our enclosing table
+			}
+		if(cell)
+			[paragraph setTextBlocks:[NSArray arrayWithObject:cell]];	// add to paragraph style
+#if 1
+		NSLog(@"<td> _style=%@", s);
+#endif
+		return s;
+}
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return YES;
+}
+
+#if OLD
+
 - (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
 {
 	NSTextTableBlock *block;
@@ -1244,40 +1586,47 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		NSString *axis=[self getAttribute:@"axis"];
 		int rowspan=[[self getAttribute:@"rowspan"] intValue];
 		int colspan=[[self getAttribute:@"colspan"] intValue];
-	NSString *align=[self getAttribute:@"align"];
+//	NSString *align=[self getAttribute:@"align"];
 	NSString *valign=[self getAttribute:@"valign"];
-		NSString *width=[self getAttribute:@"width"];	// in pixels or % of <table>
-		BOOL theader=[[self nodeName] isEqualToString:@"th"];
-	[self _style];	// get CSS
-	if((*col)+colspan > [table numberOfColumns])
-		[table setNumberOfColumns:(*col)+colspan];	// has to be increased
+	NSString *width=[self getAttribute:@"width"];	// in pixels or % of <table>
+	NSDictionary *attribs=[self _style];
 	if(colspan < 1) colspan=1;
 	if(rowspan < 1) rowspan=1;
+#if 1
+	NSLog(@"<td> create TextBlock for (%d, %d) span (%d, %d)", *row, *col, rowspan, colspan);
+#endif
 	block=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table 
-															startingRow:*row		// we must somewhere count rows and columns
+															startingRow:*row
 																rowSpan:rowspan
 														 startingColumn:*col
 															 columnSpan:colspan];
 	*row+=rowspan;
 	*col+=colspan;
-//	[block setBackgroundColor:backgroundColor];
-//	[block setBorderColor:borderColor];
- //   [block setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];
-   // [block setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];
-	paragraph=[[NSParagraphStyle defaultParagraphStyle] mutableCopy];
-    [paragraph setTextBlocks:[NSArray arrayWithObject:block]];	// add to paragraph style
-    [(id) block release];
-	cell=(NSMutableAttributedString *)[self attributedString];	// get cell contents
-	// check if we are a TH, then default to center align and different font
-    [cell addAttribute:NSParagraphStyleAttributeName 
-				value:paragraph 
-				range:NSMakeRange(0, [cell length])];
-    [paragraph release];
+	// get from attributes
+	[block setBackgroundColor:[NSColor lightGrayColor]];
+	[block setBorderColor:[NSColor blackColor]];
+	// get from attributes...
+	[block setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+	[block setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+	[block setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
+	// [block setVerticalAlignment:...];
+	paragraph=[attribs objectForKey:NSParagraphStyleAttributeName];
+	[paragraph setTextBlocks:[NSArray arrayWithObject:block]];	// add to paragraph style
+	[(id) block release];
+	// FIXME: it appears that we must prefix the cell with a dummy-paragraph attribute and include/update the block for all other paragraphs...
+	// hm. maybe, we must prepare the NSTextTableBlock already in [self _style] if any character sequence is part of a table
+	// and adjust it here - but how can we do that there without knowing the row/col and span values?
+	cell=[[[NSMutableAttributedString alloc] initWithString:@"\n" attributes:attribs] autorelease];
+//	cell=(NSMutableAttributedString *) ;
+	// CHECKME - should we add to ALL paragraphs or is it sufficient to add to last one
+	[cell appendAttributedString:[super attributedString]];	// add text block for paragraph
+	[cell appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"\n" attributes:attribs] autorelease]];
 #if 1
 	NSLog(@"<td>: %@", cell);
 #endif
 	return cell;
 }
+#endif
 
 @end
 
@@ -1349,9 +1698,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// POST
 }
 
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str;
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // 
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	NSString *type=[[self getAttribute:@"type"] lowercaseString];
@@ -1421,13 +1769,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"  cell: %@", cell);
 	NSLog(@"  cell control view: %@", [cell controlView]);
 #endif
-	// FIXME: do we need to create a mutable copy?
-	str=(NSMutableAttributedString *) [NSMutableAttributedString attributedStringWithAttachment:attachment];
-    [str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
+	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
+//	[str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
 #if 1
 	NSLog(@"  str: %@", str);
 #endif
-	return str;	// using default font...
 }
 
 @end
@@ -1441,40 +1787,36 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// POST
 }
 
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str;
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // 
+	NSAttributedString *value=[self attributedString];	// get content between <textarea> and </textarea>
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
-	NSString *val=[self getAttribute:@"value"];
+//	NSString *val=[self getAttribute:@"value"];
 	NSString *size=[self getAttribute:@"size"];
-	if(!val)
-		val=@"";
 #if 1
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSButtonCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
-	[cell setTitle:val];
+	[cell setAttributedTitle:value];
 	[cell setTarget:self];
 	[cell setAction:@selector(_formAction:)];
 #if 1
 	NSLog(@"  cell: %@", cell);
 #endif
-	str=(NSMutableAttributedString *) [NSMutableAttributedString attributedStringWithAttachment:attachment];
-    [str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
-	return str;
+	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
+	// [str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
 }
 
 @end
 
 @implementation DOMHTMLSelectElement
 
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str;
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // 
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
@@ -1504,9 +1846,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 	NSLog(@"  cell: %@", cell);
 #endif
-	str=(NSMutableAttributedString *) [NSMutableAttributedString attributedStringWithAttachment:attachment];
-	[str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
-	return str;
+	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
+//	[str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
 }
 
 @end
@@ -1522,10 +1863,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLTextAreaElement
 
-- (NSAttributedString *) attributedString;
-{
-	// search for enclosing <form> element to know how to set target/action etc.
-	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];	// get content between <textarea> and </textarea>
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // 
+	NSAttributedString *value=[self attributedString];	// get content between <textarea> and </textarea>
 	NSString *name=[self getAttribute:@"name"];
 	NSString *size=[self getAttribute:@"cols"];
 	NSString *type=[self getAttribute:@"lines"];
@@ -1534,7 +1874,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	// we should create a NSTextAttachment which includes an NSTextField with scrollbar (!) that is initialized with str
 //	return [NSMutableAttributedString attributedStringWithAttachment:];
-	return str;
 }
 
 @end

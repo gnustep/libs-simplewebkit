@@ -96,11 +96,19 @@ static NSDictionary *tagtable;
 					[DOMHTMLElement class], @"dd",
 					[DOMHTMLElement class], @"dt",
 				
+				[DOMHTMLNoFramesElement class], @"noframes",
+				[DOMHTMLNoFramesElement class], @"pre",
+				[DOMHTMLCenterElement class], @"center",
+				[DOMHTMLHeadingElement class], @"h1",
+				[DOMHTMLHeadingElement class], @"h2",
+				[DOMHTMLHeadingElement class], @"h3",
+				[DOMHTMLHeadingElement class], @"h4",
+				[DOMHTMLHeadingElement class], @"h5",
+				[DOMHTMLHeadingElement class], @"h6",
+
 				// stored in standard elements
 					[DOMHTMLElement class], @"tbody",
-					[DOMHTMLElement class], @"noframes",
 					[DOMHTMLElement class], @"noscript",
-					[DOMHTMLElement class], @"center",
 					[DOMHTMLElement class], @"bdo",
 					[DOMHTMLElement class], @"big",
 					[DOMHTMLElement class], @"small",
@@ -113,12 +121,6 @@ static NSDictionary *tagtable;
 					[DOMHTMLElement class], @"s",
 					[DOMHTMLElement class], @"tt",
 					[DOMHTMLElement class], @"strike",
-					[DOMHTMLElement class], @"h1",
-					[DOMHTMLElement class], @"h2",
-					[DOMHTMLElement class], @"h3",
-					[DOMHTMLElement class], @"h4",
-					[DOMHTMLElement class], @"h5",
-					[DOMHTMLElement class], @"h6",
 					nil
 				] retain];
 		}

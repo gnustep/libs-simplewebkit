@@ -13,7 +13,7 @@
 @class WebFrame;
 @class _WebDocumentRepresentation;
 
-@interface DOMHTMLElement : DOMElement
+@interface DOMElement (DOMHTMLElement)
 
 + (BOOL) _closeNotRequired;				// has no (explicit) close tag
 + (BOOL) _goesToHead;					// always becomes a child of <head>
@@ -35,6 +35,9 @@
 - (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
 - (void) _elementLoaded;	// element has been loaded
 
+@end
+
+@interface DOMHTMLElement : DOMElement
 @end
 
 @class WebFrame;
@@ -87,6 +90,9 @@
 @interface DOMHTMLFrameElement : DOMHTMLElement		// <frame>
 @end
 
+@interface DOMHTMLNoFramesElement : DOMHTMLElement		// <frame>
+@end
+
 @interface DOMHTMLIFrameElement : DOMHTMLFrameElement	// <iframe>
 @end
 
@@ -94,6 +100,15 @@
 @end
 
 @interface DOMHTMLBodyElement : DOMHTMLElement	// <body>
+@end
+
+@interface DOMHTMLCenterElement : DOMHTMLElement	// <center>
+@end
+
+@interface DOMHTMLHeadingElement : DOMHTMLElement	// <h>
+@end
+
+@interface DOMHTMLPreElement : DOMHTMLElement	// <pre>
 @end
 
 @interface DOMHTMLDivElement : DOMHTMLElement	// <div>
@@ -121,12 +136,18 @@
 @end
 
 @interface DOMHTMLTableElement : DOMHTMLElement	// <table>
+{
+	id table;
+}
 @end
 
 @interface DOMHTMLTableRowElement : DOMHTMLElement	// <tr>
 @end
 
 @interface DOMHTMLTableCellElement : DOMHTMLElement	// <td>
+{
+	id cell;
+}
 @end
 
 @interface DOMHTMLFormElement : DOMHTMLElement	// <form>
