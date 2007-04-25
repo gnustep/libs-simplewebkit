@@ -1,11 +1,25 @@
-//
-//  WebView.m
-//  mySTEP
-//
-//  Created by Dr. H. Nikolaus Schaller on Mon Jan 05 2004.
-//  Revised May 2006
-//  Copyright (c) 2004 DSITRI. All rights reserved.
-//
+/* simplewebkit
+   WebView.m
+   Copyright (C) 2007 Free Software Foundation, Inc.
+
+   Author: Dr. H. Nikolaus Schaller
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, write to the Free Software Foundation,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
+s
 
 /* short description how this all works togehter
 
@@ -568,7 +582,7 @@ method definition for '-alignCenter:' not found
 - (BOOL) webView:(WebView *) sender runJavaScriptConfirmPanelWithMessage:(NSString *) message; { return NO; }
 - (NSString *) webView:(WebView *) sender runJavaScriptTextInputPanelWithPrompt:(NSString *) prompt defaultText:(NSString *) text; { return @""; }
 - (void) webView:(WebView *) sender runOpenPanelForFileButtonWithResultListener:(id<WebOpenPanelResultListener>) listener; { return; }
-- (void) webView:(WebView *) sender setContentRect:(NSRect) rect; { [self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; }
+// TODO a hack? cocoa incompatibility ? - (void) webView:(WebView *) sender setContentRect:(NSRect) rect; { [self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; }
 - (void) webView:(WebView *) sender setFrame:(NSRect) frame; { [[sender window] setFrame:frame display:YES]; }
 - (void) webView:(WebView *) sender setResizable:(BOOL) flag; { [[sender window] setShowsResizeIndicator:flag]; }
 - (void) webView:(WebView *) sender setStatusBarVisible:(BOOL) flag; { return; }
