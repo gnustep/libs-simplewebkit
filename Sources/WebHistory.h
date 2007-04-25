@@ -44,3 +44,4 @@ extern NSString *WebHistorySavedNotification;
 - (void) setHistoryItemLimit:(int) limit;
 
 @end
+	
