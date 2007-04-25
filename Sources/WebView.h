@@ -24,7 +24,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Foundation/NSURLRequest.h>
 #import <WebKit/WebFrameLoadDelegate.h>
-//#import <WebKit/WebResourceLoadDelegate.h>
+#import <WebKit/WebResourceLoadDelegate.h>
 #import <WebKit/WebDownload.h>
 // #import <WebKit/WebEditingDelegate.h>
 // #import <WebKit/WebPolicyDelegate.h>

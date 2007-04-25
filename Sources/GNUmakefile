@@ -32,6 +32,7 @@ WebKit.h \
 WebPDFDocumentRepresentation.h \
 WebPlugin.h \
 WebResource.h \
+WebResourceLoadDelegate.h \
 WebScriptObject.h \
 WebUIDelegate.h \
 WebUndefined.h \
