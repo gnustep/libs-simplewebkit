@@ -32,7 +32,15 @@
         }, 
         {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }, 
         {
-            ACTIONS = {loadPageFromMenuItem = id; script = id; scriptFromMenuItem = id; }; 
+            ACTIONS = {
+                home = id; 
+                loadPageFromComboBox = id; 
+                loadPageFromMenuItem = id; 
+                openJavaScriptConsole = id; 
+                script = id; 
+                scriptFromMenuItem = id; 
+                showSource = id; 
+            }; 
             CLASS = MyDocument; 
             LANGUAGE = ObjC; 
             OUTLETS = {

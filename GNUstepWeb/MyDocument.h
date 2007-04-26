@@ -33,6 +33,7 @@
 
 - (IBAction) home:(id) Sender;
 - (IBAction) script:(id) sender;
+- (IBAction) loadPageFromComboBox:(id) sender;
 - (IBAction) loadPageFromMenuItem:(id) sender;
 - (IBAction) scriptFromMenuItem:(id) sender;
 - (IBAction) openJavaScriptConsole:(id) sender;

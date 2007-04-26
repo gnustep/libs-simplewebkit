@@ -93,6 +93,27 @@
 	NSLog(@"status: %@", str);
 }
 
+- (IBAction) loadPageFromComboBox:(id) sender;
+{
+	NSString *str;
+	NSURL *u;
+	str=[sender stringValue];
+	if([str hasPrefix:@"test:"])
+		{ // test file -> relative to our demo resources
+		NSString *path=[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"DemoHTML"];
+		path=[path stringByAppendingPathComponent:[str substringFromIndex:5]];
+		u=[NSURL fileURLWithPath:path];
+		}
+	else
+		u=[NSURL URLWithString:str];
+	if([[u scheme] length] == 0)
+		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
+#if 1
+		NSLog(@"loadPageFromComboBox %@ -> %@", str, u);
+#endif
+		[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
+}
+
 - (IBAction) loadPageFromMenuItem:(id) sender
 {
 	NSString *str;
@@ -328,6 +349,7 @@
 		[destinations addObject:@"http://www.gnustep.org"];
 		[destinations addObject:@"http://wiki.gnustep.org/index.php/SimpleWebKit"];
 		[destinations addObject:@"ftp://ftp.gnu.org/pub/gnu"];
+		[destinations addObject:@"http://pda.leo.org/"];
 		[destinations addObject:@"http://www.google.com"];
 		[destinations addObject:@"http://www.google.de"];
 		[destinations addObject:@"http://www.apple.com"];
@@ -340,7 +362,7 @@
 		dir=[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"DemoHTML"];
 		e=[[[NSFileManager defaultManager] directoryContentsAtPath:dir] objectEnumerator];
 		while((f=[e nextObject]))
-			[destinations addObject:[NSString stringWithFormat:@"file://%@", [dir stringByAppendingPathComponent:f]]];
+			[destinations addObject:[NSString stringWithFormat:@"test:%@", f]];
 		[destinations addObject:@""];
 		}
 	return [destinations count];

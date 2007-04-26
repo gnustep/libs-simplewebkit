@@ -18,8 +18,10 @@
 
 - (void) drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
+	// FIXME: this is currently broken!
 	WebView *webView=[self target];
-	float progress=webView?[webView estimatedProgress]:0.0;
+//	float progress=webView?[webView estimatedProgress]:0.0;
+	float progress=0.5;
 	if(progress == 1.0)
 		progress=0.0;	// don't show
 	if(progress > 0)
