@@ -1,15 +1,25 @@
-//
-//  NSXMLParser.h
-//  mySTEP
-//
-//  Created by Dr. H. Nikolaus Schaller on Tue Oct 05 2004.
-//  Copyright (c) 2004 DSITRI.
-//
-//  H.N.Schaller, Dec 2005 - API revised to be compatible to 10.4
-//
-//  This file is part of the mySTEP Library and is provided
-//  under the terms of the GNU Library General Public License.
-//
+/* simplewebkit
+   NSXMLParser.h
+
+   Copyright (C) 2007 Free Software Foundation, Inc.
+
+   Author: Dr. H. Nikolaus Schaller
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, write to the Free Software Foundation,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
 
 #ifndef mySTEP_NSXMLPARSER_H
 #define mySTEP_NSXMLPARSER_H
