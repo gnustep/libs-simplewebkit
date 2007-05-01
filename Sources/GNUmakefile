@@ -34,6 +34,7 @@ WebPlugin.h \
 WebResource.h \
 WebResourceLoadDelegate.h \
 WebScriptObject.h \
+WebTextDocumentRepresentation.h \
 WebUIDelegate.h \
 WebUndefined.h \
 WebView.h \
@@ -65,6 +66,7 @@ WebImageDocumentRepresentation.m \
 WebPDFDocumentRepresentation.m \
 WebResource.m \
 WebScriptObject.m \
+WebTextDocumentRepresentation.m \
 WebView.m \
 WebXMLDocumentRepresentation.m
 

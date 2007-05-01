@@ -1,3 +1,6 @@
+2007-04-1  Riccardo Mottola <riccardo@kaffe.org>
+	* Sources/GNUmakefile: fixed makefile
+
 2007-04-22  Nikolaus Schaller <hns@computer.org>
 	* updated everything from mySTEP
 
