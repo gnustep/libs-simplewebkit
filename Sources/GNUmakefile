@@ -31,6 +31,7 @@ WebImageDocumentRepresentation.h \
 WebKit.h \
 WebPDFDocumentRepresentation.h \
 WebPlugin.h \
+WebPluginContainer.h \
 WebResource.h \
 WebResourceLoadDelegate.h \
 WebScriptObject.h \
