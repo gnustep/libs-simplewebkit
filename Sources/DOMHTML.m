@@ -1242,7 +1242,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
 	if(!table)
-		{ // cache table element
+		{ // try to create and cache table element
 			NSString *valign=[self getAttribute:@"valign"];
 			NSString *background=[self getAttribute:@"background"];
 			unsigned border=[[self getAttribute:@"border"] intValue];
@@ -1253,19 +1253,24 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			NSLog(@"<table>: %@", [self _attributes]);
 #endif
 			table=[[NSClassFromString(@"NSTextTable") alloc] init];
-			[table setHidesEmptyCells:YES];
-			[table setNumberOfColumns:cols > 0?cols:0];	// will be increased automatically as needed!
-			[table setBackgroundColor:[NSColor whiteColor]];
-			[table setBorderColor:[NSColor blackColor]];
-			// get from attributes...
-			[table setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-			[table setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+			if(table)
+				{
+				[table setHidesEmptyCells:YES];
+				if(cols) [table setNumberOfColumns:cols];	// will be increased automatically as needed!
+				[table setBackgroundColor:[NSColor whiteColor]];
+				[table setBorderColor:[NSColor blackColor]];
+				// get from attributes...
+				[table setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+				[table setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
 			// NSTextBlockVerticalAlignment
+				}
 		}
+	if(table) [s setObject:table forKey:@"<table>"];	// make available to lower table levels
+	// we might also override the font attributes
 #if 1
 		NSLog(@"<table> _style=%@", s);
 #endif
-	return s;
+		return s;
 }
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
@@ -1392,8 +1397,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return str;
 }
 
-#endif
-
 - (NSAttributedString *) attributedString;
 { // if we are called we can't use the NSTextTable mechanism - try the best with tabs and new line
 	NSMutableAttributedString *str=[[NSMutableAttributedString alloc] initWithString:@"\n"];	// prefix and suffix with newline
@@ -1408,6 +1411,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return str;
 }
 
+#endif
+
 @end
 
 @implementation DOMHTMLTableCellElement
@@ -1419,7 +1424,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 - (NSMutableDictionary *) _style;
 { // derive default style within a cell
 		NSMutableDictionary *s=[super _style];
-		NSTextTable *table=[s objectForKey:@"<table>"];	// get property from enclosing DOMHTMLTableNode (parent->parent->)
+		NSTextTable *table=[s objectForKey:@"<table>"];	// property should be inherited from enclosing DOMHTMLTableNode
 		NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
 		NSString *axis=[self getAttribute:@"axis"];
 		NSString *align=[[self getAttribute:@"align"] lowercaseString];
@@ -1483,6 +1488,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return YES;
 }
 
+// we should override _spliceTo: and if we can't handle NSTextTable, insert a \t before each cell unless string ends with a newline
+// otherwise we should add a final \n with [self _style]
+
 #if OLD
 
 - (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
@@ -1538,6 +1546,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLFormElement
+
+- (NSMutableDictionary *) _style;
+{
+	NSMutableDictionary *s=[super _style];
+	[s setObject:self forKey:@"<form>"];	// make available to attributed string
+	return s;
+}
 
 - (void) submit;
 { // post current request

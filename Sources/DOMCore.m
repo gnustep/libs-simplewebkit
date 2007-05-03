@@ -337,12 +337,11 @@
 
 - (BOOL) _hasProperty:(NSString *) property;  { return [_attributes objectForKey:property] != nil; }
 
-- (BOOL) removeWebScriptKey:(NSString *) property;
+- (void) removeWebScriptKey:(NSString *) property;
 {
 	if(![_attributes objectForKey:property])
-		return NO;
+		return;	// or raise exception?
 	[_attributes removeObjectForKey:property];
-	return YES;
 }
 
 @end

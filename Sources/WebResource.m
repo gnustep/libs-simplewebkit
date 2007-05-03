@@ -34,6 +34,7 @@
 
 - (id) initWithData:(NSData *) data URL:(NSURL *) url MIMEType:(NSString *) mime textEncodingName:(NSString *) encoding frameName:(NSString *) name;
 {
+	NSAssert(data != nil, @"trying to init with nil data");
 	if((self=[super init]))
 		{
 		// should we check that data, MIME, URL are not nil?
