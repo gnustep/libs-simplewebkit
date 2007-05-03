@@ -31,8 +31,7 @@
 
 - (id) initWithName:(NSString *) n webFrameView:(WebFrameView *) frameView webView:(WebView *) webView
 {
-    self=[super init];
-    if(self)
+    if((self=[super init]))
 		{ // If an error occurs here, send a [self release] message and return nil.
 		_name=[n retain];
 		_frameView=[frameView retain];
@@ -78,6 +77,7 @@
 
 - (void) loadRequest:(NSURLRequest *) req;
 {
+	NSAssert(req != nil, @"trying to load nil request");
 #if 1
 	NSLog(@"%@ loadRequest:%@", self, req);
 #endif

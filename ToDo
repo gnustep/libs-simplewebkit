@@ -11,16 +11,17 @@ Testing:
 
 - really do robustness tests if HTML parser handles abrupt end of any source data properly
 - how does it really work with NSTextView of mySTEP or GNUstep AppKit?
-  Does it handle NSTextAttachments? NSTextTable is missing.
+  Does it handle NSTextAttachments? NSTextTable is missing in GNUstep.
 
 SimpleWebKit:
 
 HTML parsing and error robustness:
 - better handle <tbody> tag (auto-insert into DOM)
-- how should we parse "<h1>xxx <h2> xxx </h1>"? (a) all h tags on same level (ignoring the bad </h1>) or (b) nested?
+- how should we parse "<h1>xxx <h2> xxx </h1> z </h2>"?
+	(a) all h tags on same level (ignoring the bad </h1>) -> "<h1>xxx </h1><h2> xxx  z </h2>"
+	(b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
 - maybe, we should add + (BOOL) _nested; as a separate hint to DOMHTMLElement
-- Safari appears to be more robust to & characters which do not denote an entity
-- ignore <body> in <body><frameset>...</frameset></body>
+- simply ignore <body> in <body><frameset>...</frameset></body>
 
 Text Formatting/Typesetting:
 - color does only understand #rrggbb and no plain text names

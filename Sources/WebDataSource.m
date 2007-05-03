@@ -52,6 +52,7 @@
 #if 0
 	NSLog(@"WebDataSource initWithRequest %@", request);
 #endif
+	NSAssert(request != nil, @"trying to init for nil request");
     if((self = [super init]))
 		{ // If an error occurs here, send a [self release] message and return nil.
 		_initial=[request copy];
@@ -97,6 +98,7 @@
 
 - (void) addSubresource:(WebResource *) res;
 {
+	NSAssert(res != nil, @"trying to add nil web resource");
 	if(!_subresources)
 		_subresources=[[NSMutableDictionary alloc] initWithCapacity:20];
 	[_subresources setObject:res forKey:[res URL]];
@@ -120,6 +122,7 @@
 	NSLog(@"url=%@", url);
 	NSLog(@"_subresources[url]=%@", [_subresources objectForKey:url]);
 #endif
+	NSAssert(url != nil, @"trying to load nil subresource");
 	NSAssert([_subresources objectForKey:url] == nil, @"already loaded!");
 	subsource=[_subdatasources objectForKey:url];
 #if 1
@@ -380,6 +383,7 @@
 
 - (id) initWithData:(NSData *) data mime:(NSString *) mime textEncodingName:(NSString *) encoding baseURL:(NSURL *) url;
 {
+	NSAssert(data != nil, @"trying to load nil data");
 	if((self=[super initWithURL:[NSURL URLWithString:@"about:"]]))	// we must supply a dummy URL...
 		{
 		_data=[data retain];
