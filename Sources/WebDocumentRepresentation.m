@@ -19,6 +19,9 @@
    License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+	 Revision $Id: WebDocumentRepresentation.h 515 2007-05-07 07:07:18Z hns $
+
 */
 
 #import "WebDocumentRepresentation.h"
