@@ -59,6 +59,7 @@ Feature requests:
 	We should also remember scroller position(s)
 	We should cache pages in NSURLCache
 - link color definition by <body> and if link was visited recently (history)
+- a redirect timer (<meta redirect>) is not cleared if we load a different page!
 
 mySTEP's NSURLConnection needs:
 - cookies

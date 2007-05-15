@@ -309,7 +309,7 @@
 	NSLog(@"textEncodingName: %@", [response textEncodingName]);
 #endif
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didReceiveResponse:response fromDataSource:_parent?_parent:self];
-	if(!_loadedData && len > 0 && len < 2000000)
+	if(!_loadedData && len >= 0 && len < 2000000)
 		_loadedData=[[NSMutableData alloc] initWithCapacity:len];	// preallocate up to 2 MByte
 	if(_representation)
 		return;	// we already have one - don't allocate a representation

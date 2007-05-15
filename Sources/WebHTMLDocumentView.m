@@ -214,7 +214,10 @@
 + (NSTextAttachment *) textAttachmentWithCellOfClass:(Class) class;
 {
 	NSTextAttachment *attachment=[[[NSTextAttachment alloc] initWithFileWrapper:nil] autorelease];
-	[attachment setAttachmentCell:[[[class alloc] init] autorelease]];		
+	[attachment setAttachmentCell:[[[class alloc] init] autorelease]];	
+#if 1
+	NSLog(@"attachment cell=%@", [attachment attachmentCell]);
+#endif
 	return attachment;
 }
 
