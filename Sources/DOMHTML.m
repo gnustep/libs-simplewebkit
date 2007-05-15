@@ -1580,7 +1580,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		else
 			; // append to URL as &name=value - add a ? for the first one if there is no ? component as part of the action
 		}
-	request=[NSMutableURLRequest requestWithURL:[NSURL URLWithString:action relativeToURL:[[[htmlDocument _webDataSource] response] URL]]];
+	request=(NSMutableURLRequest *)[NSMutableURLRequest requestWithURL:[NSURL URLWithString:action relativeToURL:[[[htmlDocument _webDataSource] response] URL]]];
 	if(method)
 		[request setHTTPMethod:[method uppercaseString]];	// use default "GET" otherwise
 	if(body)
@@ -1635,7 +1635,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSString *autosave=[self getAttribute:@"autosave"];
 	if([type isEqualToString:@"hidden"])
 		{ // ignore for rendering purposes - will be collected when sending the <form>
-		return [[[NSMutableAttributedString alloc] initWithString:@""] autorelease];
+		return;
 		}
 #if 1
 	NSLog(@"<input>: %@", [self _attributes]);
@@ -1713,7 +1713,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // 
 	NSAttributedString *value=[self attributedString];	// get content between <textarea> and </textarea>
 	NSTextAttachment *attachment;
-	NSCell *cell;
+	NSButtonCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 //	NSString *val=[self getAttribute:@"value"];
@@ -1722,7 +1722,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSButtonCell class]];
-	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
+	cell=(NSButtonCell *) [attachment attachmentCell];	// get the real cell
 	[cell setAttributedTitle:value];
 	[cell setTarget:self];
 	[cell setAction:@selector(_formAction:)];

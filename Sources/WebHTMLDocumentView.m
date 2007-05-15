@@ -236,8 +236,8 @@
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
 - (BOOL) wantsToTrackMouse; { return YES; }
-
-	// add missing methods
+- (void) setAttachment:(NSTextAttachment *) anAttachment;	 { return; }	// ignore
+	// add other missing methods
 
 @end
 

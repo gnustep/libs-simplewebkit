@@ -19,6 +19,8 @@
 		EE1396B00BA5B02700A9A16C /* WebTextDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396AE0BA5B02700A9A16C /* WebTextDocumentRepresentation.m */; };
 		EE1396B50BA5B0EE00A9A16C /* WebDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */; };
 		EE1396B60BA5B0EE00A9A16C /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
+		EE1937830BF9C8180066385E /* WebHTMLImageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1937810BF9C8180066385E /* WebHTMLImageCell.m */; };
+		EE1937840BF9C8180066385E /* WebHTMLImageCell.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1937820BF9C8180066385E /* WebHTMLImageCell.h */; };
 		EE291C040AD780EE004A1CA6 /* WebDOMOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */; };
 		EE291C090AD78194004A1CA6 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
 		EE428B360A4819A2003437D2 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -126,6 +128,8 @@
 		EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebDocumentRepresentation.h; sourceTree = "<group>"; };
 		EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebDocumentRepresentation.m; sourceTree = "<group>"; };
 		EE147E840A16668700E60AF8 /* GNUstepWeb.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNUstepWeb.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE1937810BF9C8180066385E /* WebHTMLImageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebHTMLImageCell.m; sourceTree = "<group>"; };
+		EE1937820BF9C8180066385E /* WebHTMLImageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebHTMLImageCell.h; sourceTree = "<group>"; };
 		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
 		EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDOMOperations.m; sourceTree = "<group>"; };
 		EE291C080AD78194004A1CA6 /* WebScriptObject.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebScriptObject.m; sourceTree = "<group>"; };
@@ -322,6 +326,8 @@
 				EE1396AE0BA5B02700A9A16C /* WebTextDocumentRepresentation.m */,
 				EE475F3E0B9AF3B600559020 /* WebHTMLDocumentView.h */,
 				EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */,
+				EE1937820BF9C8180066385E /* WebHTMLImageCell.h */,
+				EE1937810BF9C8180066385E /* WebHTMLImageCell.m */,
 			);
 			name = Private;
 			path = Sources;
@@ -462,6 +468,7 @@
 				EEA7DF3B0BB05AC6006B2FDA /* ECMAScriptPrototypes.h in Headers */,
 				EE7A7D3A0BB68A9100A5C0FC /* WebPluginContainer.h in Headers */,
 				EEE9AE690BC6D85100757F02 /* WebResourceLoadDelegate.h in Headers */,
+				EE1937840BF9C8180066385E /* WebHTMLImageCell.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -658,6 +665,7 @@
 				EED0DD3B0BAED3C4005B0381 /* ECMAScriptEvaluator.m in Sources */,
 				EED0DD3D0BAED3C4005B0381 /* ECMAScriptParser.m in Sources */,
 				EEA7DF3C0BB05AC6006B2FDA /* ECMAScriptPrototypes.m in Sources */,
+				EE1937830BF9C8180066385E /* WebHTMLImageCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
