@@ -32,6 +32,7 @@ HTML parsing and error robustness:
 - simply ignore <body> in <body><frameset>...</frameset></body>
 - should we accept entities in quoted paramters or not? Is this standard?
   like this: <input type="submit" value="&nbsp;&nbsp;Go&nbsp;&nbsp;"> from http://pda.leo.org/
+- how do we handle abc<p>def</p> - we should treat any text before the first <p> as an independent paragraph without explicit formatting
 
 Text Formatting/Typesetting:
 - color does only understand #rrggbb and no plain text names
@@ -42,9 +43,9 @@ Text Formatting/Typesetting:
 	- or is a <hr> a special attachment cell?
 - <table> does not handle colspan, rowspan
 - handle <pre>
-- handle <small>
-- handle <b><i><u> etc.
-- handle <p align="center"> as on http://carduus.chanet.de/
+- handle <small>, <big>, <strong>, <em>, <code>, <kbd>, <samp>, <var>, <cite>, <tt>, <strike>
+
+- handle <p align="center"> as on http://carduus.chanet.de/ - note: it is the FIRST <p> element that suppresses to start with \n
 
 View:
 - <frame> not tested if it loads and displays subframes

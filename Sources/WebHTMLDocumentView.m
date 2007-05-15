@@ -82,12 +82,21 @@
 { // do the layout of subviews
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
 	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or could be a <frameset>
+	NSColor *background;
 #if 1
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
 	[body _layout:self];	// process the <body> tag (could also be a <frameset>)
-	// check if we did load with an anchor (dataSource request has an anchor part) and it is already defined
+	background=[[body getAttribute:@"background"] _htmlColor];
+	if(!background)
+		background=[[body getAttribute:@"bgcolor"] _htmlColor];
+//	if(!background)
+//		background=[NSColor whiteColor];	// default
+	if(background)
+		[self setBackgroundColor:background];
+	[self setDrawsBackground:background != nil];
+// check if we did load with an anchor (dataSource request has an anchor part) and it is already defined
 	// if possible scroll us to the anchor position
 }
 

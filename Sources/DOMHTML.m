@@ -66,13 +66,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 #endif
 
-@interface NSString (HTMLAttributes)
-- (BOOL) _htmlBoolValue;
-- (NSColor *) _htmlColor;
-- (NSTextAlignment) _htmlAlignment;
-- (NSEnumerator *) _htmlFrameSetEnumerator;
-@end
-
 @implementation NSString (HTMLAttributes)
 
 - (BOOL) _htmlBoolValue;
@@ -174,7 +167,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		if([[str string] hasSuffix:@" "])
 			[str deleteCharactersInRange:NSMakeRange([str length]-1, 1)];	// remove final whitespace
 		if([str length] > 0)
-			{ // yes, add a newline with same formatting as previous character
+			{ // yes, add a newline with same formatting as previous character - except if we start with <p>
 			[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this inherits attributes of previous section
 			}
 		}
@@ -284,6 +277,18 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		if(f)
 			[s setObject:f forKey:NSFontAttributeName];
 		}
+	else if([node isEqualToString:@"U"])
+		{ // make underlined
+		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
+		}
+	else if([node isEqualToString:@"BIG"])
+		{ // make font larger
+		}
+	else if([node isEqualToString:@"SMALL"])
+		{ // make font smaller
+		}
+	// others like <sub> and <sup> to set the NSSuperscriptAttributeName to +1, -1?
+	// others to handle: <strong>, <em>, <code>, <kbd>, <samp>, <var>, <cite>, <tt>, <strike>
 	// FIXME: apply CSS styles here
 	return s;
 }
@@ -780,8 +785,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 	NSFont *font=[NSFont systemFontOfSize:[NSFont systemFontSize]*[webView textSizeMultiplier]];	// determine default font
 	NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
-	NSColor *background=[[self getAttribute:@"background"] _htmlColor];
-	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
+//	NSColor *background=[[self getAttribute:@"background"] _htmlColor];	// not processed here
+//	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
+#if 0
+	NSLog(@"_style for <body>: attribs=%@", [self _attributes]);
+#endif
 	return [NSMutableDictionary dictionaryWithObjectsAndKeys:
 		paragraph, NSParagraphStyleAttributeName,
 		font, NSFontAttributeName,
@@ -1142,7 +1150,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	if(!image)
 		{
 		image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
-		[image setScalesWhenResized:NO];	// hm... does not work
+		[image setScalesWhenResized:NO];	// hm... does not really work
 		}
 	if(width || height) // resize image
 		[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
@@ -1182,7 +1190,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
 {
-	return YES;
+	return YES;	// yes
 }
 
 @end
@@ -1193,8 +1201,18 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
 {
-	// FIXME: only if str does not end with a newline?
-	return YES;
+	return YES;	// yes
+}
+
+- (NSMutableDictionary *) _style;
+{ // provide default styles
+	// FIXME: cache result until we are modified
+	NSMutableDictionary *s=[super _style];	// inherit style
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	NSString *align=[self getAttribute:@"align"];
+	if(align)
+		[paragraph setAlignment:[align _htmlAlignment]];
+	return s;
 }
 
 @end

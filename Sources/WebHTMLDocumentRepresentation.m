@@ -367,6 +367,8 @@ static NSDictionary *tagtable;
 	if([c _ignore])
 		{
 		// in case of <html>, <head>, <body>, copy attributes to existing element and throw away current
+		if([attributes count] > 0)
+			NSLog(@"FIXME: should copy attributes for <%@>: %@", tag, attributes);
 		return;	// ignore
 		}
 	newElement=[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri document:_doc];

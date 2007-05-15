@@ -96,3 +96,13 @@
 @interface NSView (WebDocumentView)
 - (void) _recursivelySetNeedsLayout;
 @end
+
+@interface NSString (HTMLAttributes)
+
+- (BOOL) _htmlBoolValue;
+- (NSColor *) _htmlColor;
+- (NSTextAlignment) _htmlAlignment;
+- (NSEnumerator *) _htmlFrameSetEnumerator;
+
+@end
+
