@@ -265,7 +265,7 @@ static NSDictionary *tagtable;
 #if 1
 				NSLog(@"found <title> %@", [t data]);
 #endif
-				return [t data];	// found!
+				return [[t data] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// found!
 				}
 			}
 		}
