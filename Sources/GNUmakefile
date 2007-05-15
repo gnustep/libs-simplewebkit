@@ -71,5 +71,8 @@ WebTextDocumentRepresentation.m \
 WebView.m \
 WebXMLDocumentRepresentation.m
 
+SimpleWebKit_RESOURCE_FILES = \
+	WebKitIMG.png
+
 include $(GNUSTEP_MAKEFILES)/framework.make
 

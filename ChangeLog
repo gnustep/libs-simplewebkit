@@ -1,3 +1,7 @@
+2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Sources/GNUmakefile: add WebKitIMG.png resource
+
 2007-04-1  Riccardo Mottola <riccardo@kaffe.org>
 	* Sources/GNUmakefile: fixed makefile
 
