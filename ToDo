@@ -1,19 +1,27 @@
 SimpleWebKit ToDo
+=================
 
-21 Apr 2007
+-----------
+15 May 2007
 -----------
 
-High Prio to be useful for first testers:
-- <frame> and scrollers should work
-- <table> elements have all the same size and don't handle colspan/rowspan
+High Prio:
+- <frame> and scrollers should finally work correctly
+- <table> elements really work
+- <form> works
 
 Testing:
-
 - really do robustness tests if HTML parser handles abrupt end of any source data properly
 - how does it really work with NSTextView of mySTEP or GNUstep AppKit?
   Does it handle NSTextAttachments? NSTextTable is missing in GNUstep.
 
-SimpleWebKit:
+SimpleWebKit Architecture:
+- we should rewrite the HTML parser so that it becomes a filter and can parse incrementally
+- i.e. we write junks of NSData to the parser input
+- and it buffers the input until it can do something reasonable (e.g. found the next closing tag)
+- and calls the output callbacks as soon as it can
+- to get rid of the "reparse from beginning" mode which makes proper JavaScript load semantics impossible (execute immediately after loading even if partially)
+- it is also easier to implement stalling while waiting for a mandatory subresource (external <style> or <script>) to complete loading
 
 HTML parsing and error robustness:
 - better handle <tbody> tag (auto-insert into DOM)
@@ -22,12 +30,21 @@ HTML parsing and error robustness:
 	(b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
 - maybe, we should add + (BOOL) _nested; as a separate hint to DOMHTMLElement
 - simply ignore <body> in <body><frameset>...</frameset></body>
+- should we accept entities in quoted paramters or not? Is this standard?
+  like this: <input type="submit" value="&nbsp;&nbsp;Go&nbsp;&nbsp;"> from http://pda.leo.org/
 
 Text Formatting/Typesetting:
 - color does only understand #rrggbb and no plain text names
 - <hr> does not draw a nice line
+  - is there an auto-streching horizontal line character in Unicode?
+	- or should we use strike-through for a full width paragraph or a streching space?
+	- or should we add an empty table with border with?
+	- or is a <hr> a special attachment cell?
 - <table> does not handle colspan, rowspan
 - handle <pre>
+- handle <small>
+- handle <b><i><u> etc.
+- handle <p align="center"> as on http://carduus.chanet.de/
 
 View:
 - <frame> not tested if it loads and displays subframes
@@ -36,28 +53,32 @@ Forms:
 - <input type="radio" name="group"> does not yet have radio behaviour
 - if none is defined as CHECKED, it should select the first one
 - <form> does not yet send anything (should form a "POST" NSURLRequest)
+- <input> does not respond to mouse clicks
 
 JavaScript:
+- completion of parser and evaluator
 - add execution context ("this", global variables, document/event/etc.)
 - add prototype objects Array, Number, Object, String, etc. with their methods
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
 - handle triggers like <body onload="..."> or <... onmouse="...">
 - how do we "stop" a running script (especially if it gets trapped in an endless loop)?
   Answer: we don't. WebKit/Safari spin-locks in this case as well.
+  we could add that with a page load timeout
+- really run scripts
 
 Others:
 - (DOMText *) splitText: what is the semantics?
 
 Feature requests:
 - CSS & full formatting attributes
-- attributedString for <li>, <ol>, <ul>, <dd> etc. not implemented
+- attributedString for text lists <li>, <ol>, <ul>, <dd> etc. is not implemented
 - <textarea>, <select>/<option> not completely implemented
-- should be <button>formatted button text</button>
 - history not fully implemented
 - go back&forth not fully implemented (how do we cache the pages, DOMTrees etc.?
 	Or do we reload/reparse everything and just keep a history of visited URLRequests?
 	We should also remember scroller position(s)
 	We should cache pages in NSURLCache
+	We must also remember contents of <form> elements (even passwords!)
 - link color definition by <body> and if link was visited recently (history)
 - a redirect timer (<meta redirect>) is not cleared if we load a different page!
 
@@ -67,6 +88,7 @@ mySTEP's NSURLConnection needs:
 - https (add libopenssl to NSSocketInputOutputStream)
 - sending / POST&GET methods
 - header compression
+- server redirection
 
 GNUstep's NSURLConnection:
 - ?

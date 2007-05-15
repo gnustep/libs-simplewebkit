@@ -223,6 +223,60 @@
 
 @end
 
+@implementation NSCell (NSTextAttachment)
+
+// dummy implementations so that we can use any NSCell as an attachment cell - unless overridden explicity in a subclass
+
+- (void) setAttachment:(NSTextAttachment *) anAttachment;	 { return; }
+- (NSTextAttachment *) attachment; { return nil; }
+
+- (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
+								proposedLineFragment:(NSRect) fragment
+											 glyphPosition:(NSPoint) pos
+											characterIndex:(unsigned) index;
+{
+	return (NSRect){ NSZeroPoint, [self cellSize] };
+}
+
+- (void) drawWithFrame:(NSRect)cellFrame
+								inView:(NSView *)controlView
+				characterIndex:(unsigned) index;
+{
+	[self drawWithFrame:cellFrame inView:controlView];
+}
+
+- (void) drawWithFrame:(NSRect)cellFrame
+								inView:(NSView *)controlView
+				characterIndex:(unsigned) index
+				 layoutManager:(NSLayoutManager *) manager;
+{
+	[self drawWithFrame:cellFrame inView:controlView];
+}
+
+- (BOOL) trackMouse:(NSEvent *)event 
+						 inRect:(NSRect)cellFrame 
+						 ofView:(NSView *)controlTextView 
+   atCharacterIndex:(unsigned) index
+			 untilMouseUp:(BOOL)flag;
+{
+	return [self trackMouse:event inRect:cellFrame ofView:controlTextView untilMouseUp:flag];
+}
+
+- (BOOL) wantsToTrackMouse;
+{
+	return YES;
+}
+
+- (BOOL) wantsToTrackMouseForEvent:(NSEvent *) event
+														inRect:(NSRect) rect
+														ofView:(NSView *) controlView
+									atCharacterIndex:(unsigned) index;
+{
+	return [self wantsToTrackMouse];
+}
+
+@end
+
 @implementation NSButtonCell (NSTextAttachment)
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
@@ -236,8 +290,6 @@
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
 - (BOOL) wantsToTrackMouse; { return YES; }
-- (void) setAttachment:(NSTextAttachment *) anAttachment;	 { return; }	// ignore
-	// add other missing methods
 
 @end
 

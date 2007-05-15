@@ -1711,7 +1711,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // 
-	NSAttributedString *value=[self attributedString];	// get content between <textarea> and </textarea>
+	NSAttributedString *value=[self attributedString];	// get content between <button> and </button>
 	NSTextAttachment *attachment;
 	NSButtonCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
@@ -1723,6 +1723,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSButtonCell class]];
 	cell=(NSButtonCell *) [attachment attachmentCell];	// get the real cell
+	// we should select a grey square button by default
 	[cell setAttributedTitle:value];
 	[cell setTarget:self];
 	[cell setAction:@selector(_formAction:)];
