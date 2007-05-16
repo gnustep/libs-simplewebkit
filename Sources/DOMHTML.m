@@ -66,6 +66,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 #endif
 
+#if defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+// available in mySTEP and MacOS X >= 10.3
+#define NSUnderlineStyleSingle 0x01
+#endif
+
 @implementation NSString (HTMLAttributes)
 
 - (BOOL) _htmlBoolValue;
