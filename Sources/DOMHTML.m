@@ -1139,6 +1139,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		}
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
+#if 0
+	NSLog(@"cell attachment: %@", [cell attachment]);
+#endif
 	[cell setTarget:self];
 	[cell setAction:@selector(_imgAction:)];
 	data=[self _loadSubresourceWithAttributeString:@"src"];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)

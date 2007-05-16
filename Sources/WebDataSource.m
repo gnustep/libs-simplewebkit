@@ -155,6 +155,7 @@
 { // we are the parent and our subresource is done
 	[[source representation] finishedLoadingWithDataSource:source];		// last chance for postprocessing
 	[self addSubresource:[source mainResource]];	// save as WebResource
+	[source retain];	// keep us for some more time
 	[_subdatasources removeObjectForKey:[[source request] URL]];	// is no longer loading
 #if 1
 	NSLog(@"subresource committed (%d loaded, %d loading): %@", [_subresources count], [_subdatasources count], source);
@@ -164,6 +165,7 @@
 		_finishedLoading=NO;	// has been processed
 		[_representation finishedLoadingWithDataSource:self];	// finally send postponed notification after all subresources are loaded (is allowed to trigger load of additional subresources)
 		}
+	[source release];	// may be our final release&dealloc
 }
 
 - (WebResource *) mainResource;

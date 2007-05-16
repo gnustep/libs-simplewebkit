@@ -350,12 +350,14 @@
 		[destinations addObject:@"http://wiki.gnustep.org/index.php/SimpleWebKit"];
 		[destinations addObject:@"ftp://ftp.gnu.org/pub/gnu"];
 		[destinations addObject:@"http://pda.leo.org/"];
+		[destinations addObject:@"http://www.w3.org/"];
 		[destinations addObject:@"http://www.google.com"];
 		[destinations addObject:@"http://www.google.de"];
 		[destinations addObject:@"http://www.apple.com"];
 		[destinations addObject:@"http://www.apple.de"];
 		[destinations addObject:@"http://www.yahoo.de"];
 		[destinations addObject:@"http://carduus.chanet.de/"];
+		[destinations addObject:@"http://gutenberg.chanet.de/eindex.html"];
 		[destinations addObject:@"file:///Developer/ADC%20Reference%20Library/index.html"];
 		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
 		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];

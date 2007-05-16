@@ -232,9 +232,9 @@
 
 @end
 
-@implementation NSCell (NSTextAttachment)
+#if 1 // dummy implementations so that we can use *any* NSCell as an attachment cell - unless overridden explicity in a subclass
 
-// dummy implementations so that we can use any NSCell as an attachment cell - unless overridden explicity in a subclass
+@implementation NSCell (NSTextAttachment)
 
 - (void) setAttachment:(NSTextAttachment *) anAttachment;	 { return; }
 - (NSTextAttachment *) attachment; { return nil; }
@@ -285,6 +285,7 @@
 }
 
 @end
+#endif
 
 @implementation NSButtonCell (NSTextAttachment)
 
