@@ -26,8 +26,6 @@
 #import <WebKit/WebResource.h>
 #import <WebKit/WebFrameLoadDelegate.h>
 
-#define ROBUSTNESS_TEST 0
-
 @implementation WebDataSource
 
 #if NO_USED
@@ -344,12 +342,8 @@
 	if(!_loadedData)
 		_loadedData=[data mutableCopy];	// first segment
 	else
-		[_loadedData appendData:data];
-	// we should not reparse for every byte we receive...
-	// determine if we have already received enough to reparse again, i.e. compare with [response expectedContentLength]
-#if !ROBUSTNESS_TEST
-	[_representation receivedData:_loadedData withDataSource:self];	// pass on what we have (we may be a subresource!)
-#endif
+		[_loadedData appendData:data];	// followup segment
+	[_representation receivedData:data withDataSource:self];
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didReceiveContentLength:[data length] fromDataSource:_parent?_parent:self];
 }
 
@@ -358,13 +352,6 @@
 	WebView *webView=[_webFrame webView];
 #if 1
 	NSLog(@"connectionDidFinishLoading: %@", connection);
-#endif
-#if ROBUSTNESS_TEST
-	{ // try to make the html parser fail by passing incomplete HTML source
-		int i;
-		for(i=1; i<[_loadedData length]; i++)
-			[_representation receivedData:[_loadedData subdataWithRange:NSMakeRange(0, i)] withDataSource:self];	// parse with every length we have
-	}
 #endif
 	if([_subdatasources count] == 0)	// we can notify immediately and don't postpone
 		[_representation finishedLoadingWithDataSource:self];

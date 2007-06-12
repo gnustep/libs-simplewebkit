@@ -129,17 +129,30 @@ typedef enum _NSXMLParserError
 
 #endif
 
+// this is a private extension
+
+typedef enum _NSXMLParserReadMode
+{
+	_NSXMLParserStandardReadMode,	// decode embedded tags
+	_NSXMLParserPlainReadMode,		// get charcters (even entities) as they are until we find a matching closing tag: e.g. <script>
+	_NSXMLParserEntityOnlyReadMode,	// get charcters until we find a matching closing tag but still translate entities: e.g. <pre>
+} _NSXMLParserReadMode;
+
 @interface NSXMLParser : NSObject
 {
 	id delegate;					// the current delegate (not retained)
 	NSMutableArray *tagPath;		// hierarchy of tags
-	NSError *error;
-	const unsigned char *cp;		// character pointer
-	const unsigned char *cend;		// end of data
+	NSError *error;					// will also abort parsing process
+	NSData *data;					// if initialized with initWithData:
+	NSURL *url;						// if initialized with initWithContentsOfURL:
+	NSData *buffer;					// buffer
+	const char *cp;					// pointer into current buffer
 	int line;						// current line (counts from 0)
 	int column;						// current column (counts from 0)
-	NSStringEncoding encoding;
-	BOOL abort;						// abort parse loop
+	NSStringEncoding encoding;		// current read mode
+	_NSXMLParserReadMode readMode;
+	BOOL isStalled;					// queue up incoming NSData and don't call delegate methods
+	BOOL done;						// done with incremental input
 	BOOL shouldProcessNamespaces;
 	BOOL shouldReportNamespacePrefixes;
 	BOOL shouldResolveExternalEntities;

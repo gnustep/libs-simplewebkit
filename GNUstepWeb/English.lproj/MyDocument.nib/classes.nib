@@ -39,6 +39,7 @@
                 openJavaScriptConsole = id; 
                 script = id; 
                 scriptFromMenuItem = id; 
+                showDOMTree = id; 
                 showSource = id; 
             }; 
             CLASS = MyDocument; 
@@ -47,6 +48,8 @@
                 command = NSTextField; 
                 currentURL = NSComboBoxCell; 
                 docSource = NSTextView; 
+                domSource = NSTextView; 
+                domTree = NSOutlineView; 
                 result = NSTextField; 
                 status = NSTextField; 
                 webView = WebView; 

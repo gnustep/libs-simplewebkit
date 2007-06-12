@@ -34,7 +34,6 @@
 + (BOOL) _closeNotRequired;				// has no (explicit) close tag
 + (BOOL) _goesToHead;					// always becomes a child of <head>
 + (BOOL) _ignore;						// don't create nodes
-+ (BOOL) _streamline;					// include embedded tags as plain strings (<title>xxx<b> etc. or <script><!-- ...)
 
 - (NSString *) outerHTML;
 - (NSString *) innerHTML;

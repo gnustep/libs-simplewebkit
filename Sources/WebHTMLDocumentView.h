@@ -57,9 +57,10 @@
 
 @end
 
-@interface NSAnyViewAttachmentCell : NSTextAttachmentCell
-{ // embed any NSView in an attachment cell - e.g. an NSTableView (<select size=5>) or NSTextView (<textarea>)
-	NSView *_view;
+@interface NSViewAttachmentCell : NSTextAttachmentCell
+{ // embed any NSView in an attachment cell - e.g. an NSTableView (<select size=5>) or NSTextView (<textarea>) or a WebFrame (<iframe>)
+	NSTextAttachment *attachment;
+	NSView *view;
 }
 
 - (NSSize) cellSize;
@@ -67,3 +68,10 @@
 - (NSView *) view;
 
 @end
+
+@interface NSHRAttachmentCell : NSTextAttachmentCell
+{
+	NSTextAttachment *attachment;
+}
+@end
+

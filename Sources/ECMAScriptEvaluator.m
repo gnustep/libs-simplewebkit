@@ -37,8 +37,6 @@
 
 // default implementations for all WebScriptObjects
 
-// CHEKME: how does this interact/relate to the WebScriptObject methods like KVC calls?
-
 - (WebScriptObject *) _prototype; { return nil; }
 - (NSString *) _class; { return NSStringFromClass(isa); }	// default...
 - (BOOL) _canPut:(NSString *) property; { return NO; }
@@ -115,10 +113,15 @@
 
 @implementation NSNumber (_WebScriptTypeConversion)
 
+static Class __boolClass;	// class cluster subclass for numberWithBool
+
 - (NSNumber *) _toBoolean;
 {
-	// we should check if it is already a boolean!
-	double d=[self doubleValue];
+	double d;
+	if(!__boolClass) __boolClass=[[NSNumber numberWithBool:NO] class];	// get implementating class
+	if([self isKindOfClass:__boolClass])
+		return self;	// already a boolean
+	d=[self doubleValue];
 	// if +0, -0 or NaN -> NO
 	return [NSNumber numberWithBool:(d != 0.0)];
 }
@@ -130,7 +133,8 @@
 
 - (NSString *) _toString;
 {
-	if([self isKindOfClass:[[NSNumber numberWithBool:NO] class]])
+	if(!__boolClass) __boolClass=[[NSNumber numberWithBool:NO] class];
+	if([self isKindOfClass:__boolClass])
 		return [self boolValue]?@"true":@"false";
 	// handle Infinity, NaN
 	return [self description];
@@ -147,7 +151,7 @@
 	double d;
 	unsigned ui;
 	[sc setCaseSensitive:NO];
-	// set whitespace according to list at 9.3.1
+	// FIXME: set whitespace according to list at 9.3.1
 	if([sc scanString:@"Infinity" intoString:NULL])
 		; // [NSNumber numberWithDouble:Inf];
 	if([sc scanString:@"+Infinity" intoString:NULL])
@@ -207,10 +211,12 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNode (_WebScriptEvaluation)
 
+// FIXME: do we need this?
+
 - (id) _evaluate;
 {
 	// SUBCLASS
-	return NIMP;	// nodes can't be evaluated unless they overwrite
+	return NIMP;	// nodes can't be evaluated unless they overwrite this method
 }
 
 - (id) _evaluateWithScope:(_WebScriptScope *) scope activation:(WebScriptObject *) activationObject this:(WebScriptObject *) this;
@@ -218,6 +224,8 @@ typedef struct _WebScriptScope
 	// establish the scope chain
 	return nil;
 }
+
+// FIXME: do we need this?
 
 - (id) evaluateWithGlobalObjects:(NSDictionary *) objects;
 { // evaluate in given context
@@ -317,7 +325,7 @@ typedef struct _WebScriptScope
 
 - (id) _evaluate;
 {
-	return NIMP;	// should not be called (?)
+	return NIMP;	// should never be called (?)
 }
 
 @end
@@ -359,9 +367,10 @@ typedef struct _WebScriptScope
 	if(![fn isKindOfClass:[WebScriptObject class]])
 		[self setException:@"TypeError"];
 	if(![fn respondsToSelector:@selector(_call:arguments:)])
-		{ // try to bridge
+		{ // try to bridge to Cocoa objects
 		NSString *fnname=[l getPropertyName];
 		SEL sel;
+		// FIXME:
 		// should we check if we are allowed to call this method? i.e. don't allow a _ prefix, don't allow to call e.g. release
 		// is this the place to use the WebScriptObject informal protocol?
 		fnname=[fnname stringByPaddingToLength:[fnname length]+[arglist count] withString:@":" startingAtIndex:0];		// add a : for each argument
@@ -376,6 +385,7 @@ typedef struct _WebScriptScope
 			NS_DURING
 				[i invoke];
 			NS_HANDLER
+				// how to handle exceptions?
 			NS_ENDHANDLER
 			// get return value
 			return nil;
@@ -861,19 +871,22 @@ typedef struct _WebScriptScope
 	if([l boolValue])
 		return [right _evaluate];
 	else
-		return [otherwise _evaluate];	// return nil if not present!?
+		return [otherwise _evaluate];	// FIXME: returns nil if else part is not present!?!
 }
 
 @end
 
 @implementation  _WebScriptTreeNodeIteration (_WebScriptEvaluation)
+
 // {	@public enum { Do, While, ForIn, Continue, Break } op;
 //	_WebScriptTreeNode *inc; /* optional inc expression in For loop */ }
-// for loops: add a timer to regularly call the Runloop/NSApp nextEvent
+
+// optional for loops: add a timer/counter to regularly call the Runloop/NSApp nextEvent and/or check stack overflow 
 
 @end
 
 @implementation _WebScriptTreeNodeReturn (_WebScriptEvaluation)
+
 // {	@public enum { Return, Throw } op; }
 
 @end
@@ -898,6 +911,7 @@ typedef struct _WebScriptScope
 @end
 
 @implementation _WebScriptTreeNodeSwitch (_WebScriptEvaluation)
+
 // {	@public _WebScriptTreeNode *expr, *otherwise; /* default option */ }
 
 @end
@@ -906,12 +920,15 @@ typedef struct _WebScriptScope
 @end
 
 @implementation _WebScriptTreeNodeTry (_WebScriptEvaluation)
+
 // {	@public _WebScriptTreeNode *catch, *finally; }
 
 @end
 
 @implementation _WebScriptTreeNodeFunction (_WebScriptEvaluation)
+
 // {	@public NSArray *params; /* parameter list */ }
-// for loops: add a timer to regularly call the Runloop/NSApp nextEvent and/or check stack overflow 
+
+// optional for loops: add a timer/counter to regularly call the Runloop/NSApp nextEvent and/or check stack overflow 
 
 @end

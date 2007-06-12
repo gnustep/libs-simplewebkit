@@ -20,6 +20,10 @@
 	IBOutlet NSTextField *result;
 	// document source
 	IBOutlet NSTextView *docSource;
+	// DOM Tree
+    NSMutableSet *domNodes;
+	IBOutlet NSOutlineView *domTree;
+	IBOutlet NSTextView *domSource;
 	// Misc
 	NSURL *openfile;		// used only during Open...
 	BOOL hasToolbar;
@@ -38,5 +42,6 @@
 - (IBAction) scriptFromMenuItem:(id) sender;
 - (IBAction) openJavaScriptConsole:(id) sender;
 - (IBAction) showSource:(id) sender;
+- (IBAction) showDOMTree:(id) sender;
 
 @end

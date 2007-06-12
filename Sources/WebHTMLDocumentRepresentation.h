@@ -37,4 +37,6 @@
 	id _parser;
 }
 
+- (id) _parser;		// get access to the parser
+
 @end

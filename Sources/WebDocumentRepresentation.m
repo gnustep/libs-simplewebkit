@@ -44,7 +44,18 @@
 
 // default implementations
 
-- (void) setDataSource:(WebDataSource *) dataSource; { _dataSource=dataSource; }
+- (void) setDataSource:(WebDataSource *) dataSource;
+{
+	WebFrame *frame=[dataSource webFrame];
+	_dataSource=[dataSource retain];
+	[[[frame webView] frameLoadDelegate] webView:[frame webView] didCommitLoadForFrame:frame];
+}
+
+- (void) dealloc;
+{
+	[_dataSource release];
+	[super dealloc];
+}
 
 - (NSString *) title; { return nil; }	// default
 - (BOOL) canProvideDocumentSource; { return NO; }

@@ -1,8 +1,10 @@
-2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+2007-06-13  Nikolaus Schaller <hns@computer.org>
+	* updated NSXMLParser to do incremental parsing
 
+2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 	* Sources/GNUmakefile: add WebKitIMG.png resource
 
-2007-04-1  Riccardo Mottola <riccardo@kaffe.org>
+2007-04-01  Riccardo Mottola <riccardo@kaffe.org>
 	* Sources/GNUmakefile: fixed makefile
 
 2007-04-22  Nikolaus Schaller <hns@computer.org>

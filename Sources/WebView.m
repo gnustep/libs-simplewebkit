@@ -148,7 +148,11 @@ static NSArray *_htmlMimeTypes;
 	[self setMIMETypesShownAsHTML:[NSArray arrayWithObjects:@"text/html", nil]];
 	[self registerViewClass:[_WebHTMLDocumentView class]
 		representationClass:[_WebHTMLDocumentRepresentation class]
-				forMIMEType:@"text/html"];	// we are ourselves the default for HTML
+				forMIMEType:@"text/html"];
+	// FIXME: do we need a special _WebRTFDocumentView? - subclass of NSTextView
+	[self registerViewClass:[_WebHTMLDocumentView class]
+			representationClass:[_WebHTMLDocumentRepresentation class]
+							forMIMEType:@"text/rtf"];
 	[self registerViewClass:[_WebImageDocumentView class]
 		representationClass:[_WebImageDocumentRepresentation class]
 				forMIMEType:@"image/"];		// match all images

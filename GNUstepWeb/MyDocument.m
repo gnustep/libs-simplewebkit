@@ -44,8 +44,10 @@
 
 - (void) dealloc;
 {
-		[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[openfile release];
+	[destinations release];
+	[domNodes release];
 	[super dealloc];
 }
 
@@ -137,6 +139,14 @@
 - (IBAction) showSource:(id) sender
 {
 	[[docSource window] makeKeyAndOrderFront:sender];
+}
+
+- (IBAction) showDOMTree:(id) sender;
+{
+	[[domTree window] makeKeyAndOrderFront:sender];
+	[domNodes release];
+	domNodes=nil;
+	[domTree reloadData];
 }
 
 - (IBAction) openJavaScriptConsole:(id) sender
@@ -320,6 +330,9 @@
 	if(frame == [sender mainFrame])
 		{
 		[self showStatus:@"Done."];
+		[domNodes release];
+		domNodes=nil;
+		[domTree reloadData];
 		}
 	else
 		{
@@ -369,6 +382,57 @@
 		[destinations addObject:@""];
 		}
 	return [destinations count];
+}
+
+- (id) outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+{
+	NSString *ident=[tableColumn identifier];
+    if([ident isEqual: @"name"])
+        return [item nodeName];
+    else if([ident isEqual: @"class"])
+        return NSStringFromClass([item class]);
+    else if([ident isEqual: @"value"])
+        return [item nodeValue];
+    return @"";
+}
+
+- (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
+{
+    id obj;
+	if (item == nil)
+        return [[webView mainFrame] DOMDocument];	
+	obj = [[item childNodes] item:index];
+	[domNodes addObject:obj];
+	return obj;
+}
+
+- (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
+{
+    if (item == nil)
+        item=[[webView mainFrame] DOMDocument];	// replace by root
+    return [[item childNodes] length] > 0;
+}
+
+- (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
+{
+    if (item == nil)
+        return 1;
+    return [[item childNodes] length];
+}
+
+- (void) outlineViewSelectionDidChange:(NSNotification *)notification
+{ 	
+	int selectedRow = [[notification object] selectedRow];
+	id selectedItem = [[notification object] itemAtRow:selectedRow];
+	if([selectedItem isKindOfClass:[DOMText class]])
+		[domSource setString:[selectedItem nodeValue]];
+	else 
+		{
+		if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
+			[domSource setString:[[selectedItem documentElement] outerHTML]];
+		else
+			[domSource setString:[selectedItem innerHTML]];
+		}
 }
 
 @end

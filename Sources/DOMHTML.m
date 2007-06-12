@@ -153,7 +153,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 + (BOOL) _closeNotRequired; { return NO; }	// default implementation
 + (BOOL) _goesToHead;		{ return NO; }
 + (BOOL) _ignore;			{ return NO; }
-+ (BOOL) _streamline;		{ return NO; }
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
 { // default - subclasses can also check if str ends with a newline and add one only if there isn't one or YES to force to add a new one
@@ -163,13 +162,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 - (void) _splicePrefix:(NSMutableAttributedString *) str;
 {
 	if([self _shouldSpliceNewline:str])
-		{
+		{ // yes, add a newline with same formatting as previous character - except if we start with <p>
+		NSRange range=NSMakeRange([str length], 0);	// append
 		if([[str string] hasSuffix:@" "])
-			[str deleteCharactersInRange:NSMakeRange([str length]-1, 1)];	// remove final whitespace
-		if([str length] > 0)
-			{ // yes, add a newline with same formatting as previous character - except if we start with <p>
-			[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this inherits attributes of previous section
-			}
+			range.location--, range.length++;	// remove final whitespace as well
+		if(range.location != 0)
+			[str replaceCharactersInRange:range withString:@"\n"];	// this inherits attributes of previous section
+		else
+			[str replaceCharactersInRange:range withString:@""];
 		}
 }
 
@@ -393,6 +393,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (void) dealloc;
 {
+	[_timer invalidate];
 	[_timer release];
 	[super dealloc];
 }
@@ -433,7 +434,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLTitleElement
 + (BOOL) _goesToHead;	{ return YES; }
-+ (BOOL) _streamline;	{ return YES; }
+
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+{
+	[[rep _parser] _setReadMode:2];	// switch parser mode to read up to </title> and translate entities
+}
 @end
 
 @implementation DOMHTMLMetaElement
@@ -531,7 +536,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @implementation DOMHTMLStyleElement
 
 + (BOOL) _goesToHead;	{ return YES; }
-+ (BOOL) _streamline;	{ return YES; }
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+{
+	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </style>
+}
 
 // FIXME: process "@import URL" subresources
 
@@ -541,14 +549,22 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 // FIXME: implement the WebDocumentRepresentation protocol
 
-+ (BOOL) _streamline;	{ return YES; }
-
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // ignore scripts for rendering
 }
 
+- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+{
+	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
+	if([self hasAttribute:@"src"])
+		{ // external script to load
+		[[rep _parser] _stall:YES];	// make parser stall until we have loaded
+		[self _loadSubresourceWithAttributeString:@"src"];	// trigger loading of script or get from cache
+		}
+}
+
 - (void) _elementLoaded;
-{ // <script> element has been loaded
+{ // <script> element has been completely loaded, i.e. we are called from the </script> tag
 	NSString *type=[self getAttribute:@"type"];	// should be "text/javascript" or "application/javascript"
 	NSString *lang=[[self getAttribute:@"lang"] lowercaseString];	// optional language "JavaScript" or "JavaScript1.2"
 	NSString *script;
@@ -556,27 +572,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		return;	// ignore
 	if([self hasAttribute:@"src"])
 		{ // external script
-		NSData *data=[self _loadSubresourceWithAttributeString:@"src"];	// trigger loading of script or get from cache
-		
-		// FIXME:
-		// what do we now - should we wait until loaded???
-		// and, we must execute the script at this stage of the DOM tree setup
-		// or can we postpone until the full page has been loaded?
-		// starting over and reparsing later on is also not optimal if execution has side-effects like alerting the user!!!
-		// this will then be loaded and executed twice
-		//
-		// unless we just parse the global script program here and save it
-		// but don't evaluate before the full file has been loaded, i.e. we have translated all scripts
-		// and, we have to wipe out the parse tree on each re-parse by WebDocumentRepresentation
-		//
-		// then, we would start with the "onload" events of e.g. <body> in _awakeFromDocumentRepresentation
-		// and finally with the events coming from the GUI
-		//
-		// probably, this is the best user experience - we pass over this point only if all required subresources are available
-		//
-				
-		// if not completely loaded: [[dataSource representation] abortParsing];	// we know it is a WebHTMLDocumentRepresentation
-
+		NSData *data=[self _loadSubresourceWithAttributeString:@"src"];	// get from cache
 		script=[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 		NSLog(@"external script: %@", script);
 		}
@@ -1235,10 +1231,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 }
 
 - (void) _spliceTo:(NSMutableAttributedString *) str;
-{
-	[super _spliceTo:str];
-	// should set attributes!
-	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"----------------------------\n"];
+{ // add a horizontal line element
+	NSTextAttachment *attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
+	NSHRAttachmentCell *cell=(NSHRAttachmentCell *) [attachment attachmentCell];	// get the real cell
+	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
 }
 
 @end
@@ -1513,61 +1509,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 {
 	return YES;
 }
-
-// we should override _spliceTo: and if we can't handle NSTextTable, insert a \t before each cell unless string ends with a newline
-// otherwise we should add a final \n with [self _style]
-
-#if OLD
-
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
-{
-	NSTextTableBlock *block;
-    NSMutableParagraphStyle *paragraph;
-    NSMutableAttributedString *cell;
-		NSString *axis=[self getAttribute:@"axis"];
-		int rowspan=[[self getAttribute:@"rowspan"] intValue];
-		int colspan=[[self getAttribute:@"colspan"] intValue];
-//	NSString *align=[self getAttribute:@"align"];
-	NSString *valign=[self getAttribute:@"valign"];
-	NSString *width=[self getAttribute:@"width"];	// in pixels or % of <table>
-	NSDictionary *attribs=[self _style];
-	if(colspan < 1) colspan=1;
-	if(rowspan < 1) rowspan=1;
-#if 1
-	NSLog(@"<td> create TextBlock for (%d, %d) span (%d, %d)", *row, *col, rowspan, colspan);
-#endif
-	block=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table 
-															startingRow:*row
-																rowSpan:rowspan
-														 startingColumn:*col
-															 columnSpan:colspan];
-	*row+=rowspan;
-	*col+=colspan;
-	// get from attributes
-	[block setBackgroundColor:[NSColor lightGrayColor]];
-	[block setBorderColor:[NSColor blackColor]];
-	// get from attributes...
-	[block setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-	[block setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-	[block setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
-	// [block setVerticalAlignment:...];
-	paragraph=[attribs objectForKey:NSParagraphStyleAttributeName];
-	[paragraph setTextBlocks:[NSArray arrayWithObject:block]];	// add to paragraph style
-	[(id) block release];
-	// FIXME: it appears that we must prefix the cell with a dummy-paragraph attribute and include/update the block for all other paragraphs...
-	// hm. maybe, we must prepare the NSTextTableBlock already in [self _style] if any character sequence is part of a table
-	// and adjust it here - but how can we do that there without knowing the row/col and span values?
-	cell=[[[NSMutableAttributedString alloc] initWithString:@"\n" attributes:attribs] autorelease];
-//	cell=(NSMutableAttributedString *) ;
-	// CHECKME - should we add to ALL paragraphs or is it sufficient to add to last one
-	[cell appendAttributedString:[super attributedString]];	// add text block for paragraph
-	[cell appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"\n" attributes:attribs] autorelease]];
-#if 1
-	NSLog(@"<td>: %@", cell);
-#endif
-	return cell;
-}
-#endif
 
 @end
 

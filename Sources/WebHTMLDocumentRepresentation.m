@@ -50,6 +50,9 @@
 @interface NSXMLParser (NSPrivate)
 - (NSArray *) _tagPath;					// path of all tags
 - (void) _setEncoding:(NSStringEncoding) enc;
+- (void) _parseData:(NSData *) data;	// incremental parsing
+- (void) _stall:(BOOL) flag;
+- (BOOL) _isStalled;
 @end
 
 @implementation _WebHTMLDocumentRepresentation
@@ -166,18 +169,41 @@ static NSDictionary *tagtable;
 - (void) setDataSource:(WebDataSource *) dataSource;
 {
 	Class viewclass;
+	DOMHTMLHtmlElement *html;
 	WebFrame *frame=[dataSource webFrame];
 	WebFrameView *frameView=[frame frameView];
 	NSView <WebDocumentView> *view;
-	[super setDataSource:dataSource];
 	// well, we should know that...
 	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];
 	view=[[viewclass alloc] initWithFrame:[frameView frame]];
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
-	[[frame DOMDocument] _setVisualRepresentation:view];	// make the view receive change notifications
 	[view release];
-	[[[frame webView] frameLoadDelegate] webView:[frame webView] didCommitLoadForFrame:frame];
+	_doc=[frame DOMDocument];
+	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
+	[_doc removeChild:[_doc firstChild]];	// if there is one from the last load
+	_root=[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil document:_doc];	// a new root
+	[(DOMHTMLDocument *) _root _setWebFrame:frame];
+	[(DOMHTMLDocument *) _root _setWebDataSource:dataSource];
+	[_doc appendChild:_root];
+	html=[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil document:_doc];
+	[_root appendChild:html];
+	_head=[[DOMHTMLHeadElement alloc] _initWithName:@"HEAD" namespaceURI:nil document:_doc];
+	[html appendChild:_head];
+	_body=[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil document:_doc];
+	[html appendChild:_body];
+	[_root release];
+	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
+	[_parser setDelegate:self];
+	// translate [dataSource textEncodingName] - if known
+	// [_parser _setEncoding:NSUTF8StringEncoding];
+#if 0
+	NSLog(@"parser: %@", _parser);
+#endif
+	[_elementStack release];
+	_elementStack=[[NSMutableArray alloc] initWithCapacity:20];
+	[_elementStack addObject:_body];	// append whatever is parsed to body
+	[super setDataSource:dataSource];
 }
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
@@ -185,10 +211,9 @@ static NSDictionary *tagtable;
 #if 1
 	NSLog(@"WebHTMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
-	//	[self receivedData:[source data] withDataSource:source];	// final parsing
-	
-	// should we execute all ECMAScripts here that we have collected only
-	
+	[_parser _parseData:nil];	// finish parsing
+	[_parser release];
+	_parser=nil;
 	[[source webFrame] _finishedLoading];	// notify
 }
 
@@ -200,44 +225,21 @@ static NSDictionary *tagtable;
 }
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
-{ // we are repeatedly called!
-	DOMHTMLHtmlElement *html;
+{ // we are repeatedly called for each data fragment!
 	NSString *title;
 #if 1
-	NSLog(@"WebHTMLDocumentRepresentation receivedData");
+	NSLog(@"WebHTMLDocumentRepresentation receivedData %@", data);
 //	NSLog(@"document source: %@", [self documentSource]);
 #endif
-	_parser=[[NSXMLParser alloc] initWithData:data];
-	// FIXME: translate encoding from dataSource/response settings
-//	[_parser _setEncoding:NSUTF8StringEncoding];
-	[_parser setDelegate:self];
-	_doc=[[source webFrame] DOMDocument];
-	[_doc removeChild:[_doc lastChild]];	// remove current HTML DOM tree to build up a new one
-	_root=[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil document:_doc];	// a new root
-	[(DOMHTMLDocument *) _root _setWebFrame:[source webFrame]];
-	[(DOMHTMLDocument *) _root _setWebDataSource:source];
-	[_doc appendChild:_root];
-	html=[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil document:_doc];
-	[_root appendChild:html];
-	_head=[[DOMHTMLHeadElement alloc] _initWithName:@"HEAD" namespaceURI:nil document:_doc];
-	[html appendChild:_head];
-	_body=[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil document:_doc];
-	[html appendChild:_body];
-	[_elementStack release];
-	_elementStack=[[NSMutableArray alloc] initWithCapacity:20];
-	[_elementStack addObject:_body];	// append whatever is parsed to body
-	[_root release];
-#if 0
-	NSLog(@"parser: %@", _parser);
+#if 0	// RUN A PARSER ROBUSTNESS TEST
+	{ // pass byte for byte to check if the parser correctly handles incomplete tags
+		unsigned i, len=[data length];
+		for(i=0; i<len; i++)
+			[_parser _parseData:[data subdataWithRange:NSMakeRange(i, 1)]];	// parse next byte
+	}
+#else
+	[_parser _parseData:data];	// parse next fragment
 #endif
-	// FIXME: we should have incremental parsing and modify the DOM tree only...
-	if(![_parser parse])	// as far as we come :-)
-		{ // partial load
-#if 1
-		NSLog(@"parse failed due to %@", [_parser parserError]);	// shouldn't be printed...
-#endif
-		}
-	[_parser release];
 	if((title=[self title]))
 		{
 		WebFrame *webFrame=[source webFrame];
@@ -250,6 +252,8 @@ static NSDictionary *tagtable;
 	[(NSView <WebDocumentView> *)[[[source webFrame] frameView] documentView] dataSourceUpdated:source];	// notify frame view
 }
 
+- (id) _parser; { return _parser; }
+
 - (NSString *) title;
 { // return the value of the first DOMHTMLTitleElement's #text
 	DOMNodeList *children=[_head childNodes];
@@ -258,15 +262,26 @@ static NSDictionary *tagtable;
 		{
 		DOMHTMLTitleElement *n=(DOMHTMLTitleElement *)[children item:i];
 		if([n isKindOfClass:[DOMHTMLTitleElement class]])
-			{ // is really a title element
-			DOMText *t=(DOMText *)[n firstChild];
-			if([t isKindOfClass:[DOMText class]])
-				{ // is really a text element
-#if 1
-				NSLog(@"found <title> %@", [t data]);
+			{ // is really a title element - collect all children text elements
+			DOMNodeList *children=[n childNodes];
+			unsigned cnt=[children length];
+			unsigned i;
+			NSString *title=@"";
+			for(i=0; i<cnt; i++)
+				{
+				DOMText *t=(DOMText *)[children item:i];
+				if([t isKindOfClass:[DOMText class]])
+					{ // is really a text element
+#if 0
+					NSLog(@"found <title> fragment %@", [t data]);
 #endif
-				return [[t data] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// found!
+					title=[title stringByAppendingString:[t data]];	// splice
+					}
 				}
+#if 1
+			NSLog(@"found <title> %@", title);
+#endif
+			return [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// found!
 			}
 		}
 #if 1
@@ -326,7 +341,7 @@ static NSDictionary *tagtable;
 #if 0
 	NSLog(@"%@ foundCDATA: %@", NSStringFromClass(isa), string);
 #endif
-// FIXME:		[r setData:string];
+// FIXME:		[r setData:cdata];
 	[[_elementStack lastObject] appendChild:r];
 	[r release];
 }
@@ -374,7 +389,7 @@ static NSDictionary *tagtable;
 	newElement=[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri document:_doc];
 	if(!newElement)
 		{
-		NSLog(@"did not alloc?");
+		NSLog(@"did not alloc element for tag <%@> of class %@", tag, NSStringFromClass(c));
 		return;	// ignore if we can't allocate
 		}
 	e=[attributes keyEnumerator];

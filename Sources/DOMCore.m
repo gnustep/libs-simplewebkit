@@ -112,7 +112,7 @@
 	return NIMP;
 }
 
-- (DOMNode *) firstChild; { return _childNodes?[_childNodes item:0]:nil; }
+- (DOMNode *) firstChild; { return (_childNodes && [_childNodes length] > 0)?[_childNodes item:0]:nil; }
 
 - (BOOL) hasAttributes; { return NO; }
 
@@ -132,7 +132,7 @@
 
 - (BOOL) isSupported:(NSString *) feature :(NSString *) version; { return NO; }
 
-- (DOMNode *) lastChild; { return _childNodes?[_childNodes item:[_childNodes length]-1]:nil; }
+- (DOMNode *) lastChild; { return (_childNodes && [_childNodes length] > 0)?[_childNodes item:[_childNodes length]-1]:nil; }
 
 - (NSString *) localName; { return @"local name"; }
 

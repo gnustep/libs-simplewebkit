@@ -40,7 +40,6 @@
 	WebFrame *frame=[dataSource webFrame];
 	WebFrameView *frameView=[frame frameView];
 	NSView <WebDocumentView> *view;
-	[super setDataSource:dataSource];
 	// well, we should know what it is...
 	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];
 	view=[[viewclass alloc] initWithFrame:[frameView frame]];
@@ -48,7 +47,7 @@
 	[frameView _setDocumentView:view];
 	[[frame DOMDocument] _setVisualRepresentation:view];	// make the view receive change notifications
 	[view release];
-	[[[frame webView] frameLoadDelegate] webView:[frame webView] didCommitLoadForFrame:frame];
+	[super setDataSource:dataSource];
 }
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
@@ -77,7 +76,7 @@
 #endif
 #if 0	// handle partial image data
 	[_image release];
-	_image=[[NSImage alloc] initWithData:[source data]];
+	_image=[[NSImage alloc] initWithData:[source data]]; // try to load again
 	//	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
 #endif
 }

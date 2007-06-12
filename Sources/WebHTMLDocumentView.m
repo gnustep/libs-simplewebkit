@@ -324,3 +324,71 @@
 	// add missing methods
 
 @end
+
+@implementation NSViewAttachmentCell
+
+@end
+
+@implementation NSHRAttachmentCell
+
+- (void) setAttachment:(NSTextAttachment *) anAttachment;	 { attachment=anAttachment; }
+- (NSTextAttachment *) attachment; { return attachment; }
+
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, 1.0); }
+
+- (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
+				proposedLineFragment:(NSRect) fragment
+					   glyphPosition:(NSPoint) pos
+					  characterIndex:(unsigned) index;
+{ // make a text attachment that eats up the remaining space up to the container margin
+	fragment.size.width=[container containerSize].width-pos.x;
+	fragment.size.height=3.0;
+	return fragment;
+}
+
+- (void) drawWithFrame:(NSRect)cellFrame
+				inView:(NSView *)controlView
+{ // draw a horizontal line
+	// set line width
+	[[NSColor blackColor] set];
+	[NSBezierPath strokeLineFromPoint:NSMakePoint(cellFrame.origin.x, 1) toPoint:NSMakePoint(cellFrame.origin.x+cellFrame.size.width, 1)];
+}
+
+- (void) drawWithFrame:(NSRect)cellFrame
+				inView:(NSView *)controlView
+		characterIndex:(unsigned) index;
+{
+	[self drawWithFrame:cellFrame inView:controlView];
+}
+
+- (void) drawWithFrame:(NSRect)cellFrame
+				inView:(NSView *)controlView
+		characterIndex:(unsigned) index
+		 layoutManager:(NSLayoutManager *) manager;
+{
+	[self drawWithFrame:cellFrame inView:controlView];
+}
+
+- (BOOL) trackMouse:(NSEvent *)event 
+			 inRect:(NSRect)cellFrame 
+			 ofView:(NSView *)controlTextView 
+   atCharacterIndex:(unsigned) index
+	   untilMouseUp:(BOOL)flag;
+{
+	return [self trackMouse:event inRect:cellFrame ofView:controlTextView untilMouseUp:flag];
+}
+
+- (BOOL) wantsToTrackMouse;
+{
+	return NO;
+}
+
+- (BOOL) wantsToTrackMouseForEvent:(NSEvent *) event
+							inRect:(NSRect) rect
+							ofView:(NSView *) controlView
+				  atCharacterIndex:(unsigned) index;
+{
+	return [self wantsToTrackMouse];
+}
+
+@end

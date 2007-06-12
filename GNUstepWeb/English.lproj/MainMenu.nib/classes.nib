@@ -10,6 +10,7 @@
                 loadPageFromMenuItem = id; 
                 openJavaScriptConsole = id; 
                 searchGoogle = id; 
+                showDOMTree = id; 
                 showSource = id; 
                 stopLoading = id; 
             }; 

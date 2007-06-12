@@ -934,7 +934,7 @@
 		if(![sc _scanToken:@";"])
 			{
 			if([sc _scanKeyword:@"var"])
-				{ // with var declaration list
+				{ // with var declaration list - move declaration outside of for loop
 				NIMP;
 				}
 			init=[self _expressionWithScanner:sc noIn:YES];	// first expression - no in!
@@ -1096,7 +1096,7 @@
 	((_WebScriptTreeNodeFunction *)r)->params=params;
 	if(![sc _scanToken:@"}"])
 		[self throwException:@"missing } in function (parameters) { body }"];
-	return NIMP;
+	return r;
 }
 
 /* program 14. */

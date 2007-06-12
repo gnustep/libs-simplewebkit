@@ -2,26 +2,18 @@ SimpleWebKit ToDo
 =================
 
 -----------
-15 May 2007
+13 Jun 2007
 -----------
 
 High Prio:
 - <frame> and scrollers should finally work correctly
-- <table> elements really work
+- <table> elements should really work
 - <form> works
+- redisplay issues
 
 Testing:
-- really do robustness tests if HTML parser handles abrupt end of any source data properly
 - how does it really work with NSTextView of mySTEP or GNUstep AppKit?
   Does it handle NSTextAttachments? NSTextTable is missing in GNUstep.
-
-SimpleWebKit Architecture:
-- we should rewrite the HTML parser so that it becomes a filter and can parse incrementally
-- i.e. we write junks of NSData to the parser input
-- and it buffers the input until it can do something reasonable (e.g. found the next closing tag)
-- and calls the output callbacks as soon as it can
-- to get rid of the "reparse from beginning" mode which makes proper JavaScript load semantics impossible (execute immediately after loading even if partially)
-- it is also easier to implement stalling while waiting for a mandatory subresource (external <style> or <script>) to complete loading
 
 HTML parsing and error robustness:
 - better handle <tbody> tag (auto-insert into DOM)
@@ -49,6 +41,7 @@ Text Formatting/Typesetting:
 
 View:
 - <frame> not tested if it loads and displays subframes
+- <hr> should display a nice horizontal line (can we use a NSTextAttachmentCell?)
 
 Forms:
 - <input type="radio" name="group"> does not yet have radio behaviour
