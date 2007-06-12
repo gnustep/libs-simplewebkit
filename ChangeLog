@@ -1,5 +1,6 @@
 2007-06-13  Nikolaus Schaller <hns@computer.org>
 	* updated NSXMLParser to do incremental parsing
+	* added a DOM Tree Browser to GNUstepWeb
 
 2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 	* Sources/GNUmakefile: add WebKitIMG.png resource
