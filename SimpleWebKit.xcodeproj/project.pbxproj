@@ -103,6 +103,16 @@
 		EEE9B5AD0BC9621900757F02 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		EEAF72EB0C1B158C00C12F99 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EE6FE351076F05AF009CC969;
+			remoteInfo = SimpleWebKit;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		EEE9B4A20BC9294200757F02 /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -505,6 +515,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				EEAF72EC0C1B158C00C12F99 /* PBXTargetDependency */,
 			);
 			name = "GNUstep Web";
 			productName = WebKitTest;
@@ -670,6 +681,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EEAF72EC0C1B158C00C12F99 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
+			targetProxy = EEAF72EB0C1B158C00C12F99 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		EE5EBB590A188F970045B88D /* MainMenu.nib */ = {
