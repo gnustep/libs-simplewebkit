@@ -46,8 +46,10 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 command = NSTextField; 
+                currentNode = id; 
                 currentURL = NSComboBoxCell; 
                 docSource = NSTextView; 
+                domAttribs = NSTableView; 
                 domSource = NSTextView; 
                 domTree = NSOutlineView; 
                 result = NSTextField; 

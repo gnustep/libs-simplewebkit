@@ -21,6 +21,19 @@
 		EE1396B60BA5B0EE00A9A16C /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
 		EE1937830BF9C8180066385E /* WebHTMLImageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1937810BF9C8180066385E /* WebHTMLImageCell.m */; };
 		EE1937840BF9C8180066385E /* WebHTMLImageCell.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1937820BF9C8180066385E /* WebHTMLImageCell.h */; };
+		EE1AB3930C20544A005F3F98 /* SWKBrowser-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */; };
+		EE1AB3940C20544A005F3F98 /* DemoHTML in Resources */ = {isa = PBXBuildFile; fileRef = EE8A012B0B6CD10D00346917 /* DemoHTML */; };
+		EE1AB3950C20544A005F3F98 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB590A188F970045B88D /* MainMenu.nib */; };
+		EE1AB3960C20544A005F3F98 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
+		EE1AB3980C20544A005F3F98 /* WebKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
+		EE1AB39A0C20544A005F3F98 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5B0A188F970045B88D /* main.m */; };
+		EE1AB39B0C20544A005F3F98 /* MyApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5D0A188F970045B88D /* MyApplication.m */; };
+		EE1AB39C0C20544A005F3F98 /* MyDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE9B0D10BC8280700757F02 /* MyDocument.m */; };
+		EE1AB39D0C20544A005F3F98 /* MyComboBoxCell.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */; };
+		EE1AB39F0C20544A005F3F98 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
+		EE1AB3A00C20544A005F3F98 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
+		EE1AB3A10C20544A005F3F98 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4536030A166D7F00C660D5 /* Foundation.framework */; };
+		EE1AB3A20C20544A005F3F98 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4537030A166D9A00C660D5 /* Cocoa.framework */; };
 		EE291C040AD780EE004A1CA6 /* WebDOMOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */; };
 		EE291C090AD78194004A1CA6 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
 		EE428B360A4819A2003437D2 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -103,7 +116,25 @@
 		EEE9B5AD0BC9621900757F02 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXBuildRule section */
+		EE1AB3AA0C20547C005F3F98 /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.gcc.2_95_2;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			outputFiles = (
+			);
+		};
+/* End PBXBuildRule section */
+
 /* Begin PBXContainerItemProxy section */
+		EE1AB3910C20544A005F3F98 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EE6FE351076F05AF009CC969;
+			remoteInfo = SimpleWebKit;
+		};
 		EEAF72EB0C1B158C00C12F99 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -114,6 +145,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		EE1AB3970C20544A005F3F98 /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				EE1AB3980C20544A005F3F98 /* WebKit.framework in Copy Frameworks */,
+			);
+			name = "Copy Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EEE9B4A20BC9294200757F02 /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +182,8 @@
 		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1937810BF9C8180066385E /* WebHTMLImageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebHTMLImageCell.m; sourceTree = "<group>"; };
 		EE1937820BF9C8180066385E /* WebHTMLImageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebHTMLImageCell.h; sourceTree = "<group>"; };
+		EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE1AB3A90C20544A005F3F98 /* SWKBrowser-Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "SWKBrowser-Info copy.plist"; sourceTree = "<group>"; };
 		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
 		EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDOMOperations.m; sourceTree = "<group>"; };
 		EE291C080AD78194004A1CA6 /* WebScriptObject.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebScriptObject.m; sourceTree = "<group>"; };
@@ -245,6 +289,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE1AB39E0C20544A005F3F98 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE1AB39F0C20544A005F3F98 /* WebKit.framework in Frameworks */,
+				EE1AB3A00C20544A005F3F98 /* AppKit.framework in Frameworks */,
+				EE1AB3A10C20544A005F3F98 /* Foundation.framework in Frameworks */,
+				EE1AB3A20C20544A005F3F98 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EE6FE350076F05AF009CC969 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -284,6 +339,7 @@
 				EE6FE352076F05AF009CC969 /* WebKit.framework */,
 				EE147E840A16668700E60AF8 /* SWKBrowser.app */,
 				EE01D4650B7786570089A538 /* WebKitBrowser.app */,
+				EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -314,6 +370,7 @@
 				EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */,
 				EE5EBB5E0A188F970045B88D /* FullWebKitTest-Info.plist */,
 				EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */,
+				EE1AB3A90C20544A005F3F98 /* SWKBrowser-Info copy.plist */,
 			);
 			path = SWKBrowser;
 			sourceTree = "<group>";
@@ -522,6 +579,27 @@
 			productReference = EE147E840A16668700E60AF8 /* SWKBrowser.app */;
 			productType = "com.apple.product-type.application";
 		};
+		EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EE1AB3A40C20544A005F3F98 /* Build configuration list for PBXNativeTarget "SWK Browser 10.2" */;
+			buildPhases = (
+				EE1AB3920C20544A005F3F98 /* Resources */,
+				EE1AB3970C20544A005F3F98 /* Copy Frameworks */,
+				EE1AB3990C20544A005F3F98 /* Sources */,
+				EE1AB39E0C20544A005F3F98 /* Frameworks */,
+				EE1AB3A30C20544A005F3F98 /* ShellScript */,
+			);
+			buildRules = (
+				EE1AB3AA0C20547C005F3F98 /* PBXBuildRule */,
+			);
+			dependencies = (
+				EE1AB3900C20544A005F3F98 /* PBXTargetDependency */,
+			);
+			name = "SWK Browser 10.2";
+			productName = WebKitTest;
+			productReference = EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */;
+			productType = "com.apple.product-type.application";
+		};
 		EE6FE351076F05AF009CC969 /* SimpleWebKit */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EEEB9D6709A7586C00626AB7 /* Build configuration list for PBXNativeTarget "SimpleWebKit" */;
@@ -556,6 +634,7 @@
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
 				EE147E830A16668700E60AF8 /* SWK Browser */,
 				EE01D4520B7786570089A538 /* WebKitBrowser */,
+				EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */,
 			);
 		};
 /* End PBXProject section */
@@ -583,6 +662,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE1AB3920C20544A005F3F98 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE1AB3930C20544A005F3F98 /* SWKBrowser-Info.plist in Resources */,
+				EE1AB3940C20544A005F3F98 /* DemoHTML in Resources */,
+				EE1AB3950C20544A005F3F98 /* MainMenu.nib in Resources */,
+				EE1AB3960C20544A005F3F98 /* MyDocument.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EE6FE34E076F05AF009CC969 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -596,6 +686,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		EE1AB3A30C20544A005F3F98 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# project settings\nexport SOURCES=\"SWKBrowser/*.m\"  \t   \t\t # all source codes\nexport LIBS=  \t\t\t\t\t# add any additional libraries like -ltiff etc.\nexport FRAMEWORKS=WebKit\t\t\t\t# add any additional Frameworks etc.\nexport INSTALL_PATH=/Applications/Test   # override INSTALL_PATH for MacOS X machine Zaurus\n\n# global/compile settings\n#export STRIP_Framework=true        # set to true if you want to strip headers etc.\n#export STRIP_MacOS=true            # set to true if you want a Linux-ARM only bundle\n#export INSTALL=true                # true (or empty) will install locally to $ROOT/$INSTALL_PATH\n#export SEND2ZAURUS=true\t\t\t# true (or empty) will try to install on the Zaurus at /$INSTALL_PATH (using ssh)\n#export RUN=true                    # true (or empty) will finally try to run on the Zaurus (using X11 on host)\nexport ROOT=$HOME/Documents/Projects/QuantumSTEP\t# project root\n/usr/bin/make -f $ROOT/System/Sources/Frameworks/mySTEP.make $ACTION\n";
+		};
 		EE453C8A0A166ECD00C660D5 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -647,6 +750,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE1AB3990C20544A005F3F98 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE1AB39A0C20544A005F3F98 /* main.m in Sources */,
+				EE1AB39B0C20544A005F3F98 /* MyApplication.m in Sources */,
+				EE1AB39C0C20544A005F3F98 /* MyDocument.m in Sources */,
+				EE1AB39D0C20544A005F3F98 /* MyComboBoxCell.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EE6FE34F076F05AF009CC969 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -683,6 +797,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		EE1AB3900C20544A005F3F98 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
+			targetProxy = EE1AB3910C20544A005F3F98 /* PBXContainerItemProxy */;
+		};
 		EEAF72EC0C1B158C00C12F99 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
@@ -774,7 +893,7 @@
 				);
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -824,6 +943,66 @@
 			};
 			name = Deployment;
 		};
+		EE1AB3A50C20544A005F3F98 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "/Users/hns/Documents/Projects/QuantumSTEP/System/Sources/Frameworks/SimpleWebKit/SWKBrowser/SWKBrowser-Info copy.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SWKBrowser;
+				SDKROOT = /Developer/SDKs/MacOSX10.2.8.sdk;
+				SYMROOT = "$(HOME)/build";
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = NO;
+			};
+			name = Development;
+		};
+		EE1AB3A60C20544A005F3F98 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "/Users/hns/Documents/Projects/QuantumSTEP/System/Sources/Frameworks/SimpleWebKit/SWKBrowser/SWKBrowser-Info copy.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SimpleBrowser;
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
 		EEEB9D6809A7586C00626AB7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -838,7 +1017,7 @@
 				FRAMEWORK_SEARCH_PATHS = "";
 				FRAMEWORK_VERSION = A;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -928,6 +1107,15 @@
 			buildConfigurations = (
 				EE147E890A1666A700E60AF8 /* Development */,
 				EE147E8A0A1666A700E60AF8 /* Deployment */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Development;
+		};
+		EE1AB3A40C20544A005F3F98 /* Build configuration list for PBXNativeTarget "SWK Browser 10.2" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE1AB3A50C20544A005F3F98 /* Development */,
+				EE1AB3A60C20544A005F3F98 /* Deployment */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;

@@ -36,7 +36,9 @@
 + (BOOL) _ignore;						// don't create nodes
 
 - (NSString *) outerHTML;
+- (void) setOuterHTML:(NSString *) str;	// this should parse HTML and replace the node type and the contents
 - (NSString *) innerHTML;
+- (void) setInnerHTML:(NSString *) str;	// this should parse HTML and replace the contents
 - (NSAttributedString *) attributedString;
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
 - (NSData *) _loadSubresourceWithAttributeString:(NSString *) string;

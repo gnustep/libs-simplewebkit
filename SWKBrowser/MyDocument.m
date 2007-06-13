@@ -21,6 +21,11 @@
 #if 1
 	NSLog(@"windowControllerDidLoadNib");
 #endif
+#if 1
+	NSLog(@"isflipped=%d %@", [[domTree superview] isFlipped], [domTree superview]);	// is a split view flipped?
+	NSLog(@"isflipped=%d %@", [[[domTree superview] superview] isFlipped], [[domTree superview] superview]);	// is a split view flipped?
+	NSLog(@"isflipped=%d %@", [[[[domTree superview] superview] superview] isFlipped], [[[domTree superview] superview] superview]);	// is a split view flipped?
+#endif
     [super windowControllerDidLoadNib:aController];
     // Add any code here that needs to be executed once the windowController has loaded the document's window.
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressStartedNotification object:nil];
@@ -425,14 +430,39 @@
 	int selectedRow = [[notification object] selectedRow];
 	id selectedItem = [[notification object] itemAtRow:selectedRow];
 	if([selectedItem isKindOfClass:[DOMText class]])
+		{
 		[domSource setString:[selectedItem nodeValue]];
+		currentItem=nil;
+		}
 	else 
 		{
 		if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
+			{
 			[domSource setString:[[selectedItem documentElement] outerHTML]];
+			currentItem=[selectedItem documentElement];
+			}
 		else
+			{
 			[domSource setString:[selectedItem innerHTML]];
+			currentItem=selectedItem;
+			}
 		}
+	[domAttribs reloadData];
+}
+
+- (int) numberOfRowsInTableView:(NSTableView *)aTableView
+{
+	return [[(DOMElement *) currentItem _attributes] count];
+}
+
+- (id) tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
+{
+	NSString *ident=[aTableColumn identifier];
+    if([ident isEqual: @"attribute"])
+		return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] name];
+    else if([ident isEqual: @"value"])
+		return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
+	return @"";
 }
 
 @end
