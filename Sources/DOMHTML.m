@@ -422,6 +422,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 }
 
+- (NSString *) outerHTML;
+{
+	return @"";
+}
+
+- (NSString *) innerHTML;
+{
+	return @"";
+}
+
 @end
 
 @implementation DOMHTMLHtmlElement

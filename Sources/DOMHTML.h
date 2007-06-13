@@ -57,11 +57,11 @@
 
 @class WebFrame;
 
-@interface DOMHTMLDocument : DOMDocument			// the whole document
+@interface DOMHTMLDocument : RENAME(DOMDocument)	// the whole document
 {
 	WebDataSource *_dataSource;		// the datasource we belong to - not retained!
 	WebFrame *_webFrame;			// the webframe we belong to - not retained!
-	NSTimer *_timer;					// redirection timer
+	NSTimer *_timer;				// redirection timer
 }
 
 - (void) _setWebFrame:(WebFrame *) frame;
