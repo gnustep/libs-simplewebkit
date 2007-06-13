@@ -92,15 +92,15 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>GNUstepWeb</string>
+	<string>SWKBrowser</string>
 	<key>CFBundleGetInfoString</key>
-	<string>GNUstep Web 1.0</string>
+	<string>SWK Browser 1.0</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.GNUstep.Projects.SimpleWebKit.GNUstepWeb</string>
+	<string>org.GNUstep.Projects.SimpleWebKit.Browser</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>GNUstep Web</string>
+	<string>SWK Browser</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

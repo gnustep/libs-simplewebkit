@@ -25,7 +25,7 @@
 		EE291C090AD78194004A1CA6 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
 		EE428B360A4819A2003437D2 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE428B370A4819A2003437D2 /* WebResource.m in Sources */ = {isa = PBXBuildFile; fileRef = EE428B350A4819A2003437D2 /* WebResource.m */; };
-		EE443FBC0BDBE66A0031F556 /* GNUstepWeb-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE01D4670B7786570089A538 /* GNUstepWeb-Info.plist */; };
+		EE443FBC0BDBE66A0031F556 /* SWKBrowser-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */; };
 		EE443FBE0BDBE6B80031F556 /* HTMLEntities.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */; };
 		EE45352C0A166B6200C660D5 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
 		EE45355D0A166D6F00C660D5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
@@ -129,7 +129,7 @@
 
 /* Begin PBXFileReference section */
 		EE01D4650B7786570089A538 /* WebKitBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WebKitBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		EE01D4670B7786570089A538 /* GNUstepWeb-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "GNUstepWeb-Info.plist"; sourceTree = "<group>"; };
+		EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "SWKBrowser-Info.plist"; sourceTree = "<group>"; };
 		EE01D46C0B7786930089A538 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		EE01D56B0B77A1A30089A538 /* NSXMLParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NSXMLParser.h; sourceTree = "<group>"; };
 		EE01D56C0B77A1A30089A538 /* NSXMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParser.m; sourceTree = "<group>"; };
@@ -137,7 +137,7 @@
 		EE1396AE0BA5B02700A9A16C /* WebTextDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebTextDocumentRepresentation.m; sourceTree = "<group>"; };
 		EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebDocumentRepresentation.h; sourceTree = "<group>"; };
 		EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebDocumentRepresentation.m; sourceTree = "<group>"; };
-		EE147E840A16668700E60AF8 /* GNUstepWeb.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNUstepWeb.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1937810BF9C8180066385E /* WebHTMLImageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebHTMLImageCell.m; sourceTree = "<group>"; };
 		EE1937820BF9C8180066385E /* WebHTMLImageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebHTMLImageCell.h; sourceTree = "<group>"; };
 		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
@@ -180,6 +180,7 @@
 		EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebArchive.m; sourceTree = "<group>"; };
 		EE6FE352076F05AF009CC969 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPluginContainer.h; sourceTree = "<group>"; };
+		EE7FED000C1F816F00C4D003 /* GNUstepWeb-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "GNUstepWeb-Info.plist"; sourceTree = "<group>"; };
 		EE8A012B0B6CD10D00346917 /* DemoHTML */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DemoHTML; sourceTree = "<group>"; };
 		EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebUIDelegate.h; sourceTree = "<group>"; };
 		EE8AC8B50B6BA09900346917 /* WebFrameLoadDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebFrameLoadDelegate.h; sourceTree = "<group>"; };
@@ -271,7 +272,7 @@
 				EE9BEB430AFA865800D445DA /* DOM */,
 				EEA3309A09537E58001244CF /* WebView */,
 				EEA3309609537E48001244CF /* Resources */,
-				EE5EBB580A188F970045B88D /* GNUstepWeb */,
+				EE5EBB580A188F970045B88D /* SWK Browser */,
 				EE4535590A166D4400C660D5 /* Mac Frameworks */,
 				EE29D8D8058A38830035639B /* Products */,
 			);
@@ -282,7 +283,7 @@
 			isa = PBXGroup;
 			children = (
 				EE6FE352076F05AF009CC969 /* WebKit.framework */,
-				EE147E840A16668700E60AF8 /* GNUstepWeb.app */,
+				EE147E840A16668700E60AF8 /* SWKBrowser.app */,
 				EE01D4650B7786570089A538 /* WebKitBrowser.app */,
 			);
 			name = Products;
@@ -299,7 +300,7 @@
 			name = "Mac Frameworks";
 			sourceTree = "<group>";
 		};
-		EE5EBB580A188F970045B88D /* GNUstepWeb */ = {
+		EE5EBB580A188F970045B88D /* SWK Browser */ = {
 			isa = PBXGroup;
 			children = (
 				EE8A012B0B6CD10D00346917 /* DemoHTML */,
@@ -313,8 +314,10 @@
 				EEE9B0D80BC828EA00757F02 /* MyComboBoxCell.h */,
 				EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */,
 				EE5EBB5E0A188F970045B88D /* FullWebKitTest-Info.plist */,
-				EE01D4670B7786570089A538 /* GNUstepWeb-Info.plist */,
+				EE7FED000C1F816F00C4D003 /* GNUstepWeb-Info.plist */,
+				EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */,
 			);
+			name = "SWK Browser";
 			path = GNUstepWeb;
 			sourceTree = "<group>";
 		};
@@ -502,9 +505,9 @@
 			productReference = EE01D4650B7786570089A538 /* WebKitBrowser.app */;
 			productType = "com.apple.product-type.application";
 		};
-		EE147E830A16668700E60AF8 /* GNUstep Web */ = {
+		EE147E830A16668700E60AF8 /* SWK Browser */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EE147E880A1666A700E60AF8 /* Build configuration list for PBXNativeTarget "GNUstep Web" */;
+			buildConfigurationList = EE147E880A1666A700E60AF8 /* Build configuration list for PBXNativeTarget "SWK Browser" */;
 			buildPhases = (
 				EE147E800A16668700E60AF8 /* Resources */,
 				EEE9B4A20BC9294200757F02 /* Copy Frameworks */,
@@ -517,9 +520,9 @@
 			dependencies = (
 				EEAF72EC0C1B158C00C12F99 /* PBXTargetDependency */,
 			);
-			name = "GNUstep Web";
+			name = "SWK Browser";
 			productName = WebKitTest;
-			productReference = EE147E840A16668700E60AF8 /* GNUstepWeb.app */;
+			productReference = EE147E840A16668700E60AF8 /* SWKBrowser.app */;
 			productType = "com.apple.product-type.application";
 		};
 		EE6FE351076F05AF009CC969 /* SimpleWebKit */ = {
@@ -554,7 +557,7 @@
 			projectDirPath = "";
 			targets = (
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
-				EE147E830A16668700E60AF8 /* GNUstep Web */,
+				EE147E830A16668700E60AF8 /* SWK Browser */,
 				EE01D4520B7786570089A538 /* WebKitBrowser */,
 			);
 		};
@@ -576,7 +579,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE443FBC0BDBE66A0031F556 /* GNUstepWeb-Info.plist in Resources */,
+				EE443FBC0BDBE66A0031F556 /* SWKBrowser-Info.plist in Resources */,
 				EEE9A52D0BC42AE500757F02 /* DemoHTML in Resources */,
 				EE5EBB5F0A188F970045B88D /* MainMenu.nib in Resources */,
 				EEE9B5AC0BC9621900757F02 /* MyDocument.nib in Resources */,
@@ -780,7 +783,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				INFOPLIST_FILE = "GNUstepWeb/GNUstepWeb-Info.plist";
+				INFOPLIST_FILE = "GNUstepWeb/SWKBrowser-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -789,7 +792,7 @@
 					AppKit,
 				);
 				PREBINDING = NO;
-				PRODUCT_NAME = GNUstepWeb;
+				PRODUCT_NAME = SWKBrowser;
 				SYMROOT = "$(HOME)/build";
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
@@ -923,7 +926,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
 		};
-		EE147E880A1666A700E60AF8 /* Build configuration list for PBXNativeTarget "GNUstep Web" */ = {
+		EE147E880A1666A700E60AF8 /* Build configuration list for PBXNativeTarget "SWK Browser" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EE147E890A1666A700E60AF8 /* Development */,
