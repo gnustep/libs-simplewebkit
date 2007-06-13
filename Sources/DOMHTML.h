@@ -57,7 +57,7 @@
 
 @class WebFrame;
 
-@interface DOMHTMLDocument : DOMHTMLElement			// the whole document
+@interface DOMHTMLDocument : DOMDocument			// the whole document
 {
 	WebDataSource *_dataSource;		// the datasource we belong to - not retained!
 	WebFrame *_webFrame;			// the webframe we belong to - not retained!
