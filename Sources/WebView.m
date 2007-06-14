@@ -149,9 +149,8 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:[_WebHTMLDocumentView class]
 		representationClass:[_WebHTMLDocumentRepresentation class]
 				forMIMEType:@"text/html"];
-	// FIXME: do we need a special _WebRTFDocumentView? - subclass of NSTextView
-	[self registerViewClass:[_WebHTMLDocumentView class]
-			representationClass:[_WebHTMLDocumentRepresentation class]
+	[self registerViewClass:[_WebRTFDocumentView class]
+			representationClass:[_WebRTFDocumentRepresentation class]
 							forMIMEType:@"text/rtf"];
 	[self registerViewClass:[_WebImageDocumentView class]
 		representationClass:[_WebImageDocumentRepresentation class]

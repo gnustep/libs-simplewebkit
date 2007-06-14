@@ -166,7 +166,7 @@ static NSDictionary *tagtable;
 	return [NSString stringWithFormat:@"%@\n%@", [super description], _doc];
 }
 
-- (void) abortParsing;
+- (void) _abortParsing;
 {
 	[_parser abortParsing];
 }
@@ -180,8 +180,7 @@ static NSDictionary *tagtable;
 	WebFrame *frame=[dataSource webFrame];
 	WebFrameView *frameView=[frame frameView];
 	NSView <WebDocumentView> *view;
-	// well, we should know that...
-	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];
+	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];	// well, we should know that...
 	view=[[viewclass alloc] initWithFrame:[frameView frame]];
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
@@ -448,5 +447,52 @@ static NSDictionary *tagtable;
 	if(![c _closeNotRequired])
 		[_elementStack removeLastObject];	// go up one level
 }
+
+@end
+
+
+@implementation _WebRTFDocumentRepresentation
+
+// methods from WebDocumentRepresentation protocol
+
+- (void) setDataSource:(WebDataSource *) dataSource;
+{
+	Class viewclass;
+	WebFrame *frame=[dataSource webFrame];
+	WebFrameView *frameView=[frame frameView];
+	NSView <WebDocumentView> *view;
+	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];	// well, we should know that...
+	view=[[viewclass alloc] initWithFrame:[frameView frame]];
+	[view setDataSource:dataSource];
+	[frameView _setDocumentView:view];
+	[view release];
+	[super setDataSource:dataSource];
+}
+
+- (void) finishedLoadingWithDataSource:(WebDataSource *) source;
+{
+	[[source webFrame] _finishedLoading];	// notify
+}
+
+- (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
+{
+#if 1
+	NSLog(@"WebHTMLDocumentRepresentation receivedError: %@", error);
+#endif
+}
+
+- (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
+{ // we are repeatedly called for each data fragment!
+	[(NSView <WebDocumentView> *)[[[source webFrame] frameView] documentView] dataSourceUpdated:source];	// notify frame view
+}
+
+- (NSString *) title;
+{ // try to get from RTF
+	return nil;
+}
+
+- (BOOL) canProvideDocumentSource; { return NO; }
+
+- (NSString *) documentSource; { return nil; }
 
 @end

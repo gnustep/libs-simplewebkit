@@ -1,5 +1,5 @@
 /* simplewebkit
-   WebHTMLDocumentRepresentation.h
+   WebImageDocumentRepresentation.h
 
    Copyright (C) 2007 Free Software Foundation, Inc.
 
@@ -22,25 +22,29 @@
 */
 
 #import <Foundation/Foundation.h>
+#import <AppKit/NSImage.h>
+#import <WebKit/WebFrameView.h>
+#import <WebKit/WebFrame.h>
 #import <WebKit/WebDataSource.h>
-#import <WebKit/DOM.h>
+#import <WebKit/WebDocument.h>
+#import <WebKit/WebHistoryItem.h>
+#import <WebKit/WebView.h>
 #import "WebDocumentRepresentation.h"
 
-@interface _WebHTMLDocumentRepresentation : _WebDocumentRepresentation
+@interface _WebImageDocumentRepresentation : _WebDocumentRepresentation
 {
-	RENAME(DOMDocument) *_doc;		// current document - just a pointer to the object created by WebFrame
-	DOMHTMLElement *_root;			// current root - just a pointer
-	DOMHTMLHeadElement *_head;		// current head - just a pointer
-	DOMHTMLBodyElement *_body;		// current body - just a pointer
-	DOMHTMLFrameSetElement *_frameSet;	// current frameset - just a pointer
-	NSMutableArray *_elementStack;	// stack of current objects for adding children
-	id _parser;
+	NSImage *_image;
 }
 
-- (id) _parser;		// get access to the parser
+- (NSImage *) getImage;	// get as good as we can - may be a placeholder
 
 @end
 
-@interface _WebRTFDocumentRepresentation : _WebHTMLDocumentRepresentation
+@interface _WebImageDocumentView : NSImageView <WebDocumentView>
+{
+	WebDataSource *_dataSource;
+	BOOL _needsLayout;
+}
 
 @end
+
