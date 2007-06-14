@@ -76,8 +76,11 @@
 - (void) _setFrameName:(NSString *) name;
 - (void) _addChildFrame:(WebFrame *) child;
 - (void) _setFrameElement:(DOMHTMLElement *) element;
+- (void) _receivedData:(WebDataSource *) dataSource;
+- (void) _failedWithError:(NSError *) error;
 - (void) _finishedLoading;
 - (void) _receivedData:(WebDataSource *) dataSource;
+- (void) _performClientRedirectToURL:(NSURL *) URL delay:(NSTimeInterval) seconds;
 @end
 
 @interface WebHistoryItem (Private)

@@ -43,6 +43,7 @@
 	WebFrame *_parent;
 	NSMutableArray *_children;	// loading will create children
 	NSURLRequest *_request;
+	NSTimer *_reloadTimer;		// redirection timer
 }
 
 - (NSArray *) childFrames;

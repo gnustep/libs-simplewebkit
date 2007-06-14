@@ -64,6 +64,7 @@ static NSDictionary *tagtable;
 	if((self=[super init]))
 		{
 		if(!tagtable)
+			// FIXME: read from a resources .plist file
 			tagtable=[[NSDictionary dictionaryWithObjectsAndKeys:
 					[DOMHTMLHtmlElement class], @"html",
 					[DOMHTMLHeadElement class], @"head",
@@ -115,7 +116,7 @@ static NSDictionary *tagtable;
 					[DOMHTMLElement class], @"dt",
 				
 				[DOMHTMLNoFramesElement class], @"noframes",
-				[DOMHTMLNoFramesElement class], @"pre",
+				[DOMHTMLPreElement class], @"pre",
 				[DOMHTMLCenterElement class], @"center",
 				[DOMHTMLHeadingElement class], @"h1",
 				[DOMHTMLHeadingElement class], @"h2",
@@ -139,6 +140,12 @@ static NSDictionary *tagtable;
 					[DOMHTMLElement class], @"s",
 					[DOMHTMLElement class], @"tt",
 					[DOMHTMLElement class], @"strike",
+				[DOMHTMLElement class], @"strong",
+				[DOMHTMLElement class], @"var",
+				[DOMHTMLElement class], @"code",
+				[DOMHTMLElement class], @"samp",
+				[DOMHTMLElement class], @"kbd",
+				[DOMHTMLElement class], @"cite",
 					nil
 				] retain];
 		}
@@ -227,18 +234,21 @@ static NSDictionary *tagtable;
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // we are repeatedly called for each data fragment!
 	NSString *title;
-#if 1
+	NSAutoreleasePool *arp;
+#if 0
 	NSLog(@"WebHTMLDocumentRepresentation receivedData %@", data);
 //	NSLog(@"document source: %@", [self documentSource]);
 #endif
-#if 0	// RUN A PARSER ROBUSTNESS TEST
+#if 0	// RUN A PARSER ROBUSTNESS TEST - NOTE: this might need Gigabytes to print the logs
 	{ // pass byte for byte to check if the parser correctly handles incomplete tags
 		unsigned i, len=[data length];
 		for(i=0; i<len; i++)
 			[_parser _parseData:[data subdataWithRange:NSMakeRange(i, 1)]];	// parse next byte
 	}
 #else
+	arp=[NSAutoreleasePool new];
 	[_parser _parseData:data];	// parse next fragment
+	[arp release];	// immediately clean up all temporaries
 #endif
 	if((title=[self title]))
 		{
@@ -338,18 +348,20 @@ static NSDictionary *tagtable;
 - (void) parser:(NSXMLParser *) parser foundCData:(NSData *) cdata;
 {
 	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil document:_doc];
+	NSString *string=[[NSString alloc] initWithData:cdata encoding:NSUTF8StringEncoding];	// which encoding???
 #if 0
 	NSLog(@"%@ foundCDATA: %@", NSStringFromClass(isa), string);
 #endif
-// FIXME:		[r setData:cdata];
+	[r setData:string];
 	[[_elementStack lastObject] appendChild:r];
 	[r release];
+	[string release];
 }
 
 - (void) parser:(NSXMLParser *) parser foundIgnorableWhitespace:(NSString *) whitespaceString;
 {
 #if 0
-	if([string length] > 0)
+	if([whitespaceString length] > 0)
 		{
 		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:_doc];
 #if 0

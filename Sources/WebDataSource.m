@@ -267,14 +267,17 @@
 - (void) connection:(NSURLConnection *) connection didFailWithError:(NSError *) error;
 {
 	WebView *webView=[_webFrame webView];
+	[self retain];	// one of the delegate might make us being released!
 #if 1
 	NSLog(@"WebDataSource error: %@", error);
 #endif
 	[_representation receivedError:error withDataSource:self];
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didFailLoadingWithError:error fromDataSource:_parent?_parent:self];
+	[_webFrame _failedWithError:error];	// notify
 	[_parent _commitSubresource:self];
 	[_connection release];
 	_connection=nil;
+	[self release];
 }
 
 - (NSURLRequest *) connection:(NSURLConnection *) connection willSendRequest:(NSURLRequest *) request redirectResponse:(NSURLResponse *) redirectResponse;

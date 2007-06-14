@@ -145,7 +145,7 @@ static NSDictionary *entitiesTable;
 
 - (void) _processTag:(NSString *) tag isEnd:(BOOL) flag withAttributes:(NSDictionary *) attributes;
 {
-#if 1
+#if 0
 	NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
 #endif
 	if(acceptHTML)

@@ -1,24 +1,24 @@
 /* simplewebkit
-   ECMAScriptEvaluator.m
+ECMAScriptEvaluator.m
 
-   Copyright (C) 2006-2007 Free Software Foundation, Inc.
+Copyright (C) 2006-2007 Free Software Foundation, Inc.
 
-   Author: Dr. H. Nikolaus Schaller
+Author: Dr. H. Nikolaus Schaller
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+You should have received a copy of the GNU Library General Public
+License along with this library; see the file COPYING.LIB.
+If not, write to the Free Software Foundation,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
 //  syntax for parser is based on overview http://en.wikipedia.org/wiki/WebScript_syntax
@@ -173,7 +173,7 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 
 - (void) _putValue:(id) val;
 { // 8.7.2
-		[WebScriptObject throwException:@"ReferenceError"];	// 1. - is not an lvalue
+	[WebScriptObject throwException:@"ReferenceError"];	// 1. - is not an lvalue
 }
 
 @end
@@ -249,10 +249,10 @@ typedef struct _WebScriptScope
 	/*
 	 scopeObject=context;
 	 while((scopeChain=scopeChain->next))	// walk through scope chain
-		if([scopeChain->obejct _hasProperty:right])
-			return [_WebScriptTreeNodeReference node:scopeObject :right];	// form a real reference
+	 if([scopeChain->obejct _hasProperty:right])
+	 return [_WebScriptTreeNodeReference node:scopeObject :right];	// form a real reference
 	 */
-	 return [_WebScriptTreeNodeReference node:[NSNull null] :right];
+	return [[_WebScriptTreeNodeReference node:[NSNull null] :right] autorelease];
 }
 
 @end
@@ -266,7 +266,7 @@ typedef struct _WebScriptScope
 	unsigned idx=0;
 	NSEnumerator *e=[right objectEnumerator];	// list of assignment expressions
 	l=[_ConcreteWebScriptArray new];	// create a "new Array"
-	// call _create...
+										// call _create...
 	[l autorelease];
 	while((r=[e nextObject]))
 		{
@@ -291,7 +291,7 @@ typedef struct _WebScriptScope
 	NSEnumerator *e=[left objectEnumerator];	// list of assignment expressions
 	NSEnumerator *f=[right objectEnumerator];	// list of assignment expressions
 	l=[_ConcreteWebScriptObject new];	// create a "new Array"
-	// call _create...
+										// call _create...
 	[l autorelease];
 	while((key=[e nextObject], val=[f nextObject]))
 		{
@@ -315,7 +315,7 @@ typedef struct _WebScriptScope
 
 - (id) _evaluate;
 { // 11.1.1
-	// FIXME: get "this" from current execution context
+  // FIXME: get "this" from current execution context
 	return nil;
 }
 
@@ -386,24 +386,24 @@ typedef struct _WebScriptScope
 				[i invoke];
 			NS_HANDLER
 				// how to handle exceptions?
-			NS_ENDHANDLER
-			// get return value
-			return nil;
+				NS_ENDHANDLER
+				// get return value
+				return nil;
 			}
-		[self setException:@"TypeError"];
+			[self setException:@"TypeError"];
 		}
-	if([l _isReference])
-		{ // 6. & 7.
-		id base=[(_WebScriptTreeNodeReference *) l getBase];
-		// FIXME
-		//				if(![base isKindOfClass:[WebScriptActivationObject class]])
-		//					this=base;
-		// else
-		this=base;
-		}
-	else
-		this=[NSNull null];
-	return [fn _call:this arguments:arglist];	// 8. & 9.
+		if([l _isReference])
+			{ // 6. & 7.
+			id base=[(_WebScriptTreeNodeReference *) l getBase];
+			// FIXME
+			//				if(![base isKindOfClass:[WebScriptActivationObject class]])
+			//					this=base;
+			// else
+			this=base;
+			}
+		else
+			this=[NSNull null];
+		return [fn _call:this arguments:arglist];	// 8. & 9.
 }
 
 @end
@@ -497,27 +497,27 @@ typedef struct _WebScriptScope
 			}
 		case Typeof:
 			{ // 11.4.3
-			r=[right _evaluate];
-			if([r _isReference] && ![r getBase])
-				return [WebUndefined undefined];
-			r=[r _getValue];
-			if([r isKindOfClass:[WebUndefined class]])
-				return @"undefined";
-			if([r isKindOfClass:[NSNull class]])
-				return @"object";
-			if([r isKindOfClass:[[NSNumber numberWithBool:NO] class]])
-				return @"boolean";
-			if([r isKindOfClass:[NSNumber class]])
-				return @"number";
-			if([r isKindOfClass:[NSString class]])
-				return @"string";
-			if([r isKindOfClass:[WebScriptObject class]])
-				{
-				if([r respondsToSelector:@selector(_call:arguments:)])
-					return @"function";
-				return @"object";
-				}
-			return NSStringFromClass([r class]);	// implementation-dependent
+				r=[right _evaluate];
+				if([r _isReference] && ![r getBase])
+					return [WebUndefined undefined];
+				r=[r _getValue];
+				if([r isKindOfClass:[WebUndefined class]])
+					return @"undefined";
+				if([r isKindOfClass:[NSNull class]])
+					return @"object";
+				if([r isKindOfClass:[[NSNumber numberWithBool:NO] class]])
+					return @"boolean";
+				if([r isKindOfClass:[NSNumber class]])
+					return @"number";
+				if([r isKindOfClass:[NSString class]])
+					return @"string";
+				if([r isKindOfClass:[WebScriptObject class]])
+					{
+					if([r respondsToSelector:@selector(_call:arguments:)])
+						return @"function";
+					return @"object";
+					}
+				return NSStringFromClass([r class]);	// implementation-dependent
 			}
 		}
 }
@@ -574,17 +574,17 @@ typedef struct _WebScriptScope
 	l=[l _toPrimitive:[NSString class]];	// 5.
 	r=[r _toPrimitive:[NSString class]];	// 6.
 	if([l isKindOfClass:[NSString class]] || [r isKindOfClass:[NSString class]])
-				{ // make a string concatenate
-				l=[l _toString];	// 12.
-				r=[r _toString];	// 13.
-				return [l stringByAppendingString:r];	// 14. & 15.
-				}
+		{ // make a string concatenate
+		l=[l _toString];	// 12.
+		r=[r _toString];	// 13.
+		return [l stringByAppendingString:r];	// 14. & 15.
+		}
 	else
-				{
-				l=[l _toNumber];	// 8.
-				r=[r _toNumber];	// 9.
-				return [NSNumber numberWithDouble:[l doubleValue]+[r doubleValue]];	// 10. & 11.
-				}
+		{
+		l=[l _toNumber];	// 8.
+		r=[r _toNumber];	// 9.
+		return [NSNumber numberWithDouble:[l doubleValue]+[r doubleValue]];	// 10. & 11.
+		}
 }
 
 - (id) _evaluate;
@@ -720,13 +720,13 @@ typedef struct _WebScriptScope
 	else
 		{
 		// FIXME: add rules of 11.9.6
-			// if different type -> flag
-			// if l is undefined -> !flag
-			// if l is null -> !flag
-			// check for strings ->
-			// compare numbers
-			// or strings
-			// compare objects (same object or objects joined: 13.1.2)
+		// if different type -> flag
+		// if l is undefined -> !flag
+		// if l is null -> !flag
+		// check for strings ->
+		// compare numbers
+		// or strings
+		// compare objects (same object or objects joined: 13.1.2)
 		return [NSNumber numberWithBool:equal];		
 		}
 }
@@ -812,10 +812,12 @@ typedef struct _WebScriptScope
 - (id) _evaluate;
 { // 11.13
 	id r, l;
-	r=[r _getValue];
+	r=[right _getValue];
 	switch(op)
 		{
 		default:
+			[WebScriptObject throwException:@"Assignment type not implemented"];
+			break;
 		case Assign:
 			{ // plain assignment
 				[left _putValue:r];	// must be a reference...
@@ -834,7 +836,7 @@ typedef struct _WebScriptScope
 
 - (id) _evaluate;
 { // 11.14
-	// ignore left - or must we evaluate and call _getValue???
+  // ignore left - or must we evaluate and call _getValue???
 	return [right _evaluate];
 }
 
@@ -898,7 +900,7 @@ typedef struct _WebScriptScope
 	id l, r;
 	l=[left _evaluate];
 	l=[[l _getValue] _toObject];	// 2. & 3.
-																// add l to the front of the scope chain
+									// add l to the front of the scope chain
 	NS_DURING
 		r=[right _evaluate];
 	NS_HANDLER

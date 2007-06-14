@@ -24,6 +24,8 @@
     NSMutableSet *domNodes;
 	IBOutlet NSOutlineView *domTree;
 	IBOutlet NSTextView *domSource;
+	id currentItem;
+	IBOutlet NSTableView *domAttribs;
 	// Misc
 	NSURL *openfile;		// used only during Open...
 	BOOL hasToolbar;

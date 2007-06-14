@@ -259,7 +259,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		//		WebElementIsSelected = 0; 
 //		WebElementTargetFrame = <WebFrame: 0x381780>; 
 		}
-	if([node isEqualToString:@"B"])
+	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
 		{ // make bold
 		NSFont *f=[s objectForKey:NSFontAttributeName];
 		NSFontDescriptor *fd=[f fontDescriptor];
@@ -268,7 +268,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		if(f)
 			[s setObject:f forKey:NSFontAttributeName];
 		}
-	else if([node isEqualToString:@"I"])
+	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
 		{ // make italics
 		NSFont *f=[s objectForKey:NSFontAttributeName];
 		NSFontDescriptor *fd=[f fontDescriptor];
@@ -277,24 +277,52 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		if(f)
 			[s setObject:f forKey:NSFontAttributeName];
 		}
+	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
+		{ // make monospaced
+		NSFont *f=[s objectForKey:NSFontAttributeName];
+		float sz=[f pointSize];
+		[s setObject:[NSFont fontWithName:@"Courier" size:sz] forKey:NSFontAttributeName];
+		}
 	else if([node isEqualToString:@"U"])
 		{ // make underlined
-#if defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 >= MAC_OS_X_VERSION_MAX_ALLOWED
 		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
 #else	// MacOS X >= 10.3 and mySTEP
 		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
 #endif
 		
 		}
+	else if([node isEqualToString:@"STRIKE"])
+		{ // make strike-through
+#if defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 >= MAC_OS_X_VERSION_MAX_ALLOWED
+//		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
+#else	// MacOS X >= 10.3 and mySTEP
+		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
+#endif		
+		}
+	else if([node isEqualToString:@"SUP"])
+		{ // make superscript
+		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
+		[s setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]/1.2] forKey:NSFontAttributeName];
+		[s setObject:[NSNumber numberWithInt:1] forKey:NSSuperscriptAttributeName];
+		}
+	else if([node isEqualToString:@"SUB"])
+		{ // make subscript
+		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
+		[s setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]/1.2] forKey:NSFontAttributeName];
+		[s setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
+		}
 	else if([node isEqualToString:@"BIG"])
-		{ // make font larger
+		{ // make font larger +1
+		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
+		[s setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]*1.2] forKey:NSFontAttributeName];
 		}
 	else if([node isEqualToString:@"SMALL"])
-		{ // make font smaller
+		{ // make font smaller -1
+		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
+		[s setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]/1.2] forKey:NSFontAttributeName];
 		}
-	// others like <sub> and <sup> to set the NSSuperscriptAttributeName to +1, -1?
-	// others to handle: <strong>, <em>, <code>, <kbd>, <samp>, <var>, <cite>, <tt>, <strike>
-	// FIXME: apply CSS styles here
+	// FIXME: apply (additional) CSS style processing here
 	return s;
 }
 
@@ -391,36 +419,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLDocument
 
-- (void) dealloc;
-{
-	[_timer invalidate];
-	[_timer release];
-	[super dealloc];
-}
-
 - (WebFrame *) webFrame; { return _webFrame; }
 - (void) _setWebFrame:(WebFrame *) f; { _webFrame=f; }
 - (WebDataSource *) _webDataSource; { return _dataSource; }
 - (void) _setWebDataSource:(WebDataSource *) src; { _dataSource=src; }
-
-- (void) _setRedirectTimer:(NSTimer *) timer
-{
-	WebView *webView=[_webFrame webView];
-	if([_timer isValid])
-		{ // exists and did not yet trigger
-#if 1
-		NSLog(@"redirect timer cancelled");
-#endif
-		[_timer invalidate];
-		[[webView frameLoadDelegate] webView:webView didCancelClientRedirectForFrame:_webFrame];
-		}
-	if(timer)
-		[[webView frameLoadDelegate] webView:webView willPerformClientRedirectToURL:[(NSURLRequest *) [timer userInfo] URL] delay:[timer timeInterval] fireDate:[timer fireDate] forFrame:_webFrame];
-	ASSIGN(_timer, timer);
-#if 1
-		NSLog(@"will redirect with %@", timer);
-#endif
-}
 
 - (NSString *) outerHTML;
 {
@@ -456,14 +458,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 + (BOOL) _closeNotRequired; { return YES; }
 + (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _loadRequestFromTimer:(NSTimer *) timer;
-{
-#if 1
-	NSLog(@"load request from redirect timer: %@", timer);
-#endif	
-	[[self webFrame] loadRequest:[timer userInfo]];
-}
-
 - (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 {
 	NSString *cmd=[self getAttribute:@"http-equiv"];
@@ -477,14 +471,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			NSString *u=[[c lastObject] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 			NSURL *url;
 			NSURLRequest *request;
+			NSTimeInterval seconds;
 			if([[u lowercaseString] hasPrefix:@"url="])
 				u=[u substringFromIndex:4];	// cut off url= prefix
 			url=[NSURL URLWithString:u relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
-			request=[NSURLRequest requestWithURL:url];
+			seconds=[[c objectAtIndex:0] doubleValue];
 #if 1
-			NSLog(@"should redirect to %@ after %@ seconds", url, [c objectAtIndex:0]);
+			NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
 #endif
-			[htmlDocument _setRedirectTimer:[NSTimer scheduledTimerWithTimeInterval:[[c objectAtIndex:0] doubleValue] target:self selector:@selector(_loadRequestFromTimer:) userInfo:request repeats:NO]];
+			[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] _performClientRedirectToURL:url delay:seconds];
 			}
 		}
 	[super _awakeFromDocumentRepresentation:rep];
@@ -570,6 +565,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		{ // external script to load
 		[[rep _parser] _stall:YES];	// make parser stall until we have loaded
 		[self _loadSubresourceWithAttributeString:@"src"];	// trigger loading of script or get from cache
+// FIXME: clear only after we received the script!
+		[[rep _parser] _stall:NO];
 		}
 }
 
@@ -595,7 +592,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		// checkme: is it permitted to write <script><!CDATA[....?
 		NSLog(@"evaluate <script>%@</script>", script);
 		// FIXME: we should just parse the script and attach to the existing script tree, i.e. build function and statement nodes
-		[[self ownerDocument] evaluateWebScript:script];	// try to parse and execute script in document context
+		[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
 		}
 }
 

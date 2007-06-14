@@ -11,28 +11,27 @@
 
 @implementation MyComboBoxCell	// can display progress background
 
-- (void) awakeFromNib;
-{
-	[self setDrawsBackground:NO];
-}
-
 - (void) drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
-	// FIXME: this is currently broken!
+	NSRect frame=cellFrame;
 	WebView *webView=[self target];
 //	float progress=webView?[webView estimatedProgress]:0.0;
 	float progress=0.5;
+	[super drawWithFrame:cellFrame inView:controlView];	// draw combo box and popup button
+	return;
 	if(progress == 1.0)
 		progress=0.0;	// don't show
+	frame.size.width -= 3.0;	// IB specifies 3 px spacing on the right hand side
+	frame.origin.y += 2.0;		// IB specifies 4px vertical (transparent!) spacing
+	frame.size.height -= 4.0;
 	if(progress > 0)
 		{
 		[[NSColor blueColor] set];
-		NSRectFill(NSMakeRect(cellFrame.origin.x, cellFrame.origin.y, cellFrame.size.width*progress, cellFrame.size.height));
+		NSRectFill(NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width*progress, frame.size.height));
 		}
-	[[self backgroundColor] set];	// as defined in IB
-	NSRectFill(NSMakeRect(cellFrame.origin.x+cellFrame.size.width*progress, cellFrame.origin.y, cellFrame.size.width*(1.0-progress), cellFrame.size.height));
-	[self setDrawsBackground:NO];	// already done
-	[super drawWithFrame:cellFrame inView:controlView];
+//	[[self backgroundColor] set];	// as defined in IB
+//	NSRectFill(NSMakeRect(frame.origin.x+frame.size.width*progress, frame.origin.y, frame.size.width*(1.0-progress), frame.size.height));
+	[super drawInteriorWithFrame:cellFrame inView:controlView];	// draw text again so that it is above blue bar
 }
 
 @end

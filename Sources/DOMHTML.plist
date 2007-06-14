@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key> NOTE</key>
+	<string>this plist is not yet used</string>
 	<key>a</key>
 	<string>DOMHTMLAnchorElement</string>
 	<key>applet</key>
@@ -9,7 +11,7 @@
 	<key>b</key>
 	<string>DOMHTMLElement</string>
 	<key>bdo</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>big</key>
 	<string>DOMHTMLElement</string>
 	<key>body</key>
@@ -19,21 +21,25 @@
 	<key>button</key>
 	<string>DOMHTMLButtonElement</string>
 	<key>caption</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>center</key>
 	<string>DOMHTMLCenterElement</string>
+	<key>cite</key>
+	<string>DOMHTMLElement</string>
+	<key>code</key>
+	<string>DOMHTMLElement</string>
 	<key>col</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>colgroup</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>dd</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>div</key>
 	<string>DOMHTMLDivElement</string>
 	<key>dl</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>dt</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>em</key>
 	<string>DOMHTMLElement</string>
 	<key>font</key>
@@ -70,10 +76,12 @@
 	<string>DOMHTMLImageElement</string>
 	<key>input</key>
 	<string>DOMHTMLInputElement</string>
+	<key>kbd</key>
+	<string>DOMHTMLElement</string>
 	<key>label</key>
 	<string>DOMHTMLLabelElement</string>
 	<key>li</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>link</key>
 	<string>DOMHTMLLinkElement</string>
 	<key>meta</key>
@@ -87,7 +95,7 @@
 	<key>object</key>
 	<string>DOMHTMLObjectElement</string>
 	<key>ol</key>
-	<string>DOMHTMLElement</string>
+	<string>?</string>
 	<key>optgroup</key>
 	<string>DOMHTMLOptGroupElement</string>
 	<key>option</key>
@@ -100,6 +108,8 @@
 	<string>DOMHTMLPreElement</string>
 	<key>s</key>
 	<string>DOMHTMLElement</string>
+	<key>sample</key>
+	<string>DOMHTMLElement</string>
 	<key>script</key>
 	<string>DOMHTMLScriptElement</string>
 	<key>select</key>
@@ -109,6 +119,8 @@
 	<key>span</key>
 	<string>DOMHTMLSpanElement</string>
 	<key>strike</key>
+	<string>DOMHTMLElement</string>
+	<key>strong</key>
 	<string>DOMHTMLElement</string>
 	<key>style</key>
 	<string>DOMHTMLStyleElement</string>
@@ -139,6 +151,8 @@
 	<key>u</key>
 	<string>DOMHTMLElement</string>
 	<key>ul</key>
+	<string>?</string>
+	<key>var</key>
 	<string>DOMHTMLElement</string>
 </dict>
 </plist>

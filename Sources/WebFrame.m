@@ -89,13 +89,41 @@
 	[self reload];
 }
 
+- (void) _loadRequestFromRedirectTimer:(NSTimer *) timer;
+{
+	NSURLRequest *request=[NSURLRequest requestWithURL:[timer userInfo]];
+#if 1
+	NSLog(@"do redirect");
+#endif
+	[timer invalidate];	// so that the loadRequest does not again...
+	_reloadTimer=nil;
+	[self loadRequest:request];
+}
+
+- (void) _performClientRedirectToURL:(NSURL *) URL delay:(NSTimeInterval) seconds;
+{
+	if(_reloadTimer && [_reloadTimer isValid])
+		{
+#if 1
+		NSLog(@"cancel redirect");
+#endif
+		[_reloadTimer invalidate];	// cancel the meta redirect timer
+		_reloadTimer=nil;
+		[[_webView frameLoadDelegate] webView:_webView didCancelClientRedirectForFrame:self];
+		}
+	if(URL)
+		{ // create a new one
+		_reloadTimer=[NSTimer scheduledTimerWithTimeInterval:seconds target:self selector:@selector(_loadRequestFromRedirectTimer:) userInfo:URL repeats:NO];
+		[[_webView frameLoadDelegate] webView:_webView willPerformClientRedirectToURL:URL delay:seconds fireDate:[_reloadTimer fireDate] forFrame:self];
+		}
+}
+
 - (void) stopLoading;
 {
 #if 1
 	NSLog(@"stop loading");
 #endif
-	// this should also cancel any <meta redirect> timer
-	// - (void)webView:(WebView *)sender didCancelClientRedirectForFrame:(WebFrame *)frame
+	[self _performClientRedirectToURL:nil delay:0.0];	// cancel any redirection timer
 	[_provisionalDataSource release];
 	_provisionalDataSource=nil;
 	[_children makeObjectsPerformSelector:_cmd];		// recursively stop loading of all child frames!
@@ -123,6 +151,14 @@
 	[(NSView <WebDocumentView> *)[_frameView documentView] dataSourceUpdated:dataSource];
 }
 #endif
+
+- (void) _failedWithError:(NSError *) error;
+{ // data source failed
+	if(_provisionalDataSource)
+		[[_webView frameLoadDelegate] webView:_webView didFailProvisionalLoadWithError:error forFrame:self];
+	else
+		[[_webView frameLoadDelegate] webView:_webView didFailLoadWithError:error forFrame:self];
+}
 
 - (void) _finishedLoading;
 { // callback from data source

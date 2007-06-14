@@ -63,14 +63,12 @@
 {
 	WebDataSource *_dataSource;		// the datasource we belong to - not retained!
 	WebFrame *_webFrame;			// the webframe we belong to - not retained!
-	NSTimer *_timer;				// redirection timer
 }
 
 - (void) _setWebFrame:(WebFrame *) frame;
 - (WebFrame *) webFrame;
 - (void) _setWebDataSource:(WebDataSource *) src;
 - (WebDataSource *) _webDataSource;
-- (void) _setRedirectTimer:(NSTimer *) timer;
 
 @end
 

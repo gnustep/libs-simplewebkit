@@ -70,6 +70,7 @@ NSString *WebScriptException=@"WebScriptException";
 			{
 				NSScanner *sc=[NSScanner scannerWithString:script];
 				r=[_WebScriptTreeNode _programWithScanner:sc];
+//				NSLog(@"script=%@", r);
 				// how do we pass all the environment context (windows, event, etc.)?
 				// well, if we are a DOMElement we should know our DOMDocument and that should know everything
 				// but sample code from the WWW shows that this method runs with "self" as the "this" object, i.e.

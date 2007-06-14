@@ -349,6 +349,8 @@
 - (void) drawWithFrame:(NSRect)cellFrame
 				inView:(NSView *)controlView
 { // draw a horizontal line
+	[[NSColor redColor] set];
+	NSRectFill(cellFrame);
 	// set line width
 	[[NSColor blackColor] set];
 	[NSBezierPath strokeLineFromPoint:NSMakePoint(cellFrame.origin.x, 1) toPoint:NSMakePoint(cellFrame.origin.x+cellFrame.size.width, 1)];

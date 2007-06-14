@@ -264,7 +264,13 @@
 
 - (void) webView:(WebView *) sender didFailProvisionalLoadWithError:(NSError *) error forFrame:(WebFrame *) frame;
 {
-	[frame loadAlternateHTMLString:@"Web Load Error" baseURL:nil forUnreachableURL:[[[frame provisionalDataSource] request] URL]];
+	// FIXME: here you can substitute any nicely formatted error message using embedded CSS and JavaScript
+	NSString *message=[NSString stringWithFormat:
+		@"<title>Page load failed</title>"
+		@"<h2>Error while trying to load URL %@</h2>"
+		@"The error message is: %@",
+		/* FIXME: htmlentities() if path contains & or ; */[[[frame provisionalDataSource] request] URL], error];
+	[frame loadAlternateHTMLString:message baseURL:nil forUnreachableURL:[[[frame provisionalDataSource] request] URL]];
 }
 
 - (void) webView:(WebView *)sender didStartProvisionalLoadForFrame:(WebFrame *)frame

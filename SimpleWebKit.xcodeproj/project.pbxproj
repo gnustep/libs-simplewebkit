@@ -34,6 +34,7 @@
 		EE1AB3A00C20544A005F3F98 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
 		EE1AB3A10C20544A005F3F98 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4536030A166D7F00C660D5 /* Foundation.framework */; };
 		EE1AB3A20C20544A005F3F98 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4537030A166D9A00C660D5 /* Cocoa.framework */; };
+		EE24FD1A0C209B37001947BB /* DOMHTML.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE24FD190C209B37001947BB /* DOMHTML.plist */; };
 		EE291C040AD780EE004A1CA6 /* WebDOMOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */; };
 		EE291C090AD78194004A1CA6 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
 		EE428B360A4819A2003437D2 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -98,7 +99,6 @@
 		EEA3D3AD095468BA001244CF /* WebView.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D39C095468BA001244CF /* WebView.m */; };
 		EEA7DF3B0BB05AC6006B2FDA /* ECMAScriptPrototypes.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */; };
 		EEA7DF3C0BB05AC6006B2FDA /* ECMAScriptPrototypes.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */; };
-		EECAD45E0B9D787B00F37A98 /* Sources in Resources */ = {isa = PBXBuildFile; fileRef = EECAD45D0B9D787B00F37A98 /* Sources */; };
 		EECCF39A0BA037EF0001C219 /* WebKitIMG.png in Resources */ = {isa = PBXBuildFile; fileRef = EECCF3990BA037EF0001C219 /* WebKitIMG.png */; };
 		EED0DD3A0BAED3C4005B0381 /* ECMAScriptEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */; };
 		EED0DD3B0BAED3C4005B0381 /* ECMAScriptEvaluator.m in Sources */ = {isa = PBXBuildFile; fileRef = EED0DD370BAED3C4005B0381 /* ECMAScriptEvaluator.m */; };
@@ -184,6 +184,7 @@
 		EE1937820BF9C8180066385E /* WebHTMLImageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebHTMLImageCell.h; sourceTree = "<group>"; };
 		EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1AB3A90C20544A005F3F98 /* SWKBrowser-Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "SWKBrowser-Info copy.plist"; sourceTree = "<group>"; };
+		EE24FD190C209B37001947BB /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = DOMHTML.plist; sourceTree = "<group>"; };
 		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
 		EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDOMOperations.m; sourceTree = "<group>"; };
 		EE291C080AD78194004A1CA6 /* WebScriptObject.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebScriptObject.m; sourceTree = "<group>"; };
@@ -251,7 +252,6 @@
 		EEA3D39C095468BA001244CF /* WebView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebView.m; sourceTree = "<group>"; };
 		EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECMAScriptPrototypes.h; sourceTree = "<group>"; };
 		EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ECMAScriptPrototypes.m; sourceTree = "<group>"; };
-		EECAD45D0B9D787B00F37A98 /* Sources */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = folder; name = Sources; sourceTree = "<group>"; };
 		EECC1E600BA14EA20001C219 /* ToDo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ToDo; sourceTree = "<group>"; };
 		EECCF3990BA037EF0001C219 /* WebKitIMG.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = WebKitIMG.png; sourceTree = "<group>"; };
 		EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECMAScriptEvaluator.h; sourceTree = "<group>"; };
@@ -421,9 +421,9 @@
 			isa = PBXGroup;
 			children = (
 				EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */,
-				EECAD45D0B9D787B00F37A98 /* Sources */,
 				EECCF3990BA037EF0001C219 /* WebKitIMG.png */,
 				EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */,
+				EE24FD190C209B37001947BB /* DOMHTML.plist */,
 			);
 			name = Resources;
 			path = Sources;
@@ -677,9 +677,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EECAD45E0B9D787B00F37A98 /* Sources in Resources */,
 				EECCF39A0BA037EF0001C219 /* WebKitIMG.png in Resources */,
 				EE443FBE0BDBE6B80031F556 /* HTMLEntities.strings in Resources */,
+				EE24FD1A0C209B37001947BB /* DOMHTML.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

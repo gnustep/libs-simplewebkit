@@ -71,7 +71,7 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"WebImageDocumentRepresentation receivedData");
 #endif
 #if 0	// handle partial image data
