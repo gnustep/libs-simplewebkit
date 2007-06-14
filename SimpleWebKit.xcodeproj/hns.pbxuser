@@ -1747,13 +1747,6 @@
 		isa = PBXCodeSenseManager;
 		indexTemplatePath = "";
 	};
-	EE4440B20BDBEA8E0031F556 /* FIXME */ = {
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {820, 655}}";
-			sepNavSelRange = "{0, 0}";
-			sepNavVisRect = "{{0, 0}, {820, 655}}";
-		};
-	};
 	EE4440B30BDBEA980031F556 /* ChangeLog */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {820, 994}}";
