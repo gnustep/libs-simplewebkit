@@ -229,7 +229,7 @@ static NSDictionary *entitiesTable;
 }
 
 - (void) _parseData:(NSData *) d;
-{ // incremental parser
+{ // incremental parser - tries to do its best and reports/removes only complete elements; returns otherwise (or raises exceptions)
 	const char *ep;
 #if 0
 	NSLog(@"parse data=%@", d);
@@ -298,12 +298,13 @@ static NSDictionary *entitiesTable;
 					if(cp+len+3 >= ep)
 						{
 						if(done)
-							;
+							; // error
 						cp=vp;
 						return;	// we can't decide yet
 						}
-					if(strncmp((char *)cp+2, (char *)currentTag, len) == 0 && cp[len+2] == '>')
-						{ // yes, this will become the closing tag
+					// NOTE: this is a C hack: it firstly selects between two function addresses by the ?: operator and then indirectly calls (*fnp)(args...)
+					if((*(acceptHTML?strncasecmp:strncmp))((char *)cp+2, (char *)currentTag, len) == 0 && cp[len+2] == '>')
+						{ // yes, this will be parsed as the matching closing tag
 						readMode=_NSXMLParserStandardReadMode;	// switch back to standard read mode
 						break;	// and process
 						}
@@ -319,7 +320,7 @@ static NSDictionary *entitiesTable;
 			{ // notify plain characters to delegate
 			if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
 				[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];
-			// FIXME: when can we notify ignorable whitespace?
+			// FIXME: when can we notify parser:foundIgnorableWhitespace:?
 			continue;
 			}
 		if(cp == ep)
@@ -424,7 +425,7 @@ static NSDictionary *entitiesTable;
 					cp=vp;
 					return;	// incomplete
 					}
-				if(!acceptHTML && *cp == '/' && *tp != '/')
+				if(*cp == '/' && *tp != '/')
 					{ // strict XML: appears to be a /> (not valid in HTML: <a href=file:///somewhere/>)
 					  // FIXME: can there be a space between the / and >?
 					cp++;
@@ -472,9 +473,9 @@ static NSDictionary *entitiesTable;
 					[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
 					break;
 					}
-				if((sq=(*cp == '\'')))	// single quoted argument
-					cp++;
-				else if((dq=(*cp == '"')))	// quoted argument
+				sq=(*cp == '\'');	// single quoted argument
+				dq=(*cp == '"');	// quoted argument
+				if(sq || dq)
 					cp++;
 				ap=cp;
 				while(cp < ep)
@@ -493,8 +494,8 @@ static NSDictionary *entitiesTable;
 						{
 						if(*cp == '>' || *cp == '=' || isspace(*cp))
 							break;
-						if(acceptHTML && (*cp == '/' || *cp == '?'))
-							break;
+						// if(acceptHTML && (*cp == '/' || *cp == '?'))
+						//	break;
 						}
 					cp++;	// collect argument
 					}
@@ -541,9 +542,9 @@ static NSDictionary *entitiesTable;
 						cp=vp;
 						return;	// incomplete
 						}
-					if((sq=(*cp == '\'')))	// single quoted argument
-						cp++;
-					else if((dq=(*cp == '"')))	// quoted argument
+					sq=(*cp == '\'');	// single quoted argument
+					dq=(*cp == '"');	// quoted argument
+					if(sq || dq)
 						cp++;
 					ap=cp;
 					while(cp < ep)
@@ -563,8 +564,8 @@ static NSDictionary *entitiesTable;
 							{
 							if(*cp == '>' || isspace(*cp))
 								break;
-							if(acceptHTML && (*cp == '/' || *cp == '?'))
-								break;
+						//	if(acceptHTML && (*cp == '/' || *cp == '?'))
+						//		break;
 							}
 						cp++;	// collect argument
 						}
@@ -578,7 +579,6 @@ static NSDictionary *entitiesTable;
 					val=[NSString _string:(char *)ap withEncoding:encoding length:cp-ap];
 					if(sq || dq)
 						cp++;
-					else
 					if(!val)
 						NSLog(@"invalid key=%@ val=%@", arg, val);
 					else
