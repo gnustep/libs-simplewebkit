@@ -87,12 +87,12 @@
 #import "ECMAScriptEvaluator.h"
 
 // default document representations we understand
-#import "WebHTMLDocumentRepresentation.h"
+#import "WebHTMLDocumentRepresentation.h"	// text/html
 #import "WebHTMLDocumentView.h"
-#import "WebPDFDocumentRepresentation.h"
-#import "WebXMLDocumentRepresentation.h"
-#import "WebTextDocumentRepresentation.h"		// text/*
-#import "WebImageDocumentRepresentation.h"	// image/*
+#import "WebPDFDocument.h"					// text/pdf
+#import "WebXMLDocument.h"					// text/xml
+#import "WebTextDocument.h"					// text/*
+#import "WebImageDocument.h"				// image/*
 
 NSString *WebElementDOMNodeKey=@"WebElementDOMNode";
 NSString *WebElementFrameKey=@"WebElementFrame";
@@ -149,9 +149,6 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:[_WebHTMLDocumentView class]
 		representationClass:[_WebHTMLDocumentRepresentation class]
 				forMIMEType:@"text/html"];
-	[self registerViewClass:[_WebRTFDocumentView class]
-			representationClass:[_WebRTFDocumentRepresentation class]
-							forMIMEType:@"text/rtf"];
 	[self registerViewClass:[_WebImageDocumentView class]
 		representationClass:[_WebImageDocumentRepresentation class]
 				forMIMEType:@"image/"];		// match all images
@@ -161,9 +158,9 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:self	// [_WebXMLDocumentView class]
 		representationClass:[_WebXMLDocumentRepresentation class]
 				forMIMEType:@"text/xml"];
-	[self registerViewClass:[_WebTextDocumentRepresentation class]
-			representationClass:[NSTextView class]
-							forMIMEType:@"text/"];		// match all other text files
+	[self registerViewClass:[_WebTextDocumentView class]
+		representationClass:[_WebTextDocumentRepresentation class]
+				forMIMEType:@"text/"];		// match all other text files and try the best
 }
 
 + (NSArray *) MIMETypesShownAsHTML; { return _htmlMimeTypes; }

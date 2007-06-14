@@ -18,6 +18,11 @@
 @interface _WebTextDocumentRepresentation : _WebDocumentRepresentation
 {
 }
+@end
 
-
+@interface _WebTextDocumentView : NSTextView <WebDocumentView, WebDocumentText>
+{
+	WebDataSource *_dataSource;
+	BOOL _needsLayout;
+}
 @end

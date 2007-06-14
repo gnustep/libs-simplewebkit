@@ -21,7 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#import "WebImageDocumentRepresentation.h"
+#import "WebImageDocument.h"
 #import "Private.h"
 
 @implementation _WebImageDocumentRepresentation

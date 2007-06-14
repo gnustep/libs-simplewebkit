@@ -21,7 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#import "WebPDFDocumentRepresentation.h"
+#import "WebPDFDocument.h"
 #import "Private.h"
 
 
