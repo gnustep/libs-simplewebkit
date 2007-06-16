@@ -27,19 +27,19 @@ WebHTMLDocumentView.h \
 WebHTMLDocumentRepresentation.h \
 WebHistory.h \
 WebHistoryItem.h \
-WebImageDocumentRepresentation.h \
+WebImageDocument.h \
 WebKit.h \
-WebPDFDocumentRepresentation.h \
+WebPDFDocument.h \
 WebPlugin.h \
 WebPluginContainer.h \
 WebResource.h \
 WebResourceLoadDelegate.h \
 WebScriptObject.h \
-WebTextDocumentRepresentation.h \
+WebTextDocument.h \
 WebUIDelegate.h \
 WebUndefined.h \
 WebView.h \
-WebXMLDocumentRepresentation.h 
+WebXMLDocument.h 
 
 SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
 
@@ -63,13 +63,13 @@ WebHTMLDocumentView.m \
 WebHTMLDocumentRepresentation.m \
 WebHistory.m \
 WebHistoryItem.m \
-WebImageDocumentRepresentation.m \
-WebPDFDocumentRepresentation.m \
+WebImageDocument.m \
+WebPDFDocument.m \
 WebResource.m \
 WebScriptObject.m \
-WebTextDocumentRepresentation.m \
+WebTextDocument.m \
 WebView.m \
-WebXMLDocumentRepresentation.m
+WebXMLDocument.m
 
 SimpleWebKit_RESOURCE_FILES = \
 	WebKitIMG.png
