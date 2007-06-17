@@ -102,7 +102,9 @@
 {
 	if((self=[super initWithFrame:rect]))
 		{
+#ifndef GNUSTEP
 		[self setAllowsCutCopyPaste:YES];
+#endif
 		[self setAnimates:YES];
 		[self setEditable:NO];
 		[self setImageAlignment:NSImageAlignTopLeft];
