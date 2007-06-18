@@ -104,8 +104,8 @@
 		{
 #ifndef GNUSTEP
 		[self setAllowsCutCopyPaste:YES];
-#endif
 		[self setAnimates:YES];
+#endif
 		[self setEditable:NO];
 		[self setImageAlignment:NSImageAlignTopLeft];
 		[self setImageFrameStyle:NSImageFrameNone];
