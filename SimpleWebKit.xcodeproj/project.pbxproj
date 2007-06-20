@@ -247,6 +247,7 @@
 		EEA3D39C095468BA001244CF /* WebView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebView.m; sourceTree = "<group>"; };
 		EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECMAScriptPrototypes.h; sourceTree = "<group>"; };
 		EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ECMAScriptPrototypes.m; sourceTree = "<group>"; };
+		EEB0F2D40C29244A003CFAB2 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
 		EECC1E600BA14EA20001C219 /* ToDo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ToDo; sourceTree = "<group>"; };
 		EECCF3990BA037EF0001C219 /* WebKitIMG.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = WebKitIMG.png; sourceTree = "<group>"; };
 		EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECMAScriptEvaluator.h; sourceTree = "<group>"; };
@@ -312,6 +313,7 @@
 			isa = PBXGroup;
 			children = (
 				EE27270005426A7F0000013C /* mySTEP.make */,
+				EEB0F2D40C29244A003CFAB2 /* GNUmakefile */,
 				EE4440B30BDBEA980031F556 /* ChangeLog */,
 				EECC1E600BA14EA20001C219 /* ToDo */,
 				EE9BE9BF0AFA53B800D445DA /* Private */,

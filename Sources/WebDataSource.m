@@ -353,6 +353,7 @@
 -(void) connectionDidFinishLoading:(NSURLConnection *) connection;
 {
 	WebView *webView=[_webFrame webView];
+	[self retain];	// we might indirectly dealloc ourselves in _commitSubresource
 #if 1
 	NSLog(@"connectionDidFinishLoading: %@", connection);
 #endif
@@ -360,13 +361,14 @@
 		[_representation finishedLoadingWithDataSource:self];
 	else
 		_finishedLoading=YES;	// postpone notification until all immediately loading subresources are available - note: there may be subresouces that load afterwards
-	[_parent _commitSubresource:self];
 	[_connection release];
 	_connection=nil;
+	[_parent _commitSubresource:self];	// this may release us finally + the connection!
 #if 1
 	NSLog(@"subresources: %d loaded, %d loading: %@", [_subresources count], [_subdatasources count], self);
 #endif
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didFinishLoadingFromDataSource:_parent?_parent:self];
+	[self release];
 }
 
 @end

@@ -1,24 +1,24 @@
 /* simplewebkit
-   WebImageDocumentRepresentation.m
+WebImageDocumentRepresentation.m
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+Copyright (C) 2007 Free Software Foundation, Inc.
 
-   Author: Dr. H. Nikolaus Schaller
+Author: Dr. H. Nikolaus Schaller
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+You should have received a copy of the GNU Library General Public
+License along with this library; see the file COPYING.LIB.
+If not, write to the Free Software Foundation,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
 #import "WebImageDocument.h"
@@ -52,9 +52,9 @@
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 {
-		WebFrame *webFrame=[source webFrame];
-		WebView *webView=[webFrame webView];
-		NSString *title;
+	WebFrame *webFrame=[source webFrame];
+	WebView *webView=[webFrame webView];
+	NSString *title;
 #if 1
 	NSLog(@"WebImageDocumentRepresentation finishedLoadingWithDataSource");
 #endif
@@ -77,7 +77,7 @@
 #if 0	// handle partial image data
 	[_image release];
 	_image=[[NSImage alloc] initWithData:[source data]]; // try to load again
-	//	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
+														 //	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
 #endif
 }
 
@@ -124,24 +124,26 @@
 
 - (void) setDataSource:(WebDataSource *) source;
 {
-		_dataSource=source;
+	_dataSource=source;
 }
 
 - (void) setNeedsLayout:(BOOL) flag;
 { // getImage from our rep.
-	// we could/should postpone until we really drawRect
+  // we could/should postpone until we really drawRect
 	NSImage *image=[(_WebImageDocumentRepresentation *) [_dataSource representation] getImage];
 	NSLog(@"img=%@", image);
 	[self setImage:image];
-//	[self setFrame:(NSRect){ NSZeroPoint, [image size] }];	// resize to fit
+	//	[self setFrame:(NSRect){ NSZeroPoint, [image size] }];	// resize to fit
 }
 
 - (void) viewDidMoveToHostWindow;
 {
+	// FIXME:
 }
 
 - (void) viewWillMoveToHostWindow:(NSWindow *) win;
 {
+	// FIXME:
 }
 
 @end
