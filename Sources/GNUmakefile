@@ -72,7 +72,8 @@ WebView.m \
 WebXMLDocument.m
 
 SimpleWebKit_RESOURCE_FILES = \
-	WebKitIMG.png
+	WebKitIMG.png \
+	HTMLEntities.strings
 
 include $(GNUSTEP_MAKEFILES)/framework.make
 
