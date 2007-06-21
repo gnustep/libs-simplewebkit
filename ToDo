@@ -14,18 +14,14 @@ High Prio:
 - <form> works (buttons and text fields interact)
 - redisplay issues
 
-Testing:
-- how does it really work with NSTextView of mySTEP or GNUstep AppKit?
-  Does it handle NSTextAttachments? NSTextTable is missing in GNUstep.
-
 HTML parsing and error robustness:
-- better handle <tbody> tag (auto-insert into DOM)
+- better handle <tbody> tag (auto-insert into DOM like <body>)
 - how should we parse "<h1>xxx <h2> xxx </h1> z </h2>"?
 	(a) all h tags on same level (ignoring the bad </h1>) -> "<h1>xxx </h1><h2> xxx  z </h2>"
 	(b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
 - maybe, we should add + (BOOL) _nested; as a separate hint to DOMHTMLElement
 - simply ignore <body> in <body><frameset>...</frameset></body>
-- should we accept entities in quoted paramters or not? Is this standard?
+- should we accept entities in quoted paramters or not? Is this standard or not?
   like this: <input type="submit" value="&nbsp;&nbsp;Go&nbsp;&nbsp;"> from http://pda.leo.org/
 - how do we handle abc<p>def</p> - we should treat any text before the first <p> as an independent paragraph without explicit formatting
 - fix error handling if it is known that there is no more data coming from the source
@@ -33,7 +29,6 @@ HTML parsing and error robustness:
 
 Text Formatting/Typesetting:
 - color does only understand #rrggbb and no plain text names
-- <hr> does not draw a nice line
 - <table> does not handle colspan, rowspan
 - handle <pre>
 
@@ -41,7 +36,8 @@ Text Formatting/Typesetting:
 
 View:
 - <frame> not tested if it loads and displays subframes
-- <hr> should display a nice horizontal line (can we use a NSTextAttachmentCell?)
+- <iframe> should display a WebFrameView as NSTextAttachmentCell
+- <select> should display a NSTableView as NSTextAttachmentCell
 
 Forms:
 - <input type="radio" name="group"> does not yet have radio behaviour
@@ -71,14 +67,17 @@ Feature requests:
 	We should cache pages in NSURLCache
 	We must also remember contents of <form> elements (even passwords!)
 - link color definition by <body> and if link was visited recently (history)
+- handle <hr> styles
 
-mySTEP's NSURLConnection needs:
-- cookies
-- cache
-- https (add libopenssl to NSSocketInputOutputStream)
-- sending / POST&GET methods
-- header compression
-- server redirection
+mySTEP's extension requests:
+- NSURLConnection needs:
+  - cookies
+  - cache
+  - https (using NSSocket(Input|Output)Stream)
+  - sending / POST&GET methods
+  - header compression
+  - server redirection
+- NSTextTable is not rendered
 
 GNUstep's NSURLConnection:
-- ?
+- NSTextTable is missing
