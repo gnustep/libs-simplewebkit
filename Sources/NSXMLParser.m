@@ -400,7 +400,7 @@ static NSDictionary *entitiesTable;
 				return;	// still incomplete
 				}
 			if(*tp == '/')
-				tag=[NSString _string:(char *)tp+1 withEncoding:encoding length:cp-tp-1];	// don't include /
+				tag=[NSString _string:(char *)tp+1 withEncoding:encoding length:cp-tp-1];	// don't include opening /
 			else
 				tag=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
 #if 0
@@ -464,12 +464,13 @@ static NSDictionary *entitiesTable;
 						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found ? but no >", arg]];
 						return;
 						}
+					cp++;	// eat ?>
 					[self _processTag:tag isEnd:NO withAttributes:parameters];	// single <?tag ...?>
 					break; // done
 					}
 				if(*cp == '>')
 					{
-					cp++;
+					cp++;	// eat >
 					[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
 					break;
 					}
