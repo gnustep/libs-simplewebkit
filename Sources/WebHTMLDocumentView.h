@@ -63,7 +63,6 @@
 	NSView *view;
 }
 
-- (NSSize) cellSize;
 - (void) setView:(NSView *) view;
 - (NSView *) view;
 
