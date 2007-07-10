@@ -211,8 +211,8 @@
 		EE60FA780BA6928400503BB4 /* WebArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebArchive.h; sourceTree = "<group>"; };
 		EE60FA790BA6928400503BB4 /* WebDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebDownload.h; sourceTree = "<group>"; };
 		EE60FA7C0BA6943F00503BB4 /* WebUndefined.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebUndefined.h; sourceTree = "<group>"; };
-		EE60FC830BA6993E00503BB4 /* DOMCSS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMCSS.h; sourceTree = "<group>"; };
-		EE60FC840BA6993E00503BB4 /* DOMCSS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOMCSS.m; sourceTree = "<group>"; };
+		EE60FC830BA6993E00503BB4 /* DOMCSS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DOMCSS.h; path = Sources/DOMCSS.h; sourceTree = "<group>"; };
+		EE60FC840BA6993E00503BB4 /* DOMCSS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DOMCSS.m; path = Sources/DOMCSS.m; sourceTree = "<group>"; };
 		EE60FCB40BA69A8D00503BB4 /* DOMRange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMRange.h; sourceTree = "<group>"; };
 		EE60FCB50BA69A8D00503BB4 /* DOMRange.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOMRange.m; sourceTree = "<group>"; };
 		EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebArchive.m; sourceTree = "<group>"; };
@@ -320,6 +320,7 @@
 				EED0DD400BAED3CB005B0381 /* ECMA Script */,
 				EECAD4600B9D788200F37A98 /* XHTML Parser */,
 				EE9BEB430AFA865800D445DA /* DOM */,
+				EE05B6C40C3A8105004BDF3F /* CSS */,
 				EEA3309A09537E58001244CF /* WebView */,
 				EEA3309609537E48001244CF /* Resources */,
 				EE5EBB580A188F970045B88D /* SWKBrowser */,
@@ -327,6 +328,15 @@
 				EE29D8D8058A38830035639B /* Products */,
 			);
 			name = BrowserTester;
+			sourceTree = "<group>";
+		};
+		EE05B6C40C3A8105004BDF3F /* CSS */ = {
+			isa = PBXGroup;
+			children = (
+				EE60FC830BA6993E00503BB4 /* DOMCSS.h */,
+				EE60FC840BA6993E00503BB4 /* DOMCSS.m */,
+			);
+			name = CSS;
 			sourceTree = "<group>";
 		};
 		EE29D8D8058A38830035639B /* Products */ = {
@@ -400,8 +410,6 @@
 				EE9BEB460AFA868500D445DA /* DOM.h */,
 				EE4729240B99D8F700559020 /* DOMCore.h */,
 				EE4727070B99AC6500559020 /* DOMCore.m */,
-				EE60FC830BA6993E00503BB4 /* DOMCSS.h */,
-				EE60FC840BA6993E00503BB4 /* DOMCSS.m */,
 				EE8AFF880B6C8F9200346917 /* DOMHTML.h */,
 				EE8AFF890B6C8F9200346917 /* DOMHTML.m */,
 				EE60FCB40BA69A8D00503BB4 /* DOMRange.h */,
