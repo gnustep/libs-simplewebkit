@@ -667,9 +667,13 @@ static NSDictionary *entitiesTable;
 							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
 							NSEnumerator *e;
 							NSString *key;
+              NSString *s;
+              NSDictionary *d;
 							NSAutoreleasePool *arp=[NSAutoreleasePool new];
 							NSAssert(path, @"could not locate file HTMLEntities.strings");
-							entitiesTable=[[NSMutableDictionary alloc] initWithContentsOfFile:path];
+							s = [NSString stringWithContentsOfFile: path];
+              d = [s propertyListFromStringsFileFormat: s];
+							entitiesTable = [d mutableCopy];
 							NSAssert(entitiesTable, @"could not load file HTMLEntities.strings");
 							e=[entitiesTable keyEnumerator];
 							while((key=[e nextObject]))
