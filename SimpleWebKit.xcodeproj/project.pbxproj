@@ -424,7 +424,6 @@
 			children = (
 				EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */,
 				EECCF3990BA037EF0001C219 /* WebKitIMG.png */,
-				EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */,
 				EE24FD190C209B37001947BB /* DOMHTML.plist */,
 			);
 			name = Resources;
@@ -475,6 +474,7 @@
 			children = (
 				EE01D56B0B77A1A30089A538 /* NSXMLParser.h */,
 				EE01D56C0B77A1A30089A538 /* NSXMLParser.m */,
+				EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */,
 			);
 			name = "XHTML Parser";
 			path = Sources;

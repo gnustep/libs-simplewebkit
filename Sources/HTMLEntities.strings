@@ -1,11 +1,17 @@
-/* 
+/*
+ *
  * keep this in strings file format!
- * should also be in UTF-8 or UCS-16 encoding
+ * should be in UTF-8 or UCS-16 (preferred) encoding
  * conversion to XML property list will create a recursion in the XML/HTML Parser
+ *
+ * after conversion into an NSDictionary there is an additonal translation pass which translates
+ *   &#ddd -> decimal Unicode point
+ *   U+xxxx -> hexadecimal Unicode point
+ *
  */
 
 quot = "U+0022";
-amp = "&";
+amp = "U+0026";
 lt = "<";
 gt = ">";
 cent = "¢";
@@ -43,6 +49,8 @@ nbsp = "U+00A0";
 euro = "€";
 raquo = "»";
 null = " null ";
+
+"hellip" = "&#8230";
 
 "nonbreaking-hyphen" = "U+2011";
 newline = "U+2028";
