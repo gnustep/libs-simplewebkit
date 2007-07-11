@@ -13,17 +13,19 @@ gt = ">";
 
 acute = "\UOOB4";
 cedil = "\U00B8";
-/* circ */
-/ * macr */
-/* middot */
+circ = "^";
+macr = "\U00AF";
+middot = "\U00B7";
 tilde = "~";
-/* uml */
+uml = "\U00A8";
 
 Aacute = "\U00C1";
 aacute = "\UOOE1";
-
+Acirc = "\UOOC2";
+acirc = "\UOOE2";
 AELig = "\U00C6";
 aelig = "\U00E6";
+
 szlig = "\U00DF";
 Eacute = "\U00C8";
 eacute = "\U00E8";
