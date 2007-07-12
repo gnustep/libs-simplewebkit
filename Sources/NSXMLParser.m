@@ -1,24 +1,24 @@
 /* simplewebkit
-   NSXMLParser.m
+NSXMLParser.m
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+Copyright (C) 2007 Free Software Foundation, Inc.
 
-   Author: Dr. H. Nikolaus Schaller
+Author: Dr. H. Nikolaus Schaller
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+You should have received a copy of the GNU Library General Public
+License along with this library; see the file COPYING.LIB.
+If not, write to the Free Software Foundation,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
 #ifndef __WebKit__	// allows us to disable parts when we #include into WebKit
@@ -154,8 +154,8 @@ static NSDictionary *entitiesTable;
 		{
 		if([tag isEqualToString:@"?xml"])
 			{ // parse, i.e. check for UTF8 encoding and other attributes
-			// FIXME: check encoding
-			// check that it is the first tag of all
+			  // FIXME: check encoding
+			  // check that it is the first tag of all
 			acceptHTML=NO;	// enforce strict syntax
 #if 0
 			NSLog(@"parserDidStartDocument:");
@@ -199,7 +199,7 @@ static NSDictionary *entitiesTable;
 			return;	// don't push
 			}
 		[tagPath addObject:tag];	// push on stack
-		// FIXME: optimize speed by getting IMP when setting the delegate
+									// FIXME: optimize speed by getting IMP when setting the delegate
 		if([delegate respondsToSelector:@selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
 			[delegate parser:self didStartElement:tag namespaceURI:nil qualifiedName:nil attributes:attributes];
 		}
@@ -382,9 +382,9 @@ static NSDictionary *entitiesTable;
 			else if(*cp == '?')
 				{ // special tag <?tag begins
 				cp++;	// include ? in tag string
-				//	NSLog(@"special tag <? found");
-				// FIXME: should process this tag also in a special way so that e.g. <?php any PHP script ?> is read as a single tag!
-				// to do this properly, we need probably a notion of comments and quoted string constants...
+						//	NSLog(@"special tag <? found");
+						// FIXME: should process this tag also in a special way so that e.g. <?php any PHP script ?> is read as a single tag!
+						// to do this properly, we need probably a notion of comments and quoted string constants...
 				}
 			while(cp < ep && !isspace(*cp) && *cp != '>' && (*cp != '/')  && (*cp != '?'))
 				{
@@ -565,8 +565,8 @@ static NSDictionary *entitiesTable;
 							{
 							if(*cp == '>' || isspace(*cp))
 								break;
-						//	if(acceptHTML && (*cp == '/' || *cp == '?'))
-						//		break;
+							//	if(acceptHTML && (*cp == '/' || *cp == '?'))
+							//		break;
 							}
 						cp++;	// collect argument
 						}
@@ -667,17 +667,22 @@ static NSDictionary *entitiesTable;
 							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
 							NSEnumerator *e;
 							NSString *key;
-              NSString *s;
-              NSDictionary *d;
+							NSString *s;
+							NSDictionary *d;
 							NSAutoreleasePool *arp=[NSAutoreleasePool new];
 							NSAssert(path, @"could not locate file HTMLEntities.strings");
-              s = [NSString stringWithContentsOfFile: path];
-              d = [s propertyListFromStringsFileFormat];
-   						entitiesTable = [d mutableCopy];
-							NSAssert(entitiesTable, @"could not load file HTMLEntities.strings");
+							//			entitiesTable=[[NSMutableDictionary alloc] initWithContentsOfFile:path];
+							s = [NSString stringWithContentsOfFile: path];
+#if 1
+							NSLog(@"HTMLEntities: %@", s);
+#endif
+							d = [s propertyListFromStringsFileFormat];
+							entitiesTable = [d mutableCopy];
+							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load file %@", path]));
+#if OLD
 							e=[entitiesTable keyEnumerator];
 							while((key=[e nextObject]))
-								{ // translate U+xxxx sequences to "real" Unicode characters
+								{ // translate U+xxxx and #&ddd sequences to "real" Unicode characters
 								NSString *val=[entitiesTable objectForKey:key];
 								NSScanner *sc=[NSScanner scannerWithString:val];
 								unsigned code;
@@ -687,7 +692,13 @@ static NSDictionary *entitiesTable;
 									chars[0]=code;
 									[(NSMutableDictionary *) entitiesTable setObject:[NSString stringWithCharacters:chars length:1] forKey:key];
 									}
+								else if([sc scanString:@"&#" intoString:NULL] && [sc scanInt:(int *)&code])
+									{ // replace entry &#ddd in table with unicode character
+									chars[0]=code;
+									[(NSMutableDictionary *) entitiesTable setObject:[NSString stringWithCharacters:chars length:1] forKey:key];
+									}
 								}
+#endif
 #if 0
 							NSLog(@"bundle=%@", b);
 							NSLog(@"path=%@", path);

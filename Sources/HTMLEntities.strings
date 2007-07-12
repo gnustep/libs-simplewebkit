@@ -1,9 +1,17 @@
 /* 
- * keep this in strings file format!
- * should also be in UTF-8 or UCS-16 encoding
- * conversion to XML property list will create a recursion in the XML/HTML Parser
- * http://www.cookwood.com/html/extras/entities.html
+ * HTMLEntities.strings
+ *
+ * This file is part of the NSXMLParser of SimpleWebKit
+ *
+ * NOTE: keep this in .strings file format!
+ * This means it should be in UCS-16 or ASCII encoding (UTF-8 might work but is not guaranteed)
+ * Converthing this file to a XML property list will create a recursion in the XML/HTML Parser
+ * Use the \Uxxxx notation to denote Unicode code points
+ *
+ * http://www.c00kw00d.com/html/extras/entities.html
  * http://www.w3.org/TR/html401/sgml/entities.html
+ * http://edition-w3.de/TR/1999/REC-html401-19991224/sgml/entities.html
+ *
  */
 
 quot = "\U0022";
@@ -11,7 +19,7 @@ amp = "\U0026";
 lt = "<";
 gt = ">";
 
-acute = "\UOOB4";
+acute = "\U00B4";
 cedil = "\U00B8";
 circ = "^";
 macr = "\U00AF";
@@ -20,16 +28,16 @@ tilde = "~";
 uml = "\U00A8";
 
 Aacute = "\U00C1";
-aacute = "\UOOE1";
-Acirc = "\UOOC2";
-acirc = "\UOOE2";
+aacute = "\U00E1";
+Acirc = "\U00C2";
+acirc = "\U00E2";
 AElig = "\U00C6";
 aelig = "\U00E6";
 Agrave = "\U00C0";
-agrave = "\UOOE0";
-Aring = "\UOOC5";
-aring = "\UOOE5";
-Atilde = "\UOOC3";
+agrave = "\U00E0";
+Aring = "\U00C5";
+aring = "\U00E5";
+Atilde = "\U00C3";
 atilde = "\U00E3";
 Auml = "\U00C4";
 auml = "\U00E4";
@@ -44,3 +52,34 @@ Uuml = "\U00DC";
 
 nbsp = "\U00A0";
 
+/* some other entity names which are not necessarily part of the HTML standard but in common use (need to be converted to \U notation) */
+
+cent = "¢";
+pound = "£";
+brvbar = "¦";
+brkbar = "¦";
+sect = "§";
+copy = "©";
+reg = "®";
+deg = "°";
+plusm = "±";
+sup2 = "²";
+sup3 = "³";
+middot = "·";
+sup1 = "¹";
+frac14 = "¼";
+frac12 = "½";
+frac34 = "¾";
+trade = "™";
+mdash = "—";
+ndash = "–";
+
+euro = "€";
+raquo = "»";
+null = "&null;";
+
+"hellip" = "\U2026";
+
+"nonbreaking-hyphen" = "\U2011";
+newline = "\U2028";
+newparagraph = "\U2029";
