@@ -68,6 +68,9 @@ Feature requests:
 	We must also remember contents of <form> elements (even passwords!)
 - link color definition by <body> and if link was visited recently (history)
 - handle <hr> styles
+- should show a slider for <input type="range" min="0" value="100" max="100">
+- MIMEType text/xml: if it is a RSS feed -> redirect to feed:URL which uses ECMAScript to show a feed
+- find telephone numbers and add a virtual "tel:number" link
 
 mySTEP's extension requests:
 - NSURLConnection needs:

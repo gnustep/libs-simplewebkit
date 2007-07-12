@@ -24,9 +24,53 @@
 #import <WebKit/DOMCore.h>
 
 @interface DOMCSSStyleDeclaration : DOMElement
-{
+{ // this is a style="style" definition
+	NSMutableDictionary *_elements;	// key : value value;
 }
 
-- (id) initWithString:(NSString *) style forDocument:(RENAME(DOMDocument) *) doc;	// for <style>css</style> or <tag style="css">
++ (DOMCSSStyleDeclaration *) _parseWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+
+- (id) initWithString:(NSString *) style forDocument:(RENAME(DOMDocument) *) doc;	// for <tag style="css">
++ (id) _initWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+- (NSArray *) allKeys;
+- (NSArray *) valueForKey:(NSString *) key;
+
+@end
+
+// FIXME:
+
+typedef enum _CSSRuleType
+{
+	CSSHasParentRule,			// tag1 tag2 { }
+	CSSHasDirectParentRule,		// tag1 > tag2 { }
+	CSSNearRule,				// tag1 + tag2 { }
+	CSSClassRule,				// tag1.class { }
+	CSSIDRule,					// tag1#class { }
+	CSSAttributeRule,			// tag1[attribute="value"] - value may be ommitted
+	CSSPseudoclass				// tag1 : class
+} CSSRuleType;
+
+@interface CSSRule : NSObject
+{ // this is a CSS "rule { style }"
+	id _left, _right;	// other CSSRule (pattern) or NSString or nil (for *)
+	NSString *value;	// for CSSAttributeRule or CSSPseudoclass
+	DOMCSSStyleDeclaration *_style;
+	CSSRuleType _type;
+}
+
++ (CSSRule *) _parseWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+- (BOOL) matchesDOMNode:(DOMNode *) node;
+- (DOMCSSStyleDeclaration *) style;
+
+@end
+
+@interface CSSDocument : NSObject
+{ // this is a CSS set of rules
+	NSString *media;				// for which media does this rulebase apply?
+	NSMutableDictionary *_rules;	// each rule is an NSArray with CSSRules - keyed by main element
+}
+
++ (CSSDocument *) _parseWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+- (CSSRule *) ruleForNode:(DOMNode *) node withMedium:(NSString *) medium;	// find matching rule
 
 @end

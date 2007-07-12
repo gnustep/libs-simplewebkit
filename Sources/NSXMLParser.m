@@ -663,13 +663,13 @@ static NSDictionary *entitiesTable;
 						NSString *e;
 						if(!entitiesTable)
 							{ // dynamically load entity translation table on first use
+							NSAutoreleasePool *arp=[NSAutoreleasePool new];
 							NSBundle *b=[NSBundle bundleForClass:[self class]];
 							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
-							NSEnumerator *e;
-							NSString *key;
+//							NSEnumerator *e;
+//							NSString *key;
 							NSString *s;
 							NSDictionary *d;
-							NSAutoreleasePool *arp=[NSAutoreleasePool new];
 							NSAssert(path, @"could not locate file HTMLEntities.strings");
 							//			entitiesTable=[[NSMutableDictionary alloc] initWithContentsOfFile:path];
 							s = [NSString stringWithContentsOfFile: path];
@@ -678,7 +678,7 @@ static NSDictionary *entitiesTable;
 #endif
 							d = [s propertyListFromStringsFileFormat];
 							entitiesTable = [d mutableCopy];
-							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load file %@", path]));
+							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load and parse file %@", path]));
 #if OLD
 							e=[entitiesTable keyEnumerator];
 							while((key=[e nextObject]))
