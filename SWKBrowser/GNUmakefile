@@ -2,8 +2,14 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 APP_NAME = SWKBrowser
 
+ifeq ($(FOUNDATION_LIB), apple)
 ADDITIONAL_GUI_LIBS += \
-	-lSimpleWebKit
+       -framework SimpleWebKit
+else
+ADDITIONAL_GUI_LIBS += \
+       -lSimpleWebKit
+endif
+
 
 SWKBrowser_OBJC_FILES = \
 	main.m \
@@ -24,3 +30,4 @@ SWKBrowser_RESOURCE_FILES = SWKBrowser-Info.plist
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 include $(GNUSTEP_MAKEFILES)/application.make
 
+include GNUmakefile.postamble
