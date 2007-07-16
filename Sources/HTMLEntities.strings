@@ -41,14 +41,21 @@ Atilde = "\U00C3";
 atilde = "\U00E3";
 Auml = "\U00C4";
 auml = "\U00E4";
-
-szlig = "\U00DF";
+Ccedil = "\U00C7";
+ccedil = "`U00E7";
 Eacute = "\U00C8";
 eacute = "\U00E8";
+Ecirc = "\U00CA";
+ecirc = "\UOOEA";
+szlig = "\U00DF";
 ouml = "\U00F6";
 uuml = "\U00FC";
 Ouml = "\U00D6";
 Uuml = "\U00DC";
+Egrave = "\U00C8";
+egrave = "\U00E8";
+ETH = "\U00D0";
+eth = "\U00F0";
 
 nbsp = "\U00A0";
 
