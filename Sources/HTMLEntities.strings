@@ -14,17 +14,19 @@
  *
  */
 
+/* entities for charactes with special meaning for HTML */
 quot = "\U0022";
 amp = "\U0026";
 lt = "<";
 gt = ">";
 
+/* accents, accented characters and other diacritics for Western European Languages */
 acute = "\U00B4";
 cedil = "\U00B8";
 circ = "^";
 macr = "\U00AF";
 middot = "\U00B7";
-tilde = "~";
+tilde = "\U02DC";
 uml = "\U00A8";
 
 Aacute = "\U00C1";
@@ -56,14 +58,62 @@ Egrave = "\U00C8";
 egrave = "\U00E8";
 ETH = "\U00D0";
 eth = "\U00F0";
+Euml = "\U00CB";
+euml = "\U00EB";
+Iacute = "\U00CD";
+iacute = "\U00ED";
+Icirc = "\U00CE";
+icirc = "\U00EE";
+Igrave = "\U00CC";
+igrave = "\U00EC";
+Ntilde = "\U00D1";
+ntilde = "\U00F1";
+Oacute = "\U00D3";
+oacute = "\U00F3";
+Ocirc = "\U00D4";
+ocirc = "\U00F4";
+OElic = "\U0152";
+oelig = "\U0153";
+Ograve = "\U00D2";
+ograve = "\U00F2";
+Oslash = "\U00D8";
+oslash = "\U00F8";
+Otilde = "\U00D5";
+otilde = "\U00F5";
+Ouml = "\U00D6";
+ouml = "\U00F6";
+Scaron = "\U0160";
+scaron = "\U0161";
+szlig = "\U00DF";
+THORN = "\U00DE";
+thorn = "\U00FE";
+Uacute = "\U00DA";
+uacute = "\U00FA";
+Ucirc = "\U00DB";
+ucirc = "\U00FB";
+Ugrave = "\U00D9";
+ugrave = "\U00F9";
+Uuml = "\U00DC";
+uuml = "\U00FC";
+Yacute = "\U00DD";
+yacute = "\U00FD";
+Yuml = "\U0178";
+yuml = "\U00FF";
+
+/* entities for punctuation characters and currency values */
+cent = "\U00A2";
+curren = "\U00A4";
+euro = "\U20AC";
+pound = \U00A3";
+yen = "\UOOA5";
+
+brvbar = "\U00A6";
+
 
 nbsp = "\U00A0";
 
 /* some other entity names which are not necessarily part of the HTML standard but in common use (need to be converted to \U notation) */
 
-cent = "¢";
-pound = "£";
-brvbar = "¦";
 brkbar = "¦";
 sect = "§";
 copy = "©";
@@ -81,7 +131,6 @@ trade = "™";
 mdash = "—";
 ndash = "–";
 
-euro = "€";
 raquo = "»";
 null = "&null;";
 
