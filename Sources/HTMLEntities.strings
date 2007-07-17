@@ -108,6 +108,20 @@ pound = "\U00A3";
 yen = "\UOOA5";
 
 brvbar = "\U00A6";
+bull = "\U2022";
+copy = "\U00A9";
+dagger = "\U2020";
+Dagger = "\U2021";
+frasl = "\U2044";
+hellip = "\U2026";
+image = "\U2111";
+iquest = "\U00BF";
+lrm = "\U200E";
+mdash = "\U2014";
+ndash = "\U2013";
+not = "\U00AC";
+
+
 
 
 nbsp = "\U00A0";
@@ -116,7 +130,6 @@ nbsp = "\U00A0";
 
 brkbar = "¦";
 sect = "§";
-copy = "©";
 reg = "®";
 deg = "°";
 plusm = "±";
@@ -128,13 +141,9 @@ frac14 = "¼";
 frac12 = "½";
 frac34 = "¾";
 trade = "™";
-mdash = "—";
-ndash = "–";
-
 raquo = "»";
 null = "&null;";
 
-"hellip" = "\U2026";
 
 "nonbreaking-hyphen" = "\U2011";
 newline = "\U2028";
