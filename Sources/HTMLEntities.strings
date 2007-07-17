@@ -104,7 +104,7 @@ yuml = "\U00FF";
 cent = "\U00A2";
 curren = "\U00A4";
 euro = "\U20AC";
-pound = \U00A3";
+pound = "\U00A3";
 yen = "\UOOA5";
 
 brvbar = "\U00A6";
