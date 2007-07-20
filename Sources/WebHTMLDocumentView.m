@@ -78,6 +78,65 @@
 #endif	
 }
 
+// FIXME: this might need more elaboration
+
+- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
+{
+	NSString *raw=[str string];
+	NSScanner *sc=[NSScanner scannerWithString:raw];
+	[sc setCharactersToBeSkipped:nil];	// don't skip spaces or newlines automatically
+	while(![sc isAtEnd])
+		{
+		unsigned start=[sc scanLocation];	// remember where we did start
+		NSRange rng;
+		NSDictionary *attr=[str attributesAtIndex:start effectiveRange:&rng];
+		if(![attr objectForKey:NSLinkAttributeName])
+			{ // we don't yet have a link here
+			NSString *number=nil;
+			static NSCharacterSet *digits;
+			static NSCharacterSet *ignorable;
+			if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
+			// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
+			if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
+			[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
+			while(![sc isAtEnd])
+				{
+				NSString *segment;
+				if([sc scanCharactersFromSet:ignorable intoString:NULL])
+					continue;	// skip
+				if([sc scanCharactersFromSet:digits intoString:&segment])
+					{ // found some (more) digits
+					if(number)
+						number=[number stringByAppendingString:segment];	// collect
+					else
+						number=segment;		// first segment
+					continue;	// skip
+					}
+				break;	// no digits
+				}
+			if([number length] > 6)
+				{ // there have been enough digits in sequence so that it looks like a phone number
+				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
+				// check that we have non-uniform attributes (i.e. rng covers srng) else -> ignore
+				NSLog(@"found telephone number: %@", number);
+				// preprocess number so that it fits into E.164 and DIN 5008 formats
+				// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
+				if([number hasPrefix:@"00"])
+					number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];
+				else if([number hasPrefix:@"0"])
+					number=[number substringFromIndex:1];
+				if(![number hasPrefix:@"+"])
+					number=[NSString stringWithFormat:@"+%@%@", @"49", number];
+				NSLog(@"  -> %@", number);
+				[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
+															   forKey:NSLinkAttributeName] range:srng];	// add link
+				continue;
+				}
+			}
+		[sc setScanLocation:start+1];	// skip anything else
+		}
+}
+
 - (void) layout;
 { // do the layout of subviews
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
@@ -98,6 +157,7 @@
 	[self setDrawsBackground:background != nil];
 // check if we did load with an anchor (dataSource request has an anchor part) and it is already defined
 	// if possible scroll us to the anchor position
+	[self _processPhoneNumbers:[self textStorage]];	// update content
 }
 
 - (void) setDataSource:(WebDataSource *) source;
