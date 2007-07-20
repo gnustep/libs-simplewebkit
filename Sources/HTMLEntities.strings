@@ -120,8 +120,32 @@ lrm = "\U200E";
 mdash = "\U2014";
 ndash = "\U2013";
 not = "\U00AC";
+oline = "\U203E";
+ordf = "\U00AA";
+ordm = "\U00BA";
+para = "\U00B6";
+permil = "\U2030";
+prime = "\U2032";
+Prime = "\U2033";
+real = "\U211C";
+reg = "\U00AE";
+rlm = "\U200F";
+sect = "\U00A7";
+shy = "\U00AD";
+sup1 = "\U00B9";
+trade = "\U8482";
+weierp = "\U2118";
 
-
+bdquo = "\U201E";
+laquo = "\U00AB";
+ldquo = "\U201C";
+lsaquo = "\U2039";
+lsquo = "\U2018";
+raquo = "\U00BB";
+rdquo = "\U201D";
+rsaquo = "\U203A";
+rsquo = "\U2019";
+sbquo = "\U201A";
 
 
 nbsp = "\U00A0";
@@ -129,19 +153,14 @@ nbsp = "\U00A0";
 /* some other entity names which are not necessarily part of the HTML standard but in common use (need to be converted to \U notation) */
 
 brkbar = "¦";
-sect = "§";
 reg = "®";
 deg = "°";
 plusm = "±";
 sup2 = "²";
 sup3 = "³";
-middot = "·";
-sup1 = "¹";
 frac14 = "¼";
 frac12 = "½";
 frac34 = "¾";
-trade = "™";
-raquo = "»";
 null = "&null;";
 
 
