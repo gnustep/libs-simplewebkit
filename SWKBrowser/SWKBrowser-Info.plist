@@ -120,6 +120,8 @@
 			<array>
 				<string>http</string>
 				<string>https</string>
+				<string>data</string>
+				<string>about</string>
 			</array>
 			<key>NSDocumentClass</key>
 			<string>MyDocument</string>

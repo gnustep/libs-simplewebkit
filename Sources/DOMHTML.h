@@ -189,6 +189,18 @@
 @interface DOMHTMLTextAreaElement : DOMHTMLElement	// <textarea>
 @end
 
+@interface DOMHTMLLIElement : DOMHTMLElement	// <li>, <dt>, <dd>
+@end
+
+@interface DOMHTMLDListElement : DOMHTMLElement		// <dl>
+@end
+
+@interface DOMHTMLOListElement : DOMHTMLElement		// <ol>
+@end
+
+@interface DOMHTMLUListElement : DOMHTMLElement		// <ul>
+@end
+
 // plus some more...
 
 // all other tags are plain DOMHTMLElements (e.g. <center>)

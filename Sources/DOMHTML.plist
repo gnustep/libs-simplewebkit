@@ -33,13 +33,13 @@
 	<key>colgroup</key>
 	<string>?</string>
 	<key>dd</key>
-	<string>?</string>
+	<string>DOMHTMLDLIElement</string>
 	<key>div</key>
 	<string>DOMHTMLDivElement</string>
 	<key>dl</key>
-	<string>?</string>
+	<string>DOMHTMLDListElement</string>
 	<key>dt</key>
-	<string>?</string>
+	<string>DOMHTMLDLIElement</string>
 	<key>em</key>
 	<string>DOMHTMLElement</string>
 	<key>font</key>
@@ -81,7 +81,7 @@
 	<key>label</key>
 	<string>DOMHTMLLabelElement</string>
 	<key>li</key>
-	<string>?</string>
+	<string>DOMHTMLLIElement</string>
 	<key>link</key>
 	<string>DOMHTMLLinkElement</string>
 	<key>meta</key>
@@ -95,7 +95,7 @@
 	<key>object</key>
 	<string>DOMHTMLObjectElement</string>
 	<key>ol</key>
-	<string>?</string>
+	<string>DOMHTMLOListElement</string>
 	<key>optgroup</key>
 	<string>DOMHTMLOptGroupElement</string>
 	<key>option</key>
@@ -151,7 +151,7 @@
 	<key>u</key>
 	<string>DOMHTMLElement</string>
 	<key>ul</key>
-	<string>?</string>
+	<string>DOMHTMLUListElement</string>
 	<key>var</key>
 	<string>DOMHTMLElement</string>
 </dict>

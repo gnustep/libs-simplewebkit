@@ -64,56 +64,57 @@ static NSDictionary *tagtable;
 	if((self=[super init]))
 		{
 		if(!tagtable)
-			// FIXME: read from a resources .plist file
+			{
+#if OLD
 			tagtable=[[NSDictionary dictionaryWithObjectsAndKeys:
-					[DOMHTMLHtmlElement class], @"html",
-					[DOMHTMLHeadElement class], @"head",
-					[DOMHTMLTitleElement class], @"title",
-					[DOMHTMLMetaElement class], @"meta",
-					[DOMHTMLLinkElement class], @"link",
-					[DOMHTMLStyleElement class], @"style",
-					[DOMHTMLScriptElement class], @"script",
-					[DOMHTMLFrameSetElement class], @"frameset",
-					[DOMHTMLFrameElement class], @"frame",
-					[DOMHTMLIFrameElement class], @"iframe",
-					[DOMHTMLObjectElement class], @"object",
-					[DOMHTMLParamElement class], @"param",
-					[DOMHTMLObjectElement class], @"applet",
-					[DOMHTMLBodyElement class], @"body",
-					[DOMHTMLDivElement class], @"div",
-					[DOMHTMLSpanElement class], @"span",
-					[DOMHTMLFontElement class], @"font",
-					[DOMHTMLAnchorElement class], @"a",
-					[DOMHTMLImageElement class], @"img",
-					[DOMHTMLBRElement class], @"br",
-					[DOMHTMLElement class], @"nobr",
-					[DOMHTMLParagraphElement class], @"p",
-					[DOMHTMLHRElement class], @"hr",
-					[DOMHTMLTableElement class], @"table",
-					[DOMHTMLTableRowElement class], @"tr",
-					[DOMHTMLTableCellElement class], @"th",
-					[DOMHTMLTableCellElement class], @"td",
-					[DOMHTMLFormElement class], @"form",
-					[DOMHTMLInputElement class], @"input",
-					[DOMHTMLButtonElement class], @"button",
-					[DOMHTMLSelectElement class], @"select",
-					[DOMHTMLOptionElement class], @"option",
-					[DOMHTMLOptGroupElement class], @"optgroup",
-					[DOMHTMLLabelElement class], @"label",
-					[DOMHTMLTextAreaElement class], @"textarea",
+				[DOMHTMLHtmlElement class], @"html",
+				[DOMHTMLHeadElement class], @"head",
+				[DOMHTMLTitleElement class], @"title",
+				[DOMHTMLMetaElement class], @"meta",
+				[DOMHTMLLinkElement class], @"link",
+				[DOMHTMLStyleElement class], @"style",
+				[DOMHTMLScriptElement class], @"script",
+				[DOMHTMLFrameSetElement class], @"frameset",
+				[DOMHTMLFrameElement class], @"frame",
+				[DOMHTMLIFrameElement class], @"iframe",
+				[DOMHTMLObjectElement class], @"object",
+				[DOMHTMLParamElement class], @"param",
+				[DOMHTMLObjectElement class], @"applet",
+				[DOMHTMLBodyElement class], @"body",
+				[DOMHTMLDivElement class], @"div",
+				[DOMHTMLSpanElement class], @"span",
+				[DOMHTMLFontElement class], @"font",
+				[DOMHTMLAnchorElement class], @"a",
+				[DOMHTMLImageElement class], @"img",
+				[DOMHTMLBRElement class], @"br",
+				[DOMHTMLElement class], @"nobr",
+				[DOMHTMLParagraphElement class], @"p",
+				[DOMHTMLHRElement class], @"hr",
+				[DOMHTMLTableElement class], @"table",
+				[DOMHTMLTableRowElement class], @"tr",
+				[DOMHTMLTableCellElement class], @"th",
+				[DOMHTMLTableCellElement class], @"td",
+				[DOMHTMLFormElement class], @"form",
+				[DOMHTMLInputElement class], @"input",
+				[DOMHTMLButtonElement class], @"button",
+				[DOMHTMLSelectElement class], @"select",
+				[DOMHTMLOptionElement class], @"option",
+				[DOMHTMLOptGroupElement class], @"optgroup",
+				[DOMHTMLLabelElement class], @"label",
+				[DOMHTMLTextAreaElement class], @"textarea",
 				
-				// FIXME: - should be implemented (?as special classes?)
-					[DOMHTMLElement class], @"caption",
-					[DOMHTMLElement class], @"col",
-					[DOMHTMLElement class], @"colgroup",
-					[DOMHTMLElement class], @"tfoot",
-					[DOMHTMLElement class], @"thead",
-					[DOMHTMLElement class], @"ul",
-					[DOMHTMLElement class], @"ol",
-					[DOMHTMLElement class], @"dl",
-					[DOMHTMLElement class], @"li",
-					[DOMHTMLElement class], @"dd",
-					[DOMHTMLElement class], @"dt",
+														// FIXME: - should be implemented (?as special classes?)
+				[DOMHTMLElement class], @"caption",
+				[DOMHTMLElement class], @"col",
+				[DOMHTMLElement class], @"colgroup",
+				[DOMHTMLElement class], @"tfoot",
+				[DOMHTMLElement class], @"thead",
+				[DOMHTMLElement class], @"ul",
+				[DOMHTMLElement class], @"ol",
+				[DOMHTMLElement class], @"dl",
+				[DOMHTMLElement class], @"li",
+				[DOMHTMLElement class], @"dd",
+				[DOMHTMLElement class], @"dt",
 				
 				[DOMHTMLNoFramesElement class], @"noframes",
 				[DOMHTMLPreElement class], @"pre",
@@ -124,30 +125,43 @@ static NSDictionary *tagtable;
 				[DOMHTMLHeadingElement class], @"h4",
 				[DOMHTMLHeadingElement class], @"h5",
 				[DOMHTMLHeadingElement class], @"h6",
-
+				
 				// stored in standard elements
-					[DOMHTMLElement class], @"tbody",
-					[DOMHTMLElement class], @"noscript",
-					[DOMHTMLElement class], @"bdo",
-					[DOMHTMLElement class], @"big",
-					[DOMHTMLElement class], @"small",
-					[DOMHTMLElement class], @"sub",
-					[DOMHTMLElement class], @"sup",
-					[DOMHTMLElement class], @"em",
-					[DOMHTMLElement class], @"b",
-					[DOMHTMLElement class], @"i",
-					[DOMHTMLElement class], @"u",
-					[DOMHTMLElement class], @"s",
-					[DOMHTMLElement class], @"tt",
-					[DOMHTMLElement class], @"strike",
+				[DOMHTMLElement class], @"tbody",
+				[DOMHTMLElement class], @"noscript",
+				[DOMHTMLElement class], @"bdo",
+				[DOMHTMLElement class], @"big",
+				[DOMHTMLElement class], @"small",
+				[DOMHTMLElement class], @"sub",
+				[DOMHTMLElement class], @"sup",
+				[DOMHTMLElement class], @"em",
+				[DOMHTMLElement class], @"b",
+				[DOMHTMLElement class], @"i",
+				[DOMHTMLElement class], @"u",
+				[DOMHTMLElement class], @"s",
+				[DOMHTMLElement class], @"tt",
+				[DOMHTMLElement class], @"strike",
 				[DOMHTMLElement class], @"strong",
 				[DOMHTMLElement class], @"var",
 				[DOMHTMLElement class], @"code",
 				[DOMHTMLElement class], @"samp",
 				[DOMHTMLElement class], @"kbd",
 				[DOMHTMLElement class], @"cite",
-					nil
+				nil
 				] retain];
+#else
+			NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"DOMHTML" ofType:@"plist"];
+#if 1
+			NSLog(@"path=%@", path);
+#endif
+			tagtable=[[NSDictionary alloc] initWithContentsOfFile:path];
+#if 1
+			NSLog(@"path=%@", path);
+			NSLog(@"tagtable=%@", tagtable);
+#endif
+			NSAssert(tagtable, @"could not load tag table");
+#endif
+			}
 		}
 	return self;
 }
@@ -375,7 +389,7 @@ static NSDictionary *tagtable;
 
 - (void) parser:(NSXMLParser *) parser didStartElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name attributes:(NSDictionary *) attributes;
 { // handle opening tags
-	Class c=[tagtable objectForKey:tag];
+	Class c=NSClassFromString([tagtable objectForKey:tag]);
 	id newElement;
 	NSEnumerator *e;
 	NSString *key;
@@ -434,7 +448,7 @@ static NSDictionary *tagtable;
 
 - (void) parser:(NSXMLParser *) parser didEndElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name;
 { // handle closing tags
-	Class c=[tagtable objectForKey:tag];
+	Class c=NSClassFromString([tagtable objectForKey:tag]);
 #if 0
 	NSLog(@"%@ %@: </%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
 #endif

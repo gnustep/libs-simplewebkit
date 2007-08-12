@@ -117,7 +117,7 @@
 { // creates a subresource loader
 	WebDataSource *subsource;
 #if 1
-	NSLog(@"url=%@", url);
+	NSLog(@"_subresourceWithURL:%@", url);
 	NSLog(@"_subresources[url]=%@", [_subresources objectForKey:url]);
 #endif
 	NSAssert(url != nil, @"trying to load nil subresource");

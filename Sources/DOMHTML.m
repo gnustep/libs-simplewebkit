@@ -1773,3 +1773,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 }
 
 @end
+
+@implementation DOMHTMLLIElement	// <li>, <dt>, <dd>
+@end
+
+@implementation DOMHTMLDListElement		// <dl>
+@end
+
+@implementation DOMHTMLOListElement		// <ol>
+@end
+
+@implementation DOMHTMLUListElement		// <ul>
+@end

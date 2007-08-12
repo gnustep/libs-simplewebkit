@@ -117,20 +117,22 @@
 			if([number length] > 6)
 				{ // there have been enough digits in sequence so that it looks like a phone number
 				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
-				// check that we have non-uniform attributes (i.e. rng covers srng) else -> ignore
-				NSLog(@"found telephone number: %@", number);
-				// preprocess number so that it fits into E.164 and DIN 5008 formats
-				// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
-				if([number hasPrefix:@"00"])
-					number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];
-				else if([number hasPrefix:@"0"])
-					number=[number substringFromIndex:1];
-				if(![number hasPrefix:@"+"])
-					number=[NSString stringWithFormat:@"+%@%@", @"49", number];
-				NSLog(@"  -> %@", number);
-				[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
-															   forKey:NSLinkAttributeName] range:srng];	// add link
-				continue;
+				if(srng.length <= rng.length)
+					{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
+					NSLog(@"found telephone number: %@", number);
+					// preprocess number so that it fits into E.164 and DIN 5008 formats
+					// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
+					if([number hasPrefix:@"00"])
+						number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];
+					else if([number hasPrefix:@"0"])
+						number=[number substringFromIndex:1];
+					if(![number hasPrefix:@"+"])
+						number=[NSString stringWithFormat:@"+%@%@", @"49", number];
+					NSLog(@"  -> %@", number);
+					[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
+																   forKey:NSLinkAttributeName] range:srng];	// add link
+					continue;
+					}
 				}
 			}
 		[sc setScanLocation:start+1];	// skip anything else
