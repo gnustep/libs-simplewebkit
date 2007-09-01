@@ -4,14 +4,26 @@
 <dict>
 	<key>a</key>
 	<string>DOMHTMLAnchorElement</string>
+	<key>abbr</key>
+	<string>DOMHTMLElement</string>
+	<key>acronym</key>
+	<string>DOMHTMLElement</string>
+	<key>address</key>
+	<string>DOMHTMLElement</string>
 	<key>applet</key>
 	<string>DOMHTMLObjectElement</string>
+	<key>area</key>
+	<string>DOMHTMLElement</string>
 	<key>b</key>
+	<string>DOMHTMLElement</string>
+	<key>base</key>
 	<string>DOMHTMLElement</string>
 	<key>bdo</key>
 	<string>?</string>
 	<key>big</key>
 	<string>DOMHTMLElement</string>
+	<key>blockquote</key>
+	<string>DOMHTMLCenterElement</string>
 	<key>body</key>
 	<string>DOMHTMLBodyElement</string>
 	<key>br</key>
@@ -78,10 +90,14 @@
 	<string>DOMHTMLElement</string>
 	<key>label</key>
 	<string>DOMHTMLLabelElement</string>
+	<key>legend</key>
+	<string>DOMHTMLElement</string>
 	<key>li</key>
 	<string>DOMHTMLLIElement</string>
 	<key>link</key>
 	<string>DOMHTMLLinkElement</string>
+	<key>map</key>
+	<string>DOMHTMLElement</string>
 	<key>meta</key>
 	<string>DOMHTMLMetaElement</string>
 	<key>nobr</key>

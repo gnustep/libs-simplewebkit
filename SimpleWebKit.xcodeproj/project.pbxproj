@@ -168,7 +168,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		EE01D4650B7786570089A538 /* WebKitBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WebKitBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE01D4650B7786570089A538 /* WebKitBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = WebKitBrowser.app; path = /Users/hns/build/Development/WebKitBrowser.app; sourceTree = "<absolute>"; };
 		EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "SWKBrowser-Info.plist"; sourceTree = "<group>"; };
 		EE01D46C0B7786930089A538 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		EE01D56B0B77A1A30089A538 /* NSXMLParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NSXMLParser.h; sourceTree = "<group>"; };
@@ -177,7 +177,6 @@
 		EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebDocumentRepresentation.m; sourceTree = "<group>"; };
 		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		EE1AB3A90C20544A005F3F98 /* SWKBrowser-Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "SWKBrowser-Info copy.plist"; sourceTree = "<group>"; };
 		EE24FD190C209B37001947BB /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = DOMHTML.plist; sourceTree = "<group>"; };
 		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
 		EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDOMOperations.m; sourceTree = "<group>"; };
@@ -344,7 +343,6 @@
 			children = (
 				EE6FE352076F05AF009CC969 /* WebKit.framework */,
 				EE147E840A16668700E60AF8 /* SWKBrowser.app */,
-				EE01D4650B7786570089A538 /* WebKitBrowser.app */,
 				EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */,
 			);
 			name = Products;
@@ -376,7 +374,6 @@
 				EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */,
 				EE5EBB5E0A188F970045B88D /* FullWebKitTest-Info.plist */,
 				EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */,
-				EE1AB3A90C20544A005F3F98 /* SWKBrowser-Info copy.plist */,
 			);
 			path = SWKBrowser;
 			sourceTree = "<group>";

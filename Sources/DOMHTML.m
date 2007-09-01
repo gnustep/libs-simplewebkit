@@ -156,6 +156,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
+// read this from WebPreferences!
+
+#define DEFAULT_FONT_SIZE 16.0
+#define DEFAULT_FONT @"Times"
+#define DEFAULT_BOLD_FONT @"Times-Bold"
+#define DEFAULT_TT_SIZE 13.0
+#define DEFAULT_TT_FONT @"Courier"
+
 @implementation DOMElement (DOMHTMLElement)
 
 + (BOOL) _closeNotRequired; { return NO; }	// default implementation
@@ -173,7 +181,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // splice node and subnodes taking end of last fragment into account
 	unsigned i;
 	if([self _shouldSpliceNewline:str])
-		{ // yes, add a newline with same formatting as previous character - except if we start with <p>
+		{ // yes, add a newline with same formatting as previous character
 		NSRange range=NSMakeRange([str length], 0);	// append
 		if([[str string] hasSuffix:@" "])
 			range.location--, range.length++;	// remove final whitespace as well
@@ -283,8 +291,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		}
 	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
 		{ // make monospaced
+		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:@"Courier"];
+		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:DEFAULT_TT_FONT];
+		f=[[NSFontManager sharedFontManager] convertFont:f toSize:DEFAULT_TT_SIZE*[webView textSizeMultiplier]];
 		if(f) [s setObject:f forKey:NSFontAttributeName];
 		}
 	else if([node isEqualToString:@"U"])
@@ -796,14 +806,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLBodyElement
 
-+ (BOOL) _singleton;	{ return YES; }
++ (BOOL) _singleton;			{ return YES; }
 + (NSString *) _makeChildOf;	{ return @"html"; }
 
 - (NSMutableDictionary *) _style;
 { // provide default styles
   // FIXME: cache data until we are modified
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-	NSFont *font=[NSFont systemFontOfSize:[NSFont systemFontSize]*[webView textSizeMultiplier]];	// determine default font
+	NSFont *font=[NSFont fontWithName:DEFAULT_FONT size:DEFAULT_FONT_SIZE*[webView textSizeMultiplier]];	// determine default font
 	NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
 	//	NSColor *background=[[self getAttribute:@"background"] _htmlColor];	// not processed here
 	//	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
@@ -948,7 +958,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-	float size=[NSFont systemFontSize]*[webView textSizeMultiplier];
+	float size=DEFAULT_FONT_SIZE*[webView textSizeMultiplier];
 	switch(level)
 		{
 		case 1:
@@ -963,7 +973,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		default:
 			break;	// standard
 		}
-	[s setObject:[NSFont boldSystemFontOfSize:size] forKey:NSFontAttributeName];	// set header font
+	[s setObject:[NSFont fontWithName:DEFAULT_BOLD_FONT size:size] forKey:NSFontAttributeName];	// set header font
 	return s;
 }
 
@@ -1213,7 +1223,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
 {
-	return YES;	// yes
+	return YES;	// yes - always
 }
 
 @end
@@ -1659,7 +1669,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		// how to handle the size attribute?
 		// an NSCell has no inherent size
 		// should we pad the placeholder string?
-		[(NSTextFieldCell *) cell setPlaceholderString:placeholder];
+		if([cell respondsToSelector:@selector(setPlaceholderString:)])
+		   [(NSTextFieldCell *) cell setPlaceholderString:placeholder];
 		}
 	else
 		{ // button
