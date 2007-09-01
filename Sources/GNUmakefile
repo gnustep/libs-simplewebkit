@@ -73,7 +73,8 @@ WebXMLDocument.m
 
 SimpleWebKit_RESOURCE_FILES = \
 	WebKitIMG.png \
-	HTMLEntities.strings
+	HTMLEntities.strings \
+	DOMHTML.plist
 
 include $(GNUSTEP_MAKEFILES)/framework.make
 
