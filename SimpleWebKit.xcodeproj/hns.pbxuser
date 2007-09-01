@@ -31,8 +31,8 @@
 			EE24FC370C208398001947BB /* NSXMLParser.m:583 */,
 			EE24FC390C2083A9001947BB /* NSXMLParser.m:149 */,
 			EE24FC3D0C2083DF001947BB /* NSXMLParser.m:331 */,
-			EE24FC450C208A45001947BB /* MyDocument.m:461 */,
-			EE24FCE00C2094CE001947BB /* MyDocument.m:456 */,
+			EE24FC450C208A45001947BB /* MyDocument.m:464 */,
+			EE24FCE00C2094CE001947BB /* MyDocument.m:459 */,
 			EE24FCE50C2094E2001947BB /* MyDocument.m:438 */,
 			EE24FD050C209A2F001947BB /* DOMHTML.m:1019 */,
 			EE24FD5C0C20BBC2001947BB /* NSXMLParser.m:159 */,
@@ -865,7 +865,7 @@
 		modificationTime = 210354853.093818;
 		state = 2;
 	};
-	EE24FC450C208A45001947BB /* MyDocument.m:461 */ = {
+	EE24FC450C208A45001947BB /* MyDocument.m:464 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -875,12 +875,12 @@
 		fileReference = EEE9B0D10BC8280700757F02 /* MyDocument.m */;
 		functionName = "-numberOfRowsInTableView:";
 		hitCount = 1;
-		lineNumber = 461;
+		lineNumber = 464;
 		location = SWKBrowser;
 		modificationTime = 210354853.098325;
 		state = 2;
 	};
-	EE24FCE00C2094CE001947BB /* MyDocument.m:456 */ = {
+	EE24FCE00C2094CE001947BB /* MyDocument.m:459 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -890,7 +890,7 @@
 		fileReference = EEE9B0D10BC8280700757F02 /* MyDocument.m */;
 		functionName = "-outlineViewSelectionDidChange:";
 		hitCount = 1;
-		lineNumber = 456;
+		lineNumber = 459;
 		location = SWKBrowser;
 		modificationTime = 210354853.102841;
 		state = 2;
@@ -1347,8 +1347,8 @@
 			EE24FC370C208398001947BB /* NSXMLParser.m:583 */,
 			EE24FC390C2083A9001947BB /* NSXMLParser.m:149 */,
 			EE24FC3D0C2083DF001947BB /* NSXMLParser.m:331 */,
-			EE24FC450C208A45001947BB /* MyDocument.m:461 */,
-			EE24FCE00C2094CE001947BB /* MyDocument.m:456 */,
+			EE24FC450C208A45001947BB /* MyDocument.m:464 */,
+			EE24FCE00C2094CE001947BB /* MyDocument.m:459 */,
 			EE24FCE50C2094E2001947BB /* MyDocument.m:438 */,
 			EE24FD050C209A2F001947BB /* DOMHTML.m:1019 */,
 			EE24FD5C0C20BBC2001947BB /* NSXMLParser.m:159 */,
@@ -3082,9 +3082,9 @@
 	};
 	EE8AFF890B6C8F9200346917 /* DOMHTML.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1039, 26516}}";
-			sepNavSelRange = "{28235, 93}";
-			sepNavVisRect = "{{0, 11061}, {1039, 601}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1016, 26516}}";
+			sepNavSelRange = "{2299, 0}";
+			sepNavVisRect = "{{0, 807}, {826, 548}}";
 			sepNavWindowFrame = "{{15, 143}, {1078, 730}}";
 		};
 	};
