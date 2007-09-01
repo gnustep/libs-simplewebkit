@@ -586,7 +586,7 @@ method definition for '-alignCenter:' not found
 - (void) webView:(WebView *) sender runOpenPanelForFileButtonWithResultListener:(id<WebOpenPanelResultListener>) listener; { return; }
 - (void) webView:(WebView *) sender setContentRect:(NSRect) rect;
 {
-	[self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; 
+	[self webView:sender setFrame:[NSWindow frameRectForContentRect:rect styleMask:[[sender window] styleMask]]]; 
 }
 - (void) webView:(WebView *) sender setFrame:(NSRect) frame; { [[sender window] setFrame:frame display:YES]; }
 - (void) webView:(WebView *) sender setResizable:(BOOL) flag; { [[sender window] setShowsResizeIndicator:flag]; }
