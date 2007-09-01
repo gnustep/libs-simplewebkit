@@ -270,10 +270,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	s=[(DOMHTMLElement *) _parentNode _style];	// inherit style from parent
 	if(!s)
 		{
+		NSParagraphStyle *p;
 		s=[NSMutableDictionary dictionary];	// empty (e.g. no parentNode)
 		[s setObject:self forKey:WebElementDOMNodeKey];
 		[s setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
-		[s setObject:[[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease] forKey:NSParagraphStyleAttributeName];
+		p=[[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+		[s setObject:p forKey:NSParagraphStyleAttributeName];
 		//		WebElementIsSelected = 0; 
 		//		WebElementTargetFrame = <WebFrame: 0x381780>; 
 		}
@@ -933,7 +935,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 {
 	NSMutableDictionary *s=[super _style];
 	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
-	[paragraph setAlignment:NSCenterTextAlignment];	// modify paragraph alignment
+	if([[self nodeName] isEqualToString:@"CENTER"])
+		[paragraph setAlignment:NSCenterTextAlignment];	// modify paragraph alignment
+	else if([[self nodeName] isEqualToString:@"BLOCKQUOTE"])
+		{
+		[paragraph setFirstLineHeadIndent:[paragraph firstLineHeadIndent]+20.0];
+		[paragraph setHeadIndent:[paragraph headIndent]+20.0];
+		[paragraph setTailIndent:[paragraph tailIndent]-20.0];
+		}
 	return s;
 }
 
@@ -1311,7 +1320,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 		table=[[NSClassFromString(@"NSTextTable") alloc] init];
 		if(table)
-			{
+			{ // exists/was allocated
 			[table setHidesEmptyCells:YES];
 			if(cols) [table setNumberOfColumns:cols];	// will be increased automatically as needed!
 			[table setBackgroundColor:[NSColor whiteColor]];
@@ -1838,9 +1847,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// FIXME: decode list formats and options
 	// NSTextListPrependEnclosingMarker
 	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{decimal}." options:0];
-	[(NSMutableArray *) lists addObject:list];
-	[list release];
-	[paragraph setTextLists:lists];
+	if(list)
+		{
+		[(NSMutableArray *) lists addObject:list];
+		[list release];
+		[paragraph setTextLists:lists];
+		}
 #if 1
 	NSLog(@"lists=%@", lists);
 #endif
@@ -1860,17 +1872,21 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSTextList *list;
 	if(!lists) lists=[NSMutableArray new];	// start new one
 	else lists=[lists mutableCopy];			// make mutable
-	// FIXME: decode list formats and options
-	// e.g. change the market style depending on level
-	// NSTextListPrependEnclosingMarker
+
+		// FIXME: decode list formats and options
+		// e.g. change the marker style depending on level
+		// NSTextListPrependEnclosingMarker
+		
 	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{circle}" options:0];
-	[(NSMutableArray *) lists addObject:list];
-	[list release];
-	[paragraph setTextLists:lists];
+	if(list)
+		{
+		[(NSMutableArray *) lists addObject:list];
+		[list release];
+		[paragraph setTextLists:lists];
+		}
 #if 1
 	NSLog(@"lists=%@", lists);
 #endif
-	[lists release];
 	return s;	// paragraph style has been adjusted
 }
 
