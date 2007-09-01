@@ -442,7 +442,10 @@
 		}
 	else 
 		{
-		if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
+		if([selectedItem isKindOfClass:[DOMDocument class]])
+			{
+			}
+		else if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
 			{
 			[domSource setString:[[selectedItem documentElement] outerHTML]];
 			currentItem=[selectedItem documentElement];
