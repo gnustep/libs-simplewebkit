@@ -8,7 +8,6 @@
 
 #import "MyDocument.h"
 
-
 @implementation MyDocument
 
 - (NSString *) windowNibName {
@@ -442,15 +441,12 @@
 		}
 	else 
 		{
-		if([selectedItem isKindOfClass:[DOMDocument class]])
-			{
-			}
-		else if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
+		if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
 			{
 			[domSource setString:[[selectedItem documentElement] outerHTML]];
 			currentItem=[selectedItem documentElement];
 			}
-		else
+		else if([selectedItem respondsToSelector:@selector(innerHTML)])
 			{
 			[domSource setString:[selectedItem innerHTML]];
 			currentItem=selectedItem;
