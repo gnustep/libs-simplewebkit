@@ -41,6 +41,15 @@
 
 @end
 
+@interface NSXMLParser (NSPrivate)
+- (void) _setReadMode:(int) mode;
+- (NSArray *) _tagPath;					// path of all tags
+- (void) _setEncoding:(NSStringEncoding) enc;
+- (void) _parseData:(NSData *) data;	// incremental parsing
+- (void) _stall:(BOOL) flag;
+- (BOOL) _isStalled;
+@end
+
 @interface _WebRTFDocumentRepresentation : _WebHTMLDocumentRepresentation
 
 @end

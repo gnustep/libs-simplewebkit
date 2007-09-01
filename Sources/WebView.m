@@ -86,6 +86,8 @@
 #import "ECMAScriptParser.h"
 #import "ECMAScriptEvaluator.h"
 
+#import <WebKit/DOMCSS.h>
+
 // default document representations we understand
 #import "WebHTMLDocumentRepresentation.h"	// text/html
 #import "WebHTMLDocumentView.h"
@@ -444,7 +446,7 @@ static NSArray *_htmlMimeTypes;
 - (DOMCSSStyleDeclaration *) computedStyleForElement:(DOMElement *) element
 									   pseudoElement:(NSString *) pseudoElement;
 {
-	// could also set up a data source and "load" from there
+	// could also set up a data source and "load" from there (?)
 	return [[[DOMCSSStyleDeclaration alloc] initWithString:pseudoElement forElement:element] autorelease];
 }
 
@@ -582,7 +584,10 @@ method definition for '-alignCenter:' not found
 - (BOOL) webView:(WebView *) sender runJavaScriptConfirmPanelWithMessage:(NSString *) message; { return NO; }
 - (NSString *) webView:(WebView *) sender runJavaScriptTextInputPanelWithPrompt:(NSString *) prompt defaultText:(NSString *) text; { return @""; }
 - (void) webView:(WebView *) sender runOpenPanelForFileButtonWithResultListener:(id<WebOpenPanelResultListener>) listener; { return; }
-// TODO a hack? cocoa incompatibility ? - (void) webView:(WebView *) sender setContentRect:(NSRect) rect; { [self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; }
+- (void) webView:(WebView *) sender setContentRect:(NSRect) rect;
+{
+	[self webView:sender setFrame:[[sender window] frameRectForContentRect:rect]]; 
+}
 - (void) webView:(WebView *) sender setFrame:(NSRect) frame; { [[sender window] setFrame:frame display:YES]; }
 - (void) webView:(WebView *) sender setResizable:(BOOL) flag; { [[sender window] setShowsResizeIndicator:flag]; }
 - (void) webView:(WebView *) sender setStatusBarVisible:(BOOL) flag; { return; }

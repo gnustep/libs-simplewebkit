@@ -57,10 +57,15 @@
 - (BOOL) _scanToken:(NSString *) str;	// does not match "&" with "&="
 {
 	unsigned back=[self scanLocation];
+	unichar c;
 	if(![self scanString:str intoString:NULL])
 		return NO;	// no real match
-	// check for non-token character (blank, letter, digit, quote etc.) at new scan location
-	// if not, backup
+	c=[str characterAtIndex:[self scanLocation]];	// next character after token
+	if(0 /* check for non-token character (blank, letter, digit, quote etc.) */)
+		{
+		[self setScanLocation:back];
+		return NO;
+		}
 	return YES;
 }
 

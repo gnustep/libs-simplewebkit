@@ -131,7 +131,7 @@
 	<key>table</key>
 	<string>DOMHTMLTableElement</string>
 	<key>tbody</key>
-	<string>DOMHTMLElement</string>
+	<string>DOMHTMLTBodyElement</string>
 	<key>td</key>
 	<string>DOMHTMLTableCellElement</string>
 	<key>textarea</key>

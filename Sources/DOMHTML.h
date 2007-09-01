@@ -26,14 +26,11 @@
 @class DOMCSSStyleDeclaration;
 @class WebDataSource;
 @class WebFrame;
+@class NSTextTable, NSTextTableBlock, NSTextList;	// we don't explicitly import since we can't rely on their existence
+
 @class _WebDocumentRepresentation;
-@class NSTextTable, NSTextTableBlock;	// we don't explicitly import since we can't rely on its existence
 
 @interface DOMElement (DOMHTMLElement)
-
-+ (BOOL) _closeNotRequired;				// has no (explicit) close tag
-+ (BOOL) _goesToHead;					// always becomes a child of <head>
-+ (BOOL) _ignore;						// don't create nodes
 
 - (NSString *) outerHTML;
 - (void) setOuterHTML:(NSString *) str;	// this should parse HTML and replace the node type and the contents
@@ -41,23 +38,31 @@
 - (void) setInnerHTML:(NSString *) str;	// this should parse HTML and replace the contents
 - (NSAttributedString *) attributedString;
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
-- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string;
 - (WebFrame *) webFrame;
+- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string;
 
-- (DOMCSSStyleDeclaration *) _cssStyle;
-- (NSMutableDictionary *) _style;		// get appropriate CSS definition by tag, tag level, id, class, etc. recursively going upwards
+// parser support and control
+
++ (BOOL) _closeNotRequired;				// has no (explicit) close tag; don't nest this element type
++ (BOOL) _ignore;						// don't create a node for this tag
++ (BOOL) _goesToHead;					// always make a child of the <head> entry (??? isn't the same as _makeChildOf=@"HEAD")
++ (NSString *) _makeChildOf;			// ??? find matching parent (if not nil)
++ (BOOL) _singleton;					// ??? collect all attributes (or just keep last one?)
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
+- (void) _elementLoaded;	// element has been loaded (i.e. tag was closed)
+
+// rendering support
+
+- (DOMCSSStyleDeclaration *) _cssStyle;	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
+- (NSMutableDictionary *) _style;		// get attributes (merging explicit attributes and CSS from this and parent levels)
+
 - (void) _layout:(NSView *) view;		// layout view according to the DOM node (may swap the view within its superview!)
-- (void) _trimSpaces:(NSMutableAttributedString *) str;
 - (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
-- (void) _elementLoaded;	// element has been loaded
 
 @end
 
 @interface DOMHTMLElement : DOMElement
 @end
-
-@class WebFrame;
 
 @interface DOMHTMLDocument : RENAME(DOMDocument)	// the whole document
 {
@@ -154,6 +159,9 @@
 {
 	id table;
 }
+@end
+
+@interface DOMHTMLTBodyElement : DOMHTMLElement	// <tbody>
 @end
 
 @interface DOMHTMLTableRowElement : DOMHTMLElement	// <tr>

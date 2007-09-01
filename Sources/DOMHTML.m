@@ -28,6 +28,7 @@ If not, write to the Free Software Foundation,
 #import <WebKit/WebView.h>
 #import <WebKit/WebResource.h>
 #import "WebHTMLDocumentView.h"
+#import "WebHTMLDocumentRepresentation.h"
 #import "Private.h"
 
 static NSString *DOMHTMLElementAttribute=@"DOMHTMLElementAttribute";
@@ -62,6 +63,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @interface NSTextTableBlock : NSTextBlock
 - (id) initWithTable:(NSTextTable *) table startingRow:(int) r rowSpan:(int) rs startingColumn:(int) c columnSpan:(int) cs;
+@end
+
+@interface NSTextList : NSObject <NSCoding, NSCopying>
+- (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
+- (unsigned) listOptions;
+- (NSString *) markerForItemNumber:(int) item;
+- (NSString *) markerFormat;
 @end
 
 #endif
@@ -153,38 +161,35 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 + (BOOL) _closeNotRequired; { return NO; }	// default implementation
 + (BOOL) _goesToHead;		{ return NO; }
 + (BOOL) _ignore;			{ return NO; }
++ (NSString *) _makeChildOf;	{ return nil; }
++ (BOOL) _singleton;			{ return NO; }
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
 { // default - subclasses can also check if str ends with a newline and add one only if there isn't one or YES to force to add a new one
 	return NO;	
 }
 
-- (void) _splicePrefix:(NSMutableAttributedString *) str;
-{
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // splice node and subnodes taking end of last fragment into account
+	unsigned i;
 	if([self _shouldSpliceNewline:str])
 		{ // yes, add a newline with same formatting as previous character - except if we start with <p>
 		NSRange range=NSMakeRange([str length], 0);	// append
 		if([[str string] hasSuffix:@" "])
 			range.location--, range.length++;	// remove final whitespace as well
 		if(range.location != 0)
-			[str replaceCharactersInRange:range withString:@"\n"];	// this inherits attributes of previous section
+			[str replaceCharactersInRange:range withString:@"\n"];	// this operation inherits attributes of previous section
 		else
-			[str replaceCharactersInRange:range withString:@""];
+			[str replaceCharactersInRange:range withString:@""];	// remove ending space character
 		}
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // splice node and subnodes taking end of last fragment into account
-	unsigned i;
-	[self _splicePrefix:str];	// add any prefix
 	for(i=0; i<[_childNodes length]; i++)
 		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];	// splice child segments
 }
 
 - (NSAttributedString *) attributedString;
-{
+{ // get part as attributed string
 	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
-	[self _spliceTo:str];	// recursively splice all element strings into our string
+	[self _spliceTo:str];	// recursively splice all child element strings into our string
 	return str;
 }
 
@@ -340,8 +345,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		}
 }
 
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
-{ // subclasses should call [super _awakeFromDocumentRepresentation:rep];
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+{ // subclasses should call [super _elementDidAwakeFromDocumentRepresentation:rep];
 	[self _triggerEvent:@"onLoad"];
 	return;
 }
@@ -446,14 +451,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLHeadElement
 + (BOOL) _ignore;	{ return YES; }
++ (NSString *) _makeChildOf;	{ return @"html"; }
 @end
 
 @implementation DOMHTMLTitleElement
 + (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 {
-	[[rep _parser] _setReadMode:2];	// switch parser mode to read up to </title> and translate entities
+	[[(_WebHTMLDocumentRepresentation *) rep _parser] _setReadMode:2];	// switch parser mode to read up to </title> and translate entities
 }
 @end
 
@@ -462,7 +468,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 + (BOOL) _closeNotRequired; { return YES; }
 + (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 {
 	NSString *cmd=[self getAttribute:@"http-equiv"];
 	if([cmd caseInsensitiveCompare:@"refresh"] == NSOrderedSame)
@@ -486,7 +492,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] _performClientRedirectToURL:url delay:seconds];
 			}
 		}
-	[super _awakeFromDocumentRepresentation:rep];
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
 @end
@@ -496,7 +502,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 + (BOOL) _closeNotRequired; { return YES; }
 + (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 { // e.g. <link rel="stylesheet" type="text/css" href="test.css" />
 	NSString *rel=[[self getAttribute:@"rel"] lowercaseString];
 	if([rel isEqualToString:@"stylesheet"] && [[self getAttribute:@"type"] isEqualToString:@"text/css"])
@@ -524,7 +530,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		{
 		NSLog(@"<link>: %@", [self _attributes]);
 		}
-	[super _awakeFromDocumentRepresentation:rep];
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
 // WebDocumentRepresentation callbacks
@@ -545,9 +551,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @implementation DOMHTMLStyleElement
 
 + (BOOL) _goesToHead;	{ return YES; }
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 {
-	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </style>
+	[[(_WebHTMLDocumentRepresentation *) rep _parser] _setReadMode:1];	// switch parser mode to read up to </style>
 }
 
 // FIXME: process "@import URL" subresources
@@ -562,15 +569,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // ignore scripts for rendering
 }
 
-- (void) _awakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
 {
-	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
+	[[(_WebHTMLDocumentRepresentation *) rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
 		{ // external script to load
-		[[rep _parser] _stall:YES];	// make parser stall until we have loaded
+		[[(_WebHTMLDocumentRepresentation *) rep _parser] _stall:YES];	// make parser stall until we have loaded
 		[self _loadSubresourceWithAttributeString:@"src"];	// trigger loading of script or get from cache
 															// FIXME: clear only after we received the script!
-		[[rep _parser] _stall:NO];
+		[[(_WebHTMLDocumentRepresentation *) rep _parser] _stall:NO];
 		}
 }
 
@@ -789,7 +796,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLBodyElement
 
-+ (BOOL) _ignore;	{ return YES; }
++ (BOOL) _singleton;	{ return YES; }
++ (NSString *) _makeChildOf;	{ return @"html"; }
 
 - (NSMutableDictionary *) _style;
 { // provide default styles
@@ -850,7 +858,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 	NSLog(@"astr length for NSTextView=%u", [str length]);
 #endif
-	//	[self _trimSpaces:str];
+#if 1
+	NSLog(@"astr for NSTextView=%@", str);
+#endif
 	[[(NSTextView *) view textStorage] setAttributedString:str];	// update content
 	[(NSTextView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 														//	[view setLinkTextAttributes: ]	// update for link color
@@ -1252,6 +1262,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return NO; }	// be lazy
 
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
+{ // always create a tbody
+	DOMHTMLTBodyElement *tbody=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil document:[self ownerDocument]];
+	[self appendChild:tbody];
+}
+
 - (void) dealloc; { [table release]; [super dealloc]; }
 
 - (NSMutableDictionary *) _style;
@@ -1371,9 +1387,17 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
+@implementation DOMHTMLTBodyElement
+
++ (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
++ (NSString *) _makeChildOf;	{ return @"table"; }
+
+@end
+
 @implementation DOMHTMLTableRowElement
 
-+ (BOOL) _closeNotRequired; { return NO; }	// be lazy
++ (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
++ (NSString *) _makeChildOf;	{ return @"tbody"; }
 
 - (NSMutableDictionary *) _style;
 {
@@ -1448,7 +1472,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLTableCellElement
 
-+ (BOOL) _closeNotRequired; { return NO; }	// be lazy
++ (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
++ (NSString *) _makeChildOf;	{ return @"tr"; }
 
 - (void) dealloc; { [cell release]; [super dealloc]; }
 
@@ -1684,20 +1709,21 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // 
-	NSAttributedString *value=[self attributedString];	// get content between <button> and </button>
+	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
 	NSButtonCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
-	//	NSString *val=[self getAttribute:@"value"];
 	NSString *size=[self getAttribute:@"size"];
+	// ?? NSString *val=[self getAttribute:@"value"];
+	[self _spliceTo:value];	// recursively splice all child element strings into our string
 #if 1
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSButtonCell class]];
 	cell=(NSButtonCell *) [attachment attachmentCell];	// get the real cell
-														// we should select a grey square button by default
-	[cell setAttributedTitle:value];
+	[cell setBezelStyle:0];	// select a grey square button bezel by default
+	[cell setAttributedTitle:value];	// formatted by contents between <buton> and </button>
 	[cell setTarget:self];
 	[cell setAction:@selector(_formAction:)];
 #if 1
@@ -1775,13 +1801,66 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLLIElement	// <li>, <dt>, <dd>
+
++ (BOOL) _closeNotRequired; { return YES; }
+
+- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+{
+	return YES;
+}
+
 @end
 
 @implementation DOMHTMLDListElement		// <dl>
 @end
 
 @implementation DOMHTMLOListElement		// <ol>
+
+- (NSMutableDictionary *) _style;
+{ // derive default style within a cell
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	NSArray *lists=[paragraph textLists];	// get (nested) list
+	NSTextList *list;
+	if(!lists) lists=[NSMutableArray new];	// start new one
+	else lists=[lists mutableCopy];			// make mutable
+	// FIXME: decode list formats and options
+	// NSTextListPrependEnclosingMarker
+	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{decimal}." options:0];
+	[(NSMutableArray *) lists addObject:list];
+	[list release];
+	[paragraph setTextLists:lists];
+#if 1
+	NSLog(@"lists=%@", lists);
+#endif
+	[lists release];
+	return s;	// paragraph style has been adjusted
+}
+
 @end
 
 @implementation DOMHTMLUListElement		// <ul>
+
+- (NSMutableDictionary *) _style;
+{ // derive default style within a cell
+	NSMutableDictionary *s=[super _style];
+	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+	NSArray *lists=[paragraph textLists];	// get (nested) list
+	NSTextList *list;
+	if(!lists) lists=[NSMutableArray new];	// start new one
+	else lists=[lists mutableCopy];			// make mutable
+	// FIXME: decode list formats and options
+	// e.g. change the market style depending on level
+	// NSTextListPrependEnclosingMarker
+	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{circle}" options:0];
+	[(NSMutableArray *) lists addObject:list];
+	[list release];
+	[paragraph setTextLists:lists];
+#if 1
+	NSLog(@"lists=%@", lists);
+#endif
+	[lists release];
+	return s;	// paragraph style has been adjusted
+}
+
 @end

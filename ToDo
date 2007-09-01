@@ -4,15 +4,15 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-30 Jul 2007
+12 Aug 2007
 -----------
 
 High Prio:
 1. make it clear stall after successfully loading <script language="JavaScript" src="source.js" type="text/javascript"> 
-2. redisplay issues
+2. solve redisplay/refresh issues
 3. <frame> and scrollers should work correctly
 4. <table> and <ul> elements should really work
-5. make <form> work (buttons and text fields interact)
+5. make <form> work (buttons and text fields interaction)
 
 HTML parsing and error robustness:
 - NSXMLParser:
@@ -24,24 +24,24 @@ HTML parsing and error robustness:
   - how should we parse "<h1>xxx <h2> xxx </h1> z </h2>"?
   	  (a) all h tags on same level (ignoring the bad </h1>) -> "<h1>xxx </h1><h2> xxx  z </h2>"
 	  (b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
-  - maybe, we should add + (BOOL) _notNested; as a separate hint to DOMHTMLElement
-    - could also be used for <p>, <li>, <tr>, <h*> etc. to keep these elements on the same level
   - simply ignore <body> in <body><frameset>...</frameset></body>
-  - how do we handle abc<p>def</p> - we should treat any text before the first <p> as an independent paragraph without explicit formatting
+  - how do we handle abc<p>def</p> - since we should treat any text before the first <p> as an independent paragraph without explicit formatting
   - really handle stall and clear for loading script files and @import styles (in WebCSSDocumentRepresentation)
 
 Text Formatting/Typesetting:
-- color does only understand #rrggbb and no plain text names
+- color does only understand #rrggbb and no plain text names yet
 - <table> does not handle colspan, rowspan
 - (better) handle <pre>
-- handle <ul>, <ol> etc.
 
-- handle <p align="center"> as on http://carduus.chanet.de/ - note: it is the FIRST <p> element that suppresses to start with \n
+- handle <p align="center"> as on http://carduus.chanet.de/
+  - note: it is the FIRST <p> element that suppresses to start with \n
+  - i.e. a <p> closes any previous paragraph (adds an \n) and defines the style for a new one!
+	(so, the style should NOT be applied to the initial \n)
 
 View:
 - <frame> not tested if it loads and displays subframes
 - <iframe> should display a WebFrameView as NSTextAttachmentCell
-- <select> should display a NSTableView as NSTextAttachmentCell
+- <select> should display a NSTableView as NSTextAttachmentCell (i.e. wrap a View's lock/drawRect/unlock into a Cell)
 
 Forms:
 - <input type="radio" name="group"> does not yet have radio behaviour
@@ -56,26 +56,30 @@ JavaScript:
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
 - handle triggers like <body onload="..."> or <... onmouse="...">
 
+CSS:
+- add DOMCSS elements according to the DOM specs
+- add parser
+- find matching element(s) in DOMCSS tree for a DOMHTML node
+
 Others:
 - (DOMText *) splitText: what is the semantics?
 - innerHTML and outerHTML do not really return html (needs generating entities)
 - add getters&setters for HTMLEntities
 
 Feature requests:
-- CSS & full formatting attributes
-- attributedString for text lists <li>, <ol>, <ul>, <dd> etc. is not implemented
 - <textarea>, <select>/<option> not completely implemented
 - history not fully implemented
-- go back&forth not fully implemented (how do we cache the pages, DOMTrees etc.?)
-	Or do we reload/reparse everything and just keep a history of visited URLRequests? NO!
-	   Going back does usually not reexecute JavaScripts while it might POST a Form (incl. a warning
+- go back&forth not implemented (how do we cache the pages, DOMTrees etc.?)
+	Or do we reload/reparse everything and just keep a history of visited URLRequests?
+		Answer: NO!
+		Going back does usually NOT reexecute JavaScripts while it might re-POST a <form> (incl. a warning)
 	We should also remember scroller position(s)
 	We should cache pages in NSURLCache
-	We must also remember contents of <form> elements (even passwords!)
+	We must also remember contents of <form> elements (even hidden passwords!)
 - link color definition by <body> and if link was visited recently (history)
 - handle <hr> styles
-- should show a slider for <input type="range" min="0" value="100" max="100">
-- MIMEType text/xml: if it is a RSS feed -> redirect to feed:URL which uses ECMAScript to show a feed
+- special <input> styles should show a small slider for e.g. <input type="range" min="0" value="100" max="100">
+- MIMEType text/xml: if it is a RSS feed -> redirect to feed:URL which uses ECMAScript to format a feed (which could be made part of Foundation)
 
 mySTEP's extension requests:
 - NSURLConnection needs:
@@ -85,7 +89,9 @@ mySTEP's extension requests:
   - sending / POST&GET methods
   - header compression
   - server redirection
+  - handle feed: scheme (load feed and translate into an ECMAScript/HTML result)
 - NSTextTable is not rendered
 
-GNUstep's NSURLConnection:
-- NSTextTable is missing
+GNUstep extension requests:
+- NSTextTable etc. is missing
+- NSTextList is missing

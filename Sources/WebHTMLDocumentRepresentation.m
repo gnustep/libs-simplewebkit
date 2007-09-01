@@ -47,14 +47,6 @@
 
 #endif
 
-@interface NSXMLParser (NSPrivate)
-- (NSArray *) _tagPath;					// path of all tags
-- (void) _setEncoding:(NSStringEncoding) enc;
-- (void) _parseData:(NSData *) data;	// incremental parsing
-- (void) _stall:(BOOL) flag;
-- (BOOL) _isStalled;
-@end
-
 @implementation _WebHTMLDocumentRepresentation
 
 static NSDictionary *tagtable;
@@ -406,15 +398,19 @@ static NSDictionary *tagtable;
 		}
 	if([c _ignore])
 		{
-		// in case of <html>, <head>, <body>, copy attributes to existing element and throw away current
+		return;	// ignore
+		}
+	if([c _singleton])
+		{
+		// in case of <html>, <head>, <body>, <tbody>: copy attributes to existing element and throw away current
+		// check if we already have such a tag and merge/replace attributes
 		if([attributes count] > 0)
 			NSLog(@"FIXME: should copy attributes for <%@>: %@", tag, attributes);
-		return;	// ignore
 		}
 	newElement=[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri document:_doc];
 	if(!newElement)
 		{
-		NSLog(@"did not alloc element for tag <%@> of class %@", tag, NSStringFromClass(c));
+		NSLog(@"could not alloc element for tag <%@> of class %@", tag, NSStringFromClass(c));
 		return;	// ignore if we can't allocate
 		}
 	e=[attributes keyEnumerator];
@@ -431,14 +427,16 @@ static NSDictionary *tagtable;
 		[[_body parentNode] appendChild:newElement];	// make sibling
 		_frameSet=newElement;
 		}
-	[newElement _awakeFromDocumentRepresentation:self];
-	// FIXME: create a <TBODY> for a <TABLE> on the first <tr> and ignore the <TBODY> tag
+	[newElement _elementDidAwakeFromDocumentRepresentation:self];
+
 	// FIXME: if we are a H tag and the lastObject as well, make us a sibling not a child of the header
 	// nesting rules
 	// <p> is not nested, <h> is not nested, <table> is only nested within a <td> or <th>
+		
 	if([c _goesToHead])
 		[_head appendChild:newElement];	// add to top level of _head
 	else
+		// check for _makeChildOf and search upwards in stack/tree
 		// FIXME: if we are a H tag and the lastObject as well, make us a sibling not a child of the existing header
 		[[_elementStack lastObject] appendChild:newElement];	// add to next level
 	if(![c _closeNotRequired])

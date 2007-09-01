@@ -1,3 +1,10 @@
+2007-08-??  Nikolaus Schaller <hns@computer.org>
+	* added some support for <li>
+	* fixed several bugs
+
+2007-07-??  Nikolaus Schaller <hns@computer.org>
+	* browser renamed to SWK Browser
+
 2007-06-13  Nikolaus Schaller <hns@computer.org>
 	* updated NSXMLParser to do incremental parsing
 	* added a DOM Tree Browser to GNUstepWeb

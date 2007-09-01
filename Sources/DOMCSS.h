@@ -23,6 +23,40 @@
 
 #import <WebKit/DOMCore.h>
 
+@class DOMMediaList;
+
+@interface DOMStyleSheet : DOMElement	// 1.2
+{
+	NSString *type;
+	BOOL disabled;
+	DOMNode *ownerNode;
+	DOMStyleSheet *parentStyleSheet;
+	// DOMText???
+	NSString *href;
+	NSString *title;
+	DOMMediaList *media;
+}
+
+@end
+
+@interface DOMStyleSheetList : DOMElement
+{
+	NSArray *items;	// of type DOMCSSStyleSheet
+}
+
+@end
+
+@interface DOMCSSMediaList : DOMElement
+{
+	NSString *mediatext;
+	NSArray *items;	// of type NSString
+}
+
+@end
+
+
+// OLD
+
 @interface DOMCSSStyleDeclaration : DOMElement
 { // this is a style="style" definition
 	NSMutableDictionary *_elements;	// key : value value;

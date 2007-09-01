@@ -828,6 +828,7 @@ typedef struct _WebScriptScope
 			// operate on it
 			// _putValue back
 		}
+	return nil;
 }
 
 @end
