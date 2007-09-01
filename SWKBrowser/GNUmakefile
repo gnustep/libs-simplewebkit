@@ -25,7 +25,7 @@ SWKBrowser_LOCALIZED_RESOURCE_FILES = \
 
 SWKBrowser_MAIN_MODEL_FILE = MainMenu.nib
 
-SWKBrowser_RESOURCE_FILES = SWKBrowser-Info.plist
+SWKBrowser_RESOURCE_FILES =  Info-gnustep.plist 
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 include $(GNUSTEP_MAKEFILES)/application.make
