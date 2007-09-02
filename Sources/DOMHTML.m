@@ -284,12 +284,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
 		if(f) [s setObject:f forKey:NSFontAttributeName];
+		else NSLog(@"could not convert %ƒ to Bold", [s objectForKey:NSFontAttributeName]);
 		}
 	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
 		{ // make italics
 		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
 		if(f) [s setObject:f forKey:NSFontAttributeName];
+		else NSLog(@"could not convert %ƒ to Italics", [s objectForKey:NSFontAttributeName]);
 		}
 	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
 		{ // make monospaced
@@ -968,6 +970,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 	float size=DEFAULT_FONT_SIZE*[webView textSizeMultiplier];
+	NSFont *f;
 	switch(level)
 		{
 		case 1:
@@ -982,7 +985,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		default:
 			break;	// standard
 		}
-	[s setObject:[NSFont fontWithName:DEFAULT_BOLD_FONT size:size] forKey:NSFontAttributeName];	// set header font
+	f=[NSFont fontWithName:DEFAULT_BOLD_FONT size:size];
+	if(f)
+		[s setObject:f forKey:NSFontAttributeName];	// set header font
 	return s;
 }
 
