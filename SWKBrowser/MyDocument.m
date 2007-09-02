@@ -281,9 +281,15 @@
 	if(frame == [sender mainFrame])
 		{
 		if(url)
+			{
 			[currentURL setStringValue:[url absoluteString]];
+			[self showStatus:@"Loading..."];
+			}
 		else
+			{
 			NSLog(@"nil URL?");
+			[self showStatus:@"nil URL?"];
+			}
 		}
 }
 
@@ -307,10 +313,9 @@
 {
 	NSString *src;
 #if 1
-	NSLog(@"webview=%@", sender);
+	NSLog(@"webview=%@ didFinishLoadForFrame=%@", sender, frame);
 	NSLog(@"webview subviews=%@", [sender subviews]);
 	NSLog(@"webview mainFrame=%@", [sender mainFrame]);
-	NSLog(@"frame=%@", frame);
 	NSLog(@"frame childFrames=%@", [frame childFrames]);
 	NSLog(@"frame dataSource=%@", [frame dataSource]);
 	NSLog(@"frame dataSource pageTitle=%@", [[frame dataSource] pageTitle]);
@@ -339,7 +344,7 @@
 #endif
 	if(frame == [sender mainFrame])
 		{
-		[self showStatus:@"Done."];
+		[self showStatus:@"Main Frame Done."];
 		[domNodes release];
 		domNodes=nil;
 		[domTree reloadData];
