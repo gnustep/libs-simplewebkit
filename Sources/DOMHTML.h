@@ -176,7 +176,7 @@
 @interface DOMHTMLFormElement : DOMHTMLElement	// <form>
 @end
 
-@interface DOMHTMLInputElement : DOMHTMLElement	// <input>
+@interface DOMHTMLInputElement : DOMHTMLElement		// <input>
 @end
 
 @interface DOMHTMLButtonElement : DOMHTMLElement	// <button>
@@ -191,13 +191,13 @@
 @interface DOMHTMLOptGroupElement : DOMHTMLElement	// <optgroup>
 @end
 
-@interface DOMHTMLLabelElement : DOMHTMLElement	// <label>
+@interface DOMHTMLLabelElement : DOMHTMLElement		// <label>
 @end
 
 @interface DOMHTMLTextAreaElement : DOMHTMLElement	// <textarea>
 @end
 
-@interface DOMHTMLLIElement : DOMHTMLElement	// <li>, <dt>, <dd>
+@interface DOMHTMLLIElement : DOMHTMLElement		// <li>, <dt>, <dd>
 @end
 
 @interface DOMHTMLDListElement : DOMHTMLElement		// <dl>
@@ -207,6 +207,9 @@
 @end
 
 @interface DOMHTMLUListElement : DOMHTMLElement		// <ul>
+@end
+
+@interface DOMHTMLCanvasElement : DOMHTMLElement	// <canvas>
 @end
 
 // plus some more...

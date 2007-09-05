@@ -30,6 +30,8 @@
 	<string>DOMHTMLBRElement</string>
 	<key>button</key>
 	<string>DOMHTMLButtonElement</string>
+	<key>canvas</key>
+	<string>DOMHTMLCanvasElement</string>
 	<key>caption</key>
 	<string>?</string>
 	<key>center</key>

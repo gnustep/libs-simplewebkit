@@ -1896,3 +1896,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 }
 
 @end
+
+@implementation DOMHTMLCanvasElement		// <canvas>
+@end
