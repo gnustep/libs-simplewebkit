@@ -1,3 +1,11 @@
+2007-10-13  Nikolaus Schaller <hns@computer.org>
+	* improved HTML parsing (handle multiple <body> tags, add <tbody> if not present etc.)
+	* fixed several bugs
+
+2007-09-01  Nikolaus Schaller <hns@computer.org> and Riccardo Mottola <riccardo@kaffe.org>
+	* AlpenSTEP workshop
+	* fixed several bugs
+
 2007-08-??  Nikolaus Schaller <hns@computer.org>
 	* added some support for <li>
 	* fixed several bugs

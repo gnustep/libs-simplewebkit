@@ -57,93 +57,10 @@ static NSDictionary *tagtable;
 		{
 		if(!tagtable)
 			{
-#if OLD
-			tagtable=[[NSDictionary dictionaryWithObjectsAndKeys:
-				[DOMHTMLHtmlElement class], @"html",
-				[DOMHTMLHeadElement class], @"head",
-				[DOMHTMLTitleElement class], @"title",
-				[DOMHTMLMetaElement class], @"meta",
-				[DOMHTMLLinkElement class], @"link",
-				[DOMHTMLStyleElement class], @"style",
-				[DOMHTMLScriptElement class], @"script",
-				[DOMHTMLFrameSetElement class], @"frameset",
-				[DOMHTMLFrameElement class], @"frame",
-				[DOMHTMLIFrameElement class], @"iframe",
-				[DOMHTMLObjectElement class], @"object",
-				[DOMHTMLParamElement class], @"param",
-				[DOMHTMLObjectElement class], @"applet",
-				[DOMHTMLBodyElement class], @"body",
-				[DOMHTMLDivElement class], @"div",
-				[DOMHTMLSpanElement class], @"span",
-				[DOMHTMLFontElement class], @"font",
-				[DOMHTMLAnchorElement class], @"a",
-				[DOMHTMLImageElement class], @"img",
-				[DOMHTMLBRElement class], @"br",
-				[DOMHTMLElement class], @"nobr",
-				[DOMHTMLParagraphElement class], @"p",
-				[DOMHTMLHRElement class], @"hr",
-				[DOMHTMLTableElement class], @"table",
-				[DOMHTMLTableRowElement class], @"tr",
-				[DOMHTMLTableCellElement class], @"th",
-				[DOMHTMLTableCellElement class], @"td",
-				[DOMHTMLFormElement class], @"form",
-				[DOMHTMLInputElement class], @"input",
-				[DOMHTMLButtonElement class], @"button",
-				[DOMHTMLSelectElement class], @"select",
-				[DOMHTMLOptionElement class], @"option",
-				[DOMHTMLOptGroupElement class], @"optgroup",
-				[DOMHTMLLabelElement class], @"label",
-				[DOMHTMLTextAreaElement class], @"textarea",
-				
-														// FIXME: - should be implemented (?as special classes?)
-				[DOMHTMLElement class], @"caption",
-				[DOMHTMLElement class], @"col",
-				[DOMHTMLElement class], @"colgroup",
-				[DOMHTMLElement class], @"tfoot",
-				[DOMHTMLElement class], @"thead",
-				[DOMHTMLElement class], @"ul",
-				[DOMHTMLElement class], @"ol",
-				[DOMHTMLElement class], @"dl",
-				[DOMHTMLElement class], @"li",
-				[DOMHTMLElement class], @"dd",
-				[DOMHTMLElement class], @"dt",
-				
-				[DOMHTMLNoFramesElement class], @"noframes",
-				[DOMHTMLPreElement class], @"pre",
-				[DOMHTMLCenterElement class], @"center",
-				[DOMHTMLHeadingElement class], @"h1",
-				[DOMHTMLHeadingElement class], @"h2",
-				[DOMHTMLHeadingElement class], @"h3",
-				[DOMHTMLHeadingElement class], @"h4",
-				[DOMHTMLHeadingElement class], @"h5",
-				[DOMHTMLHeadingElement class], @"h6",
-				
-				// stored in standard elements
-				[DOMHTMLElement class], @"tbody",
-				[DOMHTMLElement class], @"noscript",
-				[DOMHTMLElement class], @"bdo",
-				[DOMHTMLElement class], @"big",
-				[DOMHTMLElement class], @"small",
-				[DOMHTMLElement class], @"sub",
-				[DOMHTMLElement class], @"sup",
-				[DOMHTMLElement class], @"em",
-				[DOMHTMLElement class], @"b",
-				[DOMHTMLElement class], @"i",
-				[DOMHTMLElement class], @"u",
-				[DOMHTMLElement class], @"s",
-				[DOMHTMLElement class], @"tt",
-				[DOMHTMLElement class], @"strike",
-				[DOMHTMLElement class], @"strong",
-				[DOMHTMLElement class], @"var",
-				[DOMHTMLElement class], @"code",
-				[DOMHTMLElement class], @"samp",
-				[DOMHTMLElement class], @"kbd",
-				[DOMHTMLElement class], @"cite",
-				nil
-				] retain];
-#else
-			NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"DOMHTML" ofType:@"plist"];
+			NSBundle *bundle=[NSBundle bundleForClass:[self class]];
+			NSString *path=[bundle pathForResource:@"DOMHTML" ofType:@"plist"];
 #if 1
+			NSLog(@"bundle=%@", bundle);
 			NSLog(@"path=%@", path);
 #endif
 			tagtable=[[NSDictionary alloc] initWithContentsOfFile:path];
@@ -152,7 +69,6 @@ static NSDictionary *tagtable;
 			NSLog(@"tagtable=%@", tagtable);
 #endif
 			NSAssert(tagtable, @"could not load tag table");
-#endif
 			}
 		}
 	return self;
@@ -182,7 +98,6 @@ static NSDictionary *tagtable;
 - (void) setDataSource:(WebDataSource *) dataSource;
 {
 	Class viewclass;
-	DOMHTMLHtmlElement *html;
 	WebFrame *frame=[dataSource webFrame];
 	WebFrameView *frameView=[frame frameView];
 	NSView <WebDocumentView> *view;
@@ -194,17 +109,14 @@ static NSDictionary *tagtable;
 	_doc=[frame DOMDocument];
 	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
 	[_doc removeChild:[_doc firstChild]];	// if there is one from the last load
-	_root=[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil document:_doc];	// a new root
+	_root=[[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil document:_doc] autorelease];	// a new root
 	[(DOMHTMLDocument *) _root _setWebFrame:frame];
 	[(DOMHTMLDocument *) _root _setWebDataSource:dataSource];
 	[_doc appendChild:_root];
-	html=[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil document:_doc];
-	[_root appendChild:html];
-	_head=[[DOMHTMLHeadElement alloc] _initWithName:@"HEAD" namespaceURI:nil document:_doc];
-	[html appendChild:_head];
-	_body=[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil document:_doc];
-	[html appendChild:_body];
-	[_root release];
+	_html=[[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil document:_doc] autorelease];	// build a minimal tree
+	[_root appendChild:_html];
+	_body=[[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil document:_doc] autorelease];
+	[_html appendChild:_body];
 	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
 	[_parser setDelegate:self];
 	// translate [dataSource textEncodingName] - if known
@@ -268,6 +180,21 @@ static NSDictionary *tagtable;
 }
 
 - (id) _parser; { return _parser; }
+
+- (DOMHTMLElement *) _lastObject;	{ return [_elementStack lastObject]; }
+- (DOMHTMLElement *) _root;	{ return _root; }	// the root node
+- (DOMHTMLElement *) _html;	{ return _html; }	// the <html> node
+- (DOMHTMLElement *) _body;	{ return _body; }	// the <body> node
+
+- (DOMHTMLElement *) _head;
+{ // the <head> node
+	if(!_head)
+		{ // create if requested
+		_head=[[DOMHTMLHeadElement alloc] _initWithName:@"HEAD" namespaceURI:nil document:_doc];
+		[_html insertBefore:_head :_body];	// insert before <body>
+		}
+	return _head;
+}
 
 - (NSString *) title;
 { // return the value of the first DOMHTMLTitleElement's #text
@@ -382,66 +309,65 @@ static NSDictionary *tagtable;
 - (void) parser:(NSXMLParser *) parser didStartElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name attributes:(NSDictionary *) attributes;
 { // handle opening tags
 	Class c=NSClassFromString([tagtable objectForKey:tag]);
-	id newElement;
+	id newElement=nil;
 	NSEnumerator *e;
 	NSString *key;
+	DOMHTMLElement *parent;
 #if 0
 	NSLog(@"%@ %@: <%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
 #endif
-	
 	if(!c)
 		{
 #if 1
-		NSLog(@"%@ %@: <%@> ignored", NSStringFromClass(isa), [parser _tagPath], tag);
+		NSLog(@"%@ %@: <%@> ignored - no class found", NSStringFromClass(isa), [parser _tagPath], tag);
 #endif
 		return;	// ignore
 		}
+	parent=[c _designatedParentNode:self];
+#if 0
+	NSLog(@"<%@> parent node=%@", tag, parent);
+#endif
 	if([c _ignore])
-		{
 		return;	// ignore
-		}
 	if([c _singleton])
 		{
-		// in case of <html>, <head>, <body>, <tbody>: copy attributes to existing element and throw away current
-		// check if we already have such a tag and merge/replace attributes
-		if([attributes count] > 0)
-			NSLog(@"FIXME: should copy attributes for <%@>: %@", tag, attributes);
+		NSArray *children=[[parent childNodes] _list];
+		unsigned int i, cnt=[children count];
+		NSString *t=[tag uppercaseString];
+		for(i=0; i<cnt; i++)
+			{
+			if([[[children objectAtIndex:i] nodeName] isEqualToString:t])
+				{
+				newElement=[children objectAtIndex:i];
+#if 0
+				NSLog(@"matching singleton %@", newElement);
+#endif
+				break;	// found!
+				}
+			}
 		}
-	newElement=[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri document:_doc];
 	if(!newElement)
-		{
-		NSLog(@"could not alloc element for tag <%@> of class %@", tag, NSStringFromClass(c));
-		return;	// ignore if we can't allocate
+		{ // not a singleton or not yet a child of the desigated parent
+		newElement=[[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri document:_doc] autorelease];
+		if(!newElement)
+			{
+			NSLog(@"could not alloc element for tag <%@> of class %@", tag, NSStringFromClass(c));
+			return;	// ignore if we can't allocate
+			}
+		[parent appendChild:newElement];	// make sibling
 		}
 	e=[attributes keyEnumerator];
 	while((key=[e nextObject]))
-		{ // attach attributes
+		{ // attach (merge) attributes
 		NSString *val=[attributes objectForKey:key];
 		if([val class] == [NSNull class])
 			val=nil;
-		[newElement setAttribute:key :val];
-		}
-	/* handle some special cases -> should be moved to a private method of the elements whose default implementation does nothing */
-	if(c == [DOMHTMLFrameSetElement class] && !_frameSet)
-		{ // first level <frameset>
-		[[_body parentNode] appendChild:newElement];	// make sibling
-		_frameSet=newElement;
+		if(![newElement hasAttribute:key])
+			[newElement setAttribute:key :val];	// like Safari: merges only not-yet-existing attributes from a repeated tag (e.g. <body attr1></body><body attr2></body>) 
 		}
 	[newElement _elementDidAwakeFromDocumentRepresentation:self];
-
-	// FIXME: if we are a H tag and the lastObject as well, make us a sibling not a child of the header
-	// nesting rules
-	// <p> is not nested, <h> is not nested, <table> is only nested within a <td> or <th>
-		
-	if([c _goesToHead])
-		[_head appendChild:newElement];	// add to top level of _head
-	else
-		// check for _makeChildOf and search upwards in stack/tree
-		// FIXME: if we are a H tag and the lastObject as well, make us a sibling not a child of the existing header
-		[[_elementStack lastObject] appendChild:newElement];	// add to next level
 	if(![c _closeNotRequired])
 		[_elementStack addObject:newElement];	// go down one level
-	[newElement release];
 }
 
 - (void) parser:(NSXMLParser *) parser didEndElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name;
@@ -455,7 +381,6 @@ static NSDictionary *tagtable;
 	if([c _ignore])
 		return;	// ignore
 	[[_elementStack lastObject] _elementLoaded];	// any finalizing code
-	// if([currentElement _streamline] - add </tag> to the current element
 	if(![c _closeNotRequired])
 		[_elementStack removeLastObject];	// go up one level
 }

@@ -230,7 +230,7 @@ static NSDictionary *entitiesTable;
 
 - (void) _parseData:(NSData *) d;
 { // incremental parser - tries to do its best and reports/removes only complete elements; returns otherwise (or raises exceptions)
-	const char *ep;
+	const char *ep=NULL;
 #if 0
 	NSLog(@"parse data=%@", d);
 #endif
@@ -410,7 +410,7 @@ static NSDictionary *entitiesTable;
 			while(cp < ep)
 				{ // collect arguments
 				BOOL sq, dq;
-				NSString *arg;
+				NSString *arg=nil;
 				const char *ap;
 				while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
 					{

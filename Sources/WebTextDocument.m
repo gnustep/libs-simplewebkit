@@ -59,7 +59,7 @@
 	NSDictionary *options=nil;
 	NSDictionary *attribs=nil;
 	NSError *error;
-	NSTextStorage *ts=[[NSTextStorage alloc] initWithData:[source data] options:&options documentAttributes:&attribs error:&error];
+	NSTextStorage *ts=[[NSTextStorage alloc] initWithData:[source data] options:options documentAttributes:&attribs error:&error];
 	if(!ts)
 		{ // if data source is completed, show error message
 		return;	// ignore

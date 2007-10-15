@@ -446,10 +446,10 @@
 		}
 	else 
 		{
-		if([selectedItem isKindOfClass:[DOMHTMLDocument class]])
+		if([selectedItem respondsToSelector:@selector(outerHTML)])
 			{
-			[domSource setString:[[selectedItem documentElement] outerHTML]];
-			currentItem=[selectedItem documentElement];
+			[domSource setString:[selectedItem outerHTML]];
+			currentItem=selectedItem;
 			}
 		else if([selectedItem respondsToSelector:@selector(innerHTML)])
 			{
@@ -462,7 +462,9 @@
 
 - (int) numberOfRowsInTableView:(NSTableView *)aTableView
 {
-	return [[(DOMElement *) currentItem _attributes] count];
+	if([currentItem respondsToSelector:@selector(_attributes)])
+		return [[(DOMElement *) currentItem _attributes] count];
+	return 0;
 }
 
 - (id) tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex

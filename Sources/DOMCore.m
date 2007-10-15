@@ -403,7 +403,7 @@
 
 - (DOMElement *) documentElement;
 {
-	return NIMP;	// ??? is this the root element of the document?
+	return NIMP;	// ??? is this the root element of the document? - or [[self ownerDocument] lastChild]?
 }
 
 - (DOMElement *) getElementById:(NSString *) element; {return NIMP; }

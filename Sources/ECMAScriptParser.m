@@ -60,25 +60,30 @@
 	unichar c;
 	if(![self scanString:str intoString:NULL])
 		return NO;	// no real match
-	c=[str characterAtIndex:[self scanLocation]];	// next character after token
-	if(0 /* check for non-token character (blank, letter, digit, quote etc.) */)
-		{
-		[self setScanLocation:back];
-		return NO;
+	if(![self isAtEnd])
+		{ // check that next character is a non-token (blank, letter, digit, quote etc.)
+		c=[[self string] characterAtIndex:[self scanLocation]];	// next character after token
+		if(0 )
+			{
+			[self setScanLocation:back];
+			return NO;
+			}
 		}
 	return YES;
 }
 
 - (BOOL) _scanIdentifier:(NSString **) str;
 { // get the next identifier - optimize if we have already scanned
+	static NSScanner *cachedScanner;
 	static unsigned cache=NSNotFound;
 	static unsigned cacheEnd=NSNotFound;
 	static NSString *cachedIdentifier=nil;
 	static NSCharacterSet *symbolCharacterSet=nil;
 	unsigned loc=[self scanLocation];
-	if(loc == cache && cachedIdentifier)
+	if(cachedScanner == self && loc == cache && cachedIdentifier)
 		{ // was backed up since last call
 		*str=cachedIdentifier;
+		// FIXME: appears to raise an exception in certain situations
 		[self setScanLocation:cacheEnd];	// pretend that we have really scanned
 		return YES;
 		}
@@ -89,6 +94,7 @@
 	[cachedIdentifier release];
 	cache=loc;	// remember new position
 	cachedIdentifier=@"";
+	cachedScanner=self;
 	if(![self scanCharactersFromSet:symbolCharacterSet intoString:&cachedIdentifier] || [cachedIdentifier length] == 0)
 		{
 		cachedIdentifier=nil;

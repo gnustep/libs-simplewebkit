@@ -166,11 +166,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMElement (DOMHTMLElement)
 
-+ (BOOL) _closeNotRequired; { return NO; }	// default implementation
-+ (BOOL) _goesToHead;		{ return NO; }
-+ (BOOL) _ignore;			{ return NO; }
-+ (NSString *) _makeChildOf;	{ return nil; }
-+ (BOOL) _singleton;			{ return NO; }
++ (BOOL) _closeNotRequired;		{ return NO; }	// default implementation
++ (BOOL) _ignore;				{ return NO; }	// default implementation
++ (BOOL) _singleton;			{ return NO; }	// default implementation
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // return the parent node (nil to ignore)
+	return [rep _lastObject];	// default is to build a tree
+}
 
 - (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
 { // default - subclasses can also check if str ends with a newline and add one only if there isn't one or YES to force to add a new one
@@ -208,9 +211,22 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (NSString *) outerHTML;
 {
-	NSString *str=[NSString stringWithFormat:@"<%@>\n%@", [self nodeName], [self innerHTML]];
+	NSMutableString *str=[NSMutableString stringWithFormat:@"<%@", [self nodeName]];
+	if([self respondsToSelector:@selector(_attributes)])
+		{ // has attributes
+		NSEnumerator *e=[[self _attributes] objectEnumerator];
+		DOMAttr *a;
+		while((a=[e nextObject]))
+			{
+			if([a specified])
+				[str appendFormat:@" %@=\"%@\"", [a name], [a value]];			
+			else
+				[str appendFormat:@" %@", [a name]];			
+			}
+		}
+	[str appendFormat:@">\n%@", [self innerHTML]];
 	if(![isa _closeNotRequired])
-		str=[str stringByAppendingFormat:@"</%@>\n", [self nodeName]];	// close
+		[str appendFormat:@"</%@>\n", [self nodeName]];	// close
 	return str;
 }
 
@@ -263,10 +279,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NIMP;	// no default implementation!
 }
 
+- (DOMCSSStyleDeclaration *) _cssStyle;
+{ // get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
+	return nil;
+}
+
 - (NSMutableDictionary *) _style;
 { // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
 	NSString *node=[self nodeName];
 	NSMutableDictionary *s;
+	DOMCSSStyleDeclaration *css;
 	s=[(DOMHTMLElement *) _parentNode _style];	// inherit style from parent
 	if(!s)
 		{
@@ -284,14 +306,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
 		if(f) [s setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %ƒ to Bold", [s objectForKey:NSFontAttributeName]);
+		else NSLog(@"could not convert %@ to Bold", [s objectForKey:NSFontAttributeName]);
 		}
 	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
 		{ // make italics
 		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
 		if(f) [s setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %ƒ to Italics", [s objectForKey:NSFontAttributeName]);
+		else NSLog(@"could not convert %@ to Italics", [s objectForKey:NSFontAttributeName]);
 		}
 	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
 		{ // make monospaced
@@ -345,7 +367,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
 		if(f) [s setObject:f forKey:NSFontAttributeName];
 		}
-	// FIXME: apply (additional) CSS style processing here
+	css=[self _cssStyle];
+	// FIXME: apply (additional) CSS style processing here (or at the beginning?)
 	return s;
 }
 
@@ -354,15 +377,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSString *code=[self getAttribute:event];
 	if(code)
 		{
+		NSLog(@"trigger %@=%@", event, code);
 		// FIXME: make an event object available to the script
-		[self evaluateWebScript:code];	// evaluate code defined by event attribute
+		[self evaluateWebScript:code];	// evaluate code defined by event attribute (protected against exceptions)
 		}
 }
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
-{ // subclasses should call [super _elementDidAwakeFromDocumentRepresentation:rep];
-	[self _triggerEvent:@"onLoad"];
-	return;
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
+{ // our subclasses should call [super _elementDidAwakeFromDocumentRepresentation:rep];
+	// FIXME: this appears to be case sensitive!
+	[self _triggerEvent:@"onload"];
 }
 
 - (void) _elementLoaded; { return; } // ignore
@@ -418,7 +442,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (NSString *) outerHTML;
 {
-	return [NSString stringWithFormat:@"<!CDATA>\n%@\n</!CDATA>", [(DOMHTMLElement *)self innerHTML]];
+	return [NSString stringWithFormat:@"<!CDATA[[%@]]>", [(DOMHTMLElement *)self innerHTML]];
 }
 
 - (void) _spliceTo:(NSMutableAttributedString *) str;
@@ -460,29 +484,38 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLHtmlElement
-+ (BOOL) _ignore;	{ return YES; }
++ (BOOL) _ignore; { return YES; }
 @end
 
 @implementation DOMHTMLHeadElement
-+ (BOOL) _ignore;	{ return YES; }
-+ (NSString *) _makeChildOf;	{ return @"html"; }
++ (BOOL) _ignore; { return YES; }
 @end
 
 @implementation DOMHTMLTitleElement
-+ (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[(_WebHTMLDocumentRepresentation *) rep _parser] _setReadMode:2];	// switch parser mode to read up to </title> and translate entities
+	return [rep _head];
 }
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
+{
+	[[rep _parser] _setReadMode:2];	// switch parser mode to read up to </title> and translate entities
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
+}
+
 @end
 
 @implementation DOMHTMLMetaElement
 
 + (BOOL) _closeNotRequired; { return YES; }
-+ (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{
+	return [rep _head];
+}
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	NSString *cmd=[self getAttribute:@"http-equiv"];
 	if([cmd caseInsensitiveCompare:@"refresh"] == NSOrderedSame)
@@ -514,9 +547,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @implementation DOMHTMLLinkElement
 
 + (BOOL) _closeNotRequired; { return YES; }
-+ (BOOL) _goesToHead;	{ return YES; }
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{
+	return [rep _head];
+}
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 { // e.g. <link rel="stylesheet" type="text/css" href="test.css" />
 	NSString *rel=[[self getAttribute:@"rel"] lowercaseString];
 	if([rel isEqualToString:@"stylesheet"] && [[self getAttribute:@"type"] isEqualToString:@"text/css"])
@@ -564,11 +601,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLStyleElement
 
-+ (BOOL) _goesToHead;	{ return YES; }
-
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[(_WebHTMLDocumentRepresentation *) rep _parser] _setReadMode:1];	// switch parser mode to read up to </style>
+	return [rep _head];
+}
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
+{
+	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </style>
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
 // FIXME: process "@import URL" subresources
@@ -583,9 +624,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // ignore scripts for rendering
 }
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[(_WebHTMLDocumentRepresentation *) rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
+	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
 		{ // external script to load
 		[[(_WebHTMLDocumentRepresentation *) rep _parser] _stall:YES];	// make parser stall until we have loaded
@@ -593,6 +634,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 															// FIXME: clear only after we received the script!
 		[[(_WebHTMLDocumentRepresentation *) rep _parser] _stall:NO];
 		}
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
 - (void) _elementLoaded;
@@ -648,15 +690,22 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
-@implementation DOMHTMLNoFramesElement
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // ignore content
-}
-
-@end
-
 @implementation DOMHTMLFrameSetElement
+
+// FIXME - lock if we have a <body> with children
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // find matching <frameset> node or make child of <html>
+	DOMHTMLElement *n=[rep _lastObject];
+	while([n isKindOfClass:[DOMHTMLElement class]])
+		{
+		if([[n nodeName] isEqualToString:@"FRAMESET"] || [[n nodeName] isEqualToString:@"HTML"])
+			return (DOMHTMLElement *) n;
+		n=(DOMHTMLElement *)[n parentNode];	// go one level up
+		}	// no <frameset> found!
+			// well, this should never happen
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+}
 
 - (void) _layout:(NSView *) view;
 { // recursively arrange subviews so that they match children
@@ -736,9 +785,29 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
+@implementation DOMHTMLNoFramesElement
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // ignore content since we support frames
+}
+
+@end
+
 @implementation DOMHTMLFrameElement
 
 + (BOOL) _closeNotRequired; { return YES; }
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // find matching <frameset> node
+	DOMHTMLElement *n=[rep _lastObject];
+	while([n isKindOfClass:[DOMHTMLElement class]])
+		{
+		if([[n nodeName] isEqualToString:@"FRAMESET"])
+			return (DOMHTMLElement *) n;
+		n=(DOMHTMLElement *)[n parentNode];	// go one level up
+		}	// no <frameset> found!
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+}
 
 	// FIXME!!!
 
@@ -806,12 +875,29 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLObjectFrameElement
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // find matching <table> node
+	DOMHTMLElement *n=[rep _lastObject];
+	while([n isKindOfClass:[DOMHTMLElement class]])
+		{
+		if([[n nodeName] isEqualToString:@"FRAMESET"])
+			return (DOMHTMLElement *) n;
+		n=(DOMHTMLElement *)[n parentNode];	// go one level up
+		}	// no <table> found!
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+}
+
 @end
 
 @implementation DOMHTMLBodyElement
 
 + (BOOL) _singleton;			{ return YES; }
-+ (NSString *) _makeChildOf;	{ return @"html"; }
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{
+	return [rep _html];
+}
 
 - (NSMutableDictionary *) _style;
 { // provide default styles
@@ -1286,12 +1372,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 + (BOOL) _closeNotRequired; { return NO; }	// be lazy
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
-{ // always create a tbody
-	DOMHTMLTBodyElement *tbody=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil document:[self ownerDocument]];
-	[self appendChild:tbody];
-}
-
 - (void) dealloc; { [table release]; [super dealloc]; }
 
 - (NSMutableDictionary *) _style;
@@ -1413,15 +1493,41 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLTBodyElement
 
-+ (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
-+ (NSString *) _makeChildOf;	{ return @"table"; }
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // find matching <table> node
+	DOMHTMLElement *n=[rep _lastObject];
+	while([n isKindOfClass:[DOMHTMLElement class]])
+		{
+		if([[n nodeName] isEqualToString:@"TABLE"])
+			return (DOMHTMLElement *) n;
+		n=(DOMHTMLElement *)[n parentNode];	// go one level up
+		}	// no <table> found!
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+}
 
 @end
 
 @implementation DOMHTMLTableRowElement
 
 + (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
-+ (NSString *) _makeChildOf;	{ return @"tbody"; }
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // find matching <tbody> or <table> node
+	DOMHTMLElement *n=[rep _lastObject];
+	while([n isKindOfClass:[DOMHTMLElement class]])
+		{
+		if([[n nodeName] isEqualToString:@"TBODY"])
+			return n;	// found
+		if([[n nodeName] isEqualToString:@"TABLE"])
+			{ // table has no <tbody>
+			DOMHTMLTBodyElement *tbe=[[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil document:[n ownerDocument]] autorelease];	// return dummy
+			[n appendChild:tbe];	// insert a <tbody> element
+			return tbe;
+			}
+		n=(DOMHTMLElement *)[n parentNode];	// go one level up
+		}	// no <table> found!
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+}
 
 - (NSMutableDictionary *) _style;
 {
@@ -1497,7 +1603,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @implementation DOMHTMLTableCellElement
 
 + (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
-+ (NSString *) _makeChildOf;	{ return @"tr"; }
 
 - (void) dealloc; { [cell release]; [super dealloc]; }
 

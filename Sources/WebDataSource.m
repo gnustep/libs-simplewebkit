@@ -25,10 +25,11 @@
 #import <WebKit/WebDataSource.h>
 #import <WebKit/WebResource.h>
 #import <WebKit/WebFrameLoadDelegate.h>
+#import "WebDocumentRepresentation.h"
 
 @implementation WebDataSource
 
-#if NO_USED
+#if NOT_USED
 
 - (id) _initWithWebResource:(WebResource *) resource;
 { // could be an alternative to using _NSURLRequestNSData

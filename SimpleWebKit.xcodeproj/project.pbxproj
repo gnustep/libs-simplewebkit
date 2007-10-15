@@ -499,42 +499,42 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE9BEB480AFA868500D445DA /* DOM.h in Headers */,
+				EE4729250B99D8F700559020 /* DOMCore.h in Headers */,
+				EE60FC850BA6993E00503BB4 /* DOMCSS.h in Headers */,
+				EE8AFF8A0B6C8F9200346917 /* DOMHTML.h in Headers */,
+				EE60FCB60BA69A8D00503BB4 /* DOMRange.h in Headers */,
+				EED0DD3A0BAED3C4005B0381 /* ECMAScriptEvaluator.h in Headers */,
+				EED0DD3C0BAED3C4005B0381 /* ECMAScriptParser.h in Headers */,
+				EEA7DF3B0BB05AC6006B2FDA /* ECMAScriptPrototypes.h in Headers */,
+				EE5EBC800A1926F00045B88D /* Private.h in Headers */,
+				EE60FA7A0BA6928400503BB4 /* WebArchive.h in Headers */,
 				EE5EBCE60A1A4CB70045B88D /* WebBackForwardList.h in Headers */,
 				EEA3D3A4095468BA001244CF /* WebDataSource.h in Headers */,
-				EE5EBCE40A1A4CB70045B88D /* WebDOMOperations.h in Headers */,
 				EEA3D3A6095468BA001244CF /* WebDocument.h in Headers */,
+				EE1396B50BA5B0EE00A9A16C /* WebDocumentRepresentation.h in Headers */,
+				EE5EBCE40A1A4CB70045B88D /* WebDOMOperations.h in Headers */,
+				EE60FA7B0BA6928400503BB4 /* WebDownload.h in Headers */,
 				EEA3D3A7095468BA001244CF /* WebFrame.h in Headers */,
 				EE8AC8B60B6BA09900346917 /* WebFrameLoadDelegate.h in Headers */,
 				EEA3D3A9095468BA001244CF /* WebFrameView.h in Headers */,
 				EE5EBCE90A1A4CB70045B88D /* WebHistory.h in Headers */,
 				EE5EBCE70A1A4CB70045B88D /* WebHistoryItem.h in Headers */,
-				EEA3D3AB095468BA001244CF /* WebKit.h in Headers */,
-				EE5EBCF10A1A4E270045B88D /* WebPlugin.h in Headers */,
-				EE428B360A4819A2003437D2 /* WebResource.h in Headers */,
-				EE5EBCE50A1A4CB70045B88D /* WebScriptObject.h in Headers */,
-				EEA3D3AC095468BA001244CF /* WebView.h in Headers */,
-				EE9BEB480AFA868500D445DA /* DOM.h in Headers */,
-				EE8AFF8A0B6C8F9200346917 /* DOMHTML.h in Headers */,
-				EE5EBC800A1926F00045B88D /* Private.h in Headers */,
 				EE9BE9BC0AFA534600D445DA /* WebHTMLDocumentRepresentation.h in Headers */,
-				EE8A01C60B6CD7F800346917 /* WebUIDelegate.h in Headers */,
-				EE4729250B99D8F700559020 /* DOMCore.h in Headers */,
 				EE475F400B9AF3B600559020 /* WebHTMLDocumentView.h in Headers */,
-				EE1396B50BA5B0EE00A9A16C /* WebDocumentRepresentation.h in Headers */,
-				EE60FA7A0BA6928400503BB4 /* WebArchive.h in Headers */,
-				EE60FA7B0BA6928400503BB4 /* WebDownload.h in Headers */,
-				EE60FA7D0BA6943F00503BB4 /* WebUndefined.h in Headers */,
-				EE60FC850BA6993E00503BB4 /* DOMCSS.h in Headers */,
-				EE60FCB60BA69A8D00503BB4 /* DOMRange.h in Headers */,
-				EED0DD3A0BAED3C4005B0381 /* ECMAScriptEvaluator.h in Headers */,
-				EED0DD3C0BAED3C4005B0381 /* ECMAScriptParser.h in Headers */,
-				EEA7DF3B0BB05AC6006B2FDA /* ECMAScriptPrototypes.h in Headers */,
-				EE7A7D3A0BB68A9100A5C0FC /* WebPluginContainer.h in Headers */,
-				EEE9AE690BC6D85100757F02 /* WebResourceLoadDelegate.h in Headers */,
 				EE6FBB130C21D9E50095EEA6 /* WebImageDocument.h in Headers */,
+				EEA3D3AB095468BA001244CF /* WebKit.h in Headers */,
 				EE6FBB1B0C21D9F80095EEA6 /* WebPDFDocument.h in Headers */,
-				EE6FBB1F0C21D9F80095EEA6 /* WebXMLDocument.h in Headers */,
+				EE5EBCF10A1A4E270045B88D /* WebPlugin.h in Headers */,
+				EE7A7D3A0BB68A9100A5C0FC /* WebPluginContainer.h in Headers */,
+				EE428B360A4819A2003437D2 /* WebResource.h in Headers */,
+				EEE9AE690BC6D85100757F02 /* WebResourceLoadDelegate.h in Headers */,
+				EE5EBCE50A1A4CB70045B88D /* WebScriptObject.h in Headers */,
 				EE6FBBC50C21DBD00095EEA6 /* WebTextDocument.h in Headers */,
+				EE6FBB1F0C21D9F80095EEA6 /* WebXMLDocument.h in Headers */,
+				EEA3D3AC095468BA001244CF /* WebView.h in Headers */,
+				EE8A01C60B6CD7F800346917 /* WebUIDelegate.h in Headers */,
+				EE60FA7D0BA6943F00503BB4 /* WebUndefined.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1079,6 +1079,7 @@
 		EEEB9D6C09A7586C00626AB7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				PREBINDING = NO;
 			};
 			name = Development;
 		};

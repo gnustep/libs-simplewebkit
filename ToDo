@@ -1,10 +1,11 @@
+=================
 SimpleWebKit ToDo
 =================
 
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-12 Aug 2007
+13 Oct 2007
 -----------
 
 High Prio:
@@ -20,11 +21,9 @@ HTML parsing and error robustness:
 	like this: <input type="submit" value="&nbsp;&nbsp;Go&nbsp;&nbsp;"> from http://pda.leo.org/
   - fix error handling if it is known that there is no more data coming from the source
 - WebHTMLDocumentRepresentation:
-  - better handle <tbody> tag (auto-insert into DOM like <body>)
   - how should we parse "<h1>xxx <h2> xxx </h1> z </h2>"?
   	  (a) all h tags on same level (ignoring the bad </h1>) -> "<h1>xxx </h1><h2> xxx  z </h2>"
 	  (b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
-  - simply ignore <body> in <body><frameset>...</frameset></body>
   - how do we handle abc<p>def</p> - since we should treat any text before the first <p> as an independent paragraph without explicit formatting
   - really handle stall and clear for loading script files and @import styles (in WebCSSDocumentRepresentation)
 
@@ -54,7 +53,7 @@ JavaScript:
 - add execution context ("this", global variables, document/event/etc.)
 - add prototype objects Array, Number, Object, String, etc. with their methods
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
-- handle triggers like <body onload="..."> or <... onmouse="...">
+- handle more triggers like <... onmouse="...">
 
 CSS:
 - add DOMCSS elements according to the DOM specs
@@ -63,7 +62,7 @@ CSS:
 
 Others:
 - (DOMText *) splitText: what is the semantics?
-- innerHTML and outerHTML do not really return html (needs generating entities)
+- innerHTML and outerHTML do not really return valid HTML (needs generating entities)
 - add getters&setters for HTMLEntities
 
 Feature requests:
@@ -73,13 +72,14 @@ Feature requests:
 	Or do we reload/reparse everything and just keep a history of visited URLRequests?
 		Answer: NO!
 		Going back does usually NOT reexecute JavaScripts while it might re-POST a <form> (incl. a warning)
-	We should also remember scroller position(s)
+		NOTE: this may also depend on the server which can control if the client needs to reload or not!
+	We must also remember scroller position(s)
 	We should cache pages in NSURLCache
 	We must also remember contents of <form> elements (even hidden passwords!)
 - link color definition by <body> and if link was visited recently (history)
-- handle <hr> styles
+- handle different <hr> styles
 - special <input> styles should show a small slider for e.g. <input type="range" min="0" value="100" max="100">
-- MIMEType text/xml: if it is a RSS feed -> redirect to feed:URL which uses ECMAScript to format a feed (which could be made part of Foundation)
+- MIMEType text/xml: if it is a RSS feed -> redirect to feed:URL
 
 mySTEP's extension requests:
 - NSURLConnection needs:
@@ -91,6 +91,7 @@ mySTEP's extension requests:
   - server redirection
   - handle feed: scheme (load feed and translate into an ECMAScript/HTML result)
 - NSTextTable is not rendered
+- NSTextList is not rendered
 
 GNUstep extension requests:
 - NSTextTable etc. is missing

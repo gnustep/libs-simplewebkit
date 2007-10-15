@@ -66,24 +66,24 @@ NSString *WebScriptException=@"WebScriptException";
 - (id) evaluateWebScript:(NSString *) script;
 { // evaluate for given node - is this the eval("") method?
 	id r=nil;
-		NS_DURING
-			{
-				NSScanner *sc=[NSScanner scannerWithString:script];
-				r=[_WebScriptTreeNode _programWithScanner:sc];
-//				NSLog(@"script=%@", r);
-				// how do we pass all the environment context (windows, event, etc.)?
-				// well, if we are a DOMElement we should know our DOMDocument and that should know everything
-				// but sample code from the WWW shows that this method runs with "self" as the "this" object, i.e.
-				// they use [[webView windowScriptObject] evaluateWebScript:@"xxx"]
-				// and [[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
-				r=[r _evaluate];	// evaluate
-				r=[r _getValue];	// dereference if needed
-				r=[r _toString];	// always convert to NSString
-			}
-		NS_HANDLER
-			r=[NSString stringWithFormat:@"<WebScript Internal Exception: %@>", [localException reason]];
-		NS_ENDHANDLER
-		return r;
+	NS_DURING
+		{
+			NSScanner *sc=[NSScanner scannerWithString:script];
+			r=[_WebScriptTreeNode _programWithScanner:sc];
+			//				NSLog(@"script=%@", r);
+			// how do we pass all the environment context (windows, event, etc.)?
+			// well, if we are a DOMElement we should know our DOMDocument and that should know everything
+			// but sample code from the WWW shows that this method runs with "self" as the "this" object, i.e.
+			// they use [[webView windowScriptObject] evaluateWebScript:@"xxx"]
+			// and [[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
+			r=[r _evaluate];	// evaluate
+			r=[r _getValue];	// dereference if needed
+			r=[r _toString];	// always convert to NSString
+		}
+	NS_HANDLER
+		r=[NSString stringWithFormat:@"<WebScript Internal Exception: %@>", [localException reason]];
+	NS_ENDHANDLER
+	return r;
 }
 
 - (void) removeWebScriptKey:(NSString *) key;

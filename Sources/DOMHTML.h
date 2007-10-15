@@ -27,8 +27,9 @@
 @class WebDataSource;
 @class WebFrame;
 @class NSTextTable, NSTextTableBlock, NSTextList;	// we don't explicitly import since we can't rely on their existence
+@class DOMHTMLElement;
 
-@class _WebDocumentRepresentation;
+@class _WebHTMLDocumentRepresentation;
 
 @interface DOMElement (DOMHTMLElement)
 
@@ -45,10 +46,10 @@
 
 + (BOOL) _closeNotRequired;				// has no (explicit) close tag; don't nest this element type
 + (BOOL) _ignore;						// don't create a node for this tag
-+ (BOOL) _goesToHead;					// always make a child of the <head> entry (??? isn't the same as _makeChildOf=@"HEAD")
-+ (NSString *) _makeChildOf;			// ??? find matching parent (if not nil)
-+ (BOOL) _singleton;					// ??? collect all attributes (or just keep last one?)
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
+// + (BOOL) _goesToHead;				// always make a child of the <head> entry (??? isn't the same as _makeChildOf=@"HEAD")
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;			// return the parent node
++ (BOOL) _singleton;					// collect all attributes if we have multiple tags of this type
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
 - (void) _elementLoaded;	// element has been loaded (i.e. tag was closed)
 
 // rendering support
@@ -110,7 +111,7 @@
 @interface DOMHTMLFrameElement : DOMHTMLElement		// <frame>
 @end
 
-@interface DOMHTMLNoFramesElement : DOMHTMLElement		// <frame>
+@interface DOMHTMLNoFramesElement : DOMHTMLFrameElement		// <noframes>
 @end
 
 @interface DOMHTMLIFrameElement : DOMHTMLFrameElement	// <iframe>
