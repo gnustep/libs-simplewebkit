@@ -30,6 +30,18 @@
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 {
+	/*
+	 check if we have something similar to:
+
+	 <?xml version="1.0"?>
+	 <rss version="2.0">
+
+	 if yes:
+
+	 NSURL *url=[[source initialRequest] URL];
+	 NSURL *feed=[[[NSURL alloc] initWithScheme:@"feed" host:[url host] path:[url path]] autorelease];
+	 [[webframe webFrame] _performClientRedirectToURL:feed delay:0.0];
+	*/
 	NSLog(@"WebXMLDocumentRepresentation finishedLoadingWithDataSource");
 }
 

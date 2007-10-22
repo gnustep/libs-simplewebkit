@@ -442,7 +442,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (NSString *) outerHTML;
 {
-	return [NSString stringWithFormat:@"<!CDATA[[%@]]>", [(DOMHTMLElement *)self innerHTML]];
+	return [NSString stringWithFormat:@"<![CDATA[%@]]>", [(DOMHTMLElement *)self innerHTML]];
 }
 
 - (void) _spliceTo:(NSMutableAttributedString *) str;

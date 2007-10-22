@@ -5,7 +5,7 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-13 Oct 2007
+15 Oct 2007
 -----------
 
 High Prio:
@@ -24,6 +24,7 @@ HTML parsing and error robustness:
   - how should we parse "<h1>xxx <h2> xxx </h1> z </h2>"?
   	  (a) all h tags on same level (ignoring the bad </h1>) -> "<h1>xxx </h1><h2> xxx  z </h2>"
 	  (b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
+	is it already ok how we do it or do we need a different rule (NOTE: this is only relevant for MALFORMED HTML!)
   - how do we handle abc<p>def</p> - since we should treat any text before the first <p> as an independent paragraph without explicit formatting
   - really handle stall and clear for loading script files and @import styles (in WebCSSDocumentRepresentation)
 
@@ -67,19 +68,18 @@ Others:
 
 Feature requests:
 - <textarea>, <select>/<option> not completely implemented
-- history not fully implemented
+- history not implemented
 - go back&forth not implemented (how do we cache the pages, DOMTrees etc.?)
-	Or do we reload/reparse everything and just keep a history of visited URLRequests?
+	- Or do we reload/reparse everything and just keep a history of visited URLRequests?
 		Answer: NO!
 		Going back does usually NOT reexecute JavaScripts while it might re-POST a <form> (incl. a warning)
-		NOTE: this may also depend on the server which can control if the client needs to reload or not!
-	We must also remember scroller position(s)
-	We should cache pages in NSURLCache
-	We must also remember contents of <form> elements (even hidden passwords!)
+	- NOTE: this may also depend on the server which can control if the client needs to reload or not!
+	- We must also remember scroller position(s)
+	- We should cache pages in NSURLCache
+	- We must also remember contents of <form> elements (even hidden passwords!)
 - link color definition by <body> and if link was visited recently (history)
 - handle different <hr> styles
 - special <input> styles should show a small slider for e.g. <input type="range" min="0" value="100" max="100">
-- MIMEType text/xml: if it is a RSS feed -> redirect to feed:URL
 
 mySTEP's extension requests:
 - NSURLConnection needs:

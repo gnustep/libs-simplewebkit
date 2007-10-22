@@ -50,21 +50,21 @@
 
 @end
 
-// FIXME: replace all [sc scanSctring:@"token" intoString:NULL] with these methods:
-
 @implementation NSScanner (_WebScriptTreeNode)
 
 - (BOOL) _scanToken:(NSString *) str;	// does not match "&" with "&="
 {
 	unsigned back=[self scanLocation];
-	unichar c;
 	if(![self scanString:str intoString:NULL])
 		return NO;	// no real match
 	if(![self isAtEnd])
 		{ // check that next character is a non-token (blank, letter, digit, quote etc.)
-		c=[[self string] characterAtIndex:[self scanLocation]];	// next character after token
-		if(0 )
-			{
+		static NSCharacterSet *multi;
+		unichar c=[[self string] characterAtIndex:[self scanLocation]];	// next character after token
+		if(!multi)
+			multi=[[NSCharacterSet characterSetWithCharactersInString:@"+-=&|><"] retain];
+		if([multi characterIsMember:c])
+			{ // there is a multi-character token but we are looking for the first part only (e.g. we search for "&" but there is "&=")
 			[self setScanLocation:back];
 			return NO;
 			}
@@ -81,14 +81,14 @@
 	static NSCharacterSet *symbolCharacterSet=nil;
 	unsigned loc=[self scanLocation];
 	if(cachedScanner == self && loc == cache && cachedIdentifier)
-		{ // was backed up since last call
+		{ // was simply backed up since last call
 		*str=cachedIdentifier;
-		// FIXME: appears to raise an exception in certain situations
+		// FIXME: appears to raise an exception in certain situations (if we are at the end?)
 		[self setScanLocation:cacheEnd];	// pretend that we have really scanned
 		return YES;
 		}
 	if(!symbolCharacterSet)
-		{ // we must allow any Unicode letter or digit (7.6) or _ or $ or \Unicode escape + some punctuation...
+		{ // FIXME: we must allow any Unicode letter or digit (7.6) or _ or $ or \Unicode escape + some punctuation...
 		symbolCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"_$abcdefghijlmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
 		}
 	[cachedIdentifier release];
