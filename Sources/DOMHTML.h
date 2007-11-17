@@ -40,7 +40,7 @@
 - (NSAttributedString *) attributedString;
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
 - (WebFrame *) webFrame;
-- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string;
+- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) flag;
 
 // parser support and control
 

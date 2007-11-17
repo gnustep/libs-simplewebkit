@@ -386,6 +386,7 @@
 		[destinations addObject:@"http://www.yahoo.de"];
 		[destinations addObject:@"http://carduus.chanet.de/"];
 		[destinations addObject:@"http://gutenberg.chanet.de/eindex.html"];
+		[destinations addObject:@"http://www.osxentwicklerforum.de/mobile/"];
 		[destinations addObject:@"file:///Developer/ADC%20Reference%20Library/index.html"];
 		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
 		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];

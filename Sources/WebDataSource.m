@@ -137,8 +137,8 @@
 		subsource=[[[isa alloc] initWithRequest:[NSURLRequest requestWithURL:url]] autorelease];	// make new request
 		[subsource _setParentDataSource:self];
 		if(!rep)
-			rep=[[_WebDocumentRepresentation new] autorelease];
-		[subsource _setRepresentation:rep];	// someone must handle...
+			rep=[[_WebDocumentRepresentation new] autorelease]; // someone must handle...
+		[subsource _setRepresentation:rep];
 		if(!_subdatasources)
 			_subdatasources=[[NSMutableDictionary alloc] initWithCapacity:10];
 		[_subdatasources setObject:subsource forKey:url];	// add to list of resources currently loading
@@ -182,8 +182,9 @@
 
 - (void) _setRepresentation:(id <WebDocumentRepresentation>) rep;
 {
+	[_representation autorelease];
 	_representation=[(NSObject *) rep retain];
-	[_representation setDataSource:self];		// we are the data source
+	[_representation setDataSource:self];		// we are the data source of the rep
 }
 
 - (NSMutableURLRequest *) request; { return _request; }
@@ -357,6 +358,7 @@
 	[self retain];	// we might indirectly dealloc ourselves in _commitSubresource
 #if 1
 	NSLog(@"connectionDidFinishLoading: %p", connection);
+	NSLog(@"URL: %@", [[self request] URL]);
 #endif
 	if([_subdatasources count] == 0)	// we can notify immediately and don't postpone
 		[_representation finishedLoadingWithDataSource:self];

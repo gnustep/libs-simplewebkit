@@ -57,11 +57,11 @@ static NSDictionary *tagtable;
 		{
 		if(!tagtable)
 			{
-			NSBundle *bundle=[NSBundle bundleForClass:[self class]];
+			NSBundle *bundle=[NSBundle bundleForClass:isa];
 			NSString *path=[bundle pathForResource:@"DOMHTML" ofType:@"plist"];
 #if 1
-			NSLog(@"bundle=%@", bundle);
-			NSLog(@"path=%@", path);
+			NSLog(@"bundle for class %@=%@", NSStringFromClass(isa), bundle);
+			NSLog(@"tagtable path=%@", path);
 #endif
 			tagtable=[[NSDictionary alloc] initWithContentsOfFile:path];
 #if 1

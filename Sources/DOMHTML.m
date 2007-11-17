@@ -248,7 +248,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [NSURL URLWithString:[self getAttribute:string] relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
 }
 
-- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string;
+- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) stall;
 {
 	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
 	WebDataSource *source=[htmlDocument _webDataSource];
@@ -258,6 +258,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		{
 		WebDataSource *sub;
 		WebResource *res=[source subresourceForURL:url];
+		NSData *data;
 		if(res)
 			{
 #if 1
@@ -269,9 +270,41 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 		NSLog(@"sub: loading: %@ (%u bytes)", url, [[sub data] length]);
 #endif
-		return [sub data];	// may return incomplete data or even nil!
+		data=[sub data];
+		if(!data && stall)	//incomplete
+			[[(_WebHTMLDocumentRepresentation *) [source representation] _parser] _stall:YES];	// make parser stall until we have loaded
+		return data;
 		}
 	return nil;
+}
+
+// WebDocumentRepresentation callbacks
+
+- (void) setDataSource:(WebDataSource *) dataSource; { return; }
+
+- (void) finishedLoadingWithDataSource:(WebDataSource *) source;
+{ // our subresource did load - i.e. we can clear the stall on the main HTML script
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+	WebDataSource *mainsource=[htmlDocument _webDataSource];
+#if 1
+	NSLog(@"clear stall for %@", self);
+	NSLog(@"source: %@", source);
+	NSLog(@"mainsource: %@", mainsource);
+	NSLog(@"rep: %@", [mainsource representation]);
+#endif
+	[[(_WebHTMLDocumentRepresentation *) [mainsource representation] _parser] _stall:NO];
+}
+
+- (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
+{ // we received the next framgment of the script
+#if 1
+	NSLog(@"stalling subresource %@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+#endif
+}
+
+- (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
+{ // error loading external script
+	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
 }
 
 - (void) _layout:(NSView *) parent;
@@ -374,12 +407,23 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (void) _triggerEvent:(NSString *) event;
 {
-	NSString *code=[self getAttribute:event];
-	if(code)
+	NSString *script=[self getAttribute:event];
+	if(script)
 		{
-		NSLog(@"trigger %@=%@", event, code);
+#if 1
+		NSLog(@"trigger %@=%@", event, script);
+#endif
 		// FIXME: make an event object available to the script
-		[self evaluateWebScript:code];	// evaluate code defined by event attribute (protected against exceptions)
+#if 1
+		{
+			id r;
+			NSLog(@"evaluate <script>%@</script>", script);
+			r=[self evaluateWebScript:script];	// try to parse and directly execute script in current document context
+			NSLog(@"result=%@", r);
+		}
+#else
+		[self evaluateWebScript:script];	// evaluate code defined by event attribute (protected against exceptions)
+#endif
 		}
 }
 
@@ -557,9 +601,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 { // e.g. <link rel="stylesheet" type="text/css" href="test.css" />
 	NSString *rel=[[self getAttribute:@"rel"] lowercaseString];
 	if([rel isEqualToString:@"stylesheet"] && [[self getAttribute:@"type"] isEqualToString:@"text/css"])
-		{ // load stylesheet
-		[self _loadSubresourceWithAttributeString:@"href"];
-		// we don't stall here!
+		{ // load stylesheet in background
+		[self _loadSubresourceWithAttributeString:@"href" blocking:NO];
 		}
 	else if([rel isEqualToString:@"home"])
 		{
@@ -628,11 +671,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 {
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
-		{ // external script to load
-		[[(_WebHTMLDocumentRepresentation *) rep _parser] _stall:YES];	// make parser stall until we have loaded
-		[self _loadSubresourceWithAttributeString:@"src"];	// trigger loading of script or get from cache
-															// FIXME: clear only after we received the script!
-		[[(_WebHTMLDocumentRepresentation *) rep _parser] _stall:NO];
+		{ // external script to load first
+#if 1
+		NSLog(@"load <script src=%@>", [self getAttribute:@"src"]);
+#endif
+		[self _loadSubresourceWithAttributeString:@"src" blocking:YES];	// trigger loading of script or get from cache - notifications will be tied to self, i.e. this instance of the <script element>
 		}
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
@@ -646,9 +689,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		return;	// ignore
 	if([self hasAttribute:@"src"])
 		{ // external script
-		NSData *data=[self _loadSubresourceWithAttributeString:@"src"];	// get from cache
+		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// we know that it has been loaded - fetch from cache
 		script=[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+#if 1
 		NSLog(@"external script: %@", script);
+#endif
 		}
 	else
 		script=[(DOMCharacterData *) [self firstChild] data];
@@ -656,28 +701,18 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		{ // not empty
 		if([script hasPrefix:@"<!--"])
 			script=[script substringFromIndex:4];	// remove
-													// checkme: is it permitted to write <script><!CDATA[....?
+		// checkme: is it permitted to write <script><!CDATA[....?
+#if 1
+		{
+		id r;
 		NSLog(@"evaluate <script>%@</script>", script);
-		// FIXME: we should just parse the script and attach to the existing script tree, i.e. build function and statement nodes
-		[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
+		r=[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
+		NSLog(@"result=%@", r);
 		}
-}
-
-// WebDocumentRepresentation callbacks
-
-- (void) setDataSource:(WebDataSource *) dataSource; { return; }
-- (void) finishedLoadingWithDataSource:(WebDataSource *) source; { return; }
-
-- (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
-{
-	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
-	[_visualRepresentation setNeedsLayout:YES];
-	[(NSView *) _visualRepresentation setNeedsDisplay:YES];
-}
-
-- (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
-{ // default error handler
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+#else
+		[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
+#endif
+		}
 }
 
 @end
@@ -1274,7 +1309,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	[cell setTarget:self];
 	[cell setAction:@selector(_imgAction:)];
-	data=[self _loadSubresourceWithAttributeString:@"src"];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+	data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
 	if(data)
 		{
 		image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
