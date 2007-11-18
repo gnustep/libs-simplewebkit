@@ -82,6 +82,7 @@
 #import <WebKit/WebView.h>
 #import <WebKit/WebFrame.h>
 #import <WebKit/WebBackForwardList.h>
+#import <WebKit/WebPreferences.h>
 
 #import "ECMAScriptParser.h"
 #import "ECMAScriptEvaluator.h"
@@ -300,6 +301,36 @@ static NSArray *_htmlMimeTypes;
 - (IBAction) goBack:(id) sender; { [_backForwardList goBack]; }
 - (IBAction) goForward:(id) sender; { [_backForwardList goForward]; }
 
+- (BOOL) goForward;
+{
+	if([self canGoForward])
+		{
+		[_backForwardList goForward];
+		return YES;
+		}
+	return NO;
+}
+
+- (BOOL) goBack;
+{
+	if([self canGoBack])
+		{
+		[_backForwardList goBack];
+		return YES;
+		}
+	return NO;
+}
+
+- (BOOL) goToBackForwardItem:(WebHistoryItem *) item
+{
+	if(_backForwardList && [_backForwardList containsItem:item])
+		{
+		[_backForwardList goToItem:item];
+		return YES;
+		}
+	return NO;
+}
+
 - (NSString *) applicationNameForUserAgent; { return _applicationName; }
 - (void) setApplicationNameForUserAgent:(NSString *) name; { _applicationName=[name retain]; }
 - (NSString *) customUserAgent; { return _customAgent; }
@@ -489,30 +520,48 @@ static NSArray *_htmlMimeTypes;
 	return nil;
 }
 
+- (BOOL) isEditable; { return _editable; }
+- (void) setEditable:(BOOL) flag; { _editable=flag; }
+
+- (WebPreferences *) preferences; { return _preferences?_preferences:[WebPreferences standardPreferences]; }
+- (NSString *) preferencesIdentifier; { return [[self preferences] identifier]; }
+- (void) setPreferences:(WebPreferences *) prefs; { ASSIGN(_preferences, prefs); }
+- (void) setPreferencesIdentifier:(NSString *) ident; { [self setPreferences:[[[WebPreferences alloc] initWithIdentifier:ident] autorelease]]; }
+
+- (NSWindow *) hostWindow; { return _hostWindow; }
+- (void) setHostWindow:(NSWindow *) win; { ASSIGN(_hostWindow, win); }
+
+- (NSString *) userAgentForURL:(NSURL *) url
+{
+	return [self customUserAgent];
+}
+
+- (BOOL) supportsTextEncoding;
+{
+	// FIXME: depends on data source contents (used to enable/disable a text encoding menu)
+	return YES;
+}
+
+// we should substitute _hostWindow if available!
+
 /* incomplete implementation of class 'WebView'
+
+we should implement:
 
 method definition for '+URLTitleFromPasteboard:' not found
 method definition for '+URLFromPasteboard:' not found
-method definition for '-writeSelectionWithPasteboardTypes:toPasteboard:' not found
 method definition for '-writeElement:withPasteboardTypes:toPasteboard:' not found
-method definition for '-windowScriptObject' not found
-method definition for '-userAgentForURL:' not found
+
+we do not implement for now because they are for HTML/DOM Editing:
+
+method definition for '-writeSelectionWithPasteboardTypes:toPasteboard:' not found
 method definition for '-undoManager' not found
-method definition for '-supportsTextEncoding' not found
 method definition for '-spellCheckerDocumentTag' not found
 method definition for '-smartInsertDeleteEnabled' not found
 method definition for '-showGuessPanel:' not found
 method definition for '-setTypingStyle:' not found
 method definition for '-setSmartInsertDeleteEnabled:' not found
 method definition for '-setSelectedDOMRange:affinity:' not found
-method definition for '-setPreferencesIdentifier:' not found
-method definition for '-setPreferences:' not found
-method definition for '-setPolicyDelegate:' not found
-method definition for '-setMediaStyle:' not found
-method definition for '-setHostWindow:' not found
-method definition for '-setEditingDelegate:' not found
-method definition for '-setEditable:' not found
-method definition for '-setDownloadDelegate:' not found
 method definition for '-setContinuousSpellCheckingEnabled:' not found
 method definition for '-selectionAffinity' not found
 method definition for '-selectedDOMRange' not found
@@ -522,9 +571,6 @@ method definition for '-replaceSelectionWithNode:' not found
 method definition for '-replaceSelectionWithMarkupString:' not found
 method definition for '-replaceSelectionWithArchive:' not found
 method definition for '-removeDragCaret' not found
-method definition for '-preferencesIdentifier' not found
-method definition for '-preferences' not found
-method definition for '-policyDelegate' not found
 method definition for '-performFindPanelAction:' not found
 method definition for '-pasteFont:' not found
 method definition for '-pasteboardTypesForSelection' not found
@@ -533,16 +579,8 @@ method definition for '-pasteAsRichText:' not found
 method definition for '-pasteAsPlainText:' not found
 method definition for '-paste:' not found
 method definition for '-moveDragCaretToPoint:' not found
-method definition for '-isEditable' not found
 method definition for '-isContinuousSpellCheckingEnabled' not found
-method definition for '-hostWindow' not found
-method definition for '-goToBackForwardItem:' not found
-method definition for '-goForward' not found
-method definition for '-goBack' not found
-
-method definition for '-editingDelegate' not found
 method definition for '-editableDOMRangeForPoint:' not found
-method definition for '-downloadDelegate' not found
 method definition for '-deleteSelection' not found
 method definition for '-delete:' not found
 method definition for '-cut:' not found
@@ -570,9 +608,10 @@ method definition for '-alignCenter:' not found
 - (NSArray *) webView:(WebView *) sender contextMenuItemsForElement:(NSDictionary *) element defaultMenuItems:(NSArray *) menu; { return menu; }
 - (WebView *) webView:(WebView *) sender createWebViewWithRequest:(NSURLRequest *) request; { return nil; }
 - (unsigned) webView:(WebView *) sender dragDestinationActionMaskForDraggingInfo:(id <NSDraggingInfo>) mask; { return WebDragDestinationActionAny; }
+
 - (unsigned) webView:(WebView *) sender dragSourceActionMaskForPoint:(NSPoint) point;
 {
-	if(0 /* editable */)
+	if([sender isEditable])
 		return (WebDragSourceActionAny & ~WebDragSourceActionLink);
 	else
 		return WebDragDestinationActionAny;

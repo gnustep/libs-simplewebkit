@@ -156,7 +156,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @end
 
-// read this from WebPreferences!
+// FIXME: read this from our WebPreferences!
+// [[webView preferences] fixedFontFamily] etc.
+// [[webView preferences] fixedFontSize] etc.
 
 #define DEFAULT_FONT_SIZE 16.0
 #define DEFAULT_FONT @"Times"
@@ -1279,7 +1281,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 {
 	NSCell *cell;
-	NSData *data;
 	NSImage *image=nil;
 	NSTextAttachment *attachment;
 	NSFileWrapper *wrapper;
@@ -1309,14 +1310,17 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	[cell setTarget:self];
 	[cell setAction:@selector(_imgAction:)];
-	data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+	// if([[webView preferences] loadsImagesAutomatically])
+	{
+		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
 	if(data)
-		{
+		{ // we got some or all
 		image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
 		[image setScalesWhenResized:YES];
 		}
+	}
 	if(!image)
-		{
+		{ // could not convert
 		image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
 		[image setScalesWhenResized:NO];	// hm... does not really work
 		}

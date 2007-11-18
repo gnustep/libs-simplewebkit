@@ -69,6 +69,9 @@
 			return NO;
 			}
 		}
+#if 1
+	NSLog(@"token scanned: %@", str);
+#endif
 	return YES;
 }
 
@@ -85,6 +88,9 @@
 		*str=cachedIdentifier;
 		// FIXME: appears to raise an exception in certain situations (if we are at the end?)
 		[self setScanLocation:cacheEnd];	// pretend that we have really scanned
+#if 1
+		NSLog(@"identifier: %@", *str);
+#endif
 		return YES;
 		}
 	if(!symbolCharacterSet)
@@ -103,6 +109,9 @@
 	*str=cachedIdentifier;
 	[cachedIdentifier retain];	// store
 	cacheEnd=[self scanLocation];	// where to go forward
+#if 1
+	NSLog(@"identifier cached: %@", *str);
+#endif
 	return YES;
 }
 
@@ -111,7 +120,12 @@
 	unsigned back=[self scanLocation];
 	NSString *ident=@"";
 	if([self _scanIdentifier:&ident] && [ident isEqualToString:str])
+		{
+#if 1
+		NSLog(@"keyword scanned: %@", str);
+#endif
 		return YES;	// ok!
+		}
 	[self setScanLocation:back];	// back up (and keep in identifier cache)
 	return NO;
 }
@@ -124,28 +138,28 @@
 
 + (void) _skipComments:(NSScanner *) sc;
 { // 7.4
-		static NSString *cComment=@"/*";
-		 static NSString *cCommentEnd=@"*/";
-		 static NSString *cPlusPlusComment=@"//";
-			 // switch scanner to skip whitespace
-		while(YES)
-		{
-			[sc setCharactersToBeSkipped:[NSCharacterSet whitespaceCharacterSet]];	// initially eat all whitespace (but no new lines)
-			if([sc scanString:cPlusPlusComment intoString:NULL])
-				{
-				[sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
-				[sc scanUpToString:@"\n" intoString:NULL];
-				}
-			else if([sc scanString:cComment intoString:NULL])
-				{
-				[sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
-				[sc scanUpToString:cCommentEnd intoString:NULL];
-				[sc scanString:cCommentEnd intoString:NULL];	// and eat stop string
-				// how to handle the multiline comment rule that inserts a virtual \n?
-				}
-			else
-				return;	// neither
-		}
+	static NSString *cComment=@"/*";
+	 static NSString *cCommentEnd=@"*/";
+	 static NSString *cPlusPlusComment=@"//";
+										 // switch scanner to skip whitespace
+		 while(YES)
+			 {
+			 [sc setCharactersToBeSkipped:[NSCharacterSet whitespaceCharacterSet]];	// initially eat all whitespace (but no new lines)
+			 if([sc scanString:cPlusPlusComment intoString:NULL])
+				 {
+				 [sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
+				 [sc scanUpToString:@"\n" intoString:NULL];
+				 }
+			 else if([sc scanString:cComment intoString:NULL])
+				 {
+				 [sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
+				 [sc scanUpToString:cCommentEnd intoString:NULL];
+				 [sc scanString:cCommentEnd intoString:NULL];	// and eat stop string
+																// how to handle the multiline comment rule that inserts a virtual \n?
+				 }
+			 else
+				 return;	// neither
+			 }
 }
 
 /* expressions 11. */
@@ -356,9 +370,13 @@
 			}
 		else
 			{ // invalid symbol
-			[self throwException:[NSString stringWithFormat:@"unexpected character %C", [[sc string] characterAtIndex:[sc scanLocation]]]];
-//			NSLog(@"unexpected character %C", [[sc string] characterAtIndex:[sc scanLocation]]);
-//			[sc setScanLocation:[sc scanLocation]+1];	// skip at least one character each time
+			unsigned from=MAX(0, ((int) [sc scanLocation])-10);
+			unsigned len=MIN(20, [[sc string] length]-[sc scanLocation]);
+			[self throwException:[NSString stringWithFormat:@"unexpected character %C (%04x) in %@",
+					[[sc string] characterAtIndex:[sc scanLocation]],
+					[[sc string] characterAtIndex:[sc scanLocation]],
+					[[sc string] substringWithRange:NSMakeRange(from, len)]
+					]];
 			r=nil;
 			}
 		}
@@ -863,6 +881,8 @@
 			}
 		return r;
 		}
+	if([sc scanString:@"\n" intoString:NULL])
+		return nil;	// empty statement
 	if([sc _scanToken:@";"])
 		return nil;	// empty statement if we can't avoid...
 	if([sc _scanKeyword:@"var"])

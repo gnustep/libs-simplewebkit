@@ -182,7 +182,7 @@
 
 - (void) _setRepresentation:(id <WebDocumentRepresentation>) rep;
 {
-	[_representation autorelease];
+	[(NSObject *) _representation autorelease];
 	_representation=[(NSObject *) rep retain];
 	[_representation setDataSource:self];		// we are the data source of the rep
 }

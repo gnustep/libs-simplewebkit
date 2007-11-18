@@ -129,9 +129,9 @@ extern NSString *WebViewProgressStartedNotification;
 - (NSDictionary *) elementAtPoint:(NSPoint) point;
 - (double) estimatedProgress;
 - (id) frameLoadDelegate;	// uses informal WebFrameLoadDelegate protocol
-- (void) goBack;
+- (BOOL) goBack;
 - (IBAction) goBack:(id) sender;
-- (void) goForward;
+- (BOOL) goForward;
 - (IBAction) goForward:(id) sender;
 - (BOOL) goToBackForwardItem:(WebHistoryItem *) item;
 - (NSString *) groupName;
