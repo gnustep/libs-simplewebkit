@@ -32,6 +32,7 @@ WebKit.h \
 WebPDFDocument.h \
 WebPlugin.h \
 WebPluginContainer.h \
+WebPreferences.h \
 WebResource.h \
 WebResourceLoadDelegate.h \
 WebScriptObject.h \
@@ -65,6 +66,7 @@ WebHistory.m \
 WebHistoryItem.m \
 WebImageDocument.m \
 WebPDFDocument.m \
+WebPreferences.m \
 WebResource.m \
 WebScriptObject.m \
 WebTextDocument.m \
