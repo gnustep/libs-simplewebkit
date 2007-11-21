@@ -44,19 +44,31 @@
 
 // special look-forward scanners for tokens
 
-- (BOOL) _scanToken:(NSString *) str;	// does not match "&" with "&="
+- (BOOL) _scanToken:(NSString *) str;
+- (BOOL) _scanMultiToken:(NSString *) str;	// does not match e.g. "&" with "&="
 - (BOOL) _scanIdentifier:(NSString **) str;
 - (BOOL) _scanKeyword:(NSString *) str;	// does not match "in" with "int"
+- (void) _scanError:(NSString *) message;
 
 @end
 
 @implementation NSScanner (_WebScriptTreeNode)
 
-- (BOOL) _scanToken:(NSString *) str;	// does not match "&" with "&="
+- (BOOL) _scanToken:(NSString *) str;	// would match "&" with "&="
+{
+	if(![self scanString:str intoString:NULL])
+		return NO;	// no verbatim prefix match
+#if 1
+	NSLog(@"token scanned: %@", str);
+#endif
+	return YES;
+}
+
+- (BOOL) _scanMultiToken:(NSString *) str;	// does not match "&" with "&="
 {
 	unsigned back=[self scanLocation];
 	if(![self scanString:str intoString:NULL])
-		return NO;	// no real match
+		return NO;	// no verbatim prefix match
 	if(![self isAtEnd])
 		{ // check that next character is a non-token (blank, letter, digit, quote etc.)
 		static NSCharacterSet *multi;
@@ -70,7 +82,7 @@
 			}
 		}
 #if 1
-	NSLog(@"token scanned: %@", str);
+	NSLog(@"multi token scanned: %@", str);
 #endif
 	return YES;
 }
@@ -86,7 +98,6 @@
 	if(cachedScanner == self && loc == cache && cachedIdentifier)
 		{ // was simply backed up since last call
 		*str=cachedIdentifier;
-		// FIXME: appears to raise an exception in certain situations (if we are at the end?)
 		[self setScanLocation:cacheEnd];	// pretend that we have really scanned
 #if 1
 		NSLog(@"identifier: %@", *str);
@@ -95,7 +106,7 @@
 		}
 	if(!symbolCharacterSet)
 		{ // FIXME: we must allow any Unicode letter or digit (7.6) or _ or $ or \Unicode escape + some punctuation...
-		symbolCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"_$abcdefghijlmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
+		symbolCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
 		}
 	[cachedIdentifier release];
 	cache=loc;	// remember new position
@@ -130,6 +141,37 @@
 	return NO;
 }
 
+- (void) _scanError:(NSString *) message;
+{
+	NSString *str=[self string];
+	int pos=[self scanLocation];
+	unsigned from=MAX(0, pos-10);
+	unsigned length=MIN(20, [str length]-pos);
+	message=[NSString stringWithFormat:@"%@\n%@\n%@^",
+		message,
+		[str substringWithRange:NSMakeRange(from, length)],
+		// FIXME: pad only as much as from the last \n or \r
+		[@"" stringByPaddingToLength:(from<pos?(pos-from):0) withString:@" " startingAtIndex:0]
+		];
+	[[NSException exceptionWithName:@"WebScriptSyntaxErrorException" reason:message userInfo:nil] raise];
+}
+
+@end
+
+@interface NSCharacterSet (NewlineExtension)
++ (NSCharacterSet *) newlineCharacterSet;
+@end
+
+@implementation NSCharacterSet (NewlineExtension)
+
++ (NSCharacterSet *) newlineCharacterSet;
+{
+	static NSCharacterSet *newline;
+	if(!newline)
+		newline=[[NSCharacterSet characterSetWithCharactersInString:@"\n\r"] retain];
+	return newline;
+}
+
 @end
 
 @implementation _WebScriptTreeNode
@@ -144,11 +186,11 @@
 										 // switch scanner to skip whitespace
 		 while(YES)
 			 {
-			 [sc setCharactersToBeSkipped:[NSCharacterSet whitespaceCharacterSet]];	// initially eat all whitespace (but no new lines)
+			 [sc setCharactersToBeSkipped:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// initially eat all whitespace (but no new lines)
 			 if([sc scanString:cPlusPlusComment intoString:NULL])
-				 {
+				 { // until end of line
 				 [sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
-				 [sc scanUpToString:@"\n" intoString:NULL];
+				 [sc scanUpToCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL];
 				 }
 			 else if([sc scanString:cComment intoString:NULL])
 				 {
@@ -173,14 +215,16 @@
 	[self _skipComments:sc];
 	if([sc isAtEnd])
 		{
-		[self throwException:@"unexpected end of file"];
+		[sc _scanError:@"unexpected end of file"];
 		return nil;	// unexpected EOF
 		}
 	else if([sc _scanToken:@"("])
 		{ // grouping operator 11.1.6
+		[self _skipComments:sc];
 		r=[self _expressionWithScanner:sc noIn:NO];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
-			[self throwException:@"syntax error - missing )"];
+			[sc _scanError:@"syntax error - missing )"];
 		}
 	else if([sc _scanToken:@"["])
 		{ // ArrayLiteral 11.1.4
@@ -201,9 +245,10 @@
 					break;
 				if([sc isAtEnd])
 					{ // error
-					[self throwException:@"unexpected end of file in [ ... ]"];
+					[sc _scanError:@"unexpected end of file in [ ... ]"];
 					}
 				[values addObject:[self _assignmentExpressionWithScanner:sc noIn:NO]];
+				[self _skipComments:sc];
 				[sc _scanToken:@","];	// skip if present
 				}
 			r=[_WebScriptTreeNodeArrayLiteralConstructor node:nil :values];	// should call constructor on the Array object like "new Array()"
@@ -224,11 +269,11 @@
 				[keys addObject:[self _assignmentExpressionWithScanner:sc noIn:NO]];
 				[self _skipComments:sc];
 				if(![sc _scanToken:@":"])
-					[self throwException:@"missing : in { ... }"];
+					[sc _scanError:@"missing : in { ... }"];
 				[values addObject:[self _assignmentExpressionWithScanner:sc noIn:NO]];
 				[self _skipComments:sc];
 				if([sc isAtEnd])
-					[self throwException:@"unexpected end of file in { ... }"];
+					[sc _scanError:@"unexpected end of file in { ... }"];
 				if([sc _scanToken:@","])
 					continue;	// next index
 				if([sc _scanToken:@"}"])
@@ -249,6 +294,11 @@
 		[sc scanUpToCharactersFromSet:doubleQuoteStopCharacterSet intoString:&string];
 		// FIXME: handle escape sequences
 		[sc _scanToken:@"\""];	// should have been a double quote
+#if 1
+		NSLog(@"parsed \"%@\"", string);
+		if([string isEqualToString:@"[B]"])
+			NSLog(@"");
+#endif
 		r=string;
 		}
 	else if([sc _scanToken:@"'"])
@@ -261,12 +311,15 @@
 		// FIXME: handle escape sequences
 		[sc scanUpToCharactersFromSet:quoteStopCharacterSet intoString:&string];
 		[sc _scanToken:@"'"];	// should have been a single quote
-																						// if we allow to glue strings together, i.e. "abc"   "def", then check for a second quote and glue fragments together
+		// FIXME: if we allow to glue strings together, i.e. "abc"   "def", then check for a second quote and glue fragments together
+#if 1
+		NSLog(@"parsed '%@'", string);
+#endif
 		r=string;
 		}
 	else if([sc _scanToken:@"/"])
 		{ // regexp literal 7.8.5   /pattern/flags
-		[self throwException:@"regexp literals not implemented"];
+		[sc _scanError:@"regexp literals not implemented"];
 		r=nil;	// not implemented
 		}
 	else if([sc _scanToken:@"0x"])	// we have setCaseSensitive:NO - which does not harm parsing of identifiers
@@ -363,19 +416,16 @@
 						nil];
 					}
 				if([reservedWords containsObject:string])
-					[self throwException:[NSString stringWithFormat:@"unexpected keyword: %@", string]];
+					[sc _scanError:[NSString stringWithFormat:@"unexpected keyword: %@", string]];
 				else
 					r=[_WebScriptTreeNodeIdentifier node:nil :string];	// return the identifier (evaluation will form a reference)
 				}
 			}
 		else
 			{ // invalid symbol
-			unsigned from=MAX(0, ((int) [sc scanLocation])-10);
-			unsigned len=MIN(20, [[sc string] length]-[sc scanLocation]);
-			[self throwException:[NSString stringWithFormat:@"unexpected character %C (%04x) in %@",
+			[sc _scanError:[NSString stringWithFormat:@"unexpected character %C (%04x)",
 					[[sc string] characterAtIndex:[sc scanLocation]],
-					[[sc string] characterAtIndex:[sc scanLocation]],
-					[[sc string] substringWithRange:NSMakeRange(from, len)]
+					[[sc string] characterAtIndex:[sc scanLocation]]
 					]];
 			r=nil;
 			}
@@ -388,6 +438,7 @@
 	id l;
 	if([sc _scanKeyword:@"new"])
 		{ // new xxx (arguments)
+		[self _skipComments:sc];
 		l=[self _lhsExpressionWithScanner:sc forNew:YES];
 		if([l isKindOfClass:[_WebScriptTreeNodeCall class]])
 			l=[_WebScriptTreeNodeNew node:((_WebScriptTreeNodeCall*)l)->left :((_WebScriptTreeNodeCall *)l)->right];
@@ -395,10 +446,11 @@
 			l=[_WebScriptTreeNodeNew node:l :nil];	// no arguments
 		}
 	else if([sc _scanKeyword:@"function"])
-		{
-		l=[self _functionExpressionWithScanner:sc optIdentifier:YES]; 
+		{ // function xx (arguments) { body }
+		l=[self _functionExpressionWithScanner:sc optIdentifier:YES]; // allow anonymous functions
 		}
-	l=[self _primaryExpressionWithScanner:sc];
+	else
+		l=[self _primaryExpressionWithScanner:sc];
 	while(![sc isAtEnd])
 		{ // suffix operators may follow
 		[self _skipComments:sc];
@@ -410,11 +462,12 @@
 				{
 				do
 					{
+					[self _skipComments:sc];
 					[arglist addObject:[self _assignmentExpressionWithScanner:sc noIn:flag]];
 					[self _skipComments:sc];
 					} while([sc _scanToken:@","]);
 				if(![sc _scanToken:@")"])
-					[self throwException:@"missing ) in function(arguments)"];
+					[sc _scanError:@"missing ) in function(arguments)"];
 				}
 			l=[_WebScriptTreeNodeCall node:l :arglist];
 			if(flag)
@@ -422,15 +475,19 @@
 			}
 		else if([sc _scanToken:@"["])
 			{ // array/object indexing - 11.2.1
+			[self _skipComments:sc];
 			l=[_WebScriptTreeNodeIndex node:l :[self _expressionWithScanner:sc noIn:NO]];
+			[self _skipComments:sc];
 			if(![sc _scanToken:@"]"])
-				[self throwException:@"missing ] in object[index]"];
+				[sc _scanError:@"missing ] in object[index]"];
 			}
 		else if([sc _scanToken:@"."])
 			{ // apply and make a reference
-			id r=[self _primaryExpressionWithScanner:sc];
+			id r;
+			[self _skipComments:sc];
+			r=[self _primaryExpressionWithScanner:sc];
 			if(![r _isIdentifier])
-				[self throwException:@"not an identifier in object.identifier"];
+				[sc _scanError:@"not an identifier in object.identifier"];
 			l=[_WebScriptTreeNodeIndex node:l :[r getIdentifier]];	// convert to index expression
 			}
 		else
@@ -486,22 +543,22 @@
 		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=UMinusMinus;
 		}
-	else if([sc _scanToken:@"+"])
+	else if([sc _scanMultiToken:@"+"])
 		{ // 11.4.6
 		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Plus;
 		}
-	else if([sc _scanToken:@"-"])
+	else if([sc _scanMultiToken:@"-"])
 		{ // 11.4.7
 		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Minus;
 		}
-	else if([sc _scanToken:@"~"])
+	else if([sc _scanMultiToken:@"~"])
 		{ // 11.4.8
 		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Neg;
 		}
-	else if([sc _scanToken:@"!"])
+	else if([sc _scanMultiToken:@"!"])
 		{ // logical not
 		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Not;
@@ -518,17 +575,17 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		if([sc _scanToken:@"*"])
+		if([sc _scanMultiToken:@"*"])
 			{ // 11.5.1
 			l=[_WebScriptTreeNodeMultiplicative node:l :[self _unaryExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeMultiplicative *)l)->op=Mult;
 			}
-		else if([sc _scanToken:@"/"])
+		else if([sc _scanMultiToken:@"/"])
 			{ // 11.5.2
 			l=[_WebScriptTreeNodeMultiplicative node:l :[self _unaryExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeMultiplicative *)l)->op=Div;
 			}
-		else if([sc _scanToken:@"%"])
+		else if([sc _scanMultiToken:@"%"])
 			{ // 11.5.3
 			l=[_WebScriptTreeNodeMultiplicative node:l :[self _unaryExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeMultiplicative *)l)->op=Mod;
@@ -546,12 +603,12 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		if([sc _scanToken:@"+"])
+		if([sc _scanMultiToken:@"+"])
 			{ // 11.6.1
 			l=[_WebScriptTreeNodeAdditive node:l :[self _multiplicativeExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeAdditive *)l)->op=Add;
 			}
-		else if([sc _scanToken:@"-"])
+		else if([sc _scanMultiToken:@"-"])
 			{ // 11.6.2
 			l=[_WebScriptTreeNodeAdditive node:l :[self _multiplicativeExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeAdditive *)l)->op=Sub;
@@ -569,17 +626,17 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		if([sc _scanToken:@"<<"])
+		if([sc _scanMultiToken:@"<<"])
 			{ // 11.7.1
 			l=[_WebScriptTreeNodeShift node:l :[self _additiveExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeShift *)l)->op=Shl;
 			}
-		else if([sc _scanToken:@">>>"])
+		else if([sc _scanMultiToken:@">>>"])
 			{ // 11.7.3
 			l=[_WebScriptTreeNodeShift node:l :[self _additiveExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeShift *)l)->op=UShr;
 			}
-		else if([sc _scanToken:@">>"])
+		else if([sc _scanMultiToken:@">>"])
 			{ // 11.7.2
 			l=[_WebScriptTreeNodeShift node:l :[self _additiveExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeShift *)l)->op=Shr;
@@ -597,17 +654,7 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		if([sc _scanToken:@"<"])
-			{ // 11.8.1
-			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
-			((_WebScriptTreeNodeRelational *)l)->op=LessThan;
-			}
-		else if([sc _scanToken:@">"])
-			{ // 11.8.2
-			l=[_WebScriptTreeNodeRelational node:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
-			((_WebScriptTreeNodeRelational *)l)->op=LessThan;
-			}
-		else if([sc _scanToken:@"<="])
+		if([sc _scanToken:@"<="])
 			{ // 11.8.3
 			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeRelational *)l)->op=LessEqual;
@@ -616,6 +663,16 @@
 			{ // 11.8.4
 			l=[_WebScriptTreeNodeRelational node:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
 			((_WebScriptTreeNodeRelational *)l)->op=LessEqual;
+			}
+		else if([sc _scanMultiToken:@"<"])
+			{ // 11.8.1
+			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
+			((_WebScriptTreeNodeRelational *)l)->op=LessThan;
+			}
+		else if([sc _scanMultiToken:@">"])
+			{ // 11.8.2
+			l=[_WebScriptTreeNodeRelational node:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
+			((_WebScriptTreeNodeRelational *)l)->op=LessThan;
 			}
 		else if([sc _scanKeyword:@"instanceof"])
 			{ // 11.8.6
@@ -651,12 +708,12 @@
 			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeEquality *)l)->strict=YES;
 			}
-		else if([sc _scanToken:@"=="])
+		else if([sc _scanMultiToken:@"=="])
 			{ // 11.9.1
 			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeEquality *)l)->equal=YES;
 			}
-		else if([sc _scanToken:@"!="])
+		else if([sc _scanMultiToken:@"!="])
 			{ // 11.9.2
 			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			}
@@ -673,8 +730,7 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		// FIXME: we must peek that next character is not a second & or a &=
-		if([sc _scanToken:@"&"])
+		if([sc _scanMultiToken:@"&"])
 			{
 			l=[_WebScriptTreeNodeBitwise node:l :[self _equalityExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeBitwise *)l)->op=And;
@@ -692,7 +748,7 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		if([sc _scanToken:@"^"])
+		if([sc _scanMultiToken:@"^"])
 			{
 			l=[_WebScriptTreeNodeBitwise node:l :[self _bitwiseAndExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeBitwise *)l)->op=Xor;
@@ -710,7 +766,7 @@
 	while(YES)
 		{
 		[self _skipComments:sc];
-		if([sc _scanToken:@"|"])
+		if([sc _scanMultiToken:@"|"])
 			{
 			l=[_WebScriptTreeNodeBitwise node:l :[self _bitwiseXorExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeBitwise *)l)->op=Or;
@@ -767,7 +823,7 @@
 		r=[self _assignmentExpressionWithScanner:sc noIn:NO];
 		[self _skipComments:sc];
 		if(![sc _scanToken:@":"])
-			[self throwException:@"missing : in c?a:b"];
+			[sc _scanError:@"missing : in c?a:b"];
 		l=[_WebScriptTreeNodeConditional node:l :r];
 		((_WebScriptTreeNodeConditional *)l)->otherwise=[[self _assignmentExpressionWithScanner:sc noIn:flag] retain];
 		}
@@ -852,6 +908,7 @@
 		[self _skipComments:sc];
 		if([sc _scanToken:@","])
 			{ // comma operator
+			[self _skipComments:sc];
 			l=[_WebScriptTreeNodeComma node:l :[self _assignmentExpressionWithScanner:sc noIn:flag]];
 			}
 		else
@@ -873,7 +930,7 @@
 		while(![sc _scanToken:@"}"])
 			{
 			if([sc isAtEnd])
-				[self throwException:@"missing } in { statement block }"];
+				[sc _scanError:@"missing } in { statement block }"];
 			if([sc _scanToken:@";"])
 				continue;	// ignore empty statements
 			r=[_WebScriptTreeNodeStatementList node:r :[self _statementWithScanner:sc]];
@@ -881,18 +938,18 @@
 			}
 		return r;
 		}
-	if([sc scanString:@"\n" intoString:NULL])
-		return nil;	// empty statement
 	if([sc _scanToken:@";"])
 		return nil;	// empty statement if we can't avoid...
 	if([sc _scanKeyword:@"var"])
 		{ // 12.2 - variable declaration (list)
 		r=nil;
+		[self _skipComments:sc];
 		while(YES)
 			{
 			id l=[self _primaryExpressionWithScanner:sc];
 			if(![l isKindOfClass:[_WebScriptTreeNodeIdentifier class]])
-				[self throwException:@"missing identifier in var statement"];
+				[sc _scanError:@"missing identifier in var statement"];
+			[self _skipComments:sc];
 			if([sc _scanToken:@"="])
 				l=[_WebScriptTreeNodeVar node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 			else
@@ -909,25 +966,35 @@
 	else if([sc _scanKeyword:@"if"])
 		{ // 12.5
 		id l;
+		[self _skipComments:sc];
 		if(![sc _scanToken:@"("])
-			[self throwException:@"missing ( in if(expr) statement"];
+			[sc _scanError:@"missing ( in if(expr) statement"];
+		[self _skipComments:sc];
 		l=[self _expressionWithScanner:sc noIn:NO];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
-			[self throwException:@"missing ) in if(expr) statement"];
+			[sc _scanError:@"missing ) in if(expr) statement"];
 		r=[_WebScriptTreeNodeIf node:l :[self _statementWithScanner:sc]];
 		[self _skipComments:sc];
 		if([sc _scanKeyword:@"else"])
+			{
+			[self _skipComments:sc];
 			((_WebScriptTreeNodeIf *) r)->otherwise=[[self _statementWithScanner:sc] retain];
+			}
 		}
 	else if([sc _scanKeyword:@"do"])
 		{ // 12.6.1
 		id l;
+		[self _skipComments:sc];
 		r=[self _statementWithScanner:sc];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@"("])
-			[self throwException:@"missing ( in do statement while(expr)"];
+			[sc _scanError:@"missing ( in do statement while(expr)"];
+		[self _skipComments:sc];
 		l=[self _expressionWithScanner:sc noIn:NO];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
-			[self throwException:@"missing ) in do statement while(expr)"];
+			[sc _scanError:@"missing ) in do statement while(expr)"];
 		r=[_WebScriptTreeNodeIteration node:l :r];
 		((_WebScriptTreeNodeIteration *)r)->op=Do;
 		}
@@ -935,10 +1002,13 @@
 		{ // 12,6,2
 		id l;
 		if(![sc _scanToken:@"("])
-			[self throwException:@"missing ( in while(expr) statement"];
+			[sc _scanError:@"missing ( in while(expr) statement"];
+		[self _skipComments:sc];
 		l=[self _expressionWithScanner:sc noIn:NO];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
-			[self throwException:@"missing ) in while(expr) statement"];
+			[sc _scanError:@"missing ) in while(expr) statement"];
+		[self _skipComments:sc];
 		r=[_WebScriptTreeNodeIteration node:l :[self _statementWithScanner:sc]];
 		((_WebScriptTreeNodeIteration *)r)->op=While;
 		}
@@ -949,15 +1019,16 @@
 		id inc=nil;		// continue & increment part
 		BOOL forIn=NO;
 		if(![sc _scanToken:@"("])
-			[self throwException:@"missing ( in for(...) statement"];
+			[sc _scanError:@"missing ( in for(...) statement"];
 		[self _skipComments:sc];
 		if(![sc _scanToken:@";"])
-			{
+			{ // for(x in ...
 			if([sc _scanKeyword:@"var"])
-				{ // with var declaration list - move declaration outside of for loop
+				{ // with var declaration list - move declaration outside of the for loop
 				NIMP;
 				}
 			init=[self _expressionWithScanner:sc noIn:YES];	// first expression - no in!
+			[self _skipComments:sc];
 			if([sc _scanKeyword:@"in"])
 				{ // for(variable in expression)
 				forIn=YES;
@@ -965,36 +1036,46 @@
 				// setup the enumerator
 				// make loop enumerate into the lhs variable
 				// condition becomes false if there isn't anything more to get
+				[self _skipComments:sc];
 				cond=[self _expressionWithScanner:sc noIn:NO];	// object to enumerate
+				[self _skipComments:sc];
 				if(![sc _scanToken:@")"])
-					[self throwException:@"missing ) in for(x in expr) statement"];
+					[sc _scanError:@"missing ) in for(x in expr) statement"];
+				[self _skipComments:sc];
 				r=[_WebScriptTreeNodeIteration node:cond :[self _statementWithScanner:sc]];
 				((_WebScriptTreeNodeIteration *)r)->op=ForIn;	// make virtual while loop with inc part
 				}
 			else if(![sc _scanToken:@";"])
-				[self throwException:@"missing first ; in for(...) statement"];
+				[sc _scanError:@"missing first ; in for(...) statement"];
 			}
 		if(!forIn)
-			{ // in-version already done
-		if(![sc _scanToken:@";"])
-			{
-			cond=[self _expressionWithScanner:sc noIn:NO];	// second expression
+			{ // in-version already tried
 			if(![sc _scanToken:@";"])
-				[self throwException:@"missing second ; in for(...) statement"];
-			}
-		if(![sc _scanToken:@")"])
-			[self throwException:@"missing ) in for(...) statement"];
-		r=[_WebScriptTreeNodeIteration node:cond :[self _statementWithScanner:sc]];
-		((_WebScriptTreeNodeIteration *)r)->op=While;	// make virtual while loop with inc part
-		((_WebScriptTreeNodeIteration *)r)->inc=inc;
+				{ // not an empty condition
+				cond=[self _expressionWithScanner:sc noIn:NO];	// second expression
+				[self _skipComments:sc];
+				if(![sc _scanToken:@";"])
+					[sc _scanError:@"missing second ; in for(...) statement"];
+				}
+			if(![sc _scanToken:@")"])
+				{ // not an empty increment
+				inc=[self _expressionWithScanner:sc noIn:NO];	// second expression
+				[self _skipComments:sc];
+				if(![sc _scanToken:@")"])
+					[sc _scanError:@"missing ) in for(...) statement"];
+				}
+			[self _skipComments:sc];
+			r=[_WebScriptTreeNodeIteration node:cond :[self _statementWithScanner:sc]];
+			((_WebScriptTreeNodeIteration *)r)->op=While;	// make virtual while loop with inc part
+			((_WebScriptTreeNodeIteration *)r)->inc=inc;
 			}
 		if(init)
-			r=[_WebScriptTreeNodeIteration node:init :r];	// initialize first
+			r=[_WebScriptTreeNodeIteration node:init :r];	// initialize first and then loop
 		}
 	else if([sc _scanKeyword:@"continue"])
 		{ // 12.7
 		r=nil;
-		if(![sc _scanToken:@";"] && ![sc scanString:@"\n" intoString:NULL])
+		if(![sc _scanToken:@";"] && ![sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			r=[self _primaryExpressionWithScanner:sc];
 			// Check that it is really an identifier!
 		r=[_WebScriptTreeNodeIteration node:nil :r];
@@ -1003,7 +1084,7 @@
 	else if([sc _scanKeyword:@"break"])
 		{ // 12.8
 		r=nil;
-		if(![sc _scanToken:@";"] && ![sc scanString:@"\n" intoString:NULL])
+		if(![sc _scanToken:@";"] && ![sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			r=[self _primaryExpressionWithScanner:sc];
 		// Check that it is really an identifier!
 		r=[_WebScriptTreeNodeIteration node:nil :r];
@@ -1012,7 +1093,7 @@
 	else if([sc _scanKeyword:@"return"])
 		{ // 12.9
 		r=nil;
-		if(![sc _scanToken:@";"] && ![sc scanString:@"\n" intoString:NULL])
+		if(![sc _scanToken:@";"] && ![sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			r=[self _expressionWithScanner:sc noIn:NO];
 		r=[_WebScriptTreeNodeReturn node:nil :r];
 		((_WebScriptTreeNodeReturn *) r)->op=Return;
@@ -1021,10 +1102,12 @@
 		{ // 12.10
 		id l;
 		if(![sc _scanToken:@"("])
-			[self throwException:@"missing ( in with(object) expression"];
+			[sc _scanError:@"missing ( in with(object) expression"];
+		[self _skipComments:sc];
 		l=[self _expressionWithScanner:sc noIn:NO];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
-			[self throwException:@"missing ) in with(object) expression"];
+			[sc _scanError:@"missing ) in with(object) expression"];
 		r=[_WebScriptTreeNodeWith node:l :[self _expressionWithScanner:sc noIn:NO]];
 		}
 	else if([sc _scanKeyword:@"switch"])
@@ -1032,17 +1115,21 @@
 		NSMutableArray *cases=[NSMutableArray new];
 		NSMutableArray *statements=[NSMutableArray new];
 		r=[_WebScriptTreeNodeSwitch node:cases :statements];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@"("])
-			[self throwException:@"missing ( in switch(expr) block"];
+			[sc _scanError:@"missing ( in switch(expr) block"];
+		[self _skipComments:sc];
 		((_WebScriptTreeNodeSwitch *) r)->expr=[[self _expressionWithScanner:sc noIn:NO] retain];
+		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
-			[self throwException:@"missing ) in switch(expr) block"];
+			[sc _scanError:@"missing ) in switch(expr) block"];
 		// go through statement block, collect case+statements and add them to the arrays
 		// "default" is added to ((_WebScriptTreeNodeReturn *) r)->otherwise
 		// can check for multiple defaults
 		}
 	else if([sc _scanKeyword:@"throw"])
 		{ // 12.13
+		[self _skipComments:sc];
 		r=[_WebScriptTreeNodeReturn node:nil :[self _expressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeReturn *) r)->op=Throw;
 		}
@@ -1050,25 +1137,30 @@
 		{ // 12.13
 		id ident;
 		id catch=nil;
+		[self _skipComments:sc];
 		r=[self _statementWithScanner:sc];	// should enforce to be a block!
+		[self _skipComments:sc];
 		if([sc _scanKeyword:@"catch"])
 			{ // has catch part
+			[self _skipComments:sc];
 			if(![sc _scanToken:@"("])
-				[self throwException:@"missing ( in catch(ident) block"];
+				[sc _scanError:@"missing ( in catch(ident) block"];
 			if(![sc _scanIdentifier:&ident])
-				[self throwException:@"missing identifier in catch(ident) block"];
+				[sc _scanError:@"missing identifier in catch(ident) block"];
 			if(![sc _scanToken:@")"])
-				[self throwException:@"missing ) in catch(ident) block"];
+				[sc _scanError:@"missing ) in catch(ident) block"];
 			catch=[self _statementWithScanner:sc];	// should enforce to be a block!
 			}
 		r=[_WebScriptTreeNodeTry node:ident :r];
 		((_WebScriptTreeNodeTry *) r)->catch=[catch retain];
+		[self _skipComments:sc];
 		if([sc _scanKeyword:@"finally"])
 			{ // has catch part
+			[self _skipComments:sc];
 			((_WebScriptTreeNodeTry *) r)->finally=[[self _statementWithScanner:sc] retain];	// should enforce to be a block!
 			}
 		if(!((_WebScriptTreeNodeTry *) r)->catch && !((_WebScriptTreeNodeTry *) r)->finally)
-			[self throwException:@"missing catch and finally in try"];
+			[sc _scanError:@"missing catch and finally in try"];
 		}
 	else
 		{ // 12.4
@@ -1089,50 +1181,68 @@
 + (id) _functionExpressionWithScanner:(NSScanner *) sc optIdentifier:(BOOL) flag; 
 {
 	id r;
-	NSString *ident;	// function name
+	NSString *ident=nil;	// function name
 	NSMutableArray *params=[NSMutableArray new];
 	[self _skipComments:sc];
 	if(![sc _scanIdentifier:&ident] && !flag)
-		[self throwException:@"missing name in function name (parameters) { body }"];
+		[sc _scanError:@"missing name in function name (parameters) { body }"];
+	[self _skipComments:sc];
 	if(![sc _scanToken:@"("])
-		[self throwException:@"missing ( in function (parameters) { body }"];
-	while(YES)
+		[sc _scanError:@"missing ( in function (parameters) { body }"];
+	[self _skipComments:sc];
+	if(![sc _scanToken:@")"])
 		{
-		NSString *param;
+		while(YES)
+			{
+			NSString *param;
+			[self _skipComments:sc];
+			if([sc isAtEnd])
+				[sc _scanError:@"unexpected EOF in function (parameters)"];
+			if(![sc _scanIdentifier:&param])
+				[sc _scanError:@"missing parameter name in function name (parameters) { body }"];
+			[params addObject:param];
+			[self _skipComments:sc];
+			if(![sc _scanToken:@","])
+				break;
+			}
 		[self _skipComments:sc];
-		if([sc isAtEnd])
-			[self throwException:@"unexpected EOF in function (parameters)"];
-		if([sc _scanToken:@")"])
-			break;	// done
-		if(![sc _scanIdentifier:&param])
-			[self throwException:@"missing parameter name in function name (parameters) { body }"];
-		[params addObject:param];
-		if(![sc _scanToken:@","])
-			[self throwException:@"missing ) in function (parameters) { body }"];
+		if(![sc _scanToken:@")"])
+			[sc _scanError:@"missing ) in function (parameters) { body }"];
 		}
-	if(![sc _scanToken:@"{"])
-		[self throwException:@"missing { in function (parameters) { body }"];
-	r=[_WebScriptTreeNodeFunction node:ident :[self _programWithScanner:sc]];	// must be made end at }
+	r=[_WebScriptTreeNodeFunction node:ident :[self _programWithScanner:sc block:YES]];	// return on closing }
 	((_WebScriptTreeNodeFunction *)r)->params=params;
-	if(![sc _scanToken:@"}"])
-		[self throwException:@"missing } in function (parameters) { body }"];
 	return r;
 }
 
 /* program 14. */
 
-+ (id) _programWithScanner:(NSScanner *) sc;
++ (id) _programWithScanner:(NSScanner *) sc block:(BOOL) flag;
 {
 	id r=nil;
+	if(flag)
+		{
+		if(![sc _scanToken:@"{"])
+			[sc _scanError:@"missing { in function (parameters) { body }"];
+		}
 	while(YES)
 		{
 		id s;
 		[self _skipComments:sc];
-		// we must also break if the next token is }
-		if([sc isAtEnd])
+		if([sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
+			continue;	// empty statement
+		if(flag && [sc _scanToken:@"}"])
 			break;
+		if([sc isAtEnd])
+			{
+			if(flag)
+				[sc _scanError:@"missing } in function (parameters) { body }"];
+			break;
+			}
 		if([sc _scanKeyword:@"function"])
+			{
+			[self _skipComments:sc];
 			s=[self _functionExpressionWithScanner:sc optIdentifier:NO];
+			}
 		else
 			s=[self _statementWithScanner:sc];
 		if(r)

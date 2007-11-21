@@ -334,12 +334,14 @@
 	NSLog(@"frame provisionalDataSource=%@", [frame provisionalDataSource]);
 	NSLog(@"frame webView=%@", [frame webView]);
 	NSLog(@"frame webView elementAtPoint:(10,10)=%@", [[frame webView] elementAtPoint:NSMakePoint(10.0, 10.0)]);
+#if 0	// check JavaScript DOM integration
 	NSLog(@"webView JavaScript=%@", [[frame webView] stringByEvaluatingJavaScriptFromString:@"document.documentElement.offsetWidth"]);
 	NSLog(@"frame DOMDocument WebScript=%@", [[frame DOMDocument] evaluateWebScript:@"document.documentElement.offsetWidth"]);
 	NSLog(@"windowScriptObject=%@", [sender windowScriptObject]);
 	NSLog(@"windowScriptObject document=%@", [[sender windowScriptObject] valueForKeyPath:@"document"]);
 	NSLog(@"windowScriptObject document.documentElement=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement"]);
 	NSLog(@"windowScriptObject document.documentElement.offsetWidth=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"]);
+#endif
 	// and... print subviews hierarchy
 #endif
 	if(frame == [sender mainFrame])

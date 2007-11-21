@@ -65,7 +65,7 @@
 
 + (id) _functionExpressionWithScanner:(NSScanner *) sc optIdentifier:(BOOL) flag;	// 13.
 
-+ (id) _programWithScanner:(NSScanner *) sc;	// 14.
++ (id) _programWithScanner:(NSScanner *) sc block:(BOOL) flag;	// 14.
 
 @end
 

@@ -15,6 +15,8 @@
 		EE01D45E0B7786570089A538 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4536030A166D7F00C660D5 /* Foundation.framework */; };
 		EE01D45F0B7786570089A538 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4537030A166D9A00C660D5 /* Cocoa.framework */; };
 		EE01D46D0B7786930089A538 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE01D46C0B7786930089A538 /* WebKit.framework */; };
+		EE044A920CF0A0040003D697 /* WebPreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = EE044A900CF0A0040003D697 /* WebPreferences.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE044A930CF0A0040003D697 /* WebPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = EE044A910CF0A0040003D697 /* WebPreferences.m */; };
 		EE1396B50BA5B0EE00A9A16C /* WebDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */; };
 		EE1396B60BA5B0EE00A9A16C /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
 		EE1AB3930C20544A005F3F98 /* SWKBrowser-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */; };
@@ -172,6 +174,8 @@
 		EE01D46C0B7786930089A538 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		EE01D56B0B77A1A30089A538 /* NSXMLParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NSXMLParser.h; sourceTree = "<group>"; };
 		EE01D56C0B77A1A30089A538 /* NSXMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParser.m; sourceTree = "<group>"; };
+		EE044A900CF0A0040003D697 /* WebPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPreferences.h; sourceTree = "<group>"; };
+		EE044A910CF0A0040003D697 /* WebPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPreferences.m; sourceTree = "<group>"; };
 		EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebDocumentRepresentation.h; sourceTree = "<group>"; };
 		EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebDocumentRepresentation.m; sourceTree = "<group>"; };
 		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -453,6 +457,8 @@
 				EEA3D39A095468BA001244CF /* WebKit.h */,
 				EE5EBCF00A1A4E270045B88D /* WebPlugin.h */,
 				EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */,
+				EE044A900CF0A0040003D697 /* WebPreferences.h */,
+				EE044A910CF0A0040003D697 /* WebPreferences.m */,
 				EE428B340A4819A2003437D2 /* WebResource.h */,
 				EE428B350A4819A2003437D2 /* WebResource.m */,
 				EEE9AE680BC6D85100757F02 /* WebResourceLoadDelegate.h */,
@@ -535,6 +541,7 @@
 				EEA3D3AC095468BA001244CF /* WebView.h in Headers */,
 				EE8A01C60B6CD7F800346917 /* WebUIDelegate.h in Headers */,
 				EE60FA7D0BA6943F00503BB4 /* WebUndefined.h in Headers */,
+				EE044A920CF0A0040003D697 /* WebPreferences.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -789,6 +796,7 @@
 				EE6FBB1C0C21D9F80095EEA6 /* WebPDFDocument.m in Sources */,
 				EE6FBB200C21D9F80095EEA6 /* WebXMLDocument.m in Sources */,
 				EE6FBBC60C21DBD00095EEA6 /* WebTextDocument.m in Sources */,
+				EE044A930CF0A0040003D697 /* WebPreferences.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

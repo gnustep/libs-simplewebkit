@@ -417,7 +417,7 @@
 @implementation DOMCharacterData
 
 - (id) init; { if((self=[super init])) { _nodeValue=[[NSMutableString alloc] initWithCapacity:30]; } return self; }
-- (void) dealloc; { [_nodeValue release]; [super dealloc]; }
+// - (void) dealloc; { [super dealloc]; }
 
 - (NSString *) description;
 {

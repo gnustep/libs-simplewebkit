@@ -72,4 +72,13 @@ static NSString *PREF_DOMAIN=@"com.quantum-step.WebKit.WebPreferences";
 STRING_GETTER(defaultTextEncodingName, @"TextEncoding");
 STRING_SETTER(setDefaultTextEncodingName, @"TextEncoding");
 
+- (void) encodeWithCoder:(NSCoder *) coder;
+{
+	NIMP;
+}
+
+- (id) initWithCoder:(NSCoder *) coder;
+{
+}
+
 @end

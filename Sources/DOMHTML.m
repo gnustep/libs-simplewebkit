@@ -416,6 +416,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		NSLog(@"trigger %@=%@", event, script);
 #endif
 		// FIXME: make an event object available to the script
+		// FIXME: make depend on [[webView preferences] isJavaScriptEnabled]
 #if 1
 		{
 			id r;
@@ -663,17 +664,17 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLScriptElement
 
-// FIXME: implement the WebDocumentRepresentation protocol
-
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // ignore scripts for rendering
+	return;
 }
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
-		{ // external script to load first
+		// FIXME: && [[webView preferences] isJavaScriptEnabled])
+		{ // we have an external script to load first
 #if 1
 		NSLog(@"load <script src=%@>", [self getAttribute:@"src"]);
 #endif
@@ -687,24 +688,29 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSString *type=[self getAttribute:@"type"];	// should be "text/javascript" or "application/javascript"
 	NSString *lang=[[self getAttribute:@"lang"] lowercaseString];	// optional language "JavaScript" or "JavaScript1.2"
 	NSString *script;
+	// FIXME: if(![[webView preferences] isJavaScriptEnabled]) return;	// ignore script
 	if(![type isEqualToString:@"text/javascript"] && ![type isEqualToString:@"application/javascript"] && ![lang hasPrefix:@"javascript"])
 		return;	// ignore
 	if([self hasAttribute:@"src"])
 		{ // external script
-		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// we know that it has been loaded - fetch from cache
+		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// if we are called, we know that it has been loaded - fetch from cache
 		script=[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 #if 1
 		NSLog(@"external script: %@", script);
+#endif
+#if 0
+		NSLog(@"raw: %@", data);
 #endif
 		}
 	else
 		script=[(DOMCharacterData *) [self firstChild] data];
 	if(script)
-		{ // not empty
+		{ // not empty and not disabled
 		if([script hasPrefix:@"<!--"])
 			script=[script substringFromIndex:4];	// remove
 		// checkme: is it permitted to write <script><!CDATA[....?
 #if 1
+
 		{
 		id r;
 		NSLog(@"evaluate <script>%@</script>", script);

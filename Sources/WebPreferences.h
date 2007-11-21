@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 
 
-@interface WebPreferences : NSObject	// this is a proxy into NSUserDefaults
+@interface WebPreferences : NSObject <NSCoding>	// this is a proxy into NSUserDefaults
 {
 	NSMutableDictionary *_dict;
 	NSString *_identifier;
