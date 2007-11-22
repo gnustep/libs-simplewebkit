@@ -7,6 +7,7 @@
 //
 
 #import "WebPreferences.h"
+#import "Private.h"
 
 NSString *WebPreferencesChangedNotification=@"WebPreferencesChangedNotification";
 

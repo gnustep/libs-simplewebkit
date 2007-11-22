@@ -160,10 +160,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 // [[webView preferences] fixedFontFamily] etc.
 // [[webView preferences] fixedFontSize] etc.
 
-#define DEFAULT_FONT_SIZE 16.0
+#define DEFAULT_FONT_SIZE 12.0
 #define DEFAULT_FONT @"Times"
 #define DEFAULT_BOLD_FONT @"Times-Bold"
-#define DEFAULT_TT_SIZE 13.0
+#define DEFAULT_TT_SIZE 12.0
 #define DEFAULT_TT_FONT @"Courier"
 
 @implementation DOMElement (DOMHTMLElement)
