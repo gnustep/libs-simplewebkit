@@ -124,7 +124,7 @@
 	<string>DOMHTMLPreElement</string>
 	<key>s</key>
 	<string>DOMHTMLElement</string>
-	<key>sample</key>
+	<key>samp</key>
 	<string>DOMHTMLElement</string>
 	<key>script</key>
 	<string>DOMHTMLScriptElement</string>
