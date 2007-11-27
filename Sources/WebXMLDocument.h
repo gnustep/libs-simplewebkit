@@ -32,7 +32,18 @@
 
 @interface _WebXMLDocumentRepresentation : _WebDocumentRepresentation
 {
-	RENAME(DOMDocument) *_root;		// if not (X)HTML - XML document root
+	id _parser;
+	RENAME(DOMDocument) *_doc;		// XML document root
+	RENAME(DOMDocument) *_root;		// XML document root
+	DOMElement *_current;	// current XML element
+}
+
+@end
+
+@interface _WebXMLDocumentView : NSTextView <WebDocumentView>
+{
+	WebDataSource *_dataSource;
+	BOOL _needsLayout;
 }
 
 @end

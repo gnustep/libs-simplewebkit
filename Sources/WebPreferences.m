@@ -75,11 +75,12 @@ STRING_SETTER(setDefaultTextEncodingName, @"TextEncoding");
 
 - (void) encodeWithCoder:(NSCoder *) coder;
 {
-	NIMP;
 }
 
 - (id) initWithCoder:(NSCoder *) coder;
 {
+	[self release];
+	return nil;
 }
 
 @end

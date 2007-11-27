@@ -120,6 +120,10 @@ If not, write to the Free Software Foundation,
 
 - (void) layout;
 {
+	NSImage *image=[(_WebImageDocumentRepresentation *) [_dataSource representation] getImage];
+	NSLog(@"WebImageView layout img=%@", image);
+	[self setImage:image];
+	//	[self setFrame:(NSRect){ NSZeroPoint, [image size] }];	// resize to fit
 }
 
 - (void) setDataSource:(WebDataSource *) source;
@@ -128,12 +132,8 @@ If not, write to the Free Software Foundation,
 }
 
 - (void) setNeedsLayout:(BOOL) flag;
-{ // getImage from our rep.
-  // we could/should postpone until we really drawRect
-	NSImage *image=[(_WebImageDocumentRepresentation *) [_dataSource representation] getImage];
-	NSLog(@"img=%@", image);
-	[self setImage:image];
-	//	[self setFrame:(NSRect){ NSZeroPoint, [image size] }];	// resize to fit
+{
+	_needsLayout=flag;
 }
 
 - (void) viewDidMoveToHostWindow;
@@ -146,4 +146,10 @@ If not, write to the Free Software Foundation,
 	// FIXME:
 }
 
+- (void) drawRect:(NSRect) rect
+{
+	if(_needsLayout)
+		[self layout];
+	[super drawRect:rect];
+}
 @end

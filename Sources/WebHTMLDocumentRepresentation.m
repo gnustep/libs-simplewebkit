@@ -45,6 +45,10 @@
 #include "NSXMLParser.h"	// directly include header here - note that the class is renamed!
 #include "NSXMLParser.m"	// directly include source here - note that the class is renamed!
 
+@interface NSXMLParser (Private)
+- (void) _parseData:(NSData *) data;
+@end
+
 #endif
 
 @implementation _WebHTMLDocumentRepresentation
@@ -292,7 +296,7 @@ static NSDictionary *tagtable;
 
 - (void) parser:(NSXMLParser *) parser foundIgnorableWhitespace:(NSString *) whitespaceString;
 {
-#if 0
+#if 0	// ignore ignorable text
 	if([whitespaceString length] > 0)
 		{
 		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:_doc];

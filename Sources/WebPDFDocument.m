@@ -38,3 +38,51 @@
 - (NSString *) title; { return [[[_dataSource response] URL] absoluteString]; }
 
 @end
+
+@implementation _WebPDFDocumentView
+
+- (id) initWithFrame:(NSRect) rect
+{
+	if((self=[super initWithFrame:rect]))
+		{
+		}
+	return self;
+}
+
+- (void) dataSourceUpdated:(WebDataSource *) source;
+{
+}
+
+- (void) layout;
+{
+	// update contents from binary data
+}
+
+- (void) setDataSource:(WebDataSource *) source;
+{
+	_dataSource=source;
+}
+
+- (void) setNeedsLayout:(BOOL) flag;
+{ // getImage from our rep.
+	_needsLayout=flag;
+}
+
+- (void) viewDidMoveToHostWindow;
+{
+	// FIXME:
+}
+
+- (void) viewWillMoveToHostWindow:(NSWindow *) win;
+{
+	// FIXME:
+}
+
+- (void) drawRect:(NSRect) rect
+{
+	if(_needsLayout)
+		[self layout];
+	[super drawRect:rect];
+}
+
+@end

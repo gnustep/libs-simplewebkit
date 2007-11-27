@@ -155,10 +155,10 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:[_WebImageDocumentView class]
 		representationClass:[_WebImageDocumentRepresentation class]
 				forMIMEType:@"image/"];		// match all images
-	[self registerViewClass:self	// [_WebPDFDocumentView class] - subclass of NSPDFView
+	[self registerViewClass:[_WebPDFDocumentView class]
 		representationClass:[_WebPDFDocumentRepresentation class]
 				forMIMEType:@"text/pdf"];
-	[self registerViewClass:self	// [_WebXMLDocumentView class]
+	[self registerViewClass:[_WebXMLDocumentView class]
 		representationClass:[_WebXMLDocumentRepresentation class]
 				forMIMEType:@"text/xml"];
 	[self registerViewClass:[_WebTextDocumentView class]
