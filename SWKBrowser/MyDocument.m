@@ -274,7 +274,7 @@
 
 - (void) webView:(WebView *)sender didStartProvisionalLoadForFrame:(WebFrame *)frame
 {
-		NSURL *url=[[[frame provisionalDataSource] request] URL];
+	NSURL *url=[[[frame provisionalDataSource] request] URL];
 #if 1
 	NSLog(@"didStartProvisionalLoadForFrame:%@", frame);
 #endif

@@ -233,8 +233,9 @@
 - (void) _load;
 {
 	WebView *webView=[_webFrame webView];
+	[self retain];	// the frameLoadDelegate may send us a release by loading a different web address
 	if([_request isKindOfClass:[_NSURLRequestNSData class]])
-		{
+		{ // handle special mySTEP case when loading from NSData
 		_connection=[NSObject new];	// dummy connection object
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
 		if(!_parent)
@@ -256,6 +257,7 @@
 		if(!_parent)
 			[[webView frameLoadDelegate] webView:webView didStartProvisionalLoadForFrame:_webFrame];
 		}
+	[self release];
 }
 
 - (void) _setWebFrame:(WebFrame *) wf;
