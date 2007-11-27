@@ -329,7 +329,7 @@ static NSDictionary *entitiesTable;
 			{ // tag starts
 			NSString *tag;
 			NSMutableDictionary *parameters;
-			const char *tp;	// tag pointer
+			const char *tp=++cp;	// remember where tag started
 			if(cp < ep-8 && strncmp((char *) cp, "![CDATA[", 8) == 0)
 				{ // start of CDATA
 				tp=cp+=8;
@@ -369,7 +369,6 @@ static NSDictionary *entitiesTable;
 				cp=vp;
 				return;	// still incomplete
 				}
-			tp=++cp;	// remember where tag started
 			if(cp == ep)
 				{
 				if(done)
