@@ -141,16 +141,8 @@
 #if 1
 	NSLog(@"loading %@", _provisionalDataSource);
 #endif
-	[_provisionalDataSource _setWebFrame:self];	// this may trigger the whole loading execution chain
+	[_provisionalDataSource _setWebFrame:self];	// this may trigger the whole loading execution chain - which may even issue a new reload!
 }
-
-#if OLD
-- (void) _receivedData:(WebDataSource *) dataSource;
-{ // let our WebDataView know
-	NSLog(@"WebFrame _receivedData");
-	[(NSView <WebDocumentView> *)[_frameView documentView] dataSourceUpdated:dataSource];
-}
-#endif
 
 - (void) _failedWithError:(NSError *) error;
 { // data source failed
