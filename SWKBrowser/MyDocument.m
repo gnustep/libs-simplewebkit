@@ -34,7 +34,7 @@
 	[webView setGroupName:@"MyDocument"];
 	[webView setMaintainsBackForwardList:YES];
 	[webView setCustomUserAgent:nil];
-	[webView setApplicationNameForUserAgent:@"GNUstep Web"];
+	[webView setApplicationNameForUserAgent:@"GNUstep Simple WebKit Browser"];
 	[self showStatus:@""];
 	if(!openfile)
 		{ // make dependent on preferences what happens on launch

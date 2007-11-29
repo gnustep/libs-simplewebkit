@@ -102,7 +102,7 @@ If not, write to the Free Software Foundation,
 {
 	if((self=[super initWithFrame:rect]))
 		{
-#ifndef GNUSTEP
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 		[self setAllowsCutCopyPaste:YES];
 		[self setAnimates:YES];
 #endif
@@ -121,7 +121,9 @@ If not, write to the Free Software Foundation,
 - (void) layout;
 {
 	NSImage *image=[(_WebImageDocumentRepresentation *) [_dataSource representation] getImage];
+#if 1
 	NSLog(@"WebImageView layout img=%@", image);
+#endif
 	[self setImage:image];
 	//	[self setFrame:(NSRect){ NSZeroPoint, [image size] }];	// resize to fit
 }

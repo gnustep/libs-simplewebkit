@@ -360,18 +360,18 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		}
 	else if([node isEqualToString:@"U"])
 		{ // make underlined
-#if defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 >= MAC_OS_X_VERSION_MAX_ALLOWED
-		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
-#else	// MacOS X >= 10.3 and mySTEP
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
+#else	// MacOS X < 10.3 and GNUstep
+		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
 #endif
 		}
 	else if([node isEqualToString:@"STRIKE"])
 		{ // make strike-through
-#if defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 >= MAC_OS_X_VERSION_MAX_ALLOWED
-		//		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
-#else	// MacOS X >= 10.3 and mySTEP
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
+#else	// MacOS X < 10.3 and GNUstep
+		//		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
 #endif		
 		}
 	else if([node isEqualToString:@"SUP"])
