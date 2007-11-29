@@ -25,19 +25,16 @@
 #import "WebXMLDocument.h"
 #import <WebKit/WebDocument.h>
 
-#if __mySTEP__
-#define USE_FOUNDATION_XML_PARSER 1	// yes - don't include twice since we have it in our own Foundation
-#else
-#define USE_FOUNDATION_XML_PARSER 0	// no - Apple Foundation's NSXMLParser does not support -_setEncoding and _tagPath and other HTML compatibility extensions
-#endif
-
-#if USE_FOUNDATION_XML_PARSER
+#if __mySTEP__	// don't include twice since we have it in our own Foundation
 
 #import <Foundation/NSXMLParser.h>
 
-#else		// always make mySTEP XMLParser available
+#else		// always use our own NSXMLParser that supports -_setEncoding and _tagPath and other HTML compatibility extensions
 
-#define NSXMLParser WebKitXMLParser				// rename to avoid linker conflicts with Foundation
+#define NSXMLParser WebKitXMLParser								// rename class to avoid linker conflicts with Foundation
+#define parser Webparser										// rename methods to avoid compiler conflicts with Foundation
+#define parserDidStartDocument WebparserDidStartDocument		// rename methods to avoid compiler conflicts with Foundation
+
 #define __WebKit__ 1							// this disables some includes in mySTEP NSXMLParser.h/.m
 
 #include "NSXMLParser.h"	// directly include header here - note that the class is renamed!
