@@ -5,15 +5,35 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-15 Oct 2007
+30 Nov 2007
 -----------
 
+Completion indicator
+
+HTML
+	Loading				99%
+	Parser				95%		(HTML -> DOM Tree)
+	Evaluator			70%		(DOM Tree -> NSAttributedString)
+EcmaScript
+	Loading				100%
+	Parser				90%
+	Evaluator			50%
+	Objects				0%
+CSS
+	Loading				100%
+	Parser				0%
+	Evaluator			0%
+WebView, WebFrame, ...
+	Basics				100%
+	Advanced			50%		(Scrolling, History, Forms, Frames)
+	Editing				0%
+
 High Prio:
-1. make it clear stall after successfully loading <script language="JavaScript" src="source.js" type="text/javascript"> 
-2. solve redisplay/refresh issues
-3. <frame> and scrollers should work correctly
-4. <table> and <ul> elements should really work
-5. make <form> work (buttons and text fields interaction)
+
+1. solve redisplay/refresh issues
+2. <frame> and scrollers should work correctly
+3. <table> and <ul> elements should really work
+4. make <form> work (buttons and text fields interaction)
 
 HTML parsing and error robustness:
 - NSXMLParser:
@@ -26,7 +46,6 @@ HTML parsing and error robustness:
 	  (b) nested? -> "<h1>xxx <h2> xxx </h2></h1> z "
 	is it already ok how we do it or do we need a different rule (NOTE: this is only relevant for MALFORMED HTML!)
   - how do we handle abc<p>def</p> - since we should treat any text before the first <p> as an independent paragraph without explicit formatting
-  - really handle stall and clear for loading script files and @import styles (in WebCSSDocumentRepresentation)
 
 Text Formatting/Typesetting:
 - color does only understand #rrggbb and no plain text names yet
@@ -50,7 +69,7 @@ Forms:
 - <input> does not respond to mouse clicks and become first responder
 
 JavaScript:
-- finalize parser (95% complete) and evaluator (50% complete) and prototype objects (0% complete)
+- finalize parser, evaluator and prototype objects
 - add execution context ("this", global variables, document/event/etc.)
 - add prototype objects Array, Number, Object, String, etc. with their methods
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
@@ -82,14 +101,14 @@ Feature requests:
 - special <input> styles should show a small slider for e.g. <input type="range" min="0" value="100" max="100">
 
 mySTEP's extension requests:
-- NSURLConnection needs:
+- NSURLConnection needs to handle:
   - cookies
   - cache
   - https (using NSSocket(Input|Output)Stream)
   - sending / POST&GET methods
   - header compression
   - server redirection
-  - handle feed: scheme (load feed and translate into an ECMAScript/HTML result)
+  - handle "feed:" scheme (load the feed XML and translate into an ECMAScript/HTML result when done)
 - NSTextTable is not rendered
 - NSTextList is not rendered
 
