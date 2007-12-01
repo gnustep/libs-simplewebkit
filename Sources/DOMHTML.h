@@ -31,7 +31,7 @@
 
 @class _WebHTMLDocumentRepresentation;
 
-@interface DOMElement (DOMHTMLElement)
+@interface DOMNode (DOMHTMLElement)
 
 - (NSString *) outerHTML;
 - (void) setOuterHTML:(NSString *) str;	// this should parse HTML and replace the node type and the contents
@@ -44,18 +44,21 @@
 
 // parser support and control
 
-+ (BOOL) _closeNotRequired;				// has no (explicit) close tag; don't nest this element type
++ (BOOL) _nestedElement;				// has no (explicit) close tag; don't nest this element type
 + (BOOL) _ignore;						// don't create a node for this tag
-// + (BOOL) _goesToHead;				// always make a child of the <head> entry (??? isn't the same as _makeChildOf=@"HEAD")
-+ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;			// return the parent node
 + (BOOL) _singleton;					// collect all attributes if we have multiple tags of this type
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;			// return the parent node
+
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
 - (void) _elementLoaded;	// element has been loaded (i.e. tag was closed)
 
 // rendering support
 
 - (DOMCSSStyleDeclaration *) _cssStyle;	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-- (NSMutableDictionary *) _style;		// get attributes (merging explicit attributes and CSS from this and parent levels)
+- (NSMutableDictionary *) _style;		// get attributes to be spliced (merging explicit attributes and CSS from this and parent levels)
+- (NSString *) _string;					// get string to be spliced
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;	// uses _style and _string to get content to splice - handles block/inline splicing rules 
 
 - (void) _layout:(NSView *) view;		// layout view according to the DOM node (may swap the view within its superview!)
 - (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
@@ -63,6 +66,14 @@
 @end
 
 @interface DOMHTMLElement : DOMElement
+{
+	NSDictionary *_style;	// cached attribute&CSS style
+}
+
+- (DOMCSSStyleDeclaration *) _cssStyle;	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
+- (NSDictionary *) _style;				// get (cached) attributes (merging explicit attributes and CSS from this and parent levels)
+- (NSString *) _string;					// get string to be spliced
+
 @end
 
 @interface DOMHTMLDocument : RENAME(DOMDocument)	// the whole document

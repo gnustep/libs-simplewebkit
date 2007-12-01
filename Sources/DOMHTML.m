@@ -23,7 +23,8 @@ If not, write to the Free Software Foundation,
 
 // FIXME: learn from http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html
 // FIXME: add additional attributes (e.g. images, anchors etc. for DOMHTMLDocument) and DOMHTMLCollection type
-// FIXME: we should separate code from DOM Tree management, HTML parsing, and visual representation
+
+// look at for handling of whitespace: http://www.w3.org/TR/html401/struct/text.html
 
 #import <WebKit/WebView.h>
 #import <WebKit/WebResource.h>
@@ -166,26 +167,38 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #define DEFAULT_TT_SIZE 12.0
 #define DEFAULT_TT_FONT @"Courier"
 
-@implementation DOMElement (DOMHTMLElement)
+@implementation DOMNode (DOMHTMLElement)
 
-+ (BOOL) _closeNotRequired;		{ return NO; }	// default implementation
++ (BOOL) _nestedElement;		{ return YES; }	// default implementation
 + (BOOL) _ignore;				{ return NO; }	// default implementation
 + (BOOL) _singleton;			{ return NO; }	// default implementation
++ (BOOL) _blockLevel;			{ return NO; }	// default - can be overridden by style
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // return the parent node (nil to ignore)
 	return [rep _lastObject];	// default is to build a tree
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+// OLD
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 { // default - subclasses can also check if str ends with a newline and add one only if there isn't one or YES to force to add a new one
 	return NO;	
 }
 
 - (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // splice node and subnodes taking end of last fragment into account
+{ // recursively splice this node and any subnodes, taking end of last fragment into account
 	unsigned i;
-	if([self _shouldSpliceNewline:str])
+#if 1
+	NSDictionary *style=[self _style];
+	NSString *string=[self _string];
+	BOOL lastIsInline=[str length]>0 && [[str attribute:@"display" atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
+	BOOL isInline=[[style objectForKey:@"display"] isEqualToString:@"inline"];
+	if(lastIsInline && !isInline)	// we need to close the last entry
+		[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation inherits attributes of previous section
+	if(isInline && [str length] > 0)
+		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];	// add content
+#else
+	if([self _shouldSpliceNewlineBeforeChildren:str])
 		{ // yes, add a newline with same formatting as previous character
 		NSRange range=NSMakeRange([str length], 0);	// append
 		if([[str string] hasSuffix:@" "])
@@ -195,12 +208,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		else
 			[str replaceCharactersInRange:range withString:@""];	// remove ending space character
 		}
+#endif
 	for(i=0; i<[_childNodes length]; i++)
 		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];	// splice child segments
+	if(!isInline)	// close our block
+		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:style] autorelease]];	// close this block
 }
 
 - (NSAttributedString *) attributedString;
-{ // get part as attributed string
+	{ // get part as attributed string
 	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
 	[self _spliceTo:str];	// recursively splice all child element strings into our string
 	return str;
@@ -227,7 +243,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			}
 		}
 	[str appendFormat:@">\n%@", [self innerHTML]];
-	if(![isa _closeNotRequired])
+	if([isa _nestedElement])
 		[str appendFormat:@"</%@>\n", [self nodeName]];	// close
 	return str;
 }
@@ -324,18 +340,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSString *node=[self nodeName];
 	NSMutableDictionary *s;
 	DOMCSSStyleDeclaration *css;
-	s=[(DOMHTMLElement *) _parentNode _style];	// inherit style from parent
-	if(!s)
-		{
-		NSParagraphStyle *p;
-		s=[NSMutableDictionary dictionary];	// empty (e.g. no parentNode)
-		[s setObject:self forKey:WebElementDOMNodeKey];
-		[s setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
-		p=[[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
-		[s setObject:p forKey:NSParagraphStyleAttributeName];
-		//		WebElementIsSelected = 0; 
-		//		WebElementTargetFrame = <WebFrame: 0x381780>; 
-		}
+	s=[[[(DOMHTMLElement *) _parentNode _style] mutableCopy] autorelease];				// inherit style from parent node
+	[s setObject:self forKey:WebElementDOMNodeKey];			// establish a reference into the DOM tree
+	[s setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
+	[s setObject:[isa _blockLevel]?@"block":@"inline" forKey:@"display"];	// default CSS display style
 	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
 		{ // make bold
 		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
@@ -407,6 +415,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
+- (NSString *) _string; { return @""; }	// default is no content
+
 - (void) _triggerEvent:(NSString *) event;
 {
 	NSString *script=[self getAttribute:event];
@@ -441,6 +451,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLElement
+
++ (BOOL) _blockLevel;			{ return YES; }
+
 @end
 
 @implementation DOMCharacterData (DOMHTMLElement)
@@ -455,10 +468,28 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [self data];
 }
 
+- (NSString *) _string;
+{ // map newlines etc. and squeeze multiple spaces
+	// FIXME: there is a setting in CSS 3.0 which controls this mapping
+	// if we are enclosed in a <PRE> skip this step
+	NSMutableString *s=[[[self data] mutableCopy] autorelease];
+	[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+#if QUESTIONABLE_OPTIMIZATION
+	while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
+		;
+#endif
+	while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
+		;	// trim multiple spaces to single ones as long as we find them
+	return s;
+}
+
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 {
+#if 0
 	NSMutableString *s=[[[self data] mutableCopy] autorelease];
-	[s replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0, [s length])];	// remove
+	[s replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0, [s length])];		// remove
 	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
 	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
 #if QUESTIONABLE_OPTIMIZATION
@@ -467,7 +498,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
 		;	// trim multiple spaces as long as we find them
-	if([s length] == 0)
+	if([s length] == 0 || [s isEqualToString:@" "])
 		return;
 	if([s hasPrefix:@" "])
 		{ // remove any remaining initial space if str already ends with as space or a \n
@@ -476,6 +507,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			[s deleteCharactersInRange:NSMakeRange(0, 1)];	// delete trailing space
 		}
 	[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:s attributes:[(DOMHTMLElement *) _parentNode _style]] autorelease]];
+#else
+	NSDictionary *style=[self _style];
+	NSString *string=[self _string];
+	if([str length] > 0)
+		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];	// add formatted content
+#endif
 }
 
 - (void) _layout:(NSView *) parent;
@@ -555,7 +592,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLMetaElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _nestedElement; { return NO; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -593,7 +630,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLLinkElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _nestedElement; { return NO; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -727,6 +764,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLObjectElement
 
++ (BOOL) _blockLevel;			{ return YES; }
+
 @end
 
 @implementation DOMHTMLParamElement
@@ -735,7 +774,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLFrameSetElement
 
-// FIXME - lock if we have a <body> with children
++ (BOOL) _blockLevel;			{ return YES; }
+
+	// FIXME - lock if we have a <body> with children
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <frameset> node or make child of <html>
@@ -830,6 +871,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLNoFramesElement
 
++ (BOOL) _blockLevel;			{ return YES; }
+
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // ignore content since we support frames
 }
@@ -838,7 +881,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLFrameElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _blockLevel;			{ return YES; }
+
++ (BOOL) _nestedElement; { return NO; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <frameset> node
@@ -919,6 +964,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLObjectFrameElement
 
++ (BOOL) _blockLevel;			{ return YES; }
+
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
 	DOMHTMLElement *n=[rep _lastObject];
@@ -956,6 +1003,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [NSMutableDictionary dictionaryWithObjectsAndKeys:
 		paragraph, NSParagraphStyleAttributeName,
 		font, NSFontAttributeName,
+		self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
+		[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame], WebElementFrameKey,
+		@"inline", @"display",	// treat as inline (i.e. don't surround by \nl)
 		// background color
 		// default text color
 		nil];
@@ -1026,6 +1076,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLDivElement
 
++ (BOOL) _blockLevel;			{ return YES; }
+
 - (NSMutableDictionary *) _style;
 { // provide default styles
 	NSMutableDictionary *s=[super _style];	// inherit style
@@ -1037,7 +1089,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
 }
@@ -1062,6 +1114,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLCenterElement
 
++ (BOOL) _blockLevel;			{ return YES; }
+
 - (NSMutableDictionary *) _style;
 {
 	NSMutableDictionary *s=[super _style];
@@ -1077,7 +1131,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+#if 0
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
 }
@@ -1087,10 +1142,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[super _spliceTo:str];	// add content according to standard rules
 	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
 }
+#endif
 
 @end
 
 @implementation DOMHTMLHeadingElement
+
++ (BOOL) _blockLevel;			{ return YES; }
 
 - (NSMutableDictionary *) _style;
 { // make header (bold)
@@ -1120,7 +1178,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+#if 0
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
 }
@@ -1130,10 +1189,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[super _spliceTo:str];	// add content according to standard rules
 	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
 }
+#endif
 
 @end
 
 @implementation DOMHTMLPreElement
+
++ (BOOL) _blockLevel;			{ return YES; }
 
 - (NSMutableDictionary *) _style;
 {
@@ -1143,7 +1205,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+#if 0
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
 }
@@ -1153,6 +1216,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	[super _spliceTo:str];	// add content according to standard rules
 	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
 }
+#endif
 
 @end
 
@@ -1273,7 +1337,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLImageElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _blockLevel;			{ return NO; }
 
 	// 1. we need an official mechanism to postpone loading until we click on the image (e.g. for HTML mails)
 	// 2. note that images have to be collected in DOMDocument so that we can access them through "document.images[index]"
@@ -1364,22 +1428,41 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLBRElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _blockLevel;	{ return YES; }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
++ (BOOL) _dontNest;		{ return YES; }
+
+// _string could also return a simple New Line character
+
+#if 0
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return YES;	// yes - always
 }
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // handle special cases
+	[super _spliceTo:str];	// add content according to standard rules
+	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
+}
+#endif
 
 @end
 
 @implementation DOMHTMLParagraphElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _blockLevel;	{ return YES; }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
-{
-	return YES;	// yes
++ (BOOL) _dontNest;		{ return YES; }
+
+// FIXME: use the same or similar code for <li>, <dd>, <dt>, <td>, <th>, <h*>
+
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
+{ // return the parent node (nil to ignore)
+	DOMHTMLElement *e=[rep _lastObject];
+	if([[e nodeName] isEqualToString:@"P"])
+		e=(DOMHTMLElement *) [e parentNode];	// don't nest <p> tags
+	return e;
 }
 
 - (NSMutableDictionary *) _style;
@@ -1393,13 +1476,34 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
+#if 0
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
+{
+	return YES;	// yes
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // handle special cases
+	NSAttributedString *nl;
+	[super _spliceTo:str];	// add content according to standard rules
+	// should explicitly set _style!
+	nl=[[NSAttributedString alloc] initWithString:@"\n" attributes:[self _style]];	// insert new line with specific paragraph attributes
+	[str replaceCharactersInRange:NSMakeRange([str length], 0) withAttributedString:nl];
+	[nl release];
+}
+#endif
+
 @end
 
 @implementation DOMHTMLHRElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _blockLevel;			{ return YES; }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
++ (BOOL) _nestedElement; { return NO; }
+
+#if 0
+
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return YES;
 }
@@ -1407,15 +1511,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 - (void) _spliceTo:(NSMutableAttributedString *) str;
 { // add a horizontal line element
 	NSTextAttachment *attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
-	NSHRAttachmentCell *cell=(NSHRAttachmentCell *) [attachment attachmentCell];	// get the real cell
+//	NSHRAttachmentCell *cell=(NSHRAttachmentCell *) [attachment attachmentCell];	// get the real cell
 	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
 }
+#endif
 
 @end
 
 @implementation DOMHTMLTableElement
 
-+ (BOOL) _closeNotRequired; { return NO; }	// be lazy
++ (BOOL) _blockLevel;			{ return YES; }
 
 - (void) dealloc; { [table release]; [super dealloc]; }
 
@@ -1469,7 +1574,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return YES;
 }
@@ -1554,8 +1659,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLTableRowElement
 
-+ (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
-
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <tbody> or <table> node
 	DOMHTMLElement *n=[rep _lastObject];
@@ -1598,7 +1701,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return YES;
 }
@@ -1646,8 +1749,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLTableCellElement
-
-+ (BOOL) _closeNotRequired;		{ return NO; }	// be lazy
 
 - (void) dealloc; { [cell release]; [super dealloc]; }
 
@@ -1710,7 +1811,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return s;
 }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return YES;
 }
@@ -1718,6 +1819,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLFormElement
+
++ (BOOL) _blockLevel;			{ return YES; }
 
 - (NSMutableDictionary *) _style;
 {
@@ -1775,7 +1878,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLInputElement
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _nestedElement;	{ return NO; }
 
 - (void) _updateRadioButtonsWithName:(NSString *) name state:(BOOL) state;
 {
@@ -1950,12 +2053,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLOptionElement
+
 @end
 
 @implementation DOMHTMLOptGroupElement
+
 @end
 
 @implementation DOMHTMLLabelElement
+
 @end
 
 @implementation DOMHTMLTextAreaElement
@@ -1977,9 +2083,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLLIElement	// <li>, <dt>, <dd>
 
-+ (BOOL) _closeNotRequired; { return YES; }
++ (BOOL) _blockLevel;			{ return YES; }
 
-- (BOOL) _shouldSpliceNewline:(NSMutableAttributedString *) str;
+- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
 {
 	return YES;
 }
@@ -1987,9 +2093,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLDListElement		// <dl>
+
++ (BOOL) _blockLevel;			{ return YES; }
+
 @end
 
 @implementation DOMHTMLOListElement		// <ol>
+
++ (BOOL) _blockLevel;			{ return YES; }
 
 - (NSMutableDictionary *) _style;
 { // derive default style within a cell
@@ -2018,6 +2129,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLUListElement		// <ul>
+
++ (BOOL) _blockLevel;			{ return YES; }
 
 - (NSMutableDictionary *) _style;
 { // derive default style within a cell
@@ -2048,4 +2161,5 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLCanvasElement		// <canvas>
+
 @end
