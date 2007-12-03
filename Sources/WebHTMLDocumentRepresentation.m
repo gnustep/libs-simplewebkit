@@ -310,10 +310,11 @@ static NSDictionary *tagtable;
 - (void) parser:(NSXMLParser *) parser didStartElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name attributes:(NSDictionary *) attributes;
 { // handle opening tags
 	Class c=NSClassFromString([tagtable objectForKey:tag]);
-	id newElement=nil;
+	DOMHTMLElement *newElement=nil;
+	DOMHTMLElement *parent;
 	NSEnumerator *e;
 	NSString *key;
-	DOMHTMLElement *parent;
+	DOMHTMLNestingStyle nesting;
 #if 0
 	NSLog(@"%@ %@: <%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
 #endif
@@ -324,14 +325,30 @@ static NSDictionary *tagtable;
 #endif
 		return;	// ignore
 		}
+	nesting=[c _nesting];
+	if(nesting == DOMHTMLIgnore)
+		return;	// ignore
+	if(nesting == DOMHTMLLazyNesting)
+		{ // virtually close previous node if both are lazily nested -- <p>xxx<p>yyy</p></p>
+#if 0	// some test code
+		id last=[_elementStack lastObject];
+		Class class=[last class];
+		DOMHTMLNestingStyle nesting=[class _nesting];
+		if([newElement isKindOfClass:[DOMHTMLParagraphElement class]])
+			NSLog(@"last %@", last);
+#endif
+		if([[[_elementStack lastObject] class] _nesting] == DOMHTMLLazyNesting)
+			{ // has been pushed
+			[[_elementStack lastObject] _elementLoaded];	// run any finalizing code
+			[_elementStack removeLastObject];	// go up one level
+			}
+		}
 	parent=[c _designatedParentNode:self];
 #if 0
 	NSLog(@"<%@> parent node=%@", tag, parent);
 #endif
-	if([c _ignore])
-		return;	// ignore
-	if([c _singleton])
-		{
+	if(nesting == DOMHTMLSingletonNesting)
+		{ // look if designated parent already has a singleton node
 		NSArray *children=[[parent childNodes] _list];
 		unsigned int i, cnt=[children count];
 		NSString *t=[tag uppercaseString];
@@ -359,31 +376,37 @@ static NSDictionary *tagtable;
 		}
 	e=[attributes keyEnumerator];
 	while((key=[e nextObject]))
-		{ // attach (merge) attributes
+		{ // attach or merge attributes
 		NSString *val=[attributes objectForKey:key];
 		if([val class] == [NSNull class])
 			val=nil;
 		if(![newElement hasAttribute:key])
 			[newElement setAttribute:key :val];	// like Safari: merges only not-yet-existing attributes from a repeated tag (e.g. <body attr1></body><body attr2></body>) 
 		}
+	if(nesting == DOMHTMLStandardNesting || nesting == DOMHTMLLazyNesting)
+		[_elementStack addObject:newElement];	// go down one level for new element
 	[newElement _elementDidAwakeFromDocumentRepresentation:self];
-	if(![c _closeNotRequired])
-		[_elementStack addObject:newElement];	// go down one level
 }
 
 - (void) parser:(NSXMLParser *) parser didEndElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name;
 { // handle closing tags
 	Class c=NSClassFromString([tagtable objectForKey:tag]);
+	DOMHTMLNestingStyle nesting=[c _nesting];
+	DOMHTMLElement *element;
 #if 0
 	NSLog(@"%@ %@: </%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
 #endif
 	if(!c)
 		return;	// ignore
-	if([c _ignore])
+	if(nesting == DOMHTMLIgnore)
 		return;	// ignore
-	[[_elementStack lastObject] _elementLoaded];	// any finalizing code
-	if(![c _closeNotRequired])
+	tag=[tag uppercaseString];
+	element=[_elementStack lastObject];
+	if([[element nodeName] isEqualToString:tag])
+		{ // has been pushed
+		[element _elementLoaded];			// any finalizing code
 		[_elementStack removeLastObject];	// go up one level
+		}
 }
 
 @end

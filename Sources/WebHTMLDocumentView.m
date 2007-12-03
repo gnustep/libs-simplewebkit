@@ -409,7 +409,8 @@
 - (void) drawWithFrame:(NSRect)cellFrame
 				inView:(NSView *)controlView
 {
-	[view displayRectIgnoringOpacity:cellFrame];
+	[view setNeedsDisplayInRect:cellFrame];
+	[view drawRect:cellFrame];
 }
 
 - (void) drawWithFrame:(NSRect)cellFrame

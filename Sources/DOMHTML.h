@@ -31,48 +31,75 @@
 
 @class _WebHTMLDocumentRepresentation;
 
-@interface DOMNode (DOMHTMLElement)
+@interface DOMElement (DOMHTMLElement)		// DOMElements also have tag attributes
+
+// generic parser support and control
+
+typedef enum 
+{
+	DOMHTMLNoNesting,			// character-like tags e.g. <img>, <hr>, <br>, <img>
+	DOMHTMLStandardNesting,		// standard e.g. <b>, <ul>, <span>
+	DOMHTMLLazyNesting,			// old HTML compatibility mode: a<p>b<p>c or <ul><li>a<li>b</ul> as a<p>b</p><p>c</p> or <ul><li>a</li><li>b</li></ul>
+	DOMHTMLSingletonNesting,	// merge all into single node (e.g. <body>)
+	DOMHTMLIgnore				// ignore node
+} DOMHTMLNestingStyle;
+
++ (DOMHTMLNestingStyle) _nesting;		// controls building of tree
++ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;			// return the parent node
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
+- (void) _elementLoaded;	// element has been loaded (i.e. tag was closed - not called for all nesting modes)
+
+// HTML access
+
+- (WebFrame *) webFrame;
+
+// subresource loading
+
+- (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
+- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) flag;
+- (void) _triggerEvent:(NSString *) event;
+
+// generic rendering support
+
+
+- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
+
+@end
+
+@interface DOMCharacterData (DOMHTMLElement)	// is not a subclass of DOMElement!
+
+- (NSString *) outerHTML;
+- (NSString *) innerHTML;
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;	// uses _style and _string to get content to splice - handles block/inline splicing rules 
+- (void) _flushStyles;
+
+- (void) _layout:(NSView *) parent;
+
+@end
+
+@interface DOMHTMLElement : DOMElement	// add private methods that need to work for HTML nodes only
+{
+	NSMutableDictionary *_style;	// cached attribute&CSS style
+}
+
+- (NSAttributedString *) attributedString;
 
 - (NSString *) outerHTML;
 - (void) setOuterHTML:(NSString *) str;	// this should parse HTML and replace the node type and the contents
 - (NSString *) innerHTML;
 - (void) setInnerHTML:(NSString *) str;	// this should parse HTML and replace the contents
-- (NSAttributedString *) attributedString;
-- (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
-- (WebFrame *) webFrame;
-- (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) flag;
-
-// parser support and control
-
-+ (BOOL) _nestedElement;				// has no (explicit) close tag; don't nest this element type
-+ (BOOL) _ignore;						// don't create a node for this tag
-+ (BOOL) _singleton;					// collect all attributes if we have multiple tags of this type
-+ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;			// return the parent node
-
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
-- (void) _elementLoaded;	// element has been loaded (i.e. tag was closed)
-
-// rendering support
-
-- (DOMCSSStyleDeclaration *) _cssStyle;	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-- (NSMutableDictionary *) _style;		// get attributes to be spliced (merging explicit attributes and CSS from this and parent levels)
-- (NSString *) _string;					// get string to be spliced
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;	// uses _style and _string to get content to splice - handles block/inline splicing rules 
 
 - (void) _layout:(NSView *) view;		// layout view according to the DOM node (may swap the view within its superview!)
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
+- (void) _spliceTo:(NSMutableAttributedString *) str;	// uses _style and _string to get content to splice - handles block/inline splicing rules 
+- (NSMutableDictionary *) _style;				// get attributes (merging explicit attributes and CSS from this and parent levels)
+- (void) _flushStyles;							// flush style cache
+- (NSString *) _string;							// get string to be spliced
+- (NSTextAttachment *) _attachment;				// get attachment to be spliced
 
-@end
-
-@interface DOMHTMLElement : DOMElement
-{
-	NSDictionary *_style;	// cached attribute&CSS style
-}
-
-- (DOMCSSStyleDeclaration *) _cssStyle;	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-- (NSDictionary *) _style;				// get (cached) attributes (merging explicit attributes and CSS from this and parent levels)
-- (NSString *) _string;					// get string to be spliced
+- (void) _addCSSToStyle;						// add CSS to style
+- (void) _addAttributesToStyle;					// add attributes to style
 
 @end
 

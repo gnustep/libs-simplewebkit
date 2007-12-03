@@ -251,9 +251,9 @@
 				[self _skipComments:sc];
 				[sc _scanToken:@","];	// skip if present
 				}
-			r=[_WebScriptTreeNodeArrayLiteralConstructor node:nil :values];	// should call constructor on the Array object like "new Array()"
-			[values release];
 			}
+		r=[_WebScriptTreeNodeArrayLiteralConstructor node:nil :values];	// should call constructor on the Array object like "new Array()"
+		[values release];
 		}
 	else if([sc _scanToken:@"{"])
 		{ // ObjectLiteral 11.1.5

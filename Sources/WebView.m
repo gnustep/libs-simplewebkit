@@ -163,7 +163,7 @@ static NSArray *_htmlMimeTypes;
 				forMIMEType:@"text/xml"];
 	[self registerViewClass:[_WebTextDocumentView class]
 		representationClass:[_WebTextDocumentRepresentation class]
-				forMIMEType:@"text/"];		// match all other text files and try the best
+				forMIMEType:@"text/"];		// match all other text file typs and try our best
 }
 
 + (NSArray *) MIMETypesShownAsHTML; { return _htmlMimeTypes; }
@@ -542,15 +542,25 @@ static NSArray *_htmlMimeTypes;
 	return YES;
 }
 
++ (NSURL *) URLFromPasteboard:(NSPasteboard *) pasteboard;
+{
+	return NIMP;
+}
+
++ (NSString *) URLTitleFromPasteboard:(NSPasteboard *) pasteboard;
+{
+	return NIMP;
+}
+
+- (void) writeElement:(NSDictionary *) element
+  withPasteboardTypes:(NSArray *) types
+		 toPasteboard:(NSPasteboard *) pasteboard;
+{
+}
+
 // we should substitute _hostWindow if available!
 
 /* incomplete implementation of class 'WebView'
-
-we should implement:
-
-method definition for '+URLTitleFromPasteboard:' not found
-method definition for '+URLFromPasteboard:' not found
-method definition for '-writeElement:withPasteboardTypes:toPasteboard:' not found
 
 we do not implement for now because they are for HTML/DOM Editing:
 

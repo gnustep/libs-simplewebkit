@@ -32,9 +32,9 @@ If not, write to the Free Software Foundation,
 #import "WebHTMLDocumentRepresentation.h"
 #import "Private.h"
 
-static NSString *DOMHTMLElementAttribute=@"DOMHTMLElementAttribute";
 static NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
 static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
+static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 #if !defined(__APPLE__)
 
@@ -161,103 +161,26 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 // [[webView preferences] fixedFontFamily] etc.
 // [[webView preferences] fixedFontSize] etc.
 
-#define DEFAULT_FONT_SIZE 12.0
+#define DEFAULT_FONT_SIZE 16.0
 #define DEFAULT_FONT @"Times"
 #define DEFAULT_BOLD_FONT @"Times-Bold"
-#define DEFAULT_TT_SIZE 12.0
+#define DEFAULT_TT_SIZE 13.0
 #define DEFAULT_TT_FONT @"Courier"
 
-@implementation DOMNode (DOMHTMLElement)
+@implementation DOMElement (DOMHTMLElement)
 
-+ (BOOL) _nestedElement;		{ return YES; }	// default implementation
-+ (BOOL) _ignore;				{ return NO; }	// default implementation
-+ (BOOL) _singleton;			{ return NO; }	// default implementation
-+ (BOOL) _blockLevel;			{ return NO; }	// default - can be overridden by style
+// parser information
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLStandardNesting; }	// default implementation
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // return the parent node (nil to ignore)
 	return [rep _lastObject];	// default is to build a tree
 }
 
-// OLD
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{ // default - subclasses can also check if str ends with a newline and add one only if there isn't one or YES to force to add a new one
-	return NO;	
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // recursively splice this node and any subnodes, taking end of last fragment into account
-	unsigned i;
-#if 1
-	NSDictionary *style=[self _style];
-	NSString *string=[self _string];
-	BOOL lastIsInline=[str length]>0 && [[str attribute:@"display" atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
-	BOOL isInline=[[style objectForKey:@"display"] isEqualToString:@"inline"];
-	if(lastIsInline && !isInline)	// we need to close the last entry
-		[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation inherits attributes of previous section
-	if(isInline && [str length] > 0)
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];	// add content
-#else
-	if([self _shouldSpliceNewlineBeforeChildren:str])
-		{ // yes, add a newline with same formatting as previous character
-		NSRange range=NSMakeRange([str length], 0);	// append
-		if([[str string] hasSuffix:@" "])
-			range.location--, range.length++;	// remove final whitespace as well
-		if(range.location != 0)
-			[str replaceCharactersInRange:range withString:@"\n"];	// this operation inherits attributes of previous section
-		else
-			[str replaceCharactersInRange:range withString:@""];	// remove ending space character
-		}
-#endif
-	for(i=0; i<[_childNodes length]; i++)
-		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];	// splice child segments
-	if(!isInline)	// close our block
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:style] autorelease]];	// close this block
-}
-
-- (NSAttributedString *) attributedString;
-	{ // get part as attributed string
-	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
-	[self _spliceTo:str];	// recursively splice all child element strings into our string
-	return str;
-}
-
 - (WebFrame *) webFrame
 {
 	return [(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame];
-}
-
-- (NSString *) outerHTML;
-{
-	NSMutableString *str=[NSMutableString stringWithFormat:@"<%@", [self nodeName]];
-	if([self respondsToSelector:@selector(_attributes)])
-		{ // has attributes
-		NSEnumerator *e=[[self _attributes] objectEnumerator];
-		DOMAttr *a;
-		while((a=[e nextObject]))
-			{
-			if([a specified])
-				[str appendFormat:@" %@=\"%@\"", [a name], [a value]];			
-			else
-				[str appendFormat:@" %@", [a name]];			
-			}
-		}
-	[str appendFormat:@">\n%@", [self innerHTML]];
-	if([isa _nestedElement])
-		[str appendFormat:@"</%@>\n", [self nodeName]];	// close
-	return str;
-}
-
-- (NSString *) innerHTML;
-{
-	NSString *str=@"";
-	int i;
-	for(i=0; i<[_childNodes length]; i++)
-		{
-		NSString *d=[(DOMHTMLElement *) [_childNodes item:i] outerHTML];
-		str=[str stringByAppendingString:d];
-		}
-	return str;
 }
 
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
@@ -325,101 +248,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
 }
 
-- (void) _layout:(NSView *) parent;
-{
-	NIMP;	// no default implementation!
-}
-
-- (DOMCSSStyleDeclaration *) _cssStyle;
-{ // get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-	return nil;
-}
-
-- (NSMutableDictionary *) _style;
-{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
-	NSString *node=[self nodeName];
-	NSMutableDictionary *s;
-	DOMCSSStyleDeclaration *css;
-	s=[[[(DOMHTMLElement *) _parentNode _style] mutableCopy] autorelease];				// inherit style from parent node
-	[s setObject:self forKey:WebElementDOMNodeKey];			// establish a reference into the DOM tree
-	[s setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
-	[s setObject:[isa _blockLevel]?@"block":@"inline" forKey:@"display"];	// default CSS display style
-	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
-		{ // make bold
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %@ to Bold", [s objectForKey:NSFontAttributeName]);
-		}
-	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
-		{ // make italics
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %@ to Italics", [s objectForKey:NSFontAttributeName]);
-		}
-	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
-		{ // make monospaced
-		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:DEFAULT_TT_FONT];
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:DEFAULT_TT_SIZE*[webView textSizeMultiplier]];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
-		}
-	else if([node isEqualToString:@"U"])
-		{ // make underlined
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
-		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
-#else	// MacOS X < 10.3 and GNUstep
-		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
-#endif
-		}
-	else if([node isEqualToString:@"STRIKE"])
-		{ // make strike-through
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
-		[s setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
-#else	// MacOS X < 10.3 and GNUstep
-		//		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
-#endif		
-		}
-	else if([node isEqualToString:@"SUP"])
-		{ // make superscript
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
-		[s setObject:[NSNumber numberWithInt:1] forKey:NSSuperscriptAttributeName];
-		}
-	else if([node isEqualToString:@"SUB"])
-		{ // make subscript
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f)
-			[s setObject:f forKey:NSFontAttributeName];
-		[s setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
-		}
-	else if([node isEqualToString:@"BIG"])
-		{ // make font larger +1
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		[s setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]*1.2] forKey:NSFontAttributeName];
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]*1.2];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
-		}
-	else if([node isEqualToString:@"SMALL"])
-		{ // make font smaller -1
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
-		}
-	css=[self _cssStyle];
-	// FIXME: apply (additional) CSS style processing here (or at the beginning?)
-	return s;
-}
-
-- (NSString *) _string; { return @""; }	// default is no content
-
 - (void) _triggerEvent:(NSString *) event;
 {
-	NSString *script=[self getAttribute:event];
+	NSString *script=[(DOMElement *) self getAttribute:event];
 	if(script)
 		{
 #if 1
@@ -452,7 +283,220 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
+// FIXME: how do we recognize changes in attributes/CSS to clear the cache?
+// we must also clear the cache of all descendants!
+
+- (void) dealloc
+{
+	[_style release];
+	[super dealloc];
+}
+
+// layout and rendering
+
+- (NSString *) outerHTML;
+{
+	NSMutableString *str=[NSMutableString stringWithFormat:@"<%@", [self nodeName]];
+	if([self respondsToSelector:@selector(_attributes)])
+		{
+		NSEnumerator *e=[[self _attributes] objectEnumerator];
+		DOMAttr *a;
+		while((a=[e nextObject]))
+			{
+			if([a specified])
+				[str appendFormat:@" %@=\"%@\"", [a name], [a value]];			
+			else
+				[str appendFormat:@" %@", [a name]];			
+			}
+		}
+	[str appendFormat:@">%@", [self innerHTML]];
+	if([isa _nesting] != DOMHTMLNoNesting)
+		[str appendFormat:@"</%@>\n", [self nodeName]];	// close
+	return str;
+}
+
+- (NSString *) innerHTML;
+{
+	NSString *str=@"";
+	int i;
+	for(i=0; i<[_childNodes length]; i++)
+		{
+		NSString *d=[(DOMHTMLElement *) [_childNodes item:i] outerHTML];
+		str=[str stringByAppendingString:d];
+		}
+	return str;
+}
+
+// Hm... how do we run the parser here?
+// it can't be the full parser
+// what happens if we set illegal html?
+// what happens if we set unbalanced nodes
+// what happens if we set e.h. <head>, <script>, <frame> etc.?
+
+- (void) setInnerHTML:(NSString *) str; { NIMP; }
+- (void) setOuterHTML:(NSString *) str; { NIMP; }
+
+- (NSAttributedString *) attributedString;
+{ // get part as attributed string
+	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
+	[self _spliceTo:str];	// recursively splice all child element strings into our string
+	[self _flushStyles];	// don't keep them in the DOM Tree
+#if 0
+	[str removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [str length])];
+#endif
+	return str;
+}
+
+- (void) _layout:(NSView *) parent;
+{
+	NIMP;	// no default implementation!
+}
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{ // recursively splice this node and any subnodes, taking end of last fragment into account
+	unsigned i;
+	NSDictionary *style=[self _style];
+	NSTextAttachment *attachment=[self _attachment];
+	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
+	BOOL isInline=[[_style objectForKey:DOMHTMLBlockInlineLevel] isEqualToString:@"inline"];
+	if(lastIsInline && !isInline)	// we need to close the last entry
+		{
+		if([[str string] hasSuffix:@" "])
+			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@"\n"];	// replace space
+		else
+			[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation inherits attributes of the previous section
+		}
+	if(attachment)
+		{ // add styled attachment (if available)
+		NSMutableAttributedString *astr=(NSMutableAttributedString *)[NSMutableAttributedString attributedStringWithAttachment:attachment];
+		[astr addAttributes:style range:NSMakeRange(0, [astr length])];
+		[str appendAttributedString:astr];
+		}
+	else if(isInline)
+		{ // add styled string
+		NSString *string=[self _string];
+		if([string length] > 0)
+			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];	// add content
+		}
+	for(i=0; i<[_childNodes length]; i++)
+		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];	// splice child segments
+	if(!isInline)	// close our block
+		{
+		if([[str string] hasSuffix:@" "])
+			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off space
+		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:style] autorelease]];	// close this block
+		}
+}
+
+- (NSMutableDictionary *) _style;
+{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
+	if(!_style)
+		{
+		_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
+		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
+		[_style setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
+		[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
+		[self _addAttributesToStyle];
+		[self _addCSSToStyle];
+		}
+	return _style;
+}
+
+- (void) _flushStyles;
+{
+	if(_style)
+		{
+		[_style release];
+		_style=nil;
+		}
+	[[_childNodes _list] makeObjectsPerformSelector:_cmd];	// also flush child nodes
+}
+
+- (DOMCSSStyleDeclaration *) _cssStyle;
+{ // get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
+	return nil;
+}
+
+- (void) _addCSSToStyle;				// add CSS to style
+{
+	DOMCSSStyleDeclaration *css;
+	// FIXME
+}
+
+- (void) _addAttributesToStyle;			// add attributes to style
+{ // allow nodes to override by examining the attributes
+	NSString *node=[self nodeName];
+	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
+		{ // make bold
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
+		else NSLog(@"could not convert %@ to Bold", [_style objectForKey:NSFontAttributeName]);
+		}
+	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
+		{ // make italics
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
+		else NSLog(@"could not convert %@ to Italics", [_style objectForKey:NSFontAttributeName]);
+		}
+	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
+		{ // make monospaced
+		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:DEFAULT_TT_FONT];
+		f=[[NSFontManager sharedFontManager] convertFont:f toSize:DEFAULT_TT_SIZE*[webView textSizeMultiplier]];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
+		}
+	else if([node isEqualToString:@"U"])
+		{ // make underlined
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+		[_style setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
+#else	// MacOS X < 10.3 and GNUstep
+		[_style setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
+#endif
+		}
+	else if([node isEqualToString:@"STRIKE"])
+		{ // make strike-through
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+		[_style setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
+#else	// MacOS X < 10.3 and GNUstep
+		//		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
+#endif		
+		}
+	else if([node isEqualToString:@"SUP"])
+		{ // make superscript
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
+		[_style setObject:[NSNumber numberWithInt:1] forKey:NSSuperscriptAttributeName];
+		}
+	else if([node isEqualToString:@"SUB"])
+		{ // make subscript
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
+		if(f)
+			[_style setObject:f forKey:NSFontAttributeName];
+		[_style setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
+		}
+	else if([node isEqualToString:@"BIG"])
+		{ // make font larger +1
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		[_style setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]*1.2] forKey:NSFontAttributeName];
+		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]*1.2];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
+		}
+	else if([node isEqualToString:@"SMALL"])
+		{ // make font smaller -1
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
+		}
+}
+
+- (NSString *) _string; { return @""; }	// default is no content
+
+- (NSTextAttachment *) _attachment; { return nil; }	// default is no attachment
 
 @end
 
@@ -468,8 +512,11 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [self data];
 }
 
-- (NSString *) _string;
-{ // map newlines etc. and squeeze multiple spaces
+- (void) _flushStyles; { return; }	// we may be children but don't chache styles
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{
+	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
 	// FIXME: there is a setting in CSS 3.0 which controls this mapping
 	// if we are enclosed in a <PRE> skip this step
 	NSMutableString *s=[[[self data] mutableCopy] autorelease];
@@ -482,37 +529,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
 		;	// trim multiple spaces to single ones as long as we find them
-	return s;
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{
-#if 0
-	NSMutableString *s=[[[self data] mutableCopy] autorelease];
-	[s replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0, [s length])];		// remove
-	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-#if QUESTIONABLE_OPTIMIZATION
-	while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
-		;
-#endif
-	while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
-		;	// trim multiple spaces as long as we find them
-	if([s length] == 0 || [s isEqualToString:@" "])
-		return;
-	if([s hasPrefix:@" "])
-		{ // remove any remaining initial space if str already ends with as space or a \n
-		NSString *ss=[str string];
-		if([ss hasSuffix:@" "] || [ss hasSuffix:@"\n"])
-			[s deleteCharactersInRange:NSMakeRange(0, 1)];	// delete trailing space
+	if(!lastIsInline && [s hasPrefix:@" "])
+		s=(NSMutableString *)[s substringFromIndex:1];	// strip off leading spaces after blocks (string is immutable but we don't have to change it from now on)
+	if([s length] > 0)
+		{ // is not empty, get style from parent node and append characters
+		NSMutableDictionary *style=[[(DOMHTMLElement *) [self parentNode] _style] mutableCopy];
+		[style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// text must be regarded as inline
+		[style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
+		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:s attributes:style] autorelease]];	// add formatted content
+		[style release];
 		}
-	[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:s attributes:[(DOMHTMLElement *) _parentNode _style]] autorelease]];
-#else
-	NSDictionary *style=[self _style];
-	NSString *string=[self _string];
-	if([str length] > 0)
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];	// add formatted content
-#endif
 }
 
 - (void) _layout:(NSView *) parent;
@@ -524,26 +550,22 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMCDATASection (DOMHTMLElement)
 
+- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore
+
 - (NSString *) outerHTML;
 {
 	return [NSString stringWithFormat:@"<![CDATA[%@]]>", [(DOMHTMLElement *)self innerHTML]];
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // ignore CData
 }
 
 @end
 
 @implementation DOMComment (DOMHTMLElement)
 
+- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore
+
 - (NSString *) outerHTML;
 {
 	return [NSString stringWithFormat:@"<!-- %@ -->\n", [(DOMHTMLElement *)self innerHTML]];
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // ignore comments
 }
 
 @end
@@ -568,11 +590,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLHtmlElement
-+ (BOOL) _ignore; { return YES; }
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLIgnore; }
+
 @end
 
 @implementation DOMHTMLHeadElement
-+ (BOOL) _ignore; { return YES; }
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLIgnore; }
+
 @end
 
 @implementation DOMHTMLTitleElement
@@ -592,7 +618,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLMetaElement
 
-+ (BOOL) _nestedElement; { return NO; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -630,7 +656,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLLinkElement
 
-+ (BOOL) _nestedElement; { return NO; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -684,6 +710,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLStyleElement
 
+// CHECKME - are style definitions "local"?
+
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
 	return [rep _head];
@@ -700,11 +728,6 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 @end
 
 @implementation DOMHTMLScriptElement
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // ignore scripts for rendering
-	return;
-}
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -764,7 +787,12 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLObjectElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
+
+- (void) _addAttributesToStyle
+{
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+}
 
 @end
 
@@ -774,7 +802,10 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLFrameSetElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
+- (void) _addAttributesToStyle
+{
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+}
 
 	// FIXME - lock if we have a <body> with children
 
@@ -871,19 +902,21 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLNoFramesElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // ignore content since we support frames
+- (void) _addAttributesToStyle
+{
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 }
 
 @end
 
 @implementation DOMHTMLFrameElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
+- (void) _addAttributesToStyle
+{
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+}
 
-+ (BOOL) _nestedElement; { return NO; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <frameset> node
@@ -956,15 +989,21 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLIFrameElement
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // make a NSTextAttachmentCell which controls a NSTextView (not part of the view hierarchy???) that loads and renders the frame
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
+
+- (NSTextAttachment *) _attachment;
+{
+	return nil;	// NSTextAttachmentCell which controls a NSTextView/NSWebFrameView that loads and renders its content
 }
 
 @end
 
 @implementation DOMHTMLObjectFrameElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
+- (void) _addAttributesToStyle
+{
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+}
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
@@ -982,7 +1021,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLBodyElement
 
-+ (BOOL) _singleton;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLSingletonNesting; }
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -990,30 +1029,36 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 }
 
 - (NSMutableDictionary *) _style;
-{ // provide default styles
-  // FIXME: cache data until we are modified
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-	NSFont *font=[NSFont fontWithName:DEFAULT_FONT size:DEFAULT_FONT_SIZE*[webView textSizeMultiplier]];	// determine default font
-	NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
-	//	NSColor *background=[[self getAttribute:@"background"] _htmlColor];	// not processed here
-	//	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
-#if 0
-	NSLog(@"_style for <body>: attribs=%@", [self _attributes]);
+{ // provide root styles
+	if(!_style)
+		{
+		// FIXME: cache data until we are modified
+		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+		NSFont *font=[NSFont fontWithName:DEFAULT_FONT size:DEFAULT_FONT_SIZE*[webView textSizeMultiplier]];	// determine default font
+		NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
+		[paragraph setParagraphSpacing:1.5];
+		//	NSColor *background=[[self getAttribute:@"background"] _htmlColor];	// not processed here
+		//	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
+		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
+			paragraph, NSParagraphStyleAttributeName,
+			font, NSFontAttributeName,
+			self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
+			[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame], WebElementFrameKey,
+			@"inline", DOMHTMLBlockInlineLevel,	// treat as inline (i.e. don't surround by \nl)
+									// background color
+									// default text color
+			nil];
+#if 1
+		NSLog(@"_style for <body> with attribs %@ is %@", [self _attributes], _style);
 #endif
-	return [NSMutableDictionary dictionaryWithObjectsAndKeys:
-		paragraph, NSParagraphStyleAttributeName,
-		font, NSFontAttributeName,
-		self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
-		[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame], WebElementFrameKey,
-		@"inline", @"display",	// treat as inline (i.e. don't surround by \nl)
-		// background color
-		// default text color
-		nil];
+		}
+	return _style;
 }
 
 - (void) _layout:(NSView *) view;
 {
-	NSMutableAttributedString *str;
+//	NSMutableAttributedString *str;
+	NSTextStorage *ts;
 	
 	// FIXME: how do we handle <pre> which should not respond to width changes?
 	// maybe, by an NSParagraphStyle
@@ -1028,8 +1073,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 		NSLog(@"replace document view %@ by %@", view, textView);
 #endif
-		[(NSClipView *) [view superview] setDocumentView:view];	// replace
-		view=textView;	// use new
+		[[view enclosingScrollView] setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
+		view=textView;	// use the new view
 		[textView release];
 #if 0
 		NSLog(@"textv=%@", textView);
@@ -1047,18 +1092,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		NSLog(@"vert=%d", [[[[textView superview] superview] superview] hasVerticalScroller]);
 #endif
 		}
-	str=(NSMutableAttributedString *) [self attributedString];
-#if 1
-	NSLog(@"astr length for NSTextView=%u", [str length]);
-#endif
-#if 1
-	NSLog(@"astr for NSTextView=%@", str);
-#endif
-	[[(NSTextView *) view textStorage] setAttributedString:str];	// update content
+	ts=[(NSTextView *) view textStorage];
+	[ts replaceCharactersInRange:NSMakeRange(0, [[(NSTextView *) view textStorage] length]) withString:@""];	// clear current content
+	[self _spliceTo:ts];
+	[self _flushStyles];	// don't keep them in the DOM Tree
+	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
 	[(NSTextView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 														//	[view setLinkTextAttributes: ]	// update for link color
 														//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
-	[view setNeedsDisplay:YES];
+	[[view enclosingScrollView] setNeedsDisplay:YES];
 #if 0	// show view hierarchy
 	{
 		NSView *parent;
@@ -1076,88 +1118,64 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLDivElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSMutableDictionary *) _style;
-{ // provide default styles
-	NSMutableDictionary *s=[super _style];	// inherit style
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[self getAttribute:@"align"];
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
 	// and modify others...
-	return s;
-}
-
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
 
 @implementation DOMHTMLSpanElement
 
-- (NSMutableDictionary *) _style;
-{ // provide default styles
-  // FIXME: cache result until we are modified
-	NSMutableDictionary *s=[super _style];	// inherit style
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[self getAttribute:@"align"];
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
 	// and modify others...
-	return s;
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
 
 @implementation DOMHTMLCenterElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSMutableDictionary *) _style;
-{
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
-	if([[self nodeName] isEqualToString:@"CENTER"])
-		[paragraph setAlignment:NSCenterTextAlignment];	// modify paragraph alignment
-	else if([[self nodeName] isEqualToString:@"BLOCKQUOTE"])
-		{
-		[paragraph setFirstLineHeadIndent:[paragraph firstLineHeadIndent]+20.0];
-		[paragraph setHeadIndent:[paragraph headIndent]+20.0];
-		[paragraph setTailIndent:[paragraph tailIndent]-20.0];
-		}
-	return s;
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	NSString *align=[self getAttribute:@"align"];
+	if(align)
+		[paragraph setAlignment:[align _htmlAlignment]];
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	// and modify others...
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
-
-#if 0
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // handle special cases
-	[super _spliceTo:str];	// add content according to standard rules
-	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
-}
-#endif
 
 @end
 
 @implementation DOMHTMLHeadingElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSMutableDictionary *) _style;
-{ // make header (bold)
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 	float size=DEFAULT_FONT_SIZE*[webView textSizeMultiplier];
 	NSFont *f;
+	[paragraph setHeaderLevel:level];	// if someone wants to convert the attributed string back to HTML...
 	switch(level)
 		{
 		case 1:
@@ -1174,63 +1192,39 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		}
 	f=[NSFont fontWithName:DEFAULT_BOLD_FONT size:size];
 	if(f)
-		[s setObject:f forKey:NSFontAttributeName];	// set header font
-	return s;
+		[_style setObject:f forKey:NSFontAttributeName];	// set header font
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
-
-#if 0
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // handle special cases
-	[super _spliceTo:str];	// add content according to standard rules
-	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
-}
-#endif
 
 @end
 
 @implementation DOMHTMLPreElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSMutableDictionary *) _style;
-{
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
-	// make monospaced and unlimited length and/or determine length from content
-	return s;
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	NSString *align=[self getAttribute:@"align"];
+	// set monospaced font
+	[paragraph setLineBreakMode:NSLineBreakByClipping];
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	// and modify others...
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
-
-#if 0
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return ![[str string] hasSuffix:@"\n"];	// did already end a paragraph
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // handle special cases
-	[super _spliceTo:str];	// add content according to standard rules
-	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
-}
-#endif
 
 @end
 
 @implementation DOMHTMLFontElement
 
-- (NSMutableDictionary *) _style;
-{ // provide font styles
-  // FIXME: cache result until we are modified
+- (void) _addAttributesToStyle;
+{ // add attributes to style
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-	NSMutableDictionary *s=[super _style];	// inherit style
 	NSArray *names=[[self getAttribute:@"face"] componentsSeparatedByString:@","];	// is a comma separated list of potential font names!
 	NSString *size=[self getAttribute:@"size"];
 	NSColor *color=[[self getAttribute:@"color"] _htmlColor];
-	NSFont *f=[s objectForKey:NSFontAttributeName];	// style inherited from parent
+	NSFont *f=[_style objectForKey:NSFontAttributeName];	// style inherited from parent
 	if([names count] > 0)
 		{ // modify font family
 		NSEnumerator *e=[names objectEnumerator];
@@ -1241,14 +1235,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			if(ff && ff != f)
 				{ // found a different font - replace
 				f=ff;	// if we modify face AND size
-				[s setObject:ff forKey:NSFontAttributeName];
+				[_style setObject:ff forKey:NSFontAttributeName];
 				break;	// found
 				}
 			}
 		}
 	if(size)
 		{ // modify size
-		float sz=[[s objectForKey:NSFontAttributeName] pointSize];
+		float sz=[[_style objectForKey:NSFontAttributeName] pointSize];
 		if([size hasPrefix:@"+"])
 			{ // increase
 			int s=[[size substringFromIndex:1] intValue];
@@ -1276,68 +1270,54 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 			}
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:sz];	// try to convert
 		if(f)
-			[s setObject:f forKey:NSFontAttributeName];
+			[_style setObject:f forKey:NSFontAttributeName];
 		}
 	if(color)
-		[s setObject:color forKey:NSForegroundColorAttributeName];
+		[_style setObject:color forKey:NSForegroundColorAttributeName];
 	// and modify others...
-	return s;
 }
 
 @end
 
 @implementation DOMHTMLAnchorElement
 
-- (NSMutableDictionary *) _style;
-{ // provide font styles
-  // FIXME: cache result until we are modified
-	NSMutableDictionary *s=[super _style];	// inherit style
+#if FIXME
+- (NSString *) _string;
+{
+	// if we are a plain anchor without content, add a nonadvancing space that can be the placeholder for the attributes
+}
+
+#endif
+
+- (void) _addAttributesToStyle;
+{ // add attributes to style
 	NSString *urlString=[self getAttribute:@"href"];
 	NSString *target=[self getAttribute:@"target"];	// WebFrame name where to show
-	if(urlString)
-		{
-		NSCursor *cursor=[NSCursor pointingHandCursor];
-		[s setObject:urlString forKey:NSLinkAttributeName];	// set the link
-		[s setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
-		if(target)
-			[s setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
-		}
-	return s;
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // 
-  // check if we are an empty but named anchor
-  // then, insert an invisible NSTextAttachmentCell
-	[super _spliceTo:str];
-}
-
-#if OLD	// move as much as possible to to _style
-- (NSAttributedString *) attributedString;
-{
-	NSMutableAttributedString *str=(NSMutableAttributedString *) [super attributedString];
 	NSString *name=[self getAttribute:@"name"];
 	NSString *charset=[self getAttribute:@"charset"];
 	NSString *accesskey=[self getAttribute:@"accesskey"];
 	NSString *shape=[self getAttribute:@"shape"];
 	NSString *coords=[self getAttribute:@"coords"];
-#if 0
-	NSLog(@"<a>: %@", [self _attributes]);
-#endif
-	if(name)
-		{ // named anchor
-		  // how do we handle an empty anchor???
-		[str addAttribute:DOMHTMLAnchorElementAnchorName value:name range:NSMakeRange(0, [str length])];		// set the anchor
+	if(urlString)
+		{ // add a hyperlink
+		NSCursor *cursor=[NSCursor pointingHandCursor];
+		[_style setObject:urlString forKey:NSLinkAttributeName];	// set the link
+		[_style setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
+		if(target)
+			[_style setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
 		}
-	return str;
+	if(name)
+		{ // add an anchor
+		[_style setObject:name forKey:DOMHTMLAnchorElementAnchorName];	// set the cursor
+		}
+	// and modify others...
 }
-#endif
 
 @end
 
 @implementation DOMHTMLImageElement
 
-+ (BOOL) _blockLevel;			{ return NO; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 	// 1. we need an official mechanism to postpone loading until we click on the image (e.g. for HTML mails)
 	// 2. note that images have to be collected in DOMDocument so that we can access them through "document.images[index]"
@@ -1348,11 +1328,29 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// we can also set the link attribute with the URL for the text attachment
 }
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSString *align=[self getAttribute:@"align"];
+	NSString *urlString=[self getAttribute:@"src"];
+	if(urlString && ![_style objectForKey:NSLinkAttributeName])
+		{ // add a hyperlink with the image source
+		NSCursor *cursor=[NSCursor pointingHandCursor];
+		[_style setObject:urlString forKey:NSLinkAttributeName];	// set the link
+		[_style setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
+// 		[_style setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
+		}
+}
+
+- (NSString *) string;
+{ // if attachment can't be created
+	return [self getAttribute:@"alt"];
+}
+
+- (NSTextAttachment *) _attachment;
 {
+	NSTextAttachment *attachment;
 	NSCell *cell;
 	NSImage *image=nil;
-	NSTextAttachment *attachment;
 	NSFileWrapper *wrapper;
 	NSString *src=[self getAttribute:@"src"];
 	NSString *alt=[self getAttribute:@"alt"];
@@ -1368,11 +1366,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"<img>: %@", [self _attributes]);
 #endif
 	if(!src)
-		{
-		if(!alt) alt=@" <img> ";
-		[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:alt];
-		return;
-		}
+		return nil;	// can't show
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
 #if 0
@@ -1404,7 +1398,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
 #endif
 	// we can also overlay the text attachment with the URL as a link
-	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
+	return attachment;
 }
 
 // WebDocumentRepresentation callbacks (source is the subresource)
@@ -1428,34 +1422,21 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLBRElement
 
-+ (BOOL) _blockLevel;	{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-+ (BOOL) _dontNest;		{ return YES; }
-
-// _string could also return a simple New Line character
-
-#if 0
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
+- (void) _addAttributesToStyle
 {
-	return YES;	// yes - always
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 }
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // handle special cases
-	[super _spliceTo:str];	// add content according to standard rules
-	[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// inherits previous attributes
-}
-#endif
 
 @end
 
 @implementation DOMHTMLParagraphElement
 
-+ (BOOL) _blockLevel;	{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-+ (BOOL) _dontNest;		{ return YES; }
-
-// FIXME: use the same or similar code for <li>, <dd>, <dt>, <td>, <th>, <h*>
+#if 0
+	// FIXME: use the same or similar code for <li>, <dd>, <dt>, <td>, <th>, <h*>
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // return the parent node (nil to ignore)
@@ -1464,70 +1445,47 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		e=(DOMHTMLElement *) [e parentNode];	// don't nest <p> tags
 	return e;
 }
+#endif
 
-- (NSMutableDictionary *) _style;
-{ // provide default styles
-  // FIXME: cache result until we are modified
-	NSMutableDictionary *s=[super _style];	// inherit style
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[self getAttribute:@"align"];
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
-	return s;
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	// and modify others...
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
-
-#if 0
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return YES;	// yes
-}
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // handle special cases
-	NSAttributedString *nl;
-	[super _spliceTo:str];	// add content according to standard rules
-	// should explicitly set _style!
-	nl=[[NSAttributedString alloc] initWithString:@"\n" attributes:[self _style]];	// insert new line with specific paragraph attributes
-	[str replaceCharactersInRange:NSMakeRange([str length], 0) withAttributedString:nl];
-	[nl release];
-}
-#endif
 
 @end
 
 @implementation DOMHTMLHRElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-+ (BOOL) _nestedElement; { return NO; }
-
-#if 0
-
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
+- (void) _addAttributesToStyle
 {
-	return YES;
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 }
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // add a horizontal line element
-	NSTextAttachment *attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
+- (NSTextAttachment *) _attachment;
+{
+	return [NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
 //	NSHRAttachmentCell *cell=(NSHRAttachmentCell *) [attachment attachmentCell];	// get the real cell
-	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
 }
-#endif
 
 @end
 
 @implementation DOMHTMLTableElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
 - (void) dealloc; { [table release]; [super dealloc]; }
 
-- (NSMutableDictionary *) _style;
-{
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[[self getAttribute:@"align"] lowercaseString];
 	NSString *alignchar=[self getAttribute:@"char"];
 	NSString *offset=[self getAttribute:@"charoff"];
@@ -1566,17 +1524,13 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 																								// NSTextBlockVerticalAlignment
 			}
 		}
-	if(table) [s setObject:table forKey:@"<table>"];	// make available to lower table levels
+	if(table) [_style setObject:table forKey:@"<table>"];	// make available to lower table levels
 														// we might also override the font attributes
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 #if 1
-	NSLog(@"<table> _style=%@", s);
+	NSLog(@"<table> _style=%@", _style);
 #endif
-	return s;
-}
-
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return YES;
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 #if OLD
@@ -1677,10 +1631,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
 }
 
-- (NSMutableDictionary *) _style;
-{
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[[self getAttribute:@"align"] lowercaseString];
 	NSString *alignchar=[self getAttribute:@"char"];
 	NSString *offset=[self getAttribute:@"charoff"];
@@ -1695,15 +1648,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 		[paragraph setAlignment:NSJustifiedTextAlignment];
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
-#if 1
-	NSLog(@"<tr> _style=%@", s);
-#endif
-	return s;
-}
-
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return YES;
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 #if OLD
@@ -1752,16 +1697,15 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 - (void) dealloc; { [cell release]; [super dealloc]; }
 
-- (NSMutableDictionary *) _style;
-{ // derive default style within a cell
-	NSMutableDictionary *s=[super _style];
-	NSTextTable *table=[s objectForKey:@"<table>"];	// property should be inherited from enclosing DOMHTMLTableNode
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *axis=[self getAttribute:@"axis"];
 	NSString *align=[[self getAttribute:@"align"] lowercaseString];
 	NSString *valign=[[self getAttribute:@"valign"] lowercaseString];
 	NSString *alignchar=[self getAttribute:@"char"];
 	NSString *offset=[self getAttribute:@"charoff"];
+	NSTextTable *table=[_style objectForKey:@"<table>"];	// the table we belong to
 	int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
 	int rowspan=[[self getAttribute:@"rowspan"] intValue];
 	int col=1;
@@ -1769,9 +1713,9 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSString *width=[self getAttribute:@"width"];	// in pixels or % of <table>
 	if([[self nodeName] isEqualToString:@"TH"])
 		{ // make centered and bold paragraph for header cells
-		NSFont *f=[s objectForKey:NSFontAttributeName];	// get current font
+		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
-		if(f) [s setObject:f forKey:NSFontAttributeName];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
 		[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
 		}
 	if([align isEqualToString:@"left"])
@@ -1806,27 +1750,21 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	if(cell)
 		[paragraph setTextBlocks:[NSArray arrayWithObject:cell]];	// add to paragraph style
 #if 1
-	NSLog(@"<td> _style=%@", s);
+	NSLog(@"<td> _style=%@", _style);
 #endif
-	return s;
-}
-
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
-{
-	return YES;
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
 
 @implementation DOMHTMLFormElement
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSMutableDictionary *) _style;
-{
-	NSMutableDictionary *s=[super _style];
-	[s setObject:self forKey:@"<form>"];	// make available to attributed string
-	return s;
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:self forKey:@"<form>"];	// make available to attributed string
 }
 
 - (void) submit;
@@ -1878,7 +1816,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLInputElement
 
-+ (BOOL) _nestedElement;	{ return NO; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 - (void) _updateRadioButtonsWithName:(NSString *) name state:(BOOL) state;
 {
@@ -1895,8 +1833,8 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// POST
 }
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // 
+- (NSTextAttachment *) _attachment;
+{
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	NSString *type=[[self getAttribute:@"type"] lowercaseString];
@@ -1910,7 +1848,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSString *autosave=[self getAttribute:@"autosave"];
 	if([type isEqualToString:@"hidden"])
 		{ // ignore for rendering purposes - will be collected when sending the <form>
-		return;
+		return nil;
 		}
 #if 1
 	NSLog(@"<input>: %@", [self _attributes]);
@@ -1967,11 +1905,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"  cell: %@", cell);
 	NSLog(@"  cell control view: %@", [cell controlView]);
 #endif
-	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
-	//	[str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
-#if 1
-	NSLog(@"  str: %@", str);
-#endif
+	return attachment;
 }
 
 @end
@@ -1985,7 +1919,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	// POST
 }
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
+- (NSTextAttachment *) _attachment;
 { // 
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
@@ -2007,15 +1941,16 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 	NSLog(@"  cell: %@", cell);
 #endif
-	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
-	// [str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
+	return attachment;
 }
 
 @end
 
 @implementation DOMHTMLSelectElement
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
+
+- (NSTextAttachment *) _attachment
 { // 
 	NSTextAttachment *attachment;
 	NSCell *cell;
@@ -2046,8 +1981,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 	NSLog(@"  cell: %@", cell);
 #endif
-	[str appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:attachment]];
-	//	[str addAttribute:DOMHTMLElementAttribute value:self range:NSMakeRange(0, [str length])];
+	return attachment;
 }
 
 @end
@@ -2066,7 +2000,7 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 
 @implementation DOMHTMLTextAreaElement
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
+- (NSTextAttachment *) _attachment;
 { // 
 	NSAttributedString *value=[self attributedString];	// get content between <textarea> and </textarea>
 	NSString *name=[self getAttribute:@"name"];
@@ -2077,35 +2011,37 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #endif
 	// we should create a NSTextAttachment which includes an NSTextField with scrollbar (!) that is initialized with str
 	//	return [NSMutableAttributedString attributedStringWithAttachment:];
+	return nil;
 }
 
 @end
 
 @implementation DOMHTMLLIElement	// <li>, <dt>, <dd>
 
-+ (BOOL) _blockLevel;			{ return YES; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (BOOL) _shouldSpliceNewlineBeforeChildren:(NSMutableAttributedString *) str;
+- (void) _addAttributesToStyle
 {
-	return YES;
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 }
 
 @end
 
 @implementation DOMHTMLDListElement		// <dl>
 
-+ (BOOL) _blockLevel;			{ return YES; }
+- (void) _addAttributesToStyle
+{
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+}
 
 @end
 
 @implementation DOMHTMLOListElement		// <ol>
 
-+ (BOOL) _blockLevel;			{ return YES; }
-
-- (NSMutableDictionary *) _style;
-{ // derive default style within a cell
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	NSString *align=[self getAttribute:@"align"];
 	NSArray *lists=[paragraph textLists];	// get (nested) list
 	NSTextList *list;
 	if(!lists) lists=[NSMutableArray new];	// start new one
@@ -2123,19 +2059,17 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 	NSLog(@"lists=%@", lists);
 #endif
 	[lists release];
-	return s;	// paragraph style has been adjusted
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
 
 @implementation DOMHTMLUListElement		// <ul>
 
-+ (BOOL) _blockLevel;			{ return YES; }
-
-- (NSMutableDictionary *) _style;
-{ // derive default style within a cell
-	NSMutableDictionary *s=[super _style];
-	NSMutableParagraphStyle *paragraph=[s objectForKey:NSParagraphStyleAttributeName];
+- (void) _addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSArray *lists=[paragraph textLists];	// get (nested) list
 	NSTextList *list;
 	if(!lists) lists=[NSMutableArray new];	// start new one
@@ -2155,11 +2089,14 @@ static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName
 #if 1
 	NSLog(@"lists=%@", lists);
 #endif
-	return s;	// paragraph style has been adjusted
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
 
 @implementation DOMHTMLCanvasElement		// <canvas>
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 @end

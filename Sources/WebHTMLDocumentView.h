@@ -58,11 +58,13 @@
 @end
 
 @interface NSViewAttachmentCell : NSTextAttachmentCell
-{ // embed any NSView in an attachment cell - e.g. an NSTableView (<select size=5>) or NSTextView (<textarea>) or a WebFrame (<iframe>)
-	NSTextAttachment *attachment;
+{ // embed an arbitrary NSView in an attachment cell - e.g. an NSTableView (<select size=5>) or NSTextView (<textarea>) or a WebFrame (<iframe>)
+	NSTextAttachment *attachment;	// just a pointer
 	NSView *view;
 }
 
+- (void) setAttachment:(NSTextAttachment *) anAttachment;
+- (NSTextAttachment *) attachment;
 - (void) setView:(NSView *) view;
 - (NSView *) view;
 

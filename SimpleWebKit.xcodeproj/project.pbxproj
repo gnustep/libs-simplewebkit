@@ -228,6 +228,9 @@
 		EE6FBBC40C21DBD00095EEA6 /* WebTextDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebTextDocument.m; sourceTree = "<group>"; };
 		EE6FE352076F05AF009CC969 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPluginContainer.h; sourceTree = "<group>"; };
+		EE8721C10D0214F600B2037D /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile; path = SWKBrowser/GNUmakefile; sourceTree = "<group>"; };
+		EE8721C20D0214F600B2037D /* GNUmakefile.postamble */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile.postamble; path = SWKBrowser/GNUmakefile.postamble; sourceTree = "<group>"; };
+		EE8721D00D02152600B2037D /* Info-gnustep.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = "Info-gnustep.plist"; path = "SWKBrowser/Info-gnustep.plist"; sourceTree = "<group>"; };
 		EE87B3120D0015A300B2037D /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile; path = Sources/GNUmakefile; sourceTree = "<group>"; };
 		EE8A012B0B6CD10D00346917 /* DemoHTML */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DemoHTML; sourceTree = "<group>"; };
 		EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebUIDelegate.h; sourceTree = "<group>"; };
@@ -317,8 +320,7 @@
 			isa = PBXGroup;
 			children = (
 				EE27270005426A7F0000013C /* mySTEP.make */,
-				EEB0F2D40C29244A003CFAB2 /* GNUmakefile */,
-				EE87B3120D0015A300B2037D /* GNUmakefile */,
+				EE8721B30D0214A900B2037D /* GNUmakefile */,
 				EE4440B30BDBEA980031F556 /* ChangeLog */,
 				EECC1E600BA14EA20001C219 /* ToDo */,
 				EE9BE9BF0AFA53B800D445DA /* Private */,
@@ -383,6 +385,34 @@
 				EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */,
 			);
 			path = SWKBrowser;
+			sourceTree = "<group>";
+		};
+		EE8721B30D0214A900B2037D /* GNUmakefile */ = {
+			isa = PBXGroup;
+			children = (
+				EEB0F2D40C29244A003CFAB2 /* GNUmakefile */,
+				EE8721B40D0214BD00B2037D /* GNUmakefile SWK */,
+				EE8721C50D0214FA00B2037D /* GNUmakefile SWK Browser */,
+			);
+			name = GNUmakefile;
+			sourceTree = "<group>";
+		};
+		EE8721B40D0214BD00B2037D /* GNUmakefile SWK */ = {
+			isa = PBXGroup;
+			children = (
+				EE87B3120D0015A300B2037D /* GNUmakefile */,
+			);
+			name = "GNUmakefile SWK";
+			sourceTree = "<group>";
+		};
+		EE8721C50D0214FA00B2037D /* GNUmakefile SWK Browser */ = {
+			isa = PBXGroup;
+			children = (
+				EE8721C10D0214F600B2037D /* GNUmakefile */,
+				EE8721C20D0214F600B2037D /* GNUmakefile.postamble */,
+				EE8721D00D02152600B2037D /* Info-gnustep.plist */,
+			);
+			name = "GNUmakefile SWK Browser";
 			sourceTree = "<group>";
 		};
 		EE9BE9BF0AFA53B800D445DA /* Private */ = {

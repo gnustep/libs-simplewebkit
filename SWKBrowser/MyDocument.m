@@ -375,6 +375,7 @@
 		NSString *f;
 		NSEnumerator *e;
 		destinations=[[NSMutableArray alloc] init];
+		[destinations addObject:@"http://www.mired.org/home/mwm/bugs.html"];
 		[destinations addObject:@"http://www.quantum-step.com"];
 		[destinations addObject:@"http://www.gnustep.org"];
 		[destinations addObject:@"http://wiki.gnustep.org/index.php/SimpleWebKit"];
