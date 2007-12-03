@@ -148,6 +148,8 @@ static NSDictionary *entitiesTable;
 #if 0
 	NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
 #endif
+	if([tag length] == 0)
+		return;		// emtpy tag, e.g. from <! -- comment -- >
 	if(acceptHTML)
 		tag=[tag lowercaseString];	// HTML is not case sensitive
 	if(!flag)
@@ -271,7 +273,7 @@ static NSDictionary *entitiesTable;
 	//
 	while(!isStalled && cp < ep)
 		{ // process as much as we can until isStalled is called or we have to wait for completion of the next segment
-		const char *vp=cp;	// where we start to analyse in this iteration
+		const char *vp=cp;	// where we start to analyse in this iteration so that we can backup
 		while(cp < ep)
 			{ // get plain text
 			if(*cp == '&' && readMode != _NSXMLParserPlainReadMode)
@@ -330,45 +332,7 @@ static NSDictionary *entitiesTable;
 			NSString *tag;
 			NSMutableDictionary *parameters;
 			const char *tp=++cp;	// remember where tag started
-			if(cp < ep-8 && strncmp((char *) cp, "![CDATA[", 8) == 0)
-				{ // start of CDATA
-				tp=cp+=8;
-				while(cp < ep-3 && (*cp != ']' || strncmp((char *)cp, "]]>", 3) != 0))
-					cp++; // scan up to ]]> without processing entities and other tags
-				if(cp < ep-3)
-					{
-#if 0
-					NSLog(@"found CDATA");
-#endif
-					if([delegate respondsToSelector:@selector(parser:foundCDATA:)])
-						[delegate parser:self foundCDATA:[NSData dataWithBytes:tp length:cp-tp]];
-					cp+=3;	// eat
-					continue;
-					}
-				if(done)
-					; // error
-				cp=vp;
-				return;	// still incomplete
-				}					
-			if(cp < ep-3 && strncmp((char *)cp, "!--", 3) == 0)
-				{ // start of comment skip all characters until "-->"
-				  // FIXME: comment already ends with -- and > should simply follow
-				tp=cp+=3;
-				// FIXME: locate the next - and strcmp only then
-				while(cp < ep-3 && (*cp != '-' || strncmp((char *)cp, "-->", 3) != 0))
-					cp++;	// search
-				if(cp < ep-3)
-					{
-					if([delegate respondsToSelector:@selector(parser:foundComment:)])
-						[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
-					cp+=3;	// eat
-					continue;
-					}
-				if(done)
-					; // error
-				cp=vp;
-				return;	// still incomplete
-				}
+			BOOL bang;
 			if(cp == ep)
 				{
 				if(done)
@@ -376,7 +340,9 @@ static NSDictionary *entitiesTable;
 				cp=vp;
 				return;	// incomplete
 				}
-			if(*cp == '/')
+			if((bang=(*cp == '!')))
+				cp++;
+			else if(*cp == '/')
 				cp++; // closing tag </tag begins
 			else if(*cp == '?')
 				{ // special tag <?tag begins
@@ -385,8 +351,67 @@ static NSDictionary *entitiesTable;
 						// FIXME: should process this tag also in a special way so that e.g. <?php any PHP script ?> is read as a single tag!
 						// to do this properly, we need probably a notion of comments and quoted string constants...
 				}
+			if(bang)
+				{ // handle comment, DOCTYPE, [CDATA[
+				while(cp < ep)
+					{ // simply eat comments and [CDATA[ here
+					if(cp < ep-2 && strncmp(cp, "--", 2) == 0)
+						{ // comment starts - see: http://htmlhelp.com/reference/wilbur/misc/comment.html
+						tp=cp+=2;	// beginning of comment
+						// FIME: if someone has speed concerns, we could do a strchr for all - and check for a second one to follow
+						while(cp < ep-2 && (cp[0] != '-' || cp[1] != '-'))
+							cp++;	// search for end of this comment
+						if(cp >= ep-2)
+							{ // not found - badly formed comment; search again for simple -->
+							if(!done)
+								{
+								cp=vp;
+								return;	// still incomplete
+								}
+							if(!acceptHTML)
+								; // XML malformed comment
+							cp=tp;
+							while(cp < ep-3 && strncmp(cp, "-->", 3) != 0)
+								cp++;	// search again for "simple" end of this comment
+							}
+						if([delegate respondsToSelector:@selector(parser:foundComment:)])
+							[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
+						cp+=2;	// skip -- of comment
+						if(isStalled)
+							break;	// delegate wants to stall after comment
+						continue;
+						}
+					else if(cp < ep-7 && strncmp((char *) cp, "[CDATA[", 7) == 0)
+						{ // start of CDATA
+						tp=cp+=7;
+						while(cp < ep-2 && (*cp != ']' || strncmp((char *)cp, "]]", 2) != 0))
+							cp++; // scan up to ]]> without processing entities and other tags
+						if(cp >= ep-2)
+							{
+							if(done)
+								; // error
+							cp=vp;
+							return;	// still incomplete
+							}
+#if 0
+						NSLog(@"found CDATA");
+#endif
+						if([delegate respondsToSelector:@selector(parser:foundCDATA:)])
+							[delegate parser:self foundCDATA:[NSData dataWithBytes:tp length:cp-tp]];
+						cp+=2;	// eat
+						if(isStalled)
+							break;	// delegate wants to stall after comment
+						continue;
+						}
+					else
+						break;	// no special treatment (e.g. > or <!DOCTYPE>)
+					}
+				if(isStalled)
+					break;
+				tp=cp;
+				}
 			while(cp < ep && !isspace(*cp) && *cp != '>' && (*cp != '/')  && (*cp != '?'))
-				{
+				{ // read tag
 				if(*cp == '\n')
 					line++, column=0;
 				cp++;	
@@ -398,7 +423,9 @@ static NSDictionary *entitiesTable;
 				cp=vp;
 				return;	// still incomplete
 				}
-			if(*tp == '/')
+			if(bang && cp != tp)
+				tag=[@"!" stringByAppendingString:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];				
+			else if(*tp == '/')
 				tag=[NSString _string:(char *)tp+1 withEncoding:encoding length:cp-tp-1];	// don't include opening /
 			else
 				tag=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
