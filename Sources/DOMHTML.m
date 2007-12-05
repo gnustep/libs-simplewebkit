@@ -1285,7 +1285,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 #if FIXME
 - (NSString *) _string;
 {
-	// if we are a plain anchor without content, add a nonadvancing space that can be the placeholder for the attributes
+	// if we are a simple anchor without content, add a nonadvancing space that can be the placeholder for the attributes
 }
 
 #endif

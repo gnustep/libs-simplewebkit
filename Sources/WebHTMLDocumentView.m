@@ -78,7 +78,7 @@
 #endif	
 }
 
-// FIXME: this might need more elaboration
+// FIXME: this might need more elaboration to add the national prefix for short numbers
 
 - (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
 {
@@ -119,7 +119,7 @@
 				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
 				if(srng.length <= rng.length)
 					{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
-					NSLog(@"found telephone number: %@", number);
+					NSLog(@"found potential telephone number: %@", number);
 					// preprocess number so that it fits into E.164 and DIN 5008 formats
 					// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
 					if([number hasPrefix:@"00"])
@@ -143,13 +143,16 @@
 { // do the layout of subviews
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
 	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or could be a <frameset>
+	NSString *anchor=[[[_dataSource response] URL] fragment];
+	NSString *bg=[body getAttribute:@"background"];
 	NSColor *background;
 #if 1
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
 	[body _layout:self];	// process the <body> tag (could also be a <frameset>)
-	background=[[body getAttribute:@"background"] _htmlColor];
+	[self _processPhoneNumbers:[self textStorage]];	// update content
+	background=[bg _htmlColor];
 	if(!background)
 		background=[[body getAttribute:@"bgcolor"] _htmlColor];
 //	if(!background)
@@ -157,9 +160,23 @@
 	if(background)
 		[self setBackgroundColor:background];
 	[self setDrawsBackground:background != nil];
-// check if we did load with an anchor (dataSource request has an anchor part) and it is already defined
-	// if possible scroll us to the anchor position
-	[self _processPhoneNumbers:[self textStorage]];	// update content
+	if([anchor length] != 0)
+		{ // locate a matching anchor
+		NSAttributedString *str=[self textStorage];
+		unsigned idx, cnt=[str length];
+		for(idx=0; idx < cnt; idx++)
+			{
+			NSString *attr=[str attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
+			if(attr && [attr isEqualTo:anchor])
+				break;
+			}
+		if(idx < cnt)
+			{
+			NSString *target=[str attribute:@"DOMHTMLAnchorElementTargetWindow" atIndex:idx effectiveRange:NULL];
+			// decide to open different window? - or do we do that only when clicking a ling?
+			[self scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
+			}
+		}
 }
 
 - (void) setDataSource:(WebDataSource *) source;
