@@ -25,6 +25,7 @@ If not, write to the Free Software Foundation,
 // FIXME: add additional attributes (e.g. images, anchors etc. for DOMHTMLDocument) and DOMHTMLCollection type
 
 // look at for handling of whitespace: http://www.w3.org/TR/html401/struct/text.html
+// about display:block and display:inline: http://de.selfhtml.org/html/referenz/elemente.htm
 
 #import <WebKit/WebView.h>
 #import <WebKit/WebResource.h>
@@ -1036,7 +1037,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 		NSFont *font=[NSFont fontWithName:DEFAULT_FONT size:DEFAULT_FONT_SIZE*[webView textSizeMultiplier]];	// determine default font
 		NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
-		[paragraph setParagraphSpacing:1.5];
 		//	NSColor *background=[[self getAttribute:@"background"] _htmlColor];	// not processed here
 		//	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
 		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
@@ -1176,6 +1176,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	float size=DEFAULT_FONT_SIZE*[webView textSizeMultiplier];
 	NSFont *f;
 	[paragraph setHeaderLevel:level];	// if someone wants to convert the attributed string back to HTML...
+	[paragraph setParagraphSpacing:1.5];
 	switch(level)
 		{
 		case 1:
@@ -1424,9 +1425,14 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
+- (NSString *) _string;		{ return @"\n"; }
+
 - (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+{ // <br> is an inline element
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	[paragraph setParagraphSpacing:1.0];
+	// and modify others...
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
@@ -1435,25 +1441,14 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-#if 0
-	// FIXME: use the same or similar code for <li>, <dd>, <dt>, <td>, <th>, <h*>
-
-+ (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
-{ // return the parent node (nil to ignore)
-	DOMHTMLElement *e=[rep _lastObject];
-	if([[e nodeName] isEqualToString:@"P"])
-		e=(DOMHTMLElement *) [e parentNode];	// don't nest <p> tags
-	return e;
-}
-#endif
-
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[self getAttribute:@"align"];
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[paragraph setParagraphSpacing:1.5];
 	// and modify others...
 	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
