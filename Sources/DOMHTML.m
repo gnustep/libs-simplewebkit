@@ -730,6 +730,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLScriptElement
 
+- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore if in <body> context
+
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
@@ -765,16 +767,18 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		}
 	else
 		script=[(DOMCharacterData *) [self firstChild] data];
+	script=[script stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	if(script)
 		{ // not empty and not disabled
 		if([script hasPrefix:@"<!--"])
 			script=[script substringFromIndex:4];	// remove
-		// checkme: is it permitted to write <script><!CDATA[....?
+		if([script hasSuffix:@"-->"])
+			script=[script substringWithRange:NSMakeRange(0, [script length]-3)];	// remove
+		// checkme: is it permitted to write <script><!CDATA[....? and how is that represented
 #if 1
-
 		{
 		id r;
-		NSLog(@"evaluate <script>%@</script>", script);
+		NSLog(@"evaluate inlined <script>%@</script>", script);
 		r=[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
 		NSLog(@"result=%@", r);
 		}

@@ -142,6 +142,8 @@
 
 - (IBAction) showSource:(id) sender
 {
+	NSString *src=[[[[webView mainFrame] dataSource] representation] documentSource];
+	[docSource setString:src];
 	[[docSource window] makeKeyAndOrderFront:sender];
 }
 
@@ -355,11 +357,6 @@
 		{
 		[self showStatus:@"Subframe Done."];
 		}
-	// could be moved to showSource
-	src=[[[frame dataSource] representation] documentSource];
-	if(!src)
-		src=@"<no document source available>";
-	[docSource setString:src];
 }
 
 - (id) comboBoxCell:(NSComboBoxCell *)aComboBoxCell objectValueForItemAtIndex:(int)index

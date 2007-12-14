@@ -237,10 +237,19 @@ static NSDictionary *tagtable;
 
 - (NSString *) documentSource;
 {
-	[_dataSource textEncodingName];
-	// translate encoding name to constant...
-	// FIXME: what do we do if encoding is not valid?
-	return [[[NSString alloc] initWithData:[_dataSource data] encoding:NSUTF8StringEncoding] autorelease];
+	NSString *textEncoding=[_dataSource textEncodingName];
+	NSStringEncoding enc=NSASCIIStringEncoding;	// default
+	NSString *r;
+	if([textEncoding isEqualToString:@"utf-8"])
+		enc=NSUTF8StringEncoding;
+	if([textEncoding isEqualToString:@"iso-8859-1"])
+		enc=NSISOLatin1StringEncoding;
+	r=[[[NSString alloc] initWithData:[_dataSource data] encoding:NSUTF8StringEncoding] autorelease];
+	if(!r)
+		r=[[[NSString alloc] initWithData:[_dataSource data] encoding:NSASCIIStringEncoding] autorelease];
+	if(!r)
+		r=@"<can't display document source>";
+	return r;
 }
 
 // XML Parser delegate methods for parsing HTML
