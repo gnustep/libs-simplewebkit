@@ -199,6 +199,18 @@
 	return [_subresources objectForKey:url];
 }
 
+- (NSStringEncoding) _textEncoding;
+{
+	NSStringEncoding enc=NSASCIIStringEncoding;	// default
+	NSString *textEncoding=[self textEncodingName];
+	if([textEncoding isEqualToString:@"utf-8"])
+		enc=NSUTF8StringEncoding;
+	if([textEncoding isEqualToString:@"iso-8859-1"])
+		enc=NSISOLatin1StringEncoding;
+	// FIXME: add others
+	return enc;
+}
+
 - (NSString *) textEncodingName;
 {
 	NSString *encoding=[[_webFrame webView] customTextEncodingName]; // get from WebView (if set)
@@ -207,13 +219,6 @@
 	if(!encoding)
 		encoding=@"utf-8";	// default
 	return encoding;
-}
-
-- (NSStringEncoding) _stringEncoding;
-{
-	[self textEncodingName];
-	// convert text to string encoding constant
-	return NSUTF8StringEncoding;	// default
 }
 
 - (NSURL *) unreachableURL; { return _unreachableURL; }

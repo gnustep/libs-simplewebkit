@@ -110,6 +110,8 @@ static NSDictionary *entitiesTable;
 
 - (void) dealloc;
 {
+	if(isStalled)
+		NSLog(@"warning - deallocating stalled %@: %@", NSStringFromClass(isa), self);
 #if 0
 	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
 #endif
@@ -210,7 +212,7 @@ static NSDictionary *entitiesTable;
 		if(acceptHTML)
 			{ // lazily close any missing intermediate tags on stack, i.e. <table><tr><td>Data</tr></tbl> -> insert </td>, ignore </tbl>
 			if(![tagPath containsObject:tag])
-				return;	// ignore closing tag without a matching open...
+				return;	// ignore closing tag without any matching open...
 			while([tagPath count] > 0 && ![[tagPath lastObject] isEqualToString:tag])	// must be literally equal!
 				{ // close all in between
 				if([delegate respondsToSelector:@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
@@ -260,6 +262,10 @@ static NSDictionary *entitiesTable;
 		[(NSMutableData *) buffer appendData:d];	// append new fragment
 		cp=(const char *) [buffer bytes]+cpoff;
 		}
+	else
+		{
+		NSLog(@"_parseData: length 0");
+		}
 	ep=(const char *) [buffer bytes]+[buffer length];
 #if 0
 	NSLog(@"[d length]=%d [buffer length]=%d buffer=%p cp=%p ep=%p", [d length], [buffer length], [buffer bytes], cp, ep);
@@ -290,7 +296,7 @@ static NSDictionary *entitiesTable;
 					return;	// we can't decide yet
 					}
 				if(cp[1] == '/')
-					{ // candidate
+					{ // candidate for ending _NSXMLParserPlainReadMode
 					NSString *tag;
 					const char *currentTag;
 					int len;
@@ -749,10 +755,14 @@ static NSDictionary *entitiesTable;
 			continue;
 			}
 		}
-	if(done)
+	if(cp == ep && done)
+		{ // we have processed the whole input
+		if([tagPath count] != 0)
+			; // error
 		[buffer release], buffer=nil;
-	if([tagPath count] != 0)
-		; // error
+		if([delegate respondsToSelector:@selector(parserDidEndDocument:)])
+			[delegate parserDidEndDocument:self];	// notify - the delegate might dealloc us here!
+		}
 }
 
 - (BOOL) _acceptsHTML; { return acceptHTML; }
@@ -771,7 +781,12 @@ static NSDictionary *entitiesTable;
 		{
 		isStalled=flag;
 		if(!isStalled)
+			{
+#if 1
+			NSLog(@"stall cleared");
+#endif
 			[self performSelector:@selector(_parseData:) withObject:[NSData data] afterDelay:0.0];	// continue processing as soon as possible
+			}
 		}
 }
 

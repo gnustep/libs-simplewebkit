@@ -204,13 +204,13 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		if(res)
 			{
 #if 1
-			NSLog(@"sub: completely loaded: %@ (%u bytes)", url, [[res data] length]);
+			NSLog(@"sub: already completely loaded: %@ (%u bytes)", url, [[res data] length]);
 #endif
 			return [res data];	// already completely loaded
 			}
 		sub=[source _subresourceWithURL:url delegate:(id <WebDocumentRepresentation>) self];	// triggers loading if not yet and make me receive notification
 #if 1
-		NSLog(@"sub: loading: %@ (%u bytes)", url, [[sub data] length]);
+		NSLog(@"sub: loading: %@ (%u bytes) delegate=%@", url, [[sub data] length], self);
 #endif
 		data=[sub data];
 		if(!data && stall)	//incomplete
@@ -233,6 +233,9 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSLog(@"source: %@", source);
 	NSLog(@"mainsource: %@", mainsource);
 	NSLog(@"rep: %@", [mainsource representation]);
+	NSLog(@"parser: %@", [(_WebHTMLDocumentRepresentation *) [mainsource representation] _parser]);
+	if(![(_WebHTMLDocumentRepresentation *) [mainsource representation] _parser])
+		NSLog(@"no parser");
 #endif
 	[[(_WebHTMLDocumentRepresentation *) [mainsource representation] _parser] _stall:NO];
 }
@@ -711,7 +714,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLStyleElement
 
-// CHECKME - are style definitions "local"?
+// CHECKME: are style definitions "local"?
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -725,6 +728,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 }
 
 // FIXME: process "@import URL" subresources
+// CHECKME: here or delayed when referenced in CSS?
 
 @end
 

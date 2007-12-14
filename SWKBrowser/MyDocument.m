@@ -143,6 +143,8 @@
 - (IBAction) showSource:(id) sender
 {
 	NSString *src=[[[[webView mainFrame] dataSource] representation] documentSource];
+	if(!src)
+		src=@"<no document source available>";
 	[docSource setString:src];
 	[[docSource window] makeKeyAndOrderFront:sender];
 }

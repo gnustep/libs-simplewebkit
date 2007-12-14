@@ -151,6 +151,7 @@
 		message,
 		[str substringWithRange:NSMakeRange(from, length)],
 		// FIXME: pad only as much as from the last \n or \r
+		// count characters from last \n before pos
 		[@"" stringByPaddingToLength:(from<pos?(pos-from):0) withString:@" " startingAtIndex:0]
 		];
 	[[NSException exceptionWithName:@"WebScriptSyntaxErrorException" reason:message userInfo:nil] raise];

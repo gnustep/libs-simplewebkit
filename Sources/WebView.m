@@ -343,6 +343,7 @@ static NSArray *_htmlMimeTypes;
 	NSString *str;
 	NSURL *u;
 	str=[sender stringValue];
+	str=[str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// avoid a quite common problem...
 	u=[NSURL URLWithString:str];
 	if([[u scheme] length] == 0)
 		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// add default prefix

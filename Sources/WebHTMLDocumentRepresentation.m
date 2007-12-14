@@ -36,8 +36,9 @@
 #define NSXMLParser WebKitXMLParser								// rename class to avoid linker conflicts with Foundation
 #define parser Webparser										// rename methods to avoid compiler conflicts with Foundation
 #define parserDidStartDocument WebparserDidStartDocument		// rename methods to avoid compiler conflicts with Foundation
+#define parserDidEndDocument WebparserDidEndDocument			// rename methods to avoid compiler conflicts with Foundation
 
-#define __WebKit__ 1							// this disables some includes in mySTEP NSXMLParser.h/.m
+#define __WebKit__ 1		// this disables some includes in mySTEP NSXMLParser.h/.m
 
 #include "NSXMLParser.h"	// directly include header here - note that the class is renamed!
 #include "NSXMLParser.m"	// directly include source here - note that the class is renamed!
@@ -120,8 +121,7 @@ static NSDictionary *tagtable;
 	[_html appendChild:_body];
 	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
 	[_parser setDelegate:self];
-	// translate [dataSource textEncodingName] - if known
-	// [_parser _setEncoding:NSUTF8StringEncoding];
+	[_parser _setEncoding:[dataSource _textEncoding]];
 #if 0
 	NSLog(@"parser: %@", _parser);
 #endif
@@ -136,10 +136,7 @@ static NSDictionary *tagtable;
 #if 1
 	NSLog(@"WebHTMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
-	[_parser _parseData:nil];	// finish parsing
-	[_parser release];
-	_parser=nil;
-	[[source webFrame] _finishedLoading];	// notify
+	[_parser _parseData:nil];	// notify parser that no more data will arrive
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
@@ -237,14 +234,8 @@ static NSDictionary *tagtable;
 
 - (NSString *) documentSource;
 {
-	NSString *textEncoding=[_dataSource textEncodingName];
-	NSStringEncoding enc=NSASCIIStringEncoding;	// default
-	NSString *r;
-	if([textEncoding isEqualToString:@"utf-8"])
-		enc=NSUTF8StringEncoding;
-	if([textEncoding isEqualToString:@"iso-8859-1"])
-		enc=NSISOLatin1StringEncoding;
-	r=[[[NSString alloc] initWithData:[_dataSource data] encoding:NSUTF8StringEncoding] autorelease];
+	NSStringEncoding enc=[_dataSource _textEncoding];
+	NSString *r=[[[NSString alloc] initWithData:[_dataSource data] encoding:enc] autorelease];
 	if(!r)
 		r=[[[NSString alloc] initWithData:[_dataSource data] encoding:NSASCIIStringEncoding] autorelease];
 	if(!r)
@@ -416,6 +407,16 @@ static NSDictionary *tagtable;
 		[element _elementLoaded];			// any finalizing code
 		[_elementStack removeLastObject];	// go up one level
 		}
+}
+
+- (void) parserDidEndDocument:(NSXMLParser *) parser
+{ // done
+#if 1
+	NSLog(@"WebHTMLDocumentRepresentation parserDidEndDocument:%@", parser);
+#endif
+	[_parser release];
+	_parser=nil;
+	[[_dataSource webFrame] _finishedLoading];	// notify
 }
 
 @end
