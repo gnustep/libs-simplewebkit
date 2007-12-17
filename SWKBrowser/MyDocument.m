@@ -117,7 +117,8 @@
 #if 1
 		NSLog(@"loadPageFromComboBox %@ -> %@", str, u);
 #endif
-		[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
+	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
+	[sender becomeFirstResponder];	// keep first responder state
 }
 
 - (IBAction) loadPageFromMenuItem:(id) sender
@@ -131,7 +132,7 @@
 #if 1
 		NSLog(@"loadPageFromMenuItem %@ -> %@", str, u);
 #endif
-		[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
+	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
 }
 
 - (IBAction) scriptFromMenuItem:(id) sender;
@@ -350,10 +351,14 @@
 #endif
 	if(frame == [sender mainFrame])
 		{
+		NSString *src=[[[[webView mainFrame] dataSource] representation] documentSource];
 		[self showStatus:@"Main Frame Done."];
 		[domNodes release];
 		domNodes=nil;
 		[domTree reloadData];
+		if(!src)
+			src=@"<no document source available>";
+		[docSource setString:src];
 		}
 	else
 		{
@@ -381,6 +386,7 @@
 		[destinations addObject:@"ftp://ftp.gnu.org/pub/gnu"];
 		[destinations addObject:@"http://pda.leo.org/"];
 		[destinations addObject:@"http://www.w3.org/"];
+		[destinations addObject:@"http://de.selfhtml.org/html/xhtml/unterschiede.htm#verweise_anker"];
 		[destinations addObject:@"http://www.google.com"];
 		[destinations addObject:@"http://www.google.de"];
 		[destinations addObject:@"http://www.apple.com"];

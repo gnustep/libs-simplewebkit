@@ -33,15 +33,15 @@
 - (id) initWithFrame:(NSRect) rect;
 {
 	if((self=[super initWithFrame:rect]))
-		{
-		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
-		// set other attributes (selectable, editable etc.)
+		{ // set other attributes (selectable, editable etc.)
 		[self setEditable:NO];
 		[self setSelectable:YES];
-		[self setHorizontallyResizable:NO];
 		[self setVerticallyResizable:YES];
+		[self setHorizontallyResizable:YES];
 		[self setTextContainerInset:NSMakeSize(2.0, 4.0)];	// leave some margin
-	//	[self setLinkTextAttributes: ]
+		[[self textContainer] setWidthTracksTextView:YES];
+		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
+	//	[self setLinkTextAttributes:blue ]
 	//	[self setMarkedTextAttributes: ]
 		// attach a defalt context menu (Back, Forward etc.) for HTML pages
 		}
@@ -54,12 +54,7 @@
 	NSLog(@"%@ drawRect:%@", self, NSStringFromRect(rect));
 #endif
 	if(_needsLayout)
-		{
-		// is it safe to call this here? It needs very precise tracking of dirty rects...
-		// well, we can move th subviews since they are usually drawn afterwards
-		// but changing the layout may call setFrame:
 		[self layout];
-		}
 	[super drawRect:rect];
 }
 
@@ -70,113 +65,21 @@
 #if 1
 	NSLog(@"dataSourceUpdated: %@", source);
 #endif
-//	[self setDataSource:source];
-//	[self setDelegate:[source webFrame]];	// should be someone who can handle clicks on links and knows the base URL
-#if 1	// show view hierarchy
+#if 0	// show view hierarchy
 	while(self)
 		NSLog(@"%p: %@", self, self), self=(_WebHTMLDocumentView *) [self superview];
 #endif	
 }
 
-// FIXME: this might need more elaboration to add the national prefix for short numbers
-
-- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
-{
-	NSString *raw=[str string];
-	NSScanner *sc=[NSScanner scannerWithString:raw];
-	[sc setCharactersToBeSkipped:nil];	// don't skip spaces or newlines automatically
-	while(![sc isAtEnd])
-		{
-		unsigned start=[sc scanLocation];	// remember where we did start
-		NSRange rng;
-		NSDictionary *attr=[str attributesAtIndex:start effectiveRange:&rng];
-		if(![attr objectForKey:NSLinkAttributeName])
-			{ // we don't yet have a link here
-			NSString *number=nil;
-			static NSCharacterSet *digits;
-			static NSCharacterSet *ignorable;
-			if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
-			// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
-			if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
-			[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
-			while(![sc isAtEnd])
-				{
-				NSString *segment;
-				if([sc scanCharactersFromSet:ignorable intoString:NULL])
-					continue;	// skip
-				if([sc scanCharactersFromSet:digits intoString:&segment])
-					{ // found some (more) digits
-					if(number)
-						number=[number stringByAppendingString:segment];	// collect
-					else
-						number=segment;		// first segment
-					continue;	// skip
-					}
-				break;	// no digits
-				}
-			if([number length] > 6)
-				{ // there have been enough digits in sequence so that it looks like a phone number
-				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
-				if(srng.length <= rng.length)
-					{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
-					NSLog(@"found potential telephone number: %@", number);
-					// preprocess number so that it fits into E.164 and DIN 5008 formats
-					// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
-					if([number hasPrefix:@"00"])
-						number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];
-					else if([number hasPrefix:@"0"])
-						number=[number substringFromIndex:1];
-					if(![number hasPrefix:@"+"])
-						number=[NSString stringWithFormat:@"+%@%@", @"49", number];
-					NSLog(@"  -> %@", number);
-					[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
-																   forKey:NSLinkAttributeName] range:srng];	// add link
-					continue;
-					}
-				}
-			}
-		[sc setScanLocation:start+1];	// skip anything else
-		}
-}
-
 - (void) layout;
-{ // do the layout of subviews
+{ // do the layout of subviews - NOTE: this is called from within drawRect!
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
 	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or could be a <frameset>
-	NSString *anchor=[[[_dataSource response] URL] fragment];
-	NSString *bg=[body getAttribute:@"background"];
-	NSColor *background;
 #if 1
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
-	[body _layout:self];	// process the <body> tag (could also be a <frameset>)
-	[self _processPhoneNumbers:[self textStorage]];	// update content
-	background=[bg _htmlColor];
-	if(!background)
-		background=[[body getAttribute:@"bgcolor"] _htmlColor];
-//	if(!background)
-//		background=[NSColor whiteColor];	// default
-	if(background)
-		[self setBackgroundColor:background];
-	[self setDrawsBackground:background != nil];
-	if([anchor length] != 0)
-		{ // locate a matching anchor
-		NSAttributedString *str=[self textStorage];
-		unsigned idx, cnt=[str length];
-		for(idx=0; idx < cnt; idx++)
-			{
-			NSString *attr=[str attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
-			if(attr && [attr isEqualTo:anchor])
-				break;
-			}
-		if(idx < cnt)
-			{
-			NSString *target=[str attribute:@"DOMHTMLAnchorElementTargetWindow" atIndex:idx effectiveRange:NULL];
-			// decide to open different window? - or do we do that only when clicking a ling?
-			[self scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
-			}
-		}
+	[body performSelector:@selector(_layout:) withObject:self afterDelay:0.0];	// process the <body> tag (could also be a <frameset>)
 }
 
 - (void) setDataSource:(WebDataSource *) source;
@@ -189,16 +92,21 @@
 #if 1
 	NSLog(@"setNeedsLayout");
 #endif
+	if(_needsLayout == flag)
+		return;	// we already know
 	_needsLayout=flag;
-	[self setNeedsDisplay:YES];
+	if(flag)
+		[self setNeedsDisplay:YES];	// trigger a drawRect
 }
 
 - (void) viewDidMoveToHostWindow;
 {
+	NIMP;
 }
 
 - (void) viewWillMoveToHostWindow:(NSWindow *) win;
 {
+	NIMP;
 }
 
 // @protocol WebDocumentText

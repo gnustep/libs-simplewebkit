@@ -104,7 +104,7 @@ static NSDictionary *tagtable;
 	WebFrameView *frameView=[frame frameView];
 	NSView <WebDocumentView> *view;
 	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];	// well, we should know that...
-	view=[[viewclass alloc] initWithFrame:[frameView frame]];
+	view=[[viewclass alloc] initWithFrame:(NSRect){ NSZeroPoint, [frameView bounds].size }];
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
 	[view release];

@@ -850,6 +850,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
 		{ // add/substitute a new _WebHTMLDocumentFrameSetView view of same dimensions
 		_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:parentFrame];
+		/// [[self webFrame] frameView]
 		if([[view superview] isKindOfClass:[NSClipView class]])
 			[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view
 		else
@@ -1063,10 +1064,76 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	return _style;
 }
 
+// FIXME: this might need more elaboration
+
+- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
+{
+	NSString *raw=[str string];
+	NSScanner *sc=[NSScanner scannerWithString:raw];
+	[sc setCharactersToBeSkipped:nil];	// don't skip spaces or newlines automatically
+	while(![sc isAtEnd])
+		{
+		unsigned start=[sc scanLocation];	// remember where we did start
+		NSRange rng;
+		NSDictionary *attr=[str attributesAtIndex:start effectiveRange:&rng];
+		if(![attr objectForKey:NSLinkAttributeName])
+			{ // we don't yet have a link here
+			NSString *number=nil;
+			static NSCharacterSet *digits;
+			static NSCharacterSet *ignorable;
+			if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
+			// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
+			if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
+			[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
+			while(![sc isAtEnd])
+				{
+				NSString *segment;
+				if([sc scanCharactersFromSet:ignorable intoString:NULL])
+					continue;	// skip
+				if([sc scanCharactersFromSet:digits intoString:&segment])
+					{ // found some (more) digits
+					if(number)
+						number=[number stringByAppendingString:segment];	// collect
+					else
+						number=segment;		// first segment
+					continue;	// skip
+					}
+				break;	// no digits
+				}
+			if([number length] > 6)
+				{ // there have been enough digits in sequence so that it looks like a phone number
+				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
+				if(srng.length <= rng.length)
+					{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
+					NSLog(@"found telephone number: %@", number);
+					// preprocess number so that it fits into E.164 and DIN 5008 formats
+					// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
+					if([number hasPrefix:@"00"])
+						number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];
+					else if([number hasPrefix:@"0"])
+						number=[number substringFromIndex:1];
+					if(![number hasPrefix:@"+"])
+						number=[NSString stringWithFormat:@"+%@%@", @"49", number];
+					NSLog(@"  -> %@", number);
+					[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
+																   forKey:NSLinkAttributeName] range:srng];	// add link
+					continue;
+					}
+				}
+			}
+		[sc setScanLocation:start+1];	// skip anything else
+		}
+}
+
 - (void) _layout:(NSView *) view;
 {
-//	NSMutableAttributedString *str;
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+	WebDataSource *source=[htmlDocument _webDataSource];
+	NSString *anchor=[[[source response] URL] fragment];
+	NSString *bg=[self getAttribute:@"background"];
+	NSColor *background;
 	NSTextStorage *ts;
+	NSScrollView *sc=[view enclosingScrollView];
 	
 	// FIXME: how do we handle <pre> which should not respond to width changes?
 	// maybe, by an NSParagraphStyle
@@ -1077,38 +1144,65 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 #endif
 	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
 		{ // add/substitute a new _WebHTMLDocumentView view to our parent (NSClipView)
-		_WebHTMLDocumentView *textView=[[_WebHTMLDocumentView alloc] initWithFrame:[view frame]];
-#if 1
+		view=[[_WebHTMLDocumentView alloc] initWithFrame:(NSRect){ NSZeroPoint, [view frame].size }];	// create a new one with same frame
+#if 0
 		NSLog(@"replace document view %@ by %@", view, textView);
 #endif
-		[[view enclosingScrollView] setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
-		view=textView;	// use the new view
-		[textView release];
+		[[[self webFrame] frameView] _setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
+		[view release];
 #if 0
-		NSLog(@"textv=%@", textView);
-		NSLog(@"mask=%02x", [textView autoresizingMask]);
-		NSLog(@"horiz=%d", [textView isHorizontallyResizable]);
-		NSLog(@"vert=%d", [textView isVerticallyResizable]);
-		NSLog(@"webdoc=%@", [textView superview]);
-		NSLog(@"mask=%02x", [[textView superview] autoresizingMask]);
-		NSLog(@"clipv=%@", [[textView superview] superview]);
-		NSLog(@"mask=%02x", [[[textView superview] superview] autoresizingMask]);
-		NSLog(@"scrollv=%@", [[[textView superview] superview] superview]);
-		NSLog(@"mask=%02x", [[[[textView superview] superview] superview] autoresizingMask]);
-		NSLog(@"autohides=%d", [[[[textView superview] superview] superview] autohidesScrollers]);
-		NSLog(@"horiz=%d", [[[[textView superview] superview] superview] hasHorizontalScroller]);
-		NSLog(@"vert=%d", [[[[textView superview] superview] superview] hasVerticalScroller]);
+		NSLog(@"textv=%@", view);
+		NSLog(@"mask=%02x", [view autoresizingMask]);
+		NSLog(@"horiz=%d", [view isHorizontallyResizable]);
+		NSLog(@"vert=%d", [view isVerticallyResizable]);
+		NSLog(@"webdoc=%@", [view superview]);
+		NSLog(@"mask=%02x", [[view superview] autoresizingMask]);
+		NSLog(@"clipv=%@", [[view superview] superview]);
+		NSLog(@"mask=%02x", [[[view superview] superview] autoresizingMask]);
+		NSLog(@"scrollv=%@", [[[view superview] superview] superview]);
+		NSLog(@"mask=%02x", [[[[view superview] superview] superview] autoresizingMask]);
+		NSLog(@"autohides=%d", [[[[view superview] superview] superview] autohidesScrollers]);
+		NSLog(@"horiz=%d", [[[[view superview] superview] superview] hasHorizontalScroller]);
+		NSLog(@"vert=%d", [[[[view superview] superview] superview] hasVerticalScroller]);
+		NSLog(@"layoutManager=%@", [view layoutManager]);
+		NSLog(@"textContainers=%@", [[view layoutManager] textContainers]);
 #endif
 		}
 	ts=[(NSTextView *) view textStorage];
-	[ts replaceCharactersInRange:NSMakeRange(0, [[(NSTextView *) view textStorage] length]) withString:@""];	// clear current content
+	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear current content
 	[self _spliceTo:ts];
 	[self _flushStyles];	// don't keep them in the DOM Tree
 	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
-	[(NSTextView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
-														//	[view setLinkTextAttributes: ]	// update for link color
-														//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
-	[[view enclosingScrollView] setNeedsDisplay:YES];
+	[self _processPhoneNumbers:ts];	// update content
+	background=[bg _htmlColor];
+	if(!background)
+		background=[[self getAttribute:@"bgcolor"] _htmlColor];
+	//	if(!background)
+	//		background=[NSColor whiteColor];	// default
+	if(background)
+		[(_WebHTMLDocumentView *)view setBackgroundColor:background];
+	[(_WebHTMLDocumentView *)view setDrawsBackground:background != nil];
+	if([anchor length] != 0)
+		{ // locate a matching anchor
+		unsigned idx, cnt=[ts length];
+		for(idx=0; idx < cnt; idx++)
+			{
+			NSString *attr=[ts attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
+			if(attr && [attr isEqualTo:anchor])
+				break;
+			}
+		if(idx < cnt)
+			{
+			NSString *target=[ts attribute:@"DOMHTMLAnchorElementTargetWindow" atIndex:idx effectiveRange:NULL];
+			// decide to open different window? - or do we do that only when clicking a link?
+			[(_WebHTMLDocumentView *)view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
+			}
+		}
+	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
+	//	[view setLinkTextAttributes: ]		// update link color if defined by <body tag>
+	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
+	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
+	//	[ setNeedsDisplay:YES];
 #if 0	// show view hierarchy
 	{
 		NSView *parent;
@@ -1315,6 +1409,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		if(target)
 			[_style setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
 		}
+	if(!name)
+		name=[self getAttribute:@"id"];	// XHTML alternative
 	if(name)
 		{ // add an anchor
 		[_style setObject:name forKey:DOMHTMLAnchorElementAnchorName];	// set the cursor

@@ -29,31 +29,35 @@
 
 // - (BOOL) isFlipped; { return YES; }
 
-// The first level below this WebFrameView is a NSScrollView (if we allow scrolling).
-// The elements to be displayed are laid out properly in the ClipView area of that scroll view.
-// They can be e.g. NSTextView, NSPopUpButton, NSTextField, NSButton, and another WebFrameView depending
-// on the tags found in the HTML source
+// The first level below this WebFrameView is a NSScrollView.
+// The elements to be displayed are the documentView of that scroll view.
+// They can be e.g. NSTextView, NSImageView or another WebFrameView depending on the tags found in the HTML source
 
 - (id) initWithFrame:(NSRect) rect;
 {
 	if((self=[super initWithFrame:rect]))
 		{
-		_scrollView=[[NSScrollView alloc] initWithFrame:rect];
+		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize
+		_scrollView=[[[NSScrollView alloc] initWithFrame:[self bounds]] autorelease];
 		[_scrollView setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize
-		if([_scrollView respondsToSelector:@selector(setAutohidesScrollers:)])
-			[_scrollView setAutohidesScrollers:YES];	// default
-		[_scrollView setHasHorizontalScroller:YES];
-		[_scrollView setHasVerticalScroller:YES];
+		[_scrollView setBorderType:NSNoBorder];
 		[self addSubview:_scrollView];
+//		[self setNeedsDisplay:YES];
 		}
 	return self;
 }
 
 - (void) _setDocumentView:(NSView *) view;
 {
-	[view setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize if we do
+	[view setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize if we can
 	[_scrollView setDocumentView:view];
-//	[view setNeedsDisplay:YES];
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+	[_scrollView setAutohidesScrollers:YES];	// default
+#endif
+	[_scrollView setHasHorizontalScroller:YES];
+	[_scrollView setHasVerticalScroller:YES];
+	//	[_scrollView tile];
+//	[_scrollView reflectScrolledClipView:[_scrollView contentView]];
 }
 
 - (void) _setWebFrame:(WebFrame *) wframe;
@@ -87,7 +91,7 @@
 
 // - (void) drawRect:(NSRect) rect;
 // {
-	// should draw frame background here
+	// should draw any frame background here
 // }
 
 @end
