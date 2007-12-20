@@ -1040,6 +1040,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 - (NSMutableDictionary *) _style;
 { // provide root styles
+	NSColor *text=[[self getAttribute:@"text"] _htmlColor];
 	if(!_style)
 		{
 		// FIXME: cache data until we are modified
@@ -1055,7 +1056,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 			[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame], WebElementFrameKey,
 			@"inline", DOMHTMLBlockInlineLevel,	// treat as inline (i.e. don't surround by \nl)
 									// background color
-									// default text color
+			text, NSForegroundColorAttributeName,		// default text color - may be nil!
 			nil];
 #if 1
 		NSLog(@"_style for <body> with attribs %@ is %@", [self _attributes], _style);
@@ -1130,8 +1131,9 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
 	WebDataSource *source=[htmlDocument _webDataSource];
 	NSString *anchor=[[[source response] URL] fragment];
-	NSString *bg=[self getAttribute:@"background"];
-	NSColor *background;
+	NSString *backgroundURL=[self getAttribute:@"background"];		// URL for background image
+	NSColor *bg=[[self getAttribute:@"bgcolor"] _htmlColor];
+	NSColor *link=[[self getAttribute:@"link"] _htmlColor];
 	NSTextStorage *ts;
 	NSScrollView *sc=[view enclosingScrollView];
 	
@@ -1170,18 +1172,25 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		}
 	ts=[(NSTextView *) view textStorage];
 	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear current content
-	[self _spliceTo:ts];
-	[self _flushStyles];	// don't keep them in the DOM Tree
+	[self _spliceTo:ts];	// translate DOM-Tree into attributed string
+	[self _flushStyles];	// clear style cache in the DOM Tree
 	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
 	[self _processPhoneNumbers:ts];	// update content
-	background=[bg _htmlColor];
-	if(!background)
-		background=[[self getAttribute:@"bgcolor"] _htmlColor];
-	//	if(!background)
-	//		background=[NSColor whiteColor];	// default
-	if(background)
-		[(_WebHTMLDocumentView *)view setBackgroundColor:background];
-	[(_WebHTMLDocumentView *)view setDrawsBackground:background != nil];
+	[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
+	[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
+//	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
+	/* the next line is a workaround for the following problem:
+		If we show HTML text that is longer than the scrollview it has a vertical scroller.
+		Now, if a new page is loaded and the text is shorter and completely fits into the
+		NSScrollView, the scroller is automatically hidden.
+		Due to a bug we still have to fix, the NSTextView is not aware of this
+		before the user resizes the enclosing WebView and NSScrollView.
+		And, the background is only drawn for the not-wide-enough NSTextView.
+		As a workaround, we set the background also for the ScrollView.
+	*/
+	if(bg) [sc setBackgroundColor:bg];
+	[(_WebHTMLDocumentView *) view setLinkColor:link];
+	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 	if([anchor length] != 0)
 		{ // locate a matching anchor
 		unsigned idx, cnt=[ts length];
@@ -1192,17 +1201,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 				break;
 			}
 		if(idx < cnt)
-			{
-			NSString *target=[ts attribute:@"DOMHTMLAnchorElementTargetWindow" atIndex:idx effectiveRange:NULL];
-			// decide to open different window? - or do we do that only when clicking a link?
-			[(_WebHTMLDocumentView *)view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
-			}
+			[(_WebHTMLDocumentView *) view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
 		}
-	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
-	//	[view setLinkTextAttributes: ]		// update link color if defined by <body tag>
 	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
 	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
-	//	[ setNeedsDisplay:YES];
+	[sc tile];
+//	[view setNeedsDisplay:YES];	// trigger internal re-layout if the scrollers have been removed
 #if 0	// show view hierarchy
 	{
 		NSView *parent;

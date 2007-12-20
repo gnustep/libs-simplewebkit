@@ -55,6 +55,8 @@
 #endif
 	if(_needsLayout)
 		[self layout];
+	if(_backgroundImage)
+		; // draw
 	[super drawRect:rect];
 }
 
@@ -107,6 +109,20 @@
 - (void) viewWillMoveToHostWindow:(NSWindow *) win;
 {
 	NIMP;
+}
+
+- (void) setLinkColor:(NSColor *) color
+{
+	if(color)
+		[self setLinkTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSUnderlineColorAttributeName, nil]];		// define link color
+	else
+		[self setLinkTextAttributes:nil];	// default
+}
+
+- (void) setBackgroundImage:(NSImage *) img
+{
+	ASSIGN(_backgroundImage, img);
+	[self setNeedsDisplay:YES];
 }
 
 // @protocol WebDocumentText
@@ -388,8 +404,8 @@
 				proposedLineFragment:(NSRect) fragment
 					   glyphPosition:(NSPoint) pos
 					  characterIndex:(unsigned) index;
-{ // make a text attachment that eats up the remaining space up to the end of the current fragment
-	fragment.size.width-=pos.x-1.0;
+{ // make a text attachment cell that eats up the remaining space up to the end of the current fragment
+	fragment.size.width-=pos.x+[container lineFragmentPadding];
 	fragment.size.height=5.0;
 	fragment.origin=NSZeroPoint;	// it appears that we must return relative coordinates
 	return fragment;
