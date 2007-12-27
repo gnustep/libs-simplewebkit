@@ -113,10 +113,12 @@
 
 - (void) setLinkColor:(NSColor *) color
 {
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
 	if(color)
 		[self setLinkTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSUnderlineColorAttributeName, nil]];		// define link color
 	else
 		[self setLinkTextAttributes:nil];	// default
+#endif
 }
 
 - (void) setBackgroundImage:(NSImage *) img

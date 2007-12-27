@@ -35,9 +35,7 @@
 		[self setHorizontallyResizable:NO];
 		[self setVerticallyResizable:YES];
 		[self setTextContainerInset:NSMakeSize(2.0, 4.0)];	// leave some margin
-															//	[self setLinkTextAttributes: ]
-															//	[self setMarkedTextAttributes: ]
-															// attach a defalt context menu (Back, Forward etc.) for HTML pages
+		// attach a defalt context menu (Back, Forward etc.) for HTML pages
 		}
 	return self;
 }

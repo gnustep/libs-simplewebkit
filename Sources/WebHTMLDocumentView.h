@@ -37,8 +37,11 @@
 @interface _WebHTMLDocumentView : NSTextView <WebDocumentView, WebDocumentText>
 {
 	WebDataSource *_dataSource;
+	NSImage *_backgroundImage;
 	BOOL _needsLayout;
 }
+- (void) setLinkColor:(NSColor *) color;
+- (void) setBackgroundImage:(NSImage *) img;
 @end
 
 // if we display frames
