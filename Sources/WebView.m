@@ -241,13 +241,11 @@ static NSArray *_htmlMimeTypes;
 		WebFrameView *frameView=[[WebFrameView alloc] initWithFrame:(NSRect){ NSZeroPoint, rect.size}];	// view for the main frame
 		_mainFrame=[[WebFrame alloc] initWithName:name webFrameView:frameView webView:self];	// assign a WebFrame
 		[self addSubview:frameView];		// make it our subview with same size
-		[frameView setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize main Frame with WebView
 		[frameView setAllowsScrolling:YES];	// main view can always scroll (if needed)
 		[frameView release];
 		_groupName=[group retain];
 		_drawsBackground=YES;
 		_textSizeMultiplier=1.0;	// set default size multiplier (should load from defaults)
-//		[_mainFrame loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
 		}
 	return self;
 }
@@ -347,13 +345,11 @@ static NSArray *_htmlMimeTypes;
 	u=[NSURL URLWithString:str];
 	if([[u scheme] length] == 0)
 		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// add default prefix
-#if 1
+#if 0
 	NSLog(@"takeStringURL %@ -> %@", str, u);
 #endif
 	if(u)
-		{
 		[_mainFrame loadRequest:[NSURLRequest requestWithURL:u]];
-		}
 	else
 		;	// ???
 }
@@ -490,12 +486,9 @@ static NSArray *_htmlMimeTypes;
 - (void) startSpeaking:(id) sender; { [(NSTextView *) [[_mainFrame frameView] documentView] startSpeaking:sender]; }
 - (void) stopSpeaking:(id) sender; { [(NSTextView *) [[_mainFrame frameView] documentView] stopSpeaking:sender]; }
 
-#if 1	// debugging because someone tries to call this method...
-- (id) webFrame; { abort(); }
-#endif
-
 - (WebScriptObject *) windowScriptObject
 {
+	// should be created only once
 	WebScriptObject *o;
 	/*
 	should be the 'window' object - or is this the "global" object???
@@ -505,19 +498,25 @@ static NSArray *_htmlMimeTypes;
 	// FIXME: there is also a webView:windowScriptObjectAvailable: frameload delegate method
 	// probably called when the mainFrame has its DOMDocument initialized
 	o=[[_WindowScriptObject new] autorelease];
-	 // initialize 'document' property with [_mainFrame DOMDocument]
+	[o setValue:[_mainFrame DOMDocument] forKey:@"document"];
+//	[o setValue:nil forKey:@"window"]; -- no we are the "window" object. A browser has a windows array?
+//	[o setValue:nil forKey:@"event"];
+//	[o setValue:nil forKey:@"event"]; -- etc.
 	return o;
 }
 
-
 - (NSDictionary *) elementAtPoint:(NSPoint) point;
 {
-	/* should be like
+	/* should return a dictionary like
 	WebElementDOMNode = <DOMHTMLDivElement [DIV]: 0x159a37f8 ''>; 
 	WebElementFrame = <WebFrame: 0x381780>; 
 	WebElementIsSelected = 0; 
 	WebElementTargetFrame = <WebFrame: 0x381780>; 
 	*/
+	// how it could work:
+	// 1. we have to determine the subview/frame view / Web(HTML)DocumentView
+	// 2. ask the WebHTMLDocumentView for the character index
+	// 3. and the attributes at that textStorage location
 	return nil;
 }
 
@@ -557,6 +556,7 @@ static NSArray *_htmlMimeTypes;
   withPasteboardTypes:(NSArray *) types
 		 toPasteboard:(NSPasteboard *) pasteboard;
 {
+	//
 }
 
 // we should substitute _hostWindow if available!

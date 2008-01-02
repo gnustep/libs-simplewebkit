@@ -5,7 +5,7 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-30 Nov 2007
+31 Dec 2007
 -----------
 
 Completion indicator
@@ -13,10 +13,10 @@ Completion indicator
 HTML
 	Loading				99%
 	Parser				99%		(HTML -> DOM Tree)
-	Evaluator			80%		(DOM Tree -> NSAttributedString)
+	Evaluator			90%		(DOM Tree -> NSAttributedString)
 EcmaScript
 	Loading				100%
-	Parser				90%
+	Parser				90%		not well tested for completeness and robustness
 	Evaluator			50%
 	Objects				0%
 CSS
@@ -25,29 +25,32 @@ CSS
 	Evaluator			0%
 WebView, WebFrame, ...
 	Basics				100%
-	Advanced			50%		(Scrolling, History, Forms, Frames)
+	Advanced			60%		(Scrolling, History, Forms, Frames)
 	Editing				0%
 
 High Prio:
 
 1. solve redisplay/refresh issues
-2. <frame> and scrollers should work correctly
-3. <table> and <ul> elements should really work
-4. make <form> work (buttons and text fields interaction)
+2. history / back-forward list
+3. <frame> and scrollers should work correctly
+4. <table> elements should really work
+5. make <form> work (buttons and text fields interaction)
 
 HTML Loading:
-- problem with stall for loading .js subresources in wiki.gnustep.org and others
+- does not use NSURLCache
 
 HTML parsing:
 - NSXMLParser:
   - should we accept entities in quoted paramters or not? Is this standard or not? ANSWER: YES!
 	like this: <input type="submit" value="&nbsp;&nbsp;Go&nbsp;&nbsp;"> from http://pda.leo.org/
   - fix error handling if it is known that there is no more data coming from the source
-  - comment processing is still not correct HTML/SGML/XML
+  - <tag attrib = "value" > appears to be legal or in use - i.e. spaces between attrib and value?
+  - <![ CDATA[ ... appears to be legal or in use
+  - entites should simply end at the first non-alphanumeric character and ignore if it is a ;
 
 HTML Evaluator:
 - small problem with space after tag "<p> " and inline-elements surrounded by blanks -> "abc <span> def" renders two spaces
-- color does only understand #rrggbb and no plain text names yet
+- color does only understand #rrggbb and no plain text (X11) names yet
 - <table> does not handle colspan, rowspan
 - (better) handle <pre>
 
@@ -70,7 +73,7 @@ Forms:
 
 EcmaScript:
 - finalize parser, evaluator and prototype objects
-- add execution context ("this", global variables, document/event/etc.)
+- add execution context ("this", global variables, document/event/images/anchors etc.)
 - add prototype objects Array, Number, Object, String, etc. with their methods
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
 - handle more triggers like <... onmouse="...">
@@ -93,6 +96,7 @@ General:
 	- NOTE: this may also depend on the server which can control if the client needs to reload or not!
 	- We must also remember scroller position(s)
 	- We should cache pages in NSURLCache
+	  - NSCachedURLResponse has a userInfo dict where we can try to store the DOM Tree, form values and scroll-position
 	- We must also remember contents of <form> elements (even hidden passwords!)
 	- also note that a "Reload" keeps the scroller positions while a load with the same URL not
 
@@ -101,12 +105,12 @@ mySTEP's extension requests:
   - cookies
   - cache
   - https (using NSSocket(Input|Output)Stream)
-  - sending / POST&GET methods
+  - sending of POST&GET methods
   - header compression
   - server redirection
   - handle "feed:" scheme (load the feed XML and translate into an ECMAScript/HTML result when done)
 - NSTextTable is not rendered
-- NSTextList is not rendered
+- NSTextList is not rendered - NOTE: this is not rendered but just a hint...
 
 GNUstep extension requests:
 - NSTextTable etc. is missing

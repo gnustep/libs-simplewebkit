@@ -102,6 +102,7 @@ If not, write to the Free Software Foundation,
 {
 	if((self=[super initWithFrame:rect]))
 		{
+		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
 #if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 		[self setAllowsCutCopyPaste:YES];
 		[self setAnimates:YES];

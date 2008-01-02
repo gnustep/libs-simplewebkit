@@ -29,7 +29,7 @@
 
 #import <Foundation/NSXMLParser.h>
 
-#else		// always use our own NSXMLParser that supports -_setEncoding and _tagPath and other HTML compatibility extensions
+#else		// always use our own NSXMLParser that supports -_parseData: -_setEncoding: and _tagPath and other HTML compatibility extensions
 
 #define NSXMLParser WebKitXMLParser								// rename class to avoid linker conflicts with Foundation
 #define parser Webparser										// rename methods to avoid compiler conflicts with Foundation
@@ -272,6 +272,13 @@
 {
 	if((self=[super initWithFrame:rect]))
 		{
+		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
+		// set other attributes (selectable, editable etc.)
+		[self setEditable:NO];
+		[self setSelectable:YES];
+		[self setHorizontallyResizable:NO];
+		[self setVerticallyResizable:YES];
+		[self setTextContainerInset:NSMakeSize(2.0, 4.0)];	// leave some margin
 		}
 	return self;
 }

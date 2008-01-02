@@ -406,8 +406,8 @@
 				proposedLineFragment:(NSRect) fragment
 					   glyphPosition:(NSPoint) pos
 					  characterIndex:(unsigned) index;
-{ // make a text attachment cell that eats up the remaining space up to the end of the current fragment
-	fragment.size.width-=pos.x+[container lineFragmentPadding];
+{ // make a text attachment cell that eats up the remaining space up to the end of the current fragment (minus line padding)
+	fragment.size.width-=pos.x+2*[container lineFragmentPadding];	// should be the same as the containerInset.width
 	fragment.size.height=5.0;
 	fragment.origin=NSZeroPoint;	// it appears that we must return relative coordinates
 	return fragment;

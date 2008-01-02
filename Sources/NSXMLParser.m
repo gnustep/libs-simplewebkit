@@ -232,6 +232,9 @@ static NSDictionary *entitiesTable;
 		}
 }
 
+#define eat(C) { }
+#define eatstr(STR) { }
+
 - (void) _parseData:(NSData *) d;
 { // incremental parser - tries to do its best and reports/removes only complete elements; returns otherwise (or raises exceptions)
 	const char *ep=NULL;
@@ -262,7 +265,7 @@ static NSDictionary *entitiesTable;
 		[(NSMutableData *) buffer appendData:d];	// append new fragment
 		cp=(const char *) [buffer bytes]+cpoff;
 		}
-	else
+	else if(d)
 		{
 		NSLog(@"_parseData: length 0");
 		}

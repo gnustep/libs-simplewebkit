@@ -1,3 +1,10 @@
+2007-12-31  Nikolaus Schaller <hns@computer.org>
+	* fixed bugs in entities table
+	* added preliminary handling for <li>
+	
+2007-12-17  Nikolaus Schaller <hns@computer.org>
+	* improved scroller handling
+	
 2007-11-20  Riccardo Mottola <riccardo@kaffe.org>
 	* Sources/GNUmakefile: added WebPreferences
 	

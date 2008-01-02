@@ -64,8 +64,10 @@ NSString *WebScriptException=@"WebScriptException";
 }
 
 - (id) evaluateWebScript:(NSString *) script;
-{ // evaluate for given node - is this the eval("") method?
+{ // evaluate for given node - is this also the eval("") method?
+	// couldn't we use [self callWebScriptMethod:@"eval" withArguments:[NSArray arrayWithObject:script]];
 	id r=nil;
+	// if(disabled by WebPrefs) return nil;
 	NS_DURING
 		{
 			NSScanner *sc=[NSScanner scannerWithString:script];
@@ -76,12 +78,14 @@ NSString *WebScriptException=@"WebScriptException";
 			// but sample code from the WWW shows that this method runs with "self" as the "this" object, i.e.
 			// they use [[webView windowScriptObject] evaluateWebScript:@"xxx"]
 			// and [[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
+#if 0	// disabled for tests if the parser is working well
 			r=[r _evaluate];	// evaluate
 			r=[r _getValue];	// dereference if needed
-			r=[r _toString];	// always convert to NSString
+			r=[r _toString];	// always convert to NSString (?)
+#endif
 		}
 	NS_HANDLER
-		r=[NSString stringWithFormat:@"<WebScript Internal Exception: %@>", [localException reason]];
+		r=[NSString stringWithFormat:@"<WebScript Exception: %@>", [localException reason]];
 	NS_ENDHANDLER
 	return r;
 }
@@ -112,6 +116,16 @@ NSString *WebScriptException=@"WebScriptException";
 {
 	return NIMP;	// not for generic object
 	return _GET(self, @"key from index");
+}
+
+- (void) setValue:(id) value forKey:(NSString *) key;
+{ // KVC setter
+	NIMP;
+}
+
+- (id) valueForKey:(NSString *) key;
+{ // KVG getter
+	return NIMP;
 }
 
 @end

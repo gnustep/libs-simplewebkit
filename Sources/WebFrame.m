@@ -36,7 +36,6 @@
 		_name=[n retain];
 		_frameView=[frameView retain];
 		_webView=[webView retain];
-		[frameView _setDocumentView:nil];	// will be created and set by the WebDocumentRepresentation soon as MIME-type becomes known from the data source
 		[frameView _setWebFrame:self];
 		_domDocument=[[RENAME(DOMDocument) alloc] _initWithName:@"#DOM" namespaceURI:nil document:nil];	// attach empty DOMDocument
 		}
@@ -124,6 +123,7 @@
 	NSLog(@"stop loading");
 #endif
 	[self _performClientRedirectToURL:nil delay:0.0];	// cancel any redirection timer
+	// does this explicitly stop the data source from loading?
 	[_provisionalDataSource release];
 	_provisionalDataSource=nil;
 	[_children makeObjectsPerformSelector:_cmd];		// recursively stop loading of all child frames!
