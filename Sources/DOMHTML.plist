@@ -45,13 +45,13 @@
 	<key>colgroup</key>
 	<string>?</string>
 	<key>dd</key>
-	<string>DOMHTMLDLIElement</string>
+	<string>DOMHTMLLIElement</string>
 	<key>div</key>
 	<string>DOMHTMLDivElement</string>
 	<key>dl</key>
 	<string>DOMHTMLDListElement</string>
 	<key>dt</key>
-	<string>DOMHTMLDLIElement</string>
+	<string>DOMHTMLLIElement</string>
 	<key>em</key>
 	<string>DOMHTMLElement</string>
 	<key>font</key>

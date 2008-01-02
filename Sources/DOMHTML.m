@@ -25,7 +25,7 @@ If not, write to the Free Software Foundation,
 // FIXME: add additional attributes (e.g. images, anchors etc. for DOMHTMLDocument) and DOMHTMLCollection type
 
 // look at for handling of whitespace: http://www.w3.org/TR/html401/struct/text.html
-// about display:block and display:inline: http://de.selfhtml.org/html/referenz/elemente.htm
+// about "display:block" and "display:inline": http://de.selfhtml.org/html/referenz/elemente.htm
 
 #import <WebKit/WebView.h>
 #import <WebKit/WebResource.h>
@@ -39,13 +39,15 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 #if !defined(__APPLE__)
 
-// surrogate declarations for headers of optional classes
+// surrogate declarations for headers of optional classes so that we don't have to #import <NSTextTableBlock.h>
 
 @interface NSTextBlock : NSObject
 - (void) setBackgroundColor:(NSColor *) color;
 - (void) setBorderColor:(NSColor *) color;
 - (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
-		 // FIXME: values must nevertheless match implementation in AppKit!
+
+// FIXME: values must match implementation in Apple AppKit!
+
 #define NSTextBlockBorder 0
 #define NSTextBlockPadding 1
 #define NSTextBlockMargin 2
@@ -360,11 +362,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 { // recursively splice this node and any subnodes, taking end of last fragment into account
 	unsigned i;
 	NSDictionary *style=[self _style];
-	NSTextAttachment *attachment=[self _attachment];
+	NSTextAttachment *attachment=[self _attachment];	// may be nil
+	NSString *string=[self _string];	// may be nil
 	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
-	BOOL isInline=[[_style objectForKey:DOMHTMLBlockInlineLevel] isEqualToString:@"inline"];
-	if(lastIsInline && !isInline)	// we need to close the last entry
-		{
+	BOOL isInline=[[style objectForKey:DOMHTMLBlockInlineLevel] isEqualToString:@"inline"];
+	if(lastIsInline && !isInline)
+		{ // we need to close the last inline segment and prefix new block mode segment
 		if([[str string] hasSuffix:@" "])
 			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@"\n"];	// replace space
 		else
@@ -376,18 +379,18 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[astr addAttributes:style range:NSMakeRange(0, [astr length])];
 		[str appendAttributedString:astr];
 		}
-	else if(isInline)
-		{ // add styled string
-		NSString *string=[self _string];
-		if([string length] > 0)
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];	// add content
+	if([string length] > 0)	
+		{ // add styled string (if available)
+		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];
 		}
 	for(i=0; i<[_childNodes length]; i++)
-		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];	// splice child segments
-	if(!isInline)	// close our block
-		{
+		{ // add children nodes (if available)
+		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];
+		}
+	if(!isInline)
+		{ // close our block
 		if([[str string] hasSuffix:@" "])
-			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off space
+			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off trailing space
 		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:style] autorelease]];	// close this block
 		}
 }
@@ -1084,6 +1087,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 			static NSCharacterSet *ignorable;
 			if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
 			// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
+			// so we should accept dots but only if they separate at least two digits...
+			// but don't recognize dates like 29.12.2007
 			if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
 			[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
 			while(![sc isAtEnd])
@@ -1106,16 +1111,16 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
 				if(srng.length <= rng.length)
 					{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
+#if 0
 					NSLog(@"found telephone number: %@", number);
+#endif
 					// preprocess number so that it fits into E.164 and DIN 5008 formats
 					// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
 					if([number hasPrefix:@"00"])
-						number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];
-					else if([number hasPrefix:@"0"])
-						number=[number substringFromIndex:1];
-					if(![number hasPrefix:@"+"])
-						number=[NSString stringWithFormat:@"+%@%@", @"49", number];
+						number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];	// convert to international format
+#if 0
 					NSLog(@"  -> %@", number);
+#endif
 					[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
 																   forKey:NSLinkAttributeName] range:srng];	// add link
 					continue;
@@ -1175,10 +1180,14 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[self _spliceTo:ts];	// translate DOM-Tree into attributed string
 	[self _flushStyles];	// clear style cache in the DOM Tree
 	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
+
+	// FIXME: we should recognize a <meta format> element as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
+	
 	[self _processPhoneNumbers:ts];	// update content
 	[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
 	[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
 //	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
+#if 1	// WORKAROUND
 	/* the next line is a workaround for the following problem:
 		If we show HTML text that is longer than the scrollview it has a vertical scroller.
 		Now, if a new page is loaded and the text is shorter and completely fits into the
@@ -1189,6 +1198,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		As a workaround, we set the background also for the ScrollView.
 	*/
 	if(bg) [sc setBackgroundColor:bg];
+#endif
 	[(_WebHTMLDocumentView *) view setLinkColor:link];
 	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 	if([anchor length] != 0)
@@ -1197,7 +1207,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		for(idx=0; idx < cnt; idx++)
 			{
 			NSString *attr=[ts attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
-			if(attr && [attr isEqualTo:anchor])
+			if(attr && [attr isEqualToString:anchor])
 				break;
 			}
 		if(idx < cnt)
@@ -1206,7 +1216,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
 	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
 	[sc tile];
-//	[view setNeedsDisplay:YES];	// trigger internal re-layout if the scrollers have been removed
 #if 0	// show view hierarchy
 	{
 		NSView *parent;
@@ -2119,13 +2128,44 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @end
 
+// FIXME:
+// NSTextList is just descriptors. The Text system does interpret it only when (re)generating new-lines
+// List entries are not automatically generated when building attributed strings!
+// i.e. we must generate and store the marker string explicitly
+
 @implementation DOMHTMLLIElement	// <li>, <dt>, <dd>
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
+- (NSString *) _string;
+{
+	NSParagraphStyle *paragraph=[_style objectForKey:NSParagraphStyleAttributeName];
+	NSArray *lists=[paragraph textLists];	// get (nested) list
+	NSString *node=[self nodeName];
+	if([node isEqualToString:@"LI"])
+		{
+		int i=[lists count];
+		NSString *str=@"\t";
+		while(i-- > 0)
+			{
+			NSTextList *list=[lists objectAtIndex:i];
+			// where do we get the correct item number from? we must track in parent ol/ul nodes!
+			str=[[list markerForItemNumber:1] stringByAppendingString:str];
+			if(!([list listOptions] & NSTextListPrependEnclosingMarker))
+				break;	// don't prepend
+			}
+		return str;
+		}
+	else if([node isEqualToString:@"DT"])
+		return @"";
+	else	// <DL>
+		return @"\t";
+}
+
 - (void) _addAttributesToStyle
 {
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	// modify paragraph head indent etc. so that we have proper indentation of the list entries
 }
 
 @end
@@ -2134,7 +2174,25 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 - (void) _addAttributesToStyle
 {
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	NSString *align=[self getAttribute:@"align"];
+	NSArray *lists=[paragraph textLists];	// get (nested) list
+	NSTextList *list;
+	// FIXME: decode HTML list formats and options and translate
+	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"\t" options:NSTextListPrependEnclosingMarker];
+	if(list)
+		{ // add initial list marker
+		if(!lists) lists=[NSMutableArray new];	// start new one
+		else lists=[lists mutableCopy];			// make mutable
+		[(NSMutableArray *) lists addObject:list];
+		[list release];
+		[paragraph setTextLists:lists];
+		}
+#if 1
+	NSLog(@"lists=%@", lists);
+#endif
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end
@@ -2147,13 +2205,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *align=[self getAttribute:@"align"];
 	NSArray *lists=[paragraph textLists];	// get (nested) list
 	NSTextList *list;
-	if(!lists) lists=[NSMutableArray new];	// start new one
-	else lists=[lists mutableCopy];			// make mutable
-	// FIXME: decode list formats and options
-	// NSTextListPrependEnclosingMarker
-	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{decimal}." options:0];
+	// FIXME: decode HTML list formats and options and translate
+	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{decimal}." options:NSTextListPrependEnclosingMarker];
 	if(list)
 		{
+		if(!lists) lists=[NSMutableArray new];	// start new one
+		else lists=[lists mutableCopy];			// make mutable
 		[(NSMutableArray *) lists addObject:list];
 		[list release];
 		[paragraph setTextLists:lists];
@@ -2161,7 +2218,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 #if 1
 	NSLog(@"lists=%@", lists);
 #endif
-	[lists release];
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
@@ -2175,19 +2231,19 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSArray *lists=[paragraph textLists];	// get (nested) list
 	NSTextList *list;
-	if(!lists) lists=[NSMutableArray new];	// start new one
-	else lists=[lists mutableCopy];			// make mutable
 
 		// FIXME: decode list formats and options
-		// e.g. change the marker style depending on level
-		// NSTextListPrependEnclosingMarker
+		// e.g. change the marker style depending on nesting level disc -> circle -> hyphen
 		
-	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{circle}" options:0];
+	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
 	if(list)
 		{
+		if(!lists) lists=[NSMutableArray new];	// start new one
+		else lists=[lists mutableCopy];			// make mutable
 		[(NSMutableArray *) lists addObject:list];
 		[list release];
 		[paragraph setTextLists:lists];
+		[lists release];
 		}
 #if 1
 	NSLog(@"lists=%@", lists);
