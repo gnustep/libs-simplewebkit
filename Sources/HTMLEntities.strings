@@ -44,11 +44,11 @@ atilde = "\U00E3";
 Auml = "\U00C4";
 auml = "\U00E4";
 Ccedil = "\U00C7";
-ccedil = "`U00E7";
+ccedil = "\U00E7";
 Eacute = "\U00C8";
 eacute = "\U00E8";
 Ecirc = "\U00CA";
-ecirc = "\UOOEA";
+ecirc = "\U00EA";
 szlig = "\U00DF";
 ouml = "\U00F6";
 uuml = "\U00FC";
@@ -65,6 +65,8 @@ iacute = "\U00ED";
 Icirc = "\U00CE";
 icirc = "\U00EE";
 Igrave = "\U00CC";
+Iuml = "\U00CF";
+iuml = "\U00EF";
 igrave = "\U00EC";
 Ntilde = "\U00D1";
 ntilde = "\U00F1";
@@ -102,10 +104,10 @@ yuml = "\U00FF";
 
 /* entities for punctuation characters and currency values */
 cent = "\U00A2";
-curren = "\U00A4";
-euro = "\U20AC";
 pound = "\U00A3";
-yen = "\UOOA5";
+curren = "\U00A4";
+yen = "\U00A5";
+euro = "\U20AC";
 
 brvbar = "\U00A6";
 bull = "\U2022";
@@ -147,23 +149,27 @@ rsaquo = "\U203A";
 rsquo = "\U2019";
 sbquo = "\U201A";
 
-
+/* some special entity names */
 nbsp = "\U00A0";
-
-/* some other entity names which are not necessarily part of the HTML standard but in common use (need to be converted to \U notation) */
-
-brkbar = "¦";
-reg = "®";
-deg = "°";
-plusm = "±";
-sup2 = "²";
-sup3 = "³";
-frac14 = "¼";
-frac12 = "½";
-frac34 = "¾";
-null = "&null;";
-
-
 "nonbreaking-hyphen" = "\U2011";
 newline = "\U2028";
 newparagraph = "\U2029";
+emdash = "\U2014";
+endash = "\U2013";
+
+/* some other entity names which are not part of the HTML standard but in common use */
+iexcl = "\U00A1";
+brkbar = "\U00A6";
+deg = "\U00B0";
+plusm = "\U00B1";
+plusmn = "\U00B1";
+sup2 = "\U00B2";
+sup3 = "\U00B3";
+micro = "\U00B5";
+frac14 = "\U00BC";
+frac12 = "\U00BD";
+frac34 = "\U00BE";
+times = "\U00D7";
+divide = "\U00F7";
+null = "&null;";
+
