@@ -8,8 +8,12 @@
                 home = id; 
                 load = id; 
                 loadPageFromMenuItem = id; 
+                makeTextDefault = id; 
+                makeTextLarger = id; 
+                makeTextSmaller = id; 
                 openJavaScriptConsole = id; 
                 searchGoogle = id; 
+                showAttributedString = id; 
                 showDOMTree = id; 
                 showSource = id; 
                 stopLoading = id; 

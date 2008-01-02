@@ -68,6 +68,18 @@
 	[currentURL setStringValue:[url absoluteString]];
 }
 
+- (IBAction) makeTextDefault:(id) Sender;
+{
+	[webView setTextSizeMultiplier:1.0];
+}
+
+- (BOOL) validateMenuItem:(NSMenuItem *)item
+{
+	NSString *sel=NSStringFromSelector([item action]);
+	if([sel isEqualToString:@"makeTextDefault:"]) return [webView textSizeMultiplier] != 1.0;
+	return YES;
+}
+
 - (IBAction) home:(id) Sender;
 {
 #if 1
@@ -146,6 +158,15 @@
 	NSString *src=[[[[webView mainFrame] dataSource] representation] documentSource];
 	if(!src)
 		src=@"<no document source available>";
+	[docSource setString:src];
+	[[docSource window] makeKeyAndOrderFront:sender];
+}
+
+- (IBAction) showAttributedString:(id) sender
+{
+	NSString *src=[[(NSTextView *) [[[webView mainFrame] frameView] documentView] textStorage] description];
+	if(!src)
+		src=@"<no documentView available>";
 	[docSource setString:src];
 	[[docSource window] makeKeyAndOrderFront:sender];
 }
@@ -426,7 +447,7 @@
     id obj;
 	if (item == nil)
         return [[webView mainFrame] DOMDocument];	
-	obj = [[item childNodes] item:index];
+	obj = [[(DOMNode *) item childNodes] item:index];
 	[domNodes addObject:obj];
 	return obj;
 }
@@ -435,14 +456,14 @@
 {
     if (item == nil)
         item=[[webView mainFrame] DOMDocument];	// replace by root
-    return [[item childNodes] length] > 0;
+    return [[(DOMNode *) item childNodes] length] > 0;
 }
 
 - (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
 {
     if (item == nil)
         return 1;
-    return [[item childNodes] length];
+    return [[(DOMNode *) item childNodes] length];
 }
 
 - (void) outlineViewSelectionDidChange:(NSNotification *)notification
