@@ -37,47 +37,6 @@ static NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetNa
 static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 static NSString *DOMHTMLBlockInlineLevel=@"display";
 
-#if !defined(__APPLE__)
-
-// surrogate declarations for headers of optional classes so that we don't have to #import <NSTextTableBlock.h>
-
-@interface NSTextBlock : NSObject
-- (void) setBackgroundColor:(NSColor *) color;
-- (void) setBorderColor:(NSColor *) color;
-- (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
-
-// FIXME: values must match implementation in Apple AppKit!
-
-#define NSTextBlockBorder 0
-#define NSTextBlockPadding 1
-#define NSTextBlockMargin 2
-#define NSTextBlockAbsoluteValueType 0
-#define NSTextBlockPercentageValueType 1
-#define NSTextBlockTopAlignment	0
-#define NSTextBlockMiddleAlignment 1
-#define NSTextBlockBottomAlignment 2
-#define NSTextBlockBaselineAlignment 3
-@end
-
-@interface NSTextTable : NSTextBlock
-- (int) numberOfColumns;
-- (void) setHidesEmptyCells:(BOOL) flag;
-- (void) setNumberOfColumns:(unsigned) cols;
-@end
-
-@interface NSTextTableBlock : NSTextBlock
-- (id) initWithTable:(NSTextTable *) table startingRow:(int) r rowSpan:(int) rs startingColumn:(int) c columnSpan:(int) cs;
-@end
-
-@interface NSTextList : NSObject <NSCoding, NSCopying>
-- (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
-- (unsigned) listOptions;
-- (NSString *) markerForItemNumber:(int) item;
-- (NSString *) markerFormat;
-@end
-
-#endif
-
 @implementation NSString (HTMLAttributes)
 
 - (BOOL) _htmlBoolValue;

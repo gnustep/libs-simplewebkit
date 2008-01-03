@@ -1,3 +1,6 @@
+2008-01-03  Riccardo Mottola <riccardo@kaffe.org>
+	* Sources/DOMHtml.m: removed non-apple hack
+	
 2007-12-31  Nikolaus Schaller <hns@computer.org>
 	* fixed bugs in entities table
 	* added preliminary handling for <li>
