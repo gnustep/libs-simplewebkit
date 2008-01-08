@@ -22,6 +22,10 @@
 */
 
 #ifdef __mySTEP__
+#define MUST_RENAME_CLASSES 1
+#endif
+
+#if MUST_RENAME_CLASSES
 // gcc 2.95.3 does not allow methods with the same name as a class, i.e.
 // - (DOMDocument *) DOMDocument;
 // you should wrap the class name with this macro i.e.
