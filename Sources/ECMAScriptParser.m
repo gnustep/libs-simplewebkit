@@ -49,6 +49,7 @@
 - (BOOL) _scanIdentifier:(NSString **) str;
 - (BOOL) _scanKeyword:(NSString *) str;	// does not match "in" with "int"
 - (void) _scanError:(NSString *) message;
+- (NSString *) _scanEscape;
 
 @end
 
@@ -155,6 +156,58 @@
 		[@"" stringByPaddingToLength:(from<pos?(pos-from):0) withString:@" " startingAtIndex:0]
 		];
 	[[NSException exceptionWithName:@"WebScriptSyntaxErrorException" reason:message userInfo:nil] raise];
+}
+
+- (NSString *) _scanEscape;
+{
+	int cnt=4;	// for \uhhhh
+	unichar c;
+	NSString *str=[self string];
+	int pos=[self scanLocation];
+	if([self isAtEnd]) return @"";
+	c=[str characterAtIndex:pos];
+	switch(c)
+		{
+		case '\n':	return @"";	// ignore
+		case 'b':	c=0x0008; break;	// translate
+		case 't':	c=0x0009; break;
+		case 'n':	c=0x000a; break;
+		case 'v':	c=0x000b; break;
+		case 'f':	c=0x000c; break;
+		case 'r':	c=0x000d; break;
+		case '0':	c=0x0000; break;
+		case 'x':	cnt=2;
+		case 'u':
+			{ // \xhh or \uhhhh
+				unichar d, v;
+				int eof=[str length];
+				int i;
+				v=0;
+				for(i=1; i<=cnt; i++)
+					{ // next 2 must be hex digits
+					if(pos+i >= eof)
+						break;	// unexpected EOF
+					d=[str characterAtIndex:pos+i];
+					if(d >= '0' && d <= '9')
+						d-='0';
+					else if(d >= 'A' && d <= 'F')
+						d=(d-'A'+10);
+					else if(d >= 'a' && d <= 'f')
+						d=(d-'a'+10);
+					else
+						break;	// return the x or u
+					v=(v<<4)+d;
+					}
+				if(i > cnt)
+					{ // valid
+					c=v;
+					pos+=cnt;
+					}
+				break;
+			}
+		}
+	[self setScanLocation:pos+1];	// skip character (s)
+	return [NSString stringWithCharacters:&c length:1];	// escaped character
 }
 
 @end
@@ -289,16 +342,24 @@
 		{ // 7.8.4
 		static NSCharacterSet *doubleQuoteStopCharacterSet=nil;
 		[sc setCharactersToBeSkipped:nil];
-		string=@"";	// if we immediately hit a stop character
+		string=@"";
 		if(!doubleQuoteStopCharacterSet)
-			doubleQuoteStopCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"\""] retain];
-		[sc scanUpToCharactersFromSet:doubleQuoteStopCharacterSet intoString:&string];
-		// FIXME: handle escape sequences
+			doubleQuoteStopCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"\"\\\n"] retain];
+		while(YES)
+			{
+			NSString *fragment=@"";	// if we immediately hit a stop character
+			[sc scanUpToCharactersFromSet:doubleQuoteStopCharacterSet intoString:&fragment];
+			string=[string stringByAppendingString:fragment];
+			if([sc scanString:@"\\" intoString:NULL])
+				string=[string stringByAppendingString:[sc _scanEscape]];	// handle escape sequence
+			else
+				break;	// stop character (or EOF)
+			}
 		[sc _scanToken:@"\""];	// should have been a double quote
 #if 1
-		NSLog(@"parsed \"%@\"", string);
-		if([string isEqualToString:@"[B]"])
-			NSLog(@"");
+		NSLog(@"parsed string \"%@\"", string);
+//		if([string isEqualToString:@"[B]"])
+//			NSLog(@"");
 #endif
 		r=string;
 		}
@@ -308,20 +369,50 @@
 		[sc setCharactersToBeSkipped:nil];
 		string=@"";	// if we immediately hit a stop character
 		if(!quoteStopCharacterSet)
-			quoteStopCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"'"] retain];
-		// FIXME: handle escape sequences
-		[sc scanUpToCharactersFromSet:quoteStopCharacterSet intoString:&string];
-		[sc _scanToken:@"'"];	// should have been a single quote
-		// FIXME: if we allow to glue strings together, i.e. "abc"   "def", then check for a second quote and glue fragments together
+			quoteStopCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"'\\\n"] retain];
+		while(YES)
+			{
+			NSString *fragment=@"";	// if we immediately hit a stop character
+			[sc scanUpToCharactersFromSet:quoteStopCharacterSet intoString:&fragment];
+			string=[string stringByAppendingString:fragment];
+			if([sc scanString:@"\\" intoString:NULL])
+				string=[string stringByAppendingString:[sc _scanEscape]];	// handle escape sequence
+			else
+				break;	// stop character (or EOF)
+			}
+		[sc _scanToken:@"'"];	// should be a single quote
+		// FIXME: if we need to allow to glue strings together, i.e. "abc"   "def", then check for a second quote and glue fragments together
 #if 1
-		NSLog(@"parsed '%@'", string);
+		NSLog(@"parsed string '%@'", string);
 #endif
 		r=string;
 		}
 	else if([sc _scanToken:@"/"])
 		{ // regexp literal 7.8.5   /pattern/flags
-		[sc _scanError:@"regexp literals not implemented"];
-		r=nil;	// not implemented
+		static NSCharacterSet *slashStopCharacterSet=nil;
+		NSString *flags;
+		[sc setCharactersToBeSkipped:nil];
+		string=@"";	// if we immediately hit a stop character (should never occur since // is a comment)
+		if(!slashStopCharacterSet)
+			slashStopCharacterSet=[[NSCharacterSet characterSetWithCharactersInString:@"/\\\n"] retain];
+		while(YES)
+			{
+			NSString *fragment=@"";	// if we immediately hit a stop character
+			[sc scanUpToCharactersFromSet:slashStopCharacterSet intoString:&fragment];
+			string=[string stringByAppendingString:fragment];
+			if([sc scanString:@"\\" intoString:NULL])
+				string=[string stringByAppendingString:[sc _scanEscape]];	// handle escape sequence
+			else
+				break;	// stop character (or EOF)
+			}
+		[sc _scanToken:@"/"];	// should have been a single quote
+		if(![sc _scanIdentifier:&flags])	// regexp flags
+			flags=@"";
+#if 1
+		NSLog(@"parsed regexp /%@/%@", string, flags);
+#endif
+		// r=new RegExp(string, flags)
+		r=string;
 		}
 	else if([sc _scanToken:@"0x"])	// we have setCaseSensitive:NO - which does not harm parsing of identifiers
 		{ // 7.8.3
