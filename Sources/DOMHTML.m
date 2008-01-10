@@ -1190,7 +1190,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
 
 	// FIXME: we should recognize a <meta format> element as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
-	
+	// <meta name = "format-detection" content = "telephone=no">
+
 	[self _processPhoneNumbers:ts];	// update content
 	[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
 	[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
@@ -1207,7 +1208,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	*/
 	if(bg) [sc setBackgroundColor:bg];
 #endif
-	[(_WebHTMLDocumentView *) view setLinkColor:link];
+	[(_WebHTMLDocumentView *) view setLinkColor:link];	// change link color
 	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 	if([anchor length] != 0)
 		{ // locate a matching anchor
@@ -1298,6 +1299,9 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 	float size=DEFAULT_FONT_SIZE*[webView textSizeMultiplier];
 	NSFont *f;
+	NSString *align=[self getAttribute:@"align"];
+	if(align)
+		[paragraph setAlignment:[align _htmlAlignment]];
 	[paragraph setHeaderLevel:level];	// if someone wants to convert the attributed string back to HTML...
 	[paragraph setParagraphSpacing:1.5];
 	switch(level)
