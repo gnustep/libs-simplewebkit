@@ -418,6 +418,8 @@
 		[destinations addObject:@"http://www.w3schools.com/xml/plant_catalog.xml"];
 		[destinations addObject:@"http://www.osxentwicklerforum.de/mobile/"];
 		[destinations addObject:@"file:///Developer/ADC%20Reference%20Library/index.html"];
+		[destinations addObject:@"http://celtickane.com/webdesign/jsspeed2007.php"];
+		[destinations addObject:@"http://pentestmonkey.net/jsbm/index.html"];
 		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
 		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];
 		[destinations addObject:@"http://maps.google.com/maps?z=16&ll=48.137583,11.57444&spn=0.009465,0.029998&t=k&om=1"];

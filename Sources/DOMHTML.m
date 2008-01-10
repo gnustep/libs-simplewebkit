@@ -37,6 +37,53 @@ static NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetNa
 static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 static NSString *DOMHTMLBlockInlineLevel=@"display";
 
+#if defined(__APPLE__)
+#if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
+
+// Tiger (10.4) - includes (trhrough WebKit/WebView.h and Cocoa/Cocoa.h) and implements tables
+
+#else
+
+// declarations for headers of classes introduced in OSX 10.4 (#import <NSTextTable.h>) on systems that don't have it
+
+@interface NSTextBlock : NSObject
+- (void) setBackgroundColor:(NSColor *) color;
+- (void) setBorderColor:(NSColor *) color;
+- (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
+
+// FIXME: values must match implementation in Apple AppKit!
+
+#define NSTextBlockBorder 0
+#define NSTextBlockPadding 1
+#define NSTextBlockMargin 2
+#define NSTextBlockAbsoluteValueType 0
+#define NSTextBlockPercentageValueType 1
+#define NSTextBlockTopAlignment	0
+#define NSTextBlockMiddleAlignment 1
+#define NSTextBlockBottomAlignment 2
+#define NSTextBlockBaselineAlignment 3
+@end
+
+@interface NSTextTable : NSTextBlock
+- (int) numberOfColumns;
+- (void) setHidesEmptyCells:(BOOL) flag;
+- (void) setNumberOfColumns:(unsigned) cols;
+@end
+
+@interface NSTextTableBlock : NSTextBlock
+- (id) initWithTable:(NSTextTable *) table startingRow:(int) r rowSpan:(int) rs startingColumn:(int) c columnSpan:(int) cs;
+@end
+
+@interface NSTextList : NSObject <NSCoding, NSCopying>
+- (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
+- (unsigned) listOptions;
+- (NSString *) markerForItemNumber:(int) item;
+- (NSString *) markerFormat;
+@end
+
+#endif
+#endif
+
 @implementation NSString (HTMLAttributes)
 
 - (BOOL) _htmlBoolValue;
@@ -226,7 +273,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 #if 1
 		{
 			id r;
-			NSLog(@"evaluate <script>%@</script>", script);
+			NSLog(@"trigger <script>%@</script>", script);
 			r=[self evaluateWebScript:script];	// try to parse and directly execute script in current document context
 			NSLog(@"result=%@", r);
 		}
@@ -695,6 +742,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 @end
 
 @implementation DOMHTMLScriptElement
+
+// FIXME: or should we use designatedParentNode; { return nil; } so that it is NOT stored in DOM Tree?
 
 - (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore if in <body> context
 
@@ -1561,6 +1610,15 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *alignchar=[self getAttribute:@"char"];
 	NSString *offset=[self getAttribute:@"charoff"];
 	NSString *width=[self getAttribute:@"width"];
+	NSString *valign=[self getAttribute:@"valign"];
+	NSString *background=[self getAttribute:@"background"];
+	unsigned border=[[self getAttribute:@"border"] intValue];
+	unsigned spacing=[[self getAttribute:@"cellspacing"] intValue];
+	unsigned padding=[[self getAttribute:@"cellpadding"] intValue];
+	unsigned cols=[[self getAttribute:@"cols"] intValue];
+#if 1
+	NSLog(@"<table>: %@", [self _attributes]);
+#endif
 	if([align isEqualToString:@"left"])
 		[paragraph setAlignment:NSLeftTextAlignment];
 	if([align isEqualToString:@"center"])
@@ -1571,37 +1629,24 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[paragraph setAlignment:NSJustifiedTextAlignment];
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
-	if(!table)
-		{ // try to create and cache table element
-		NSString *valign=[self getAttribute:@"valign"];
-		NSString *background=[self getAttribute:@"background"];
-		unsigned border=[[self getAttribute:@"border"] intValue];
-		unsigned spacing=[[self getAttribute:@"cellspacing"] intValue];
-		unsigned padding=[[self getAttribute:@"cellpadding"] intValue];
-		unsigned cols=[[self getAttribute:@"cols"] intValue];
-#if 1
-		NSLog(@"<table>: %@", [self _attributes]);
-#endif
-		table=[[NSClassFromString(@"NSTextTable") alloc] init];
-		if(table)
-			{ // exists/was allocated
-			[table setHidesEmptyCells:YES];
-			if(cols) [table setNumberOfColumns:cols];	// will be increased automatically as needed!
-			[table setBackgroundColor:[NSColor whiteColor]];
-			[table setBorderColor:[NSColor blackColor]];
-			// get from attributes...
-			[table setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-			[table setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-																								// NSTextBlockVerticalAlignment
-			}
-		}
-	if(table) [_style setObject:table forKey:@"<table>"];	// make available to lower table levels
-														// we might also override the font attributes
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	table=[[NSClassFromString(@"NSTextTable") alloc] init];
+	[table setHidesEmptyCells:YES];
+	if(cols)
+		[table setNumberOfColumns:cols];	// will be increased automatically as needed!
+	[table setBackgroundColor:[NSColor whiteColor]];
+	[table setBorderColor:[NSColor blackColor]];
+	; // get from attributes...
+	[table setWidth:border type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+	[table setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+	; // NSTextBlockVerticalAlignment
+	[_style setObject:table forKey:@"TableBlock"];	// pass a reference to the NSTextTableBlock of this table down to siblings
+	// reset to default paragraph
+	// reset font style, color etc. to defaults!
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// is a block element
+	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];	// update paragraph style
 #if 1
 	NSLog(@"<table> _style=%@", _style);
 #endif
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 #if OLD
@@ -1668,6 +1713,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLTBodyElement
 
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLSingletonNesting; }
+
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
 	DOMHTMLElement *n=[rep _lastObject];
@@ -1685,16 +1732,23 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 @implementation DOMHTMLTableRowElement
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
-{ // find matching <tbody> or <table> node
+{ // find matching <tbody> or <table> node to become child
 	DOMHTMLElement *n=[rep _lastObject];
 	while([n isKindOfClass:[DOMHTMLElement class]])
 		{
 		if([[n nodeName] isEqualToString:@"TBODY"])
 			return n;	// found
 		if([[n nodeName] isEqualToString:@"TABLE"])
-			{ // table has no <tbody>
-			DOMHTMLTBodyElement *tbe=[[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil document:[n ownerDocument]] autorelease];	// return dummy
-			[n appendChild:tbe];	// insert a <tbody> element
+			{ // find <tbody> and create a new if there isn't one
+			NSEnumerator *list=[[[n childNodes] _list] objectEnumerator];
+			DOMHTMLTBodyElement *tbe;
+			while((tbe=[list nextObject]))
+				{
+				if([[tbe nodeName] isEqualToString:@"TBODY"])
+					return tbe;	// found!
+				}
+			tbe=[[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil document:[n ownerDocument]] autorelease];	// create new <tbody>
+			[n appendChild:tbe];	// insert a fresh <tbody> element
 			return tbe;
 			}
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
@@ -1709,6 +1763,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *alignchar=[self getAttribute:@"char"];
 	NSString *offset=[self getAttribute:@"charoff"];
 	NSString *valign=[self getAttribute:@"valign"];
+	id blocks=[paragraph textBlocks];
 	if([align isEqualToString:@"left"])
 		[paragraph setAlignment:NSLeftTextAlignment];
 	if([align isEqualToString:@"center"])
@@ -1766,8 +1821,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLTableCellElement
 
-- (void) dealloc; { [cell release]; [super dealloc]; }
-
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
@@ -1776,7 +1829,9 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *valign=[[self getAttribute:@"valign"] lowercaseString];
 	NSString *alignchar=[self getAttribute:@"char"];
 	NSString *offset=[self getAttribute:@"charoff"];
-	NSTextTable *table=[_style objectForKey:@"<table>"];	// the table we belong to
+	NSTextTable *table;	// the table we belong to
+	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
+	NSTextTableBlock *cell;
 	int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
 	int rowspan=[[self getAttribute:@"rowspan"] intValue];
 	int col=1;
@@ -1799,27 +1854,27 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[paragraph setAlignment:NSJustifiedTextAlignment];
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
-	if(!cell)
-		{ // needs to allocate one
-		cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table 
-															   startingRow:row
-																   rowSpan:rowspan
-															startingColumn:col
-																columnSpan:colspan];
-		// get from attributes or inherit from parent/table
-		[cell setBackgroundColor:[NSColor lightGrayColor]];
-		[cell setBorderColor:[NSColor blackColor]];
-		[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-		[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-		[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
-		if([valign isEqualToString:@"top"])
-			// [block setVerticalAlignment:...]
-			;
-		if(col+colspan > [table numberOfColumns])
-			[table setNumberOfColumns:col+colspan];	// adjust number of columns of our enclosing table
-		}
-	if(cell)
-		[paragraph setTextBlocks:[NSArray arrayWithObject:cell]];	// add to paragraph style
+	table=[_style objectForKey:@"TableBlock"];	// inherited from enclosing table
+	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
+														   startingRow:row
+															   rowSpan:rowspan
+														startingColumn:col
+															columnSpan:colspan];
+	// get from attributes or inherit from parent/table
+	[cell setBackgroundColor:[NSColor lightGrayColor]];
+	[cell setBorderColor:[NSColor blackColor]];
+	[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
+	if([valign isEqualToString:@"top"])
+		// [block setVerticalAlignment:...]
+		;
+	if(col+colspan > [table numberOfColumns])
+		[table setNumberOfColumns:col+colspan];			// adjust number of columns of our enclosing table
+	if(!blocks)
+		blocks=[NSMutableArray arrayWithCapacity:2];	// rarely more nesting
+	[blocks addObject:cell];	// add to list of text blocks
+	[paragraph setTextBlocks:blocks];	// add to paragraph style
 #if 1
 	NSLog(@"<td> _style=%@", _style);
 #endif
