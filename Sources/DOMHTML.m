@@ -1058,8 +1058,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 		NSFont *font=[NSFont fontWithName:DEFAULT_FONT size:DEFAULT_FONT_SIZE*[webView textSizeMultiplier]];	// determine default font
 		NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
-		//	NSColor *background=[[self getAttribute:@"background"] _htmlColor];	// not processed here
-		//	NSColor *bgcolor=[[self getAttribute:@"bgcolor"] _htmlColor];
+		[paragraph setParagraphSpacing:DEFAULT_FONT_SIZE/2];	// default
 		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
 			paragraph, NSParagraphStyleAttributeName,
 			font, NSFontAttributeName,
@@ -1303,7 +1302,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
 	[paragraph setHeaderLevel:level];	// if someone wants to convert the attributed string back to HTML...
-	[paragraph setParagraphSpacing:1.5];
 	switch(level)
 		{
 		case 1:
@@ -1318,6 +1316,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		default:
 			break;	// standard
 		}
+	[paragraph setParagraphSpacing:size/2];
 	f=[NSFont fontWithName:DEFAULT_BOLD_FONT size:size];
 	if(f)
 		[_style setObject:f forKey:NSFontAttributeName];	// set header font
@@ -1559,7 +1558,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 - (void) _addAttributesToStyle
 { // <br> is an inline element
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	[paragraph setParagraphSpacing:1.0];
+	[paragraph setParagraphSpacing:0.0];
 	// and modify others...
 	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
@@ -1577,7 +1576,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
-	[paragraph setParagraphSpacing:1.5];
+	[paragraph setParagraphSpacing:6.0];
 	// and modify others...
 	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }

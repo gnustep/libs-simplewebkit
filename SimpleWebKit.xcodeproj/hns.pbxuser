@@ -45,7 +45,7 @@
 			EE1D184A0C2B01F300606B0B /* NSXMLParser.m:489 */,
 			EE6E13730C43653700853C28 /* NSXMLParser.m:674 */,
 			EEC9313F0C4F6B7A00F64F64 /* WebDataSource.m:124 */,
-			EE82B84D0C88C0F400036409 /* DOMHTML.m:1606 */,
+			EE82B84D0C88C0F400036409 /* DOMHTML.m:1605 */,
 			EE82B8C60C89C28A00036409 /* DOMCore.m:406 */,
 			EEA401130CC1077500DB0FF7 /* WebHTMLDocumentRepresentation.m:312 */,
 			EEA401370CC111D000DB0FF7 /* szone_error */,
@@ -80,18 +80,18 @@
 			EE795F0F0CF246B000C0D04F /* ECMAScriptParser.m:810 */,
 			EE795F150CF2494000C0D04F /* ECMAScriptParser.m:791 */,
 			EE795F220CF24A2D00C0D04F /* MyDocument.m:189 */,
-			EE87B32D0D001B6B00B2037D /* DOMHTML.m:1582 */,
+			EE87B32D0D001B6B00B2037D /* DOMHTML.m:1581 */,
 			EE8721030D01C40600B2037D /* DOMHTML.m:527 */,
 			EE87210C0D01C49F00B2037D /* DOMHTML.m:187 */,
-			EE8721550D01F80400B2037D /* DOMHTML.m:1295 */,
-			EE87220B0D021D3700B2037D /* DOMHTML.m:1291 */,
+			EE8721550D01F80400B2037D /* DOMHTML.m:1294 */,
+			EE87220B0D021D3700B2037D /* DOMHTML.m:1290 */,
 			EE87220D0D021D5100B2037D /* DOMHTML.m:260 */,
 			EE12796E0D034F15000E4BA5 /* WebHTMLDocumentRepresentation.m:262 */,
 			EE12797B0D03571E000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */,
 			EE1279920D03E9C4000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */,
 			EE1279E00D040758000E4BA5 /* NSXMLParser.m:353 */,
 			EE1279F90D041313000E4BA5 /* DOMHTML.m:1057 */,
-			EE1279FF0D041360000E4BA5 /* DOMHTML.m:1070 */,
+			EE1279FF0D041360000E4BA5 /* DOMHTML.m:1069 */,
 			EEB143B40D11C9BA001212B5 /* MyDocument.m:388 */,
 			EEB143B90D125C94001212B5 /* MyDocument.m:161 */,
 			EEB143DF0D126121001212B5 /* MyDocument.m:158 */,
@@ -108,17 +108,17 @@
 			EEB17A970D12BD98001212B5 /* DOMHTML.m:241 */,
 			EE9DB0EF0D12BE780090A70F /* DOMHTML.m:243 */,
 			EE9DB1160D12C0590090A70F /* WebHTMLDocumentRepresentation.m:417 */,
-			EE9DB1F80D12CA520090A70F /* DOMHTML.m:1181 */,
+			EE9DB1F80D12CA520090A70F /* DOMHTML.m:1180 */,
 			EEC3D7740D12E83800F8727D /* WebFrameView.m:52 */,
 			EEFD24C00D170272003853F2 /* WebScriptObject.m:88 */,
 			EE40F5B70D26B0C40083978F /* WebView.m:413 */,
-			EE3E63E00D29082700B28288 /* DOMHTML.m:2220 */,
-			EE3E643A0D2910A300B28288 /* DOMHTML.m:2246 */,
-			EE3E648F0D2945E900B28288 /* DOMHTML.m:2157 */,
+			EE3E63E00D29082700B28288 /* DOMHTML.m:2219 */,
+			EE3E643A0D2910A300B28288 /* DOMHTML.m:2245 */,
+			EE3E648F0D2945E900B28288 /* DOMHTML.m:2156 */,
 			EE4C1BC40D34E7B800B1513B /* ECMAScriptParser.m:163 */,
-			EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1738 */,
-			EE4C3FF60D3684C700B1513B /* DOMHTML.m:1211 */,
-			EE4C40070D36858800B1513B /* DOMHTML.m:1149 */,
+			EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1737 */,
+			EE4C3FF60D3684C700B1513B /* DOMHTML.m:1210 */,
+			EE4C40070D36858800B1513B /* DOMHTML.m:1148 */,
 		);
 		breakpointsGroup = EE4446670BDD0A850031F556 /* XCBreakpointsBucket */;
 		codeSenseManager = EE4440B10BDBEA6B0031F556 /* Code sense */;
@@ -329,6 +329,8 @@
 			EE4C3FEB0D36818400B1513B /* PBXTextBookmark */ = EE4C3FEB0D36818400B1513B /* PBXTextBookmark */;
 			EE4C3FFA0D36851600B1513B /* PBXTextBookmark */ = EE4C3FFA0D36851600B1513B /* PBXTextBookmark */;
 			EE4C40080D36859100B1513B /* PBXTextBookmark */ = EE4C40080D36859100B1513B /* PBXTextBookmark */;
+			EE4C415B0D368AF700B1513B /* PBXTextBookmark */ = EE4C415B0D368AF700B1513B /* PBXTextBookmark */;
+			EE4C415C0D368AF700B1513B /* PBXTextBookmark */ = EE4C415C0D368AF700B1513B /* PBXTextBookmark */;
 			EE52BF790D132343009DE603 = EE52BF790D132343009DE603 /* PBXTextBookmark */;
 			EE52BF7B0D132343009DE603 = EE52BF7B0D132343009DE603 /* PBXTextBookmark */;
 			EE52BF860D132343009DE603 = EE52BF860D132343009DE603 /* PBXTextBookmark */;
@@ -890,7 +892,7 @@
 		modificationTime = 221676797.891179;
 		state = 2;
 	};
-	EE1279FF0D041360000E4BA5 /* DOMHTML.m:1070 */ = {
+	EE1279FF0D041360000E4BA5 /* DOMHTML.m:1069 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -900,7 +902,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_style";
 		hitCount = 1;
-		lineNumber = 1070;
+		lineNumber = 1069;
 		location = WebKit;
 		modificationTime = 221676797.891194;
 		state = 2;
@@ -1384,7 +1386,7 @@
 			sepNavVisRect = "{{0, 848}, {932, 756}}";
 		};
 	};
-	EE3E63E00D29082700B28288 /* DOMHTML.m:2220 */ = {
+	EE3E63E00D29082700B28288 /* DOMHTML.m:2219 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1394,7 +1396,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_addAttributesToStyle";
 		hitCount = 1;
-		lineNumber = 2220;
+		lineNumber = 2219;
 		location = WebKit;
 		modificationTime = 221676797.891455;
 		state = 2;
@@ -1409,7 +1411,7 @@
 		vrLen = 849;
 		vrLoc = 2109;
 	};
-	EE3E643A0D2910A300B28288 /* DOMHTML.m:2246 */ = {
+	EE3E643A0D2910A300B28288 /* DOMHTML.m:2245 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1419,7 +1421,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_addAttributesToStyle";
 		hitCount = 1;
-		lineNumber = 2246;
+		lineNumber = 2245;
 		location = WebKit;
 		modificationTime = 221676797.891485;
 		state = 2;
@@ -1444,7 +1446,7 @@
 		vrLen = 1038;
 		vrLoc = 0;
 	};
-	EE3E648F0D2945E900B28288 /* DOMHTML.m:2157 */ = {
+	EE3E648F0D2945E900B28288 /* DOMHTML.m:2156 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1454,7 +1456,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_string";
 		hitCount = 1;
-		lineNumber = 2157;
+		lineNumber = 2156;
 		location = WebKit;
 		modificationTime = 221676831.689643;
 		state = 2;
@@ -1670,7 +1672,7 @@
 			EE1D184A0C2B01F300606B0B /* NSXMLParser.m:489 */,
 			EE6E13730C43653700853C28 /* NSXMLParser.m:674 */,
 			EEC9313F0C4F6B7A00F64F64 /* WebDataSource.m:124 */,
-			EE82B84D0C88C0F400036409 /* DOMHTML.m:1606 */,
+			EE82B84D0C88C0F400036409 /* DOMHTML.m:1605 */,
 			EE82B8C60C89C28A00036409 /* DOMCore.m:406 */,
 			EEA401130CC1077500DB0FF7 /* WebHTMLDocumentRepresentation.m:312 */,
 			EEA401370CC111D000DB0FF7 /* szone_error */,
@@ -1705,18 +1707,18 @@
 			EE795F0F0CF246B000C0D04F /* ECMAScriptParser.m:810 */,
 			EE795F150CF2494000C0D04F /* ECMAScriptParser.m:791 */,
 			EE795F220CF24A2D00C0D04F /* MyDocument.m:189 */,
-			EE87B32D0D001B6B00B2037D /* DOMHTML.m:1582 */,
+			EE87B32D0D001B6B00B2037D /* DOMHTML.m:1581 */,
 			EE8721030D01C40600B2037D /* DOMHTML.m:527 */,
 			EE87210C0D01C49F00B2037D /* DOMHTML.m:187 */,
-			EE8721550D01F80400B2037D /* DOMHTML.m:1295 */,
-			EE87220B0D021D3700B2037D /* DOMHTML.m:1291 */,
+			EE8721550D01F80400B2037D /* DOMHTML.m:1294 */,
+			EE87220B0D021D3700B2037D /* DOMHTML.m:1290 */,
 			EE87220D0D021D5100B2037D /* DOMHTML.m:260 */,
 			EE12796E0D034F15000E4BA5 /* WebHTMLDocumentRepresentation.m:262 */,
 			EE12797B0D03571E000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */,
 			EE1279920D03E9C4000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */,
 			EE1279E00D040758000E4BA5 /* NSXMLParser.m:353 */,
 			EE1279F90D041313000E4BA5 /* DOMHTML.m:1057 */,
-			EE1279FF0D041360000E4BA5 /* DOMHTML.m:1070 */,
+			EE1279FF0D041360000E4BA5 /* DOMHTML.m:1069 */,
 			EEB143B40D11C9BA001212B5 /* MyDocument.m:388 */,
 			EEB143B90D125C94001212B5 /* MyDocument.m:161 */,
 			EEB143DF0D126121001212B5 /* MyDocument.m:158 */,
@@ -1733,15 +1735,15 @@
 			EEB17A970D12BD98001212B5 /* DOMHTML.m:241 */,
 			EE9DB0EF0D12BE780090A70F /* DOMHTML.m:243 */,
 			EE9DB1160D12C0590090A70F /* WebHTMLDocumentRepresentation.m:417 */,
-			EE9DB1F80D12CA520090A70F /* DOMHTML.m:1181 */,
+			EE9DB1F80D12CA520090A70F /* DOMHTML.m:1180 */,
 			EEC3D7740D12E83800F8727D /* WebFrameView.m:52 */,
 			EEFD24C00D170272003853F2 /* WebScriptObject.m:88 */,
 			EE40F5B70D26B0C40083978F /* WebView.m:413 */,
-			EE3E63E00D29082700B28288 /* DOMHTML.m:2220 */,
-			EE3E643A0D2910A300B28288 /* DOMHTML.m:2246 */,
-			EE3E648F0D2945E900B28288 /* DOMHTML.m:2157 */,
+			EE3E63E00D29082700B28288 /* DOMHTML.m:2219 */,
+			EE3E643A0D2910A300B28288 /* DOMHTML.m:2245 */,
+			EE3E648F0D2945E900B28288 /* DOMHTML.m:2156 */,
 			EE4C1BC40D34E7B800B1513B /* ECMAScriptParser.m:163 */,
-			EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1738 */,
+			EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1737 */,
 		);
 	};
 	EE4679240D1A6A7000E99DA0 /* PBXTextBookmark */ = {
@@ -1777,8 +1779,8 @@
 	};
 	EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {957, 3430}}";
-			sepNavSelRange = "{3237, 0}";
+			sepNavIntBoundsRect = "{{0, 0}, {957, 6650}}";
+			sepNavSelRange = "{3457, 0}";
 			sepNavVisRect = "{{0, 1253}, {957, 756}}";
 		};
 	};
@@ -2007,7 +2009,7 @@
 		vrLen = 837;
 		vrLoc = 5789;
 	};
-	EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1738 */ = {
+	EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1737 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2017,7 +2019,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "+_designatedParentNode:";
 		hitCount = 1;
-		lineNumber = 1738;
+		lineNumber = 1737;
 		location = WebKit;
 		modificationTime = 221676797.891543;
 		state = 2;
@@ -2147,12 +2149,12 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = "DOMHTML.m: 1304";
 		rLen = 0;
-		rLoc = 47596;
+		rLoc = 47500;
 		rType = 0;
 		vrLen = 1403;
 		vrLoc = 46390;
 	};
-	EE4C3FF60D3684C700B1513B /* DOMHTML.m:1211 */ = {
+	EE4C3FF60D3684C700B1513B /* DOMHTML.m:1210 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2162,7 +2164,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_layout:";
 		hitCount = 3;
-		lineNumber = 1211;
+		lineNumber = 1210;
 		location = WebKit;
 		modificationTime = 221676897.610041;
 		state = 1;
@@ -2172,12 +2174,12 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = setLink;
 		rLen = 7;
-		rLoc = 44424;
+		rLoc = 44328;
 		rType = 0;
 		vrLen = 2064;
 		vrLoc = 43243;
 	};
-	EE4C40070D36858800B1513B /* DOMHTML.m:1149 */ = {
+	EE4C40070D36858800B1513B /* DOMHTML.m:1148 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2187,7 +2189,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_layout:";
 		hitCount = 1;
-		lineNumber = 1149;
+		lineNumber = 1148;
 		location = WebKit;
 		modificationTime = 221676949.49937;
 		state = 1;
@@ -2197,10 +2199,27 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = setLink;
 		rLen = 7;
-		rLoc = 44424;
+		rLoc = 44328;
 		rType = 0;
 		vrLen = 2032;
 		vrLoc = 43243;
+	};
+	EE4C415B0D368AF700B1513B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
+		rLen = 19;
+		rLoc = 56065;
+		rType = 0;
+	};
+	EE4C415C0D368AF700B1513B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
+		name = "DOMHTML.m: 1561";
+		rLen = 0;
+		rLoc = 56086;
+		rType = 0;
+		vrLen = 743;
+		vrLoc = 55736;
 	};
 	EE52BF790D132343009DE603 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -3249,7 +3268,7 @@
 		vrLen = 1239;
 		vrLoc = 0;
 	};
-	EE82B84D0C88C0F400036409 /* DOMHTML.m:1606 */ = {
+	EE82B84D0C88C0F400036409 /* DOMHTML.m:1605 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3259,7 +3278,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_elementLoaded";
 		hitCount = 1;
-		lineNumber = 1606;
+		lineNumber = 1605;
 		location = WebKit;
 		modificationTime = 221676797.890425;
 		state = 2;
@@ -3329,7 +3348,7 @@
 		modificationTime = 221676797.891021;
 		state = 2;
 	};
-	EE8721550D01F80400B2037D /* DOMHTML.m:1295 */ = {
+	EE8721550D01F80400B2037D /* DOMHTML.m:1294 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3339,7 +3358,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_addAttributesToStyle:";
 		hitCount = 1;
-		lineNumber = 1295;
+		lineNumber = 1294;
 		location = WebKit;
 		modificationTime = 221676797.891039;
 		state = 2;
@@ -3445,7 +3464,7 @@
 		vrLen = 151;
 		vrLoc = 0;
 	};
-	EE87220B0D021D3700B2037D /* DOMHTML.m:1291 */ = {
+	EE87220B0D021D3700B2037D /* DOMHTML.m:1290 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3455,7 +3474,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_blockLevel";
 		hitCount = 1;
-		lineNumber = 1291;
+		lineNumber = 1290;
 		location = WebKit;
 		modificationTime = 221676797.891079;
 		state = 2;
@@ -3502,7 +3521,7 @@
 			sepNavVisRect = "{{0, 98}, {856, 566}}";
 		};
 	};
-	EE87B32D0D001B6B00B2037D /* DOMHTML.m:1582 */ = {
+	EE87B32D0D001B6B00B2037D /* DOMHTML.m:1581 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3512,7 +3531,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_shouldSpliceNewline:";
 		hitCount = 1;
-		lineNumber = 1582;
+		lineNumber = 1581;
 		location = WebKit;
 		modificationTime = 221676797.891008;
 		state = 2;
@@ -3570,9 +3589,9 @@
 	};
 	EE8AFF890B6C8F9200346917 /* DOMHTML.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1268, 31920}}";
-			sepNavSelRange = "{43139, 0}";
-			sepNavVisRect = "{{0, 16233}, {957, 756}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1268, 31906}}";
+			sepNavSelRange = "{56086, 0}";
+			sepNavVisRect = "{{0, 21664}, {860, 366}}";
 			sepNavWindowFrame = "{{15, 143}, {1078, 730}}";
 		};
 	};
@@ -3660,7 +3679,7 @@
 		modificationTime = 221676797.891408;
 		state = 2;
 	};
-	EE9DB1F80D12CA520090A70F /* DOMHTML.m:1181 */ = {
+	EE9DB1F80D12CA520090A70F /* DOMHTML.m:1180 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3670,7 +3689,7 @@
 		fileReference = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		functionName = "-_layout:";
 		hitCount = 1;
-		lineNumber = 1181;
+		lineNumber = 1180;
 		location = WebKit;
 		modificationTime = 221676797.891412;
 		state = 2;
