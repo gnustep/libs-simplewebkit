@@ -81,7 +81,7 @@
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
-	[body performSelector:@selector(_layout:) withObject:self afterDelay:0.0];	// process the <body> tag (could also be a <frameset>)
+	[body performSelector:@selector(_layout:) withObject:self afterDelay:0.0];	// process the <body> tag (could also be a <frameset>) from the runloop
 }
 
 - (void) setDataSource:(WebDataSource *) source;
@@ -113,9 +113,15 @@
 
 - (void) setLinkColor:(NSColor *) color
 {
+#if 1
+	NSLog(@"setLinkColor: %@", color);
+#endif
 #if defined(__mySTEP__) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
 	if(color)
-		[self setLinkTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSUnderlineColorAttributeName, nil]];		// define link color
+		[self setLinkTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSUnderlineColorAttributeName,
+			[NSNumber numberWithInt:NSUnderlineStyleSingle], NSUnderlineStyleAttributeName,
+			[NSCursor pointingHandCursor], NSCursorAttributeName,
+			nil]];		// define link color
 	else
 		[self setLinkTextAttributes:nil];	// default
 #endif
