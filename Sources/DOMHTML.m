@@ -1569,6 +1569,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
+- (NSString *) _string;		{ return @"\n"; }
+
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
