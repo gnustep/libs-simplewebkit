@@ -1612,7 +1612,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
     else
     	[cell setShaded:YES];
     
-    scan = [NSScanner initWithString: [node getAttribute:@"size"]];
+    scan = [NSScanner scannerWithString: [node getAttribute:@"size"]];
     if ([scan scanInt:&size])
         [cell setSize: size];
 	
