@@ -422,16 +422,59 @@
 - (void) drawWithFrame:(NSRect)cellFrame
 				inView:(NSView *)controlView
 { // draw a horizontal line
-	NSBezierPath *p=[NSBezierPath bezierPath];
+	NSPoint upLeft;
+	NSPoint lowRight;
+	NSRect bar;
+	NSBezierPath *p;
+	NSBezierPath *shadow;
+	BOOL shaded;
+	
+	float lineWidth;
+	
+	shaded = YES;
+//	if ([[element style] objectForKey:@"noshade"] != nil)
+//		shaded = NO;	
+	
+	lineWidth = 5; // should get the interpreted attribute
+	
+	upLeft = NSMakePoint(NSMinX(cellFrame)+4, NSMidY(cellFrame)- lineWidth/2);
+	lowRight = NSMakePoint(NSMaxX(cellFrame)-4, NSMidY(cellFrame)+lineWidth/2);
+	
+
+	
+	if (1)
+	{
+		lowRight = NSMakePoint(lowRight.x-1, lowRight.y-1);
+		bar = NSMakeRect(upLeft.x, upLeft.y, lowRight.x-upLeft.x, lowRight.y-upLeft.y);
+	
+		p = [NSBezierPath bezierPath];
+		[p setLineWidth:1.0];
+		[p appendBezierPathWithRect: bar];
+		[[NSColor blackColor] set];
+		[p fill];
+	
+		shadow = [NSBezierPath bezierPath];
+		[shadow moveToPoint:NSMakePoint(upLeft.x+1, lowRight.y+1)];
+		[shadow lineToPoint:NSMakePoint(lowRight.x+1, lowRight.y+1)];
+		[shadow lineToPoint:NSMakePoint(lowRight.x+1, upLeft.y-1)];
+		[[NSColor redColor] set];
+		[shadow stroke];
+	}
+	else
+	{
+		bar = NSMakeRect(upLeft.x, upLeft.y, lowRight.x-upLeft.x, lowRight.y-upLeft.y);
+	
+		p = [NSBezierPath bezierPath];
+		[p setLineWidth:1.0];
+		[p appendBezierPathWithRect: bar];
+		[[NSColor blackColor] set];
+		[p stroke];
+	}
 #if 0
 	[[NSColor redColor] set];
 	NSRectFill(cellFrame);
 #endif
-	[p setLineWidth:1.0];
-	[p moveToPoint:NSMakePoint(NSMinX(cellFrame), NSMidY(cellFrame))];
-	[p lineToPoint:NSMakePoint(NSMaxX(cellFrame), NSMidY(cellFrame))];
-	[[NSColor blackColor] set];
-	[p stroke];
+
 }
 
 - (void) drawWithFrame:(NSRect)cellFrame
