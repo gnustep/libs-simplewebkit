@@ -1599,6 +1599,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
     NSHRAttachmentCell *att;
     NSHRAttachmentCell *cell;
     DOMNode *node;
+    int size;
+    NSScanner *scan;
     
     att = [NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
     cell=(NSHRAttachmentCell *) [att attachmentCell];        // get the real cell
@@ -1609,6 +1611,13 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
     	[cell setShaded:NO];
     else
     	[cell setShaded:YES];
+    
+    scan = [NSScanner initWithString: [node getAttribute:@"size"]];
+    if ([scan scanInt:&size])
+        [cell setSize: size];
+	
+    NSLog(@"<hr> size: %@", [node getAttribute:@"size"]);
+    NSLog(@"<hr> width: %@", [node getAttribute:@"width"]);
     return att;
 }
 

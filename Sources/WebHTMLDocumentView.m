@@ -402,6 +402,15 @@
 @end
 
 @implementation NSHRAttachmentCell
+- (id)init
+{
+    [super init];
+    _shaded = NO;
+    _size = 2;
+    _width = 100;
+    _widthIsPercent = YES;
+    return self;
+}
 
 - (void) setAttachment:(NSTextAttachment *) anAttachment;	 { attachment=anAttachment; }
 - (NSTextAttachment *) attachment; { return attachment; }
@@ -421,9 +430,24 @@
 
 - (void) setShaded:(BOOL)shaded
 {
-    _shaded=shaded;
+    _shaded = shaded;
 }
 
+- (void) setSize:(int)size
+{
+    _size = size;
+}
+
+- (void) setWidth:(int)width
+{
+    _width = width;
+}
+
+- (void) setIfWidthIsPercent:(BOOL)flag
+{
+    _widthIsPercent = flag;
+}
+    
 - (void) drawWithFrame:(NSRect)cellFrame
 				inView:(NSView *)controlView
 { // draw a horizontal line
@@ -432,15 +456,11 @@
 	NSRect bar;
 	NSBezierPath *p;
 	NSBezierPath *shadow;
-	BOOL shaded;
 	
 	float lineWidth;
 	
-	shaded = YES;
-//	if ([[element style] objectForKey:@"noshade"] != nil)
-//		shaded = NO;	
 	
-	lineWidth = 5; // should get the interpreted attribute
+	lineWidth = _size;
 	
 	upLeft = NSMakePoint(NSMinX(cellFrame)+4, NSMidY(cellFrame)- lineWidth/2);
 	lowRight = NSMakePoint(NSMaxX(cellFrame)-4, NSMidY(cellFrame)+lineWidth/2);

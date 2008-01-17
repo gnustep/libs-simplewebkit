@@ -77,7 +77,14 @@
 {
     NSTextAttachment *attachment;
     BOOL _shaded;
+    int _size;
+    int _width;
+    BOOL _widthIsPercent;
 }
 - (void) setShaded:(BOOL)shaded;
+- (void) setSize:(int)size;
+- (void) setWidth:(int)width;
+- (void) setIfWidthIsPercent:(BOOL)flag;
+
 @end
 
