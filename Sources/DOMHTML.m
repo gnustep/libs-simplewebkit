@@ -1598,23 +1598,14 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 {
     NSHRAttachmentCell *att;
     NSHRAttachmentCell *cell;
-    NSArray *keys;
-    BOOL found;
+    DOMNode *node;
     
     att = [NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
     cell=(NSHRAttachmentCell *) [att attachmentCell];        // get the real cell
-#if 1
-	NSLog(@"<hr>: shaded: %@", [_style objectForKey:@"noshade"]);
-#endif
-    keys = [_style allKeys];
-    found = [keys containsObject:@"noshade"];
-#if 1
-	NSLog(@"<hr>: shaded key found %d", found);
-#endif    
-
-//    if ([_style objectForKey:@"noshade"] != nil)
     
-    if (found)
+    node = [_style objectForKey:@"WebElementDOMNode"];
+    
+    if ([node hasAttribute:@"noshade"])
     	[cell setShaded:NO];
     else
     	[cell setShaded:YES];
