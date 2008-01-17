@@ -75,7 +75,9 @@
 
 @interface NSHRAttachmentCell : NSTextAttachmentCell
 {
-	NSTextAttachment *attachment;
+    NSTextAttachment *attachment;
+    BOOL _shaded;
 }
+- (void) setShaded:(BOOL)shaded;
 @end
 

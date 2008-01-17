@@ -419,6 +419,11 @@
 	return fragment;
 }
 
+- (void) setShaded:(BOOL)shaded
+{
+    _shaded=shaded;
+}
+
 - (void) drawWithFrame:(NSRect)cellFrame
 				inView:(NSView *)controlView
 { // draw a horizontal line
@@ -442,7 +447,7 @@
 	
 
 	
-	if (1)
+	if (_shaded)
 	{
 		lowRight = NSMakePoint(lowRight.x-1, lowRight.y-1);
 		bar = NSMakeRect(upLeft.x, upLeft.y, lowRight.x-upLeft.x, lowRight.y-upLeft.y);
