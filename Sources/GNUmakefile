@@ -1,5 +1,3 @@
-include $(GNUSTEP_MAKEFILES)/common.make
-
 FRAMEWORK_NAME=SimpleWebKit
 
 SimpleWebKit_HEADER_FILES = \
@@ -78,5 +76,6 @@ SimpleWebKit_RESOURCE_FILES = \
 	HTMLEntities.strings \
 	DOMHTML.plist
 
+include $(GNUSTEP_MAKEFILES)/common.make
 include $(GNUSTEP_MAKEFILES)/framework.make
 
