@@ -1596,28 +1596,18 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 - (NSTextAttachment *) _attachment;
 {
-    NSHRAttachmentCell *att;
+    NSTextAttachment *att;
     NSHRAttachmentCell *cell;
-    DOMNode *node;
     int size;
-    NSScanner *scan;
     
     att = [NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
     cell=(NSHRAttachmentCell *) [att attachmentCell];        // get the real cell
+        
+	[cell setShaded:![self hasAttribute:@"noshade"]];
+	size = [[self getAttribute:@"size"] intValue];
     
-    node = [_style objectForKey:@"WebElementDOMNode"];
-    
-    if ([node hasAttribute:@"noshade"])
-    	[cell setShaded:NO];
-    else
-    	[cell setShaded:YES];
-    
-    scan = [NSScanner scannerWithString: [node getAttribute:@"size"]];
-    if ([scan scanInt:&size])
-        [cell setSize: size];
-	
-    NSLog(@"<hr> size: %@", [node getAttribute:@"size"]);
-    NSLog(@"<hr> width: %@", [node getAttribute:@"width"]);
+	NSLog(@"<hr> size: %@", [self getAttribute:@"size"]);
+    NSLog(@"<hr> width: %@", [self getAttribute:@"width"]);
     return att;
 }
 

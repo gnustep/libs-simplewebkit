@@ -141,7 +141,8 @@
 #if 1
 	NSLog(@"loading %@", _provisionalDataSource);
 #endif
-	[_provisionalDataSource _setWebFrame:self];	// this may trigger the whole loading execution chain - which may even issue a new reload!
+	// this may trigger the whole loading execution chain but from the RunLoop - which may even issue a new call to -reload!
+	[_provisionalDataSource performSelector:@selector(_setWebFrame:) withObject:self afterDelay:0.0];
 }
 
 - (void) _failedWithError:(NSError *) error;

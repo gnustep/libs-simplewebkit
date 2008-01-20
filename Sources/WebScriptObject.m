@@ -86,6 +86,9 @@ NSString *WebScriptException=@"WebScriptException";
 		}
 	NS_HANDLER
 		r=[NSString stringWithFormat:@"<WebScript Exception: %@>", [localException reason]];
+#if 1
+		NSRunCriticalAlertPanel(@"WebScript",@"%@",@"Continue",nil,nil,r);	// show a popup
+#endif
 	NS_ENDHANDLER
 	return r;
 }

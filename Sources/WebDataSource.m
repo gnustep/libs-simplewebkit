@@ -266,7 +266,7 @@
 }
 
 - (void) _setWebFrame:(WebFrame *) wf;
-{ // this triggers loading
+{ // this triggers loading but from the RunLoop
 	_webFrame=wf;
 	[self _load];
 }

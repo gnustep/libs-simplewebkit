@@ -207,9 +207,6 @@ typedef enum
 @end
 
 @interface DOMHTMLTableCellElement : DOMHTMLElement	// <td>
-{
-	id cell;
-}
 @end
 
 @interface DOMHTMLFormElement : DOMHTMLElement	// <form>

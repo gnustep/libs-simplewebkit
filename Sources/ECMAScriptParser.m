@@ -184,7 +184,7 @@
 				int i;
 				v=0;
 				for(i=1; i<=cnt; i++)
-					{ // next 2 must be hex digits
+					{ // next 2 or 4 must be hex digits
 					if(pos+i >= eof)
 						break;	// unexpected EOF
 					d=[str characterAtIndex:pos+i];
