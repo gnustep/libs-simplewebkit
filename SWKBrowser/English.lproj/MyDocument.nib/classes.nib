@@ -15,24 +15,16 @@
             SUPERCLASS = NSObject; 
         }, 
         {
-            ACTIONS = {loadPageFromMenuItem = id; script = id; scriptFromMenuItem = id; }; 
             CLASS = MyApplication; 
             LANGUAGE = ObjC; 
-            OUTLETS = {
-                activity = NSOutlineView; 
-                command = NSTextField; 
-                currentURL = NSComboBoxCell; 
-                docSource = NSTextView; 
-                experiment = NSTextView; 
-                result = NSTextField; 
-                status = NSTextField; 
-                webView = WebView; 
-            }; 
+            OUTLETS = {activity = NSOutlineView; }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }, 
         {
             ACTIONS = {
+                goBack = id; 
+                goForward = id; 
                 home = id; 
                 loadPageFromComboBox = id; 
                 loadPageFromMenuItem = id; 
@@ -45,13 +37,17 @@
             CLASS = MyDocument; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                backButton = NSButton; 
+                backForwardTable = NSTableView; 
                 command = NSTextField; 
-                currentNode = id; 
+                currentItem = id; 
                 currentURL = NSComboBoxCell; 
                 docSource = NSTextView; 
                 domAttribs = NSTableView; 
                 domSource = NSTextView; 
                 domTree = NSOutlineView; 
+                forwardButton = NSButton; 
+                historyTable = NSTableView; 
                 result = NSTextField; 
                 status = NSTextField; 
                 webView = WebView; 

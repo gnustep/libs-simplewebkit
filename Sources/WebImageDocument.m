@@ -61,6 +61,7 @@ If not, write to the Free Software Foundation,
 	[_image release];
 	_image=[[NSImage alloc] initWithData:[source data]];
 	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
+	[[source webFrame] _finishedLoading];	// notify
 	title=[self title];
 #if 1
 	NSLog(@"notify delegate for title: %@", title, [webView frameLoadDelegate]);

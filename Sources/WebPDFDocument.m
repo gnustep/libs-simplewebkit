@@ -31,6 +31,7 @@
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 {
+	[[source webFrame] _finishedLoading];	// notify
 	NSLog(@"WebPDFDocumentRepresentation finishedLoadingWithDataSource");
 	// initialize PDFDocument with [source data]
 }

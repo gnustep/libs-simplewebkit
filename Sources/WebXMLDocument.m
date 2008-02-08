@@ -82,21 +82,6 @@
 	NSLog(@"WebXMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
 	[_parser _parseData:nil];	// finish parsing
-	[_parser release];
-	_parser=nil;
-	[[source webFrame] _finishedLoading];	// notify
-	/*
-	 check if we have a tree that looks like:
-	 
-	 <?xml version="1.0"?>
-	 <rss version="2.0">
-	 
-	 if yes:
-	 
-	 NSURL *url=[[source initialRequest] URL];
-	 NSURL *feed=[[[NSURL alloc] initWithScheme:@"feed" host:[url host] path:[url path]] autorelease];
-	 [[webframe webFrame] _performClientRedirectToURL:feed delay:0.0];
-	 */
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
@@ -229,6 +214,29 @@
 - (void) parser:(NSXMLParser *) parser didEndElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name;
 { // handle closing tags
 	_current=(DOMElement *) [_current parentNode];
+}
+
+- (void) parserDidEndDocument:(NSXMLParser *) parser
+{ // done
+#if 1
+	NSLog(@"WebXMLDocumentRepresentation parserDidEndDocument:%@", parser);
+#endif
+	[_parser release];
+	_parser=nil;
+	[[_dataSource webFrame] _finishedLoading];	// notify
+	
+	/*
+	 check if we have a tree that looks like:
+	 
+	 <?xml version="1.0"?>
+	 <rss version="2.0">
+	 
+	 if yes:
+	 
+	 NSURL *url=[[source initialRequest] URL];
+	 NSURL *feed=[[[NSURL alloc] initWithScheme:@"feed" host:[url host] path:[url path]] autorelease];
+	 [[_dataSource webFrame] _performClientRedirectToURL:feed delay:0.0];
+	 */
 }
 
 @end

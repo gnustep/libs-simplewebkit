@@ -27,9 +27,9 @@
 #endif
     [super windowControllerDidLoadNib:aController];
     // Add any code here that needs to be executed once the windowController has loaded the document's window.
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressStartedNotification object:nil];
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressEstimateChangedNotification object:nil];
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressFinishedNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressStartedNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressEstimateChangedNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressFinishedNotification object:nil];
 	[webView setResourceLoadDelegate:[NSApp delegate]];
 	[webView setGroupName:@"MyDocument"];
 	[webView setMaintainsBackForwardList:YES];
@@ -89,6 +89,37 @@
 #endif
 }
 
+- (IBAction) goBack:(id) sender;
+{ // button must be set to "continuous" in Interface Builder
+	NSLog(@"goBack %@", [NSApp currentEvent]);
+	if([[NSApp currentEvent] type] == NSPeriodic)
+		{
+		NSLog(@"periodic event");
+#if 0			// FIXME
+		NSMenu *menu=[[[NSMenu alloc] init] autorelease];
+		NSMenuItem *mi;
+		mi=[menu addItemWithTitle:@"Item1" action:@selector(history:) keyEquivalent:@""];
+		// [mi setRepresentedObject:hitem];
+		// [mi setTarget:self];
+		mi=[menu addItemWithTitle:@"Item2" action:@selector(history:) keyEquivalent:@""];
+		[NSMenu popUpContextMenu:menu withEvent:[NSApp currentEvent] forView:sender];	// should probably be the original mousedown event with a reference to the window!
+#endif
+		}
+	else
+		[webView goBack:sender];	// standard event
+}
+
+- (IBAction) goForward:(id) sender;
+{ // button must be set to "continuous" in Interface Builder
+	NSLog(@"goForward %@", [NSApp currentEvent]);
+	if([[NSApp currentEvent] type] == NSPeriodic)
+		{
+		NSLog(@"periodic event");
+		}
+	else
+		[webView goForward:sender];
+}
+
 - (NSData *) dataRepresentationOfType:(NSString *)aType
 {
     return nil;	// nothing to Save
@@ -145,6 +176,12 @@
 		NSLog(@"loadPageFromMenuItem %@ -> %@", str, u);
 #endif
 	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
+}
+
+- (IBAction) loadPageFromHistoryItem:(id) menuItem
+{
+	WebHistoryItem *historyItem=[menuItem representedObject];
+    [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[historyItem URLString]]]];
 }
 
 - (IBAction) scriptFromMenuItem:(id) sender;
@@ -373,6 +410,10 @@
 	if(frame == [sender mainFrame])
 		{
 		NSString *src=[[[[webView mainFrame] dataSource] representation] documentSource];
+		[backButton setEnabled:[sender canGoBack]];
+		[forwardButton setEnabled:[sender canGoForward]];
+		[historyTable reloadData];
+		[backForwardTable reloadData];
 		[self showStatus:@"Main Frame Done."];
 		[domNodes release];
 		domNodes=nil;
@@ -400,14 +441,22 @@
 		NSString *f;
 		NSEnumerator *e;
 		destinations=[[NSMutableArray alloc] init];
+		[destinations addObject:@"-- rendering tests --"];
+		[destinations addObject:@"http://www.webstandards.org/files/acid2/test.html"];
 		[destinations addObject:@"http://www.mired.org/home/mwm/bugs.html"];
+		[destinations addObject:@"-- JavaScript speed --"];
+		[destinations addObject:@"http://celtickane.com/webdesign/jsspeed2007.php"];
+		[destinations addObject:@"http://pentestmonkey.net/jsbm/index.html"];
+		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
+		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];
+		[destinations addObject:@"http://maps.google.com/maps?z=16&ll=48.137583,11.57444&spn=0.009465,0.029998&t=k&om=1"];
+		[destinations addObject:@"-- important public pages --"];
 		[destinations addObject:@"http://www.quantum-step.com"];
 		[destinations addObject:@"http://www.gnustep.org"];
 		[destinations addObject:@"http://wiki.gnustep.org/index.php/SimpleWebKit"];
-		[destinations addObject:@"ftp://ftp.gnu.org/pub/gnu"];
-		[destinations addObject:@"http://pda.leo.org/"];
 		[destinations addObject:@"http://www.w3.org/"];
 		[destinations addObject:@"http://de.selfhtml.org/html/xhtml/unterschiede.htm#verweise_anker"];
+		[destinations addObject:@"http://pda.leo.org/"];
 		[destinations addObject:@"http://www.google.com"];
 		[destinations addObject:@"http://www.google.de"];
 		[destinations addObject:@"http://www.apple.com"];
@@ -415,14 +464,12 @@
 		[destinations addObject:@"http://www.yahoo.de"];
 		[destinations addObject:@"http://carduus.chanet.de/"];
 		[destinations addObject:@"http://gutenberg.chanet.de/eindex.html"];
+		[destinations addObject:@"-- non-HTTP/HTML --"];
+		[destinations addObject:@"ftp://ftp.gnu.org/pub/gnu"];
 		[destinations addObject:@"http://www.w3schools.com/xml/plant_catalog.xml"];
-		[destinations addObject:@"http://www.osxentwicklerforum.de/mobile/"];
 		[destinations addObject:@"file:///Developer/ADC%20Reference%20Library/index.html"];
-		[destinations addObject:@"http://celtickane.com/webdesign/jsspeed2007.php"];
-		[destinations addObject:@"http://pentestmonkey.net/jsbm/index.html"];
-		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
-		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];
-		[destinations addObject:@"http://maps.google.com/maps?z=16&ll=48.137583,11.57444&spn=0.009465,0.029998&t=k&om=1"];
+		[destinations addObject:@"http://www.osxentwicklerforum.de/mobile/"];
+		[destinations addObject:@"-- local tests and demos --"];
 		dir=[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"DemoHTML"];
 		e=[[[NSFileManager defaultManager] directoryContentsAtPath:dir] objectEnumerator];
 		while((f=[e nextObject]))
@@ -495,18 +542,61 @@
 
 - (int) numberOfRowsInTableView:(NSTableView *)aTableView
 {
-	if([currentItem respondsToSelector:@selector(_attributes)])
-		return [[(DOMElement *) currentItem _attributes] count];
+	if(aTableView == backForwardTable)
+		{
+		return [[webView backForwardList] backListCount] + [[webView backForwardList] forwardListCount] + 1; 
+		}
+	if(aTableView == historyTable)
+		{
+		int nitems=0;
+		NSEnumerator *e=[[[WebHistory optionalSharedHistory] orderedLastVisitedDays] objectEnumerator];
+		NSCalendarDate *day;
+		while((day=[e nextObject]))
+			{
+			nitems+=[[[WebHistory optionalSharedHistory] orderedItemsLastVisitedOnDay:day] count];
+			}
+		return nitems;
+		}
+	if(aTableView == domAttribs)
+		{
+		if([currentItem respondsToSelector:@selector(_attributes)])
+			return [[(DOMElement *) currentItem _attributes] count];
+		}
 	return 0;
 }
 
 - (id) tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
 	NSString *ident=[aTableColumn identifier];
-    if([ident isEqual: @"attribute"])
-		return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] name];
-    else if([ident isEqual: @"value"])
-		return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
+	if(aTableView == backForwardTable)
+		{
+		int idx=rowIndex-[[webView backForwardList] backListCount];
+		NSString *title;
+		WebHistoryItem *item;
+		if([ident isEqual: @"number"])
+			return [NSString stringWithFormat:@"%d", idx];
+		item=[[webView backForwardList] itemAtIndex:idx];
+		title=[item alternateTitle];
+		if(!title)
+			title=[item title];	// no alternate title
+		if(!title)
+			title=[item URLString];	// no title
+		if(!title)
+			title=@"?";
+		return title;
+		}
+	if(aTableView == historyTable)
+		{
+		// return date / title
+		return @"?";
+		}
+	if(aTableView == domAttribs)
+		{
+		if([ident isEqual: @"attribute"])
+			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] name];
+		else if([ident isEqual: @"value"])
+			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
+		}
 	return @"";
 }
 

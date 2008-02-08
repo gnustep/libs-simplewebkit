@@ -5,7 +5,7 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-31 Dec 2007
+08 Feb 2007
 -----------
 
 Completion indicator
@@ -25,16 +25,15 @@ CSS
 	Evaluator			0%
 WebView, WebFrame, ...
 	Basics				100%
-	Advanced			60%		(Scrolling, History, Forms, Frames)
+	Advanced			70%		(Scrolling, Forms, Frames)
 	Editing				0%
 
 High Prio:
 
 1. solve redisplay/refresh issues
-2. history / back-forward list
-3. <frame> and scrollers should work correctly
-4. <table> elements should really work
-5. make <form> work (buttons and text fields interaction)
+2. <frame> and scrollers should work correctly
+3. <table> elements should really work
+4. make <form> work (buttons and text fields interaction)
 
 HTML Loading:
 - does not use NSURLCache
@@ -44,8 +43,7 @@ HTML parsing:
   - should we accept entities in quoted paramters or not? Is this standard or not? ANSWER: YES!
 	like this: <input type="submit" value="&nbsp;&nbsp;Go&nbsp;&nbsp;"> from http://pda.leo.org/
   - fix error handling if it is known that there is no more data coming from the source
-  - <tag attrib = "value" > appears to be legal or in use - i.e. spaces between attrib and value?
-  - <![ CDATA[ ... appears to be legal or in use
+  - <![ CDATA[ ...] ] > (i.e. embedded spaces and newlines) appears to be legal or in use
   - entites should simply end at the first non-alphanumeric character and ignore if it is a ;
 
 HTML Evaluator:
@@ -87,18 +85,7 @@ General:
 - (DOMText *) splitText: what is the semantics?
 - innerHTML and outerHTML do not really return valid HTML (needs generating entities)
 - add getters&setters for HTMLEntities
-
-- history not implemented
-- go back&forth not implemented (how do we cache the pages, DOMTrees etc.?)
-	- Or do we reload/reparse everything and just keep a history of visited URLRequests?
-		Answer: NO!
-		Going back does usually NOT reexecute JavaScripts while it might re-POST a <form> (incl. a warning)
-	- NOTE: this may also depend on the server which can control if the client needs to reload or not!
-	- We must also remember scroller position(s)
-	- We should cache pages in NSURLCache
-	  - NSCachedURLResponse has a userInfo dict where we can try to store the DOM Tree, form values and scroll-position
-	- We must also remember contents of <form> elements (even hidden passwords!)
-	- also note that a "Reload" keeps the scroller positions while a load with the same URL not
+- history page cache not complete (should cache WebFrame and WebFrameViews and swap them as subviews within the WebView)
 
 mySTEP's extension requests:
 - NSURLConnection needs to handle:
@@ -110,7 +97,7 @@ mySTEP's extension requests:
   - server redirection
   - handle "feed:" scheme (load the feed XML and translate into an ECMAScript/HTML result when done)
 - NSTextTable is not rendered
-- NSTextList is not rendered - NOTE: this is not rendered but just a hint...
+- NSTextList is not rendered - NOTE: this is not rendered at all (!) just a hint attribute...
 
 GNUstep extension requests:
 - NSTextTable etc. is missing

@@ -31,13 +31,18 @@
 {
 	if(!item)
 		[NSException raise:NSInvalidArgumentException format:@"nil item"];
+	if(item == _currentItem)
+		[NSException raise:NSInvalidArgumentException format:@"can't add current item"];
 	[_forwardList removeAllObjects];
 	if(_currentItem)
 		{ // move current item to the backList
-		[_backList addObject:_currentItem];
+		[_backList insertObject:_currentItem atIndex:0];
 		[_currentItem release];
-		if(_capacity > 0 && [_backList count] > _capacity)	// beyond capacity
-			[_backList removeObjectAtIndex:0];
+		if(_capacity > 0)
+			{
+			while([_backList count] > _capacity)	// beyond capacity
+				[_backList removeLastObject];
+			}
 		}
 	_currentItem=[item retain];
 }
@@ -53,7 +58,7 @@
 }
 
 - (int) capacity; { return _capacity; }
-- (BOOL) containsItem:(WebHistoryItem *) item; { return item == _currentItem || [_backList indexOfObjectIdenticalTo:item] || [_forwardList indexOfObjectIdenticalTo:item]; }
+- (BOOL) containsItem:(WebHistoryItem *) item; { return item == _currentItem || [_backList indexOfObjectIdenticalTo:item] != NSNotFound || [_forwardList indexOfObjectIdenticalTo:item] != NSNotFound; }
 - (WebHistoryItem *) currentItem; { return _currentItem; }
 - (WebHistoryItem *) forwardItem; { return [_forwardList count] > 0?[_forwardList objectAtIndex:0]:nil; }
 - (int) forwardListCount; { return [_forwardList count]; }
@@ -78,12 +83,13 @@
 		{ // moving backwards
 		[_forwardList insertObject:_currentItem atIndex:0];
 		[_currentItem release];
-		do
+		_currentItem=[item retain];
+		while(idx-- > 0)
 			{ // move items from backList to forwardList
 			[_forwardList insertObject:[_backList objectAtIndex:0] atIndex:0];
 			[_backList removeObjectAtIndex:0];
-			} while(idx-- > 0);
-		_currentItem=[item retain];
+			}
+		[_backList removeObjectAtIndex:0];	// now current item
 		return;
 		}
 	idx=[_forwardList indexOfObjectIdenticalTo:item];	// is it here?
@@ -91,12 +97,13 @@
 		{ // moving backwards
 		[_backList insertObject:_currentItem atIndex:0];
 		[_currentItem release];
-		do
+		_currentItem=[item retain];
+		while(idx-- > 0)
 			{ // move items from forwardList to backList
 				[_backList insertObject:[_forwardList objectAtIndex:0] atIndex:0];
 				[_forwardList removeObjectAtIndex:0];
-			} while(idx-- > 0);
-		_currentItem=[item retain];
+			};
+		[_forwardList removeObjectAtIndex:0];	// now current item
 		return;
 		}
 	[NSException raise:NSInvalidArgumentException format:@"item unknown"];
@@ -108,6 +115,8 @@
 		{
 		_backList=[[NSMutableArray alloc] initWithCapacity:10];
 		_forwardList=[[NSMutableArray alloc] initWithCapacity:10];
+		_capacity=0;		// unlimited capacity
+		_pageCacheSize=10;	// default - should depend on available memory
 		}
 	return self;
 }

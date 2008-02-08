@@ -13,6 +13,14 @@
 
 // methods from WebDocumentRepresentation protocol
 
+- (void) finishedLoadingWithDataSource:(WebDataSource *) source;
+{
+	[[source webFrame] _finishedLoading];	// notify
+	NSLog(@"WebTextDocumentRepresentation finishedLoadingWithDataSource");
+}
+
+- (NSString *) title; { return [[[_dataSource response] URL] absoluteString]; }
+
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 {
 	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];

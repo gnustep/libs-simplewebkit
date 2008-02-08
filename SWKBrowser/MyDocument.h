@@ -15,6 +15,8 @@
 	IBOutlet NSComboBoxCell *currentURL;	// web address/Google search field
 	IBOutlet WebView *webView;			// the Web view
 	IBOutlet NSTextField *status;		// the Web view
+	IBOutlet NSButton *backButton;
+	IBOutlet NSButton *forwardButton;	
 	// JavaScript window
 	IBOutlet NSTextField *command;
 	IBOutlet NSTextField *result;
@@ -26,6 +28,9 @@
 	IBOutlet NSTextView *domSource;
 	id currentItem;
 	IBOutlet NSTableView *domAttribs;
+	// History View
+	IBOutlet NSTableView *historyTable;
+	IBOutlet NSTableView *backForwardTable;
 	// Misc
 	NSURL *openfile;		// used only during Open...
 	BOOL hasToolbar;
@@ -45,5 +50,7 @@
 - (IBAction) openJavaScriptConsole:(id) sender;
 - (IBAction) showSource:(id) sender;
 - (IBAction) showDOMTree:(id) sender;
+- (IBAction) goBack:(id) sender;
+- (IBAction) goForward:(id) sender;
 
 @end

@@ -116,57 +116,6 @@
 		}
 }
 
-#if OLD
-if([ident isEqualToString:@"address"])
-{ // title
-		return [[[item mainFrame] dataSource] pageTitle];
-}
-else
-{ // status
-		NSArray *subs=[[[item mainFrame] dataSource] subresources];
-		unsigned count=[subs count];
-		unsigned loaded=0;
-		int i;
-		for(i=0; i<count; i++)
-			if(![[subs objectAtIndex:i] isLoading] && [(WebDataSource *) [subs objectAtIndex:i] data])
-				loaded++;	// has data and finished loading
-		if(loaded == count)
-			return [NSString stringWithFormat:@"%u objects", count];
-		return [NSString stringWithFormat:@"%u of %u objects", loaded, count];
-}
-		}
-else if([item isKindOfClass:[WebDataSource class]])
-{ // assume to be a WebDataSource
-		if([ident isEqualToString:@"address"])
-			{ // URL
-			return [[[item response] URL] absoluteString];
-			}
-		else
-			{ // status
-			NSData *data=[[[item webFrame] dataSource] data];
-			unsigned len=[data length];	// laoded
-			if([item isLoading])
-				{
-				long long exp=[[[[item webFrame] dataSource] response] expectedContentLength];	// expected
-				if(exp > 0)
-					return [NSString stringWithFormat:@"%u bytes of %u", len, (unsigned) exp];
-				return [NSString stringWithFormat:@"%u bytes of ?", len];	// still unknown
-				}
-			else if(!data)
-				return @"Timeout";	// is not loading but has no data
-			return [NSString stringWithFormat:@"%u bytes", len];
-			}
-}
-else
-{ // WebResource
-		if([ident isEqualToString:@"address"])
-			{ // URL
-			return [[item URL] absoluteString];
-			}
-		return [NSString stringWithFormat:@"%u bytes", [[(WebDataSource *) item data] length]];
-}
-#endif
-
 @end
 
 @implementation MyApplication
@@ -183,19 +132,109 @@ else
 
 - (void) applicationDidFinishLaunching:(NSNotification *) n
 {
+#if 1
 	NSLog(@"AppController applicationDidFinishLaunching");
+#endif
 	[[activity window] makeKeyAndOrderFront:nil];
+}
+
+- (void) updateHistoryMenu;
+{
+	NSEnumerator *e=[[[WebHistory optionalSharedHistory] orderedLastVisitedDays] objectEnumerator];
+	NSMenu *menu=[separatorAfterHistory menu];
+	int end=[menu indexOfItem:separatorAfterHistory];
+	int idx=[menu indexOfItem:separatorBeforeHistory]+1;
+	NSCalendarDate *day;
+	while((day=[e nextObject]))
+		{
+		NSEnumerator *f=[[[WebHistory optionalSharedHistory] orderedItemsLastVisitedOnDay:day] objectEnumerator];
+		WebHistoryItem *item;
+		while((item=[f nextObject]))
+			{
+			id <NSMenuItem> m;
+			NSString *title=[item alternateTitle];
+			if(!title)
+				title=[item title];	// no alternate title
+			if(!title)
+				title=[item URLString];	// no title
+			if(idx < end)
+				{ // replace existing entries
+				m=(id <NSMenuItem>) [menu itemAtIndex:idx++];
+				[m setTitle:title];
+				[m setAction:@selector(loadPageFromHistoryItem:)];
+				}
+			else	// add a new one
+				m=[menu insertItemWithTitle:title action:@selector(loadPageFromHistoryItem:) keyEquivalent:@"" atIndex:idx], end=++idx;	// target=nil, i.e. first responder
+			[m setRepresentedObject:item];
+			}
+		// may handle group-by-day by creating submenus
+		}
+	while(idx < end)
+		[menu removeItemAtIndex:idx], end--;	// if new list is shorter
+}
+
+- (void) saveHistory;
+{
+	NSError *error;
+	[[NSFileManager defaultManager] createDirectoryAtPath:[HISTORY_PATH stringByDeletingLastPathComponent] attributes:nil];	// create directory (ignore errors)
+	if(![[WebHistory optionalSharedHistory] saveToURL:[NSURL fileURLWithPath:HISTORY_PATH] error:&error])
+		;	// silently ignore errors
 }
 
 - (void) awakeFromNib
 {
+	NSError *error;
+    WebHistory *myHistory = [[[WebHistory alloc] init] autorelease];
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+#if 1
 	NSLog(@"AppController awakeFromNib");
 //	NSLog(@"%@", [[NSDocumentController sharedDocumentController] defaultType]);
+#endif
+    [WebHistory setOptionalSharedHistory:myHistory];
+	if(![myHistory loadFromURL:[NSURL fileURLWithPath:HISTORY_PATH] error:&error])
+		; // siltently ignore errors
+	[self updateHistoryMenu];
+    [nc addObserver:self selector:@selector(historyDidRemoveAllItems:)
+               name:WebHistoryAllItemsRemovedNotification object:myHistory];
+    [nc addObserver:self selector:@selector(historyDidAddItems:)
+               name:WebHistoryItemsAddedNotification object:myHistory];
+    [nc addObserver:self selector:@selector(historyDidRemoveItems:)
+               name:WebHistoryItemsRemovedNotification object:myHistory];
 }
 
-/* dealloc
-	[activities release];
+/*
+	dealloc
+		[activities release];
 */
+
+- (void) historyDidRemoveAllItems:(NSNotification *) n
+{
+	[self updateHistoryMenu];
+	[self saveHistory];
+}
+
+- (void) historyDidAddItems:(NSNotification *) n
+{
+	[self updateHistoryMenu];
+	[self saveHistory];
+}
+
+- (void) historyDidRemoveItems:(NSNotification *) n
+{
+	[self updateHistoryMenu];
+	[self saveHistory];
+}
+
+- (IBAction) loadPageFromHistoryItem:(id) historyItem
+{ // no active document!
+	id myDocument = [[NSDocumentController sharedDocumentController] openUntitledDocumentOfType:@"" display:YES];
+	[myDocument loadPageFromHistoryItem:historyItem];
+}
+
+- (IBAction) clearHistory:(id) sender
+{
+    [[WebHistory optionalSharedHistory] removeAllItems];	// will post a notification
+}
 
 - (void) updateActivity
 {

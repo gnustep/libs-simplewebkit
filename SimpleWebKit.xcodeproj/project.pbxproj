@@ -580,9 +580,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		EE01D4520B7786570089A538 /* WebKitBrowser */ = {
+		EE01D4520B7786570089A538 /* SWK Browser with full WebKit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "WebKitBrowser" */;
+			buildConfigurationList = EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with full WebKit" */;
 			buildPhases = (
 				EE01D4550B7786570089A538 /* Resources */,
 				EE01D4580B7786570089A538 /* Sources */,
@@ -592,7 +592,7 @@
 			);
 			dependencies = (
 			);
-			name = WebKitBrowser;
+			name = "SWK Browser with full WebKit";
 			productName = WebKitTest;
 			productReference = EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */;
 			productType = "com.apple.product-type.application";
@@ -671,7 +671,7 @@
 			targets = (
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
 				EE147E830A16668700E60AF8 /* SWK Browser */,
-				EE01D4520B7786570089A538 /* WebKitBrowser */,
+				EE01D4520B7786570089A538 /* SWK Browser with full WebKit */,
 				EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */,
 			);
 		};
@@ -880,7 +880,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				INFOPLIST_FILE = "GNUstepBrowser/FullWebKitTest-Info.plist";
+				INFOPLIST_FILE = "SWKBrowser/FullWebKitTest-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -1132,7 +1132,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "WebKitBrowser" */ = {
+		EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with full WebKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EE01D4620B7786570089A538 /* Development */,
