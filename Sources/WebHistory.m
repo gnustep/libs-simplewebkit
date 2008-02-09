@@ -33,6 +33,21 @@ NSString *WebHistoryItemsRemovedNotification=@"WebHistoryItemsRemovedNotificatio
 NSString *WebHistoryLoadedNotification=@"WebHistoryLoadedNotification";
 NSString *WebHistorySavedNotification=@"WebHistorySavedNotification";
 
+@interface NSDate (WebHistory)
+
+- (NSComparisonResult) _reverseCompare:(id) other;
+
+@end
+
+@implementation NSDate (WebHistory)
+
+- (NSComparisonResult) _reverseCompare:(id) other
+{
+	return -[self compare:other];
+}
+
+@end
+
 @implementation WebHistory
 
 {
@@ -50,12 +65,33 @@ static WebHistory *_optionalSharedHistory;
 
 - (void) addItems:(NSArray *) items;
 {
-	// add to history
-	// replace&update if it already exists -> search by [item URL] and [NSCalendarDate dateWithInterval:[item interval]]
-	// create links
-	// take _historyAgeInDaysLimit and _historyItemLimit into account (ignore if 0)
-	// post notification of all sucessful additions
-	NIMP;
+	NSEnumerator *e=[items objectEnumerator];
+	NSMutableArray *success=[NSMutableArray arrayWithCapacity:[items count]];
+	WebHistoryItem *item;
+	while((item=[e nextObject]))
+		{
+		WebHistoryItem *other=[_itemsByURL objectForKey:[item URLString]];
+#if 1
+		NSLog(@"add item: %@", item);
+#endif
+		if(other)
+			{
+			[other _setVisitCount:[other _visitCount]+1]; // already known
+			[other _touch];
+			}
+		else
+			{
+			// take _historyAgeInDaysLimit and _historyItemLimit into account (ignore if 0) if we have too many elements
+			[_itemsByURL setObject:item forKey:[item URLString]];
+			}
+		// FIXME: update _itemGroups
+		// replace&update if it already exists -> search by [item URL] and [NSCalendarDate dateWithInterval:[item interval]]
+		if(_historyItemLimit > 0 && [_itemsByURL count] > _historyItemLimit)
+			{ // remove oldest ones first
+			}
+		}
+	[[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryItemsAddedNotification object:self userInfo:
+		[NSDictionary dictionaryWithObject:success forKey:@"WebHistoryItemsKey"]];
 }
 
 - (int) historyAgeInDaysLimit; { return _historyAgeInDaysLimit; }
@@ -80,33 +116,68 @@ static WebHistory *_optionalSharedHistory;
 
 - (WebHistoryItem *) itemForURL:(NSURL *) url;
 {
-	return [_itemsByURL objectForKey:url];
+	return [_itemsByURL objectForKey:[url absoluteString]];
 }
 
 - (BOOL) loadFromURL:(NSURL *) url error:(NSError **) error;
 {
-	NIMP;
-	return NO;
+	NSDictionary *dict=[NSDictionary dictionaryWithContentsOfURL:url];
+	NSEnumerator *e;
+	NSDictionary *entry;
+	*error=nil;
+	if(!dict)
+		return NO;
+	e=[[dict objectForKey:@"WebHistoryDates"] objectEnumerator];
+	if(!e)
+		return NO;
+	[_itemsByURL removeAllObjects];	// remove any items
+	[_itemGroupsByDates removeAllObjects];
+	while((entry=[e nextObject]))
+		{
+		WebHistoryItem *item=[[WebHistoryItem alloc] initWithURLString:[entry objectForKey:@""]
+														 title:[entry objectForKey:@"title"]
+									   lastVisitedTimeInterval:[[entry objectForKey:@"lastVisitedDate"] doubleValue]];
+		[item _setVisitCount:[[entry objectForKey:@"visitCount"] intValue]];
+		[_itemsByURL setObject:item forKey:[item URLString]];
+		// update _itemGroupsByDates
+		[item release];
+		}
+	[[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryLoadedNotification object:self];
+	return YES;
 }
+
+// FIXME: grouping is not implemented!
 
 - (NSArray *) orderedItemsLastVisitedOnDay:(NSCalendarDate *) date;
 {
+#if 0
 	NSArray *a=[_itemGroupsByDates objectForKey:date];
-	// sort
+	// should already be sorted...
 	return a;
+#else
+	return [_itemsByURL allValues];
+#endif
 }
 
 - (NSArray *) orderedLastVisitedDays;
 {
+#if 0
 	NSArray *a=[_itemGroupsByDates allKeys];
-	// sort
+	a=[a sortedArrayUsingSelector:@selector(_reverseCompare:)];
 	return a;
+#else
+	return [NSArray arrayWithObject:[NSCalendarDate calendarDate]];
+#endif
 }
 
 - (void) removeAllItems;
 {
+	NSArray *items=[[_itemsByURL allValues] retain];
 	[_itemsByURL removeAllObjects];
 	[_itemGroupsByDates removeAllObjects];
+	[[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryAllItemsRemovedNotification object:self userInfo:
+		[NSDictionary dictionaryWithObject:items forKey:@"WebHistoryItemsKey"]];
+	[items release];
 }
 
 - (void) removeItems:(NSArray *) items;
@@ -117,12 +188,35 @@ static WebHistory *_optionalSharedHistory;
 	[_itemsByURL removeObjectsForKeys:items];	// remove from url index
 	while((key=[e nextObject]))
 		[[_itemGroupsByDates objectForKey:key] removeItems:items];	// remove from all days
+	// notify only those that have successfully been removed...
+	[[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryItemsRemovedNotification object:self userInfo:
+		[NSDictionary dictionaryWithObject:items forKey:@"WebHistoryItemsKey"]];
 }
 
 - (BOOL) saveToURL:(NSURL *) url error:(NSError **) error;
 {
-	// archive into a file using NS(Keyed)Archiver or a PropertyList
-	NIMP;
+	NSMutableArray *entries=[NSMutableArray arrayWithCapacity:[_itemsByURL count]];
+	NSDictionary *root=[NSDictionary dictionaryWithObjectsAndKeys:
+		[NSNumber numberWithInt:1], @"WebHistoryFileVersion",
+		entries, @"WebHistoryDates",
+		nil];
+	NSEnumerator *e=[_itemsByURL objectEnumerator];
+	WebHistoryItem *item;
+	while((item=[e nextObject]))
+		{
+		[entries addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+			[item URLString], @"",
+			[item title], @"title",
+			[NSString stringWithFormat:@"%.1f", [item lastVisitedTimeInterval]], @"lastVisitedDate",
+			[NSNumber numberWithInt:[item _visitCount]], @"visitCount",
+			nil]];
+		}
+	if([root writeToURL:url atomically:YES])
+		{
+		[[NSNotificationCenter defaultCenter] postNotificationName:WebHistorySavedNotification object:self];
+		return YES;
+		}
+	*error=nil;
 	return NO;
 }
 

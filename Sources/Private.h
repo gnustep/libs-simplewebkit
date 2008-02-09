@@ -87,6 +87,8 @@
 - (void) _touch;
 - (void) _setIcon:(NSImage *) icon;
 - (void) _setURL:(NSURL *) url;
+- (int) _visitCount;
+- (void) _setVisitCount:(int) v;
 @end
 
 @interface WebView (Private)

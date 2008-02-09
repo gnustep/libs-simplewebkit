@@ -163,7 +163,7 @@ static NSArray *_htmlMimeTypes;
 				forMIMEType:@"text/xml"];
 	[self registerViewClass:[_WebTextDocumentView class]
 		representationClass:[_WebTextDocumentRepresentation class]
-				forMIMEType:@"text/"];		// match all other text file typs and try our best
+				forMIMEType:@"text/"];		// match all other text file types and try our best
 }
 
 + (NSArray *) MIMETypesShownAsHTML; { return _htmlMimeTypes; }
@@ -296,37 +296,30 @@ static NSArray *_htmlMimeTypes;
 
 - (BOOL) canGoBack; { return _backForwardList?([_backForwardList backItem] != nil):NO; }
 - (BOOL) canGoForward; { return _backForwardList?([_backForwardList forwardItem] != nil):NO; }
-- (IBAction) goBack:(id) sender; { [_backForwardList goBack]; }
-- (IBAction) goForward:(id) sender; { [_backForwardList goForward]; }
+- (IBAction) goBack:(id) sender; { [self goBack]; }
+- (IBAction) goForward:(id) sender; { [self goForward]; }
 
 - (BOOL) goForward;
 {
 	if([self canGoForward])
-		{
-		[_backForwardList goForward];
-		return YES;
-		}
+		return [self goToBackForwardItem:[_backForwardList itemAtIndex:1]];
 	return NO;
 }
 
 - (BOOL) goBack;
 {
 	if([self canGoBack])
-		{
-		[_backForwardList goBack];
-		return YES;
-		}
+		return [self goToBackForwardItem:[_backForwardList itemAtIndex:-1]];
 	return NO;
 }
 
 - (BOOL) goToBackForwardItem:(WebHistoryItem *) item
-{
-	if(_backForwardList && [_backForwardList containsItem:item])
-		{
-		[_backForwardList goToItem:item];
-		return YES;
-		}
-	return NO;
+{ // this is the core function to handle back and forward movements with reloads
+	if(!_backForwardList || ![_backForwardList containsItem:item])
+		return NO;	// not found
+	[_backForwardList goToItem:item];	// update list
+	[_mainFrame loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[item URLString]]]];	// reload in main frame
+	return YES;
 }
 
 - (NSString *) applicationNameForUserAgent; { return _applicationName; }
@@ -349,7 +342,9 @@ static NSArray *_htmlMimeTypes;
 	NSLog(@"takeStringURL %@ -> %@", str, u);
 #endif
 	if(u)
+		{
 		[_mainFrame loadRequest:[NSURLRequest requestWithURL:u]];
+		}
 	else
 		;	// ???
 }
@@ -383,7 +378,7 @@ static NSArray *_htmlMimeTypes;
 
 - (IBAction) reload:(id) sender;
 {
-	[_mainFrame reload];	// should also reload subframes?
+	[_mainFrame reload];	// should we also reload subframes?
 }
 
 - (IBAction) stopLoading:(id) sender;
@@ -530,6 +525,22 @@ static NSArray *_htmlMimeTypes;
 
 - (NSWindow *) hostWindow; { return _hostWindow; }
 - (void) setHostWindow:(NSWindow *) win; { ASSIGN(_hostWindow, win); }
+
+- (void) viewWillMoveToWindow:(NSWindow *) win
+{
+	if(!win && _hostWindow)
+		{ // is being orphaned from the current window
+		[_hostWindow setContentView:self];	// make us the content view of the host view
+		}
+}
+
+- (void) viewWillMoveToSuperview:(NSView *) view
+{
+	if(!view && _hostWindow)
+		{ // is being orphaned from the current superview
+		[_hostWindow setContentView:self];	// make us the content view of the host view
+		}
+}
 
 - (NSString *) userAgentForURL:(NSURL *) url
 {

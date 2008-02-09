@@ -300,7 +300,7 @@
 																	willSendRequest:request
 																 redirectResponse:redirectResponse
 																	 fromDataSource:_parent?_parent:self];
-	[_request release];
+	[_request autorelease];
 	_request=[request mutableCopy];	// update to new current request
 	return _request;
 }

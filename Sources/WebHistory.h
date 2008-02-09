@@ -37,7 +37,7 @@ extern NSString *WebHistorySavedNotification;
 
 @interface WebHistory : NSObject
 {
-	NSMutableDictionary *_itemsByURL;		// all items indexed by URL
+	NSMutableDictionary *_itemsByURL;			// all items indexed by URL string
 	NSMutableDictionary *_itemGroupsByDates;	// all items grouped (&ordered?) on a single day, indexed by date 
 	int _historyAgeInDaysLimit;
 	int _historyItemLimit;

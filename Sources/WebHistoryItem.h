@@ -33,6 +33,7 @@ extern NSString *WebHistoryItemChangedNotification;
 	NSString *_title;
 	NSString *_URLString;
 	NSTimeInterval _lastVisitedTimeInterval;
+	int _visitCount;
 }
 
 - (NSString *) alternateTitle;

@@ -11,6 +11,8 @@
 
 @implementation MyComboBoxCell	// can display progress background
 
+// we have not yet found a way to properly make a transparent combo box above the white&blue progress bar
+
 - (void) drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
 	NSRect frame=cellFrame;
@@ -22,7 +24,7 @@
 	if(progress == 1.0)
 		progress=0.0;	// don't show
 	frame.size.width -= 3.0;	// IB specifies 3 px spacing on the right hand side
-	frame.origin.y += 2.0;		// IB specifies 4px vertical (transparent!) spacing
+	frame.origin.y += 2.0;		// IB specifies 4 px vertical (transparent!) spacing
 	frame.size.height -= 4.0;
 	if(progress > 0)
 		{

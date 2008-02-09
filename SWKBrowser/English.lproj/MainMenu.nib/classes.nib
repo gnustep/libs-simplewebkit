@@ -3,6 +3,7 @@
         {
             ACTIONS = {
                 back = id; 
+                clearHistory = id; 
                 flip = id; 
                 forward = id; 
                 home = id; 
@@ -25,7 +26,11 @@
         {
             CLASS = MyApplication; 
             LANGUAGE = ObjC; 
-            OUTLETS = {activity = NSOutlineView; }; 
+            OUTLETS = {
+                activity = NSOutlineView; 
+                separatorAfterHistory = NSMenuItem; 
+                separatorBeforeHistory = NSMenuItem; 
+            }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }

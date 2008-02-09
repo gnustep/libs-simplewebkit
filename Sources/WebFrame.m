@@ -24,8 +24,13 @@
 #import <Foundation/NSXMLParser.h>
 #import <WebKit/WebFrame.h>
 #import <WebKit/WebFrameLoadDelegate.h>
+#import <WebKit/WebView.h>
+#import <WebKit/WebBackForwardList.h>
+#import <WebKit/WebHistory.h>
 #import <WebKit/DOM.h>
 #import "Private.h"
+
+static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource objects even if not in view hierarchy
 
 @implementation WebFrame
 
@@ -74,17 +79,71 @@
 	[super dealloc];
 }
 
+- (void) reload;
+{
+#if 1
+	NSLog(@"reload %@", self);
+	NSLog(@"_request=%@", _request);
+#endif
+	[self stopLoading];
+	_provisionalDataSource=[[WebDataSource alloc] initWithRequest:_request];
+	NSAssert(_provisionalDataSource != nil, @"can't init with request");
+#if 1
+	NSLog(@"loading %@", _provisionalDataSource);
+#endif
+	// this may trigger the whole loading execution chain but from the RunLoop - which may even issue a new call to -reload!
+	[_provisionalDataSource performSelector:@selector(_setWebFrame:) withObject:self afterDelay:0.0];
+}
+
+- (void) _addToHistory;
+{
+	int cache=[[_webView backForwardList] pageCacheSize];
+	WebHistoryItem *item=[[WebHistoryItem alloc] initWithURLString:[[[_dataSource response] URL] absoluteString]
+															 title:[[_dataSource representation] title]
+										   lastVisitedTimeInterval:[NSDate timeIntervalSinceReferenceDate]];
+	[[WebHistory optionalSharedHistory] addItems:[NSArray arrayWithObject:item]];
+	if(![[[_webView backForwardList] currentItem] isEqual:item])
+		[[_webView backForwardList] addItem:item];	// add unless it is the same as the current (i.e. after a reload)
+	[item release];
+	if(cache > 0)
+		{
+		if(!_pageCache)
+			_pageCache=[NSMutableArray new];
+		[_pageCache insertObject:self atIndex:0];
+		}
+	while([_pageCache count] > cache)
+		{ // remove at end (oldest)
+		[_pageCache removeLastObject];
+		}
+}
+
 - (void) loadRequest:(NSURLRequest *) req;
 {
+	NSEnumerator *e=[_pageCache objectEnumerator];
+	WebFrame *cached;
 	NSAssert(req != nil, @"trying to load nil request");
 #if 1
 	NSLog(@"%@ loadRequest:%@", self, req);
 #endif
-	// check if it is the same URL with a different Anchor (#here)
-	// in that case don't load again (or load from cache?) but try to locate the anchor and scroll the view
-	// i.e. scan the textStorage for a matching DOMHTMLAnchorElementAnchorName attribute
 	[_request autorelease];
 	_request=[req copy];	// make a copy so that we can reload it any time
+	while((cached=[e nextObject]))
+		{
+		// FIXME: ignore anchor!
+		if([[[[cached dataSource] request] URL] isEqual:[req URL]])
+			{ // found
+			NSLog(@"page found in cache: %@", cached);
+#if 0
+			// [_webView _setWebFrame:cached]
+			// [_webFrameView removeFromSuperview];
+			// [_webView _addSubview:[cached webFrameView]]
+			// replace our webView's webFrame and webFrameView
+			// locate the anchor and scroll the view
+			// i.e. scan the textStorage for a matching DOMHTMLAnchorElementAnchorName attribute
+			return;
+#endif
+			}
+		}
 	[self reload];
 }
 
@@ -129,22 +188,6 @@
 	[_children makeObjectsPerformSelector:_cmd];		// recursively stop loading of all child frames!
 }
 
-- (void) reload;
-{
-#if 1
-	NSLog(@"reload %@", self);
-	NSLog(@"_request=%@", _request);
-#endif
-	[self stopLoading];
-	_provisionalDataSource=[[WebDataSource alloc] initWithRequest:_request];
-	NSAssert(_provisionalDataSource != nil, @"can't init with request");
-#if 1
-	NSLog(@"loading %@", _provisionalDataSource);
-#endif
-	// this may trigger the whole loading execution chain but from the RunLoop - which may even issue a new call to -reload!
-	[_provisionalDataSource performSelector:@selector(_setWebFrame:) withObject:self afterDelay:0.0];
-}
-
 - (void) _failedWithError:(NSError *) error;
 { // data source failed
 	if(_provisionalDataSource)
@@ -153,18 +196,24 @@
 		[[_webView frameLoadDelegate] webView:_webView didFailLoadWithError:error forFrame:self];
 }
 
+- (void) _commitDataSource;
+{
+	[_dataSource autorelease];	// previous - if any
+	_dataSource=_provisionalDataSource;	// become new owner
+	_provisionalDataSource=nil;
+}
+
 - (void) _finishedLoading;
 { // callback from data source
 #if 1
 	NSLog(@"WebFrame finishedLoading from %@, replacing %@", _provisionalDataSource, _dataSource);
 #endif
 	NSAssert(_provisionalDataSource != nil, @"_finishedLoading occurred without _provisionalDataSource");
-	[_dataSource autorelease];	// previous - if any
-	_dataSource=_provisionalDataSource;	// become new owner
-	_provisionalDataSource=nil;
+	[self _commitDataSource];
 #if 1
 	NSLog(@"WebFrame _provisionalDataSource=%@", _provisionalDataSource);
 #endif
+	[self _addToHistory];
 	[[_webView frameLoadDelegate] webView:_webView didFinishLoadForFrame:self];	// set status "Done."
 }
 
@@ -229,7 +278,7 @@
 			return r;	// found
 		f=[f parentFrame];	// try next level
 		}
-	// FIXME: searh other main frame hierarchies (how to find those???)
+	// FIXME: search other main frame hierarchies (how to find those? ask [_webView mainFrame])
 	return nil;
 }
 

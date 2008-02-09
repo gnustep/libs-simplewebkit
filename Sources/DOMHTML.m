@@ -1188,8 +1188,9 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[self _flushStyles];	// clear style cache in the DOM Tree
 	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
 
-	// FIXME: we should recognize a <meta format> element as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
+	// FIXME: we should recognize this element:
 	// <meta name = "format-detection" content = "telephone=no">
+	// as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
 
 	[self _processPhoneNumbers:ts];	// update content
 	[(_WebHTMLDocumentView *) view setBackgroundColor:bg];

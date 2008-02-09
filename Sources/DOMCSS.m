@@ -24,6 +24,41 @@
 #import <WebKit/WebView.h>
 #import "Private.h"
 
+/*
+ we need a mechanism to look up the database for a given DOM-Tree node (selectors)
+ (taking the hierarchy into account) and return a NSDictionary with the
+ styles as needed for an attributed string
+ so we must translate some of the CSS attribute names to NSxxxAttributeName, e.g.
+ background-color -> NSBackgroundAttributeName
+ color -> NSTextColorAttibuteName
+ 
+ and the original CSS attribute value should also be available for building an element inspector (?)
+ */
+
+/*
+ 
+ TODO:
+ 
+ look at http://svn.gna.org/viewcvs/etoile/trunk/Etoile/Services/User/Jabber/ETXML/ETXMLXHTML-IMParser.m?rev=2495&view=auto
+ 
+ what we can (re)use
+
+ */
+
+@implementation DOMStyleSheet
+
+@end
+
+@implementation DOMStyleSheetList
+
+@end
+
+@implementation DOMCSSMediaList
+
+@end
+
+// OLD
+
 @implementation DOMCSSStyleDeclaration
 
 - (id) initWithString:(NSString *) style forDocument:(RENAME(DOMDocument) *) doc;
@@ -37,3 +72,5 @@
 }
 
 @end
+
+

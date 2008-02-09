@@ -8,9 +8,15 @@
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
+#define HISTORY_PATH [NSHomeDirectory() stringByAppendingPathComponent:@"Library/SWKBrowser/History.plist"]
+#define BOOKMARKS_PATH [NSHomeDirectory() stringByAppendingPathComponent:@"Library/SWKBrowser/Bookmarks.plist"]
+#define DOWNLOADS_PATH [NSHomeDirectory() stringByAppendingPathComponent:@"Library/SWKBrowser/Downloads.plist"]
+
 @interface MyApplication : NSObject
 {
 	IBOutlet NSOutlineView *activity;
+	IBOutlet NSMenuItem *separatorBeforeHistory;
+	IBOutlet NSMenuItem *separatorAfterHistory;
 	NSMutableArray *activities;		// array of subresources
 }
 

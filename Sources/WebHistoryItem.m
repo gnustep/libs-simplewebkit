@@ -28,6 +28,13 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 
 @implementation WebHistoryItem
 
+- (void) _notify; { [[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryItemChangedNotification object:self]; }
+- (void) _touch; { _lastVisitedTimeInterval=[NSDate timeIntervalSinceReferenceDate]; _visitCount++; }
+- (void) _setIcon:(NSImage *) icon; { ASSIGN(_icon, icon); [self _notify]; }
+- (void) _setURL:(NSURL *) url; { ASSIGN(_URLString, url); [self _notify]; }
+- (int) _visitCount; { return _visitCount; }
+- (void) _setVisitCount:(int) v; { _visitCount=v; }
+
 - (NSString *) alternateTitle; { return _alternateTitle; }
 - (NSImage *) icon; { return _icon; }
 
@@ -35,6 +42,8 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 				   title:(NSString *) title
  lastVisitedTimeInterval:(NSTimeInterval) time;
 {
+	NSAssert(url != nil, @"missing URL");
+//	NSAssert(title != nil, @"missing title");
 	if((self=[super init]))
 		{
 		_originalURLString=[url retain];
@@ -74,9 +83,12 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 - (NSString *) title; { return _title; }
 - (NSString *) URLString; { return _URLString; }
 
-- (void) _notify; { [[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryItemChangedNotification object:self]; }
-- (void) _touch; { _lastVisitedTimeInterval=[NSDate timeIntervalSinceReferenceDate]; }
-- (void) _setIcon:(NSImage *) icon; { ASSIGN(_icon, icon); [self _notify]; }
-- (void) _setURL:(NSURL *) url; { ASSIGN(_URLString, url); [self _notify]; }
+- (BOOL) isEqual:(id) o
+{
+	WebHistoryItem *other=(WebHistoryItem *) o;
+	if(o == self)
+		return YES;
+	return [_URLString isEqualToString:other->_URLString];
+}
 
 @end

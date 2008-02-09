@@ -390,9 +390,11 @@ static NSDictionary *entitiesTable;
 							break;	// delegate wants to stall after comment
 						continue;
 						}
+					// FIXME: should we accept spaces between [ CDATA [
 					else if(cp < ep-7 && strncmp((char *) cp, "[CDATA[", 7) == 0)
 						{ // start of CDATA
 						tp=cp+=7;
+						// FIXME: should we accept spaces ] ]
 						while(cp < ep-2 && (*cp != ']' || strncmp((char *)cp, "]]", 2) != 0))
 							cp++; // scan up to ]]> without processing entities and other tags
 						if(cp >= ep-2)
@@ -560,6 +562,12 @@ static NSDictionary *entitiesTable;
 					[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
 					break;
 					}
+				while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
+					{
+					if(*cp == '\n')
+						line++, column=0;
+					cp++;	
+					}
 				if(cp == ep)
 					{
 					if(done)
@@ -571,6 +579,12 @@ static NSDictionary *entitiesTable;
 					{ // explicit assignment
 					NSString *val;
 					cp++;
+					while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
+						{
+						if(*cp == '\n')
+							line++, column=0;
+						cp++;	
+						}
 					if(cp == ep)
 						{
 						if(done)
