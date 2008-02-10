@@ -76,6 +76,12 @@ SimpleWebKit_RESOURCE_FILES = \
 	HTMLEntities.strings \
 	DOMHTML.plist
 
+-include Makefile.preamble
+
+-include GNUmakefile.local
+
 include $(GNUSTEP_MAKEFILES)/common.make
 include $(GNUSTEP_MAKEFILES)/framework.make
+# include $(GNUSTEP_MAKEFILES)/resource-set.make
 
+-include Makefile.postamble

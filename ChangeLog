@@ -1,3 +1,7 @@
+2008-02-10 16:01-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Sources/GNUmakefile: Additional correction.
+
 2008-02-08  Nikolaus Schaller <hns@computer.org>
 	* added History and Back/Forward list plus some stubs for a page cache (should cache WebFrame/WebFrameViews)
 	* fixed bugs with finalizing loading (e.g. update history after loading jpg or pngs)
