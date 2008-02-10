@@ -528,18 +528,20 @@ static NSArray *_htmlMimeTypes;
 
 - (void) viewWillMoveToWindow:(NSWindow *) win
 {
-	if(!win && _hostWindow)
-		{ // is being orphaned from the current window
-		[_hostWindow setContentView:self];	// make us the content view of the host view
-		}
+  if(!win && _hostWindow)
+    { // is being orphaned from the current window
+      [_hostWindow setContentView:self];	// make us the content view of the host view
+    }
+  [super viewWillMoveToWindow: win];
 }
 
 - (void) viewWillMoveToSuperview:(NSView *) view
 {
-	if(!view && _hostWindow)
-		{ // is being orphaned from the current superview
-		[_hostWindow setContentView:self];	// make us the content view of the host view
-		}
+  if(!view && _hostWindow)
+    { // is being orphaned from the current superview
+      [_hostWindow setContentView:self];	// make us the content view of the host view
+    }
+  [super viewWillMoveToSuperview: view];
 }
 
 - (NSString *) userAgentForURL:(NSURL *) url

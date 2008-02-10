@@ -1,3 +1,10 @@
+2008-02-10 17:31-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Sources/WebView.m: Corrected calls to viewWillMove... to include
+	calls to the super-class version of it.  Fixes issue observed by
+	myself and Riccardo.  Document Window for both SWKBrowser and Vespucci
+	was failing to load properly.
+
 2008-02-10 16:01-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Sources/GNUmakefile: Additional correction.
