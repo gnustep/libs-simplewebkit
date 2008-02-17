@@ -211,13 +211,13 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		NSData *data;
 		if(res)
 			{
-#if 1
+#if 0
 			NSLog(@"sub: already completely loaded: %@ (%u bytes)", url, [[res data] length]);
 #endif
 			return [res data];	// already completely loaded
 			}
 		sub=[source _subresourceWithURL:url delegate:(id <WebDocumentRepresentation>) self];	// triggers loading if not yet and make me receive notification
-#if 1
+#if 0
 		NSLog(@"sub: loading: %@ (%u bytes) delegate=%@", url, [[sub data] length], self);
 #endif
 		data=[sub data];
@@ -236,7 +236,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 { // our subresource did load - i.e. we can clear the stall on the main HTML script
 	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
 	WebDataSource *mainsource=[htmlDocument _webDataSource];
-#if 1
+#if 0
 	NSLog(@"clear stall for %@", self);
 	NSLog(@"source: %@", source);
 	NSLog(@"mainsource: %@", mainsource);
@@ -250,7 +250,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // we received the next framgment of the script
-#if 1
+#if 0
 	NSLog(@"stalling subresource %@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
 #endif
 }
@@ -265,12 +265,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *script=[(DOMElement *) self getAttribute:event];
 	if(script)
 		{
-#if 1
+#if 0
 		NSLog(@"trigger %@=%@", event, script);
 #endif
 		// FIXME: make an event object available to the script
 		// FIXME: make depend on [[webView preferences] isJavaScriptEnabled]
-#if 1
+#if 0
 		{
 			id r;
 			NSLog(@"trigger <script>%@</script>", script);
@@ -650,16 +650,20 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 			DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
 			NSString *u=[[c lastObject] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 			NSURL *url;
-			NSURLRequest *request;
 			NSTimeInterval seconds;
 			if([[u lowercaseString] hasPrefix:@"url="])
 				u=[u substringFromIndex:4];	// cut off url= prefix
+			u=[u stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// sometimes people write "0; url = xxx"
 			url=[NSURL URLWithString:u relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
-			seconds=[[c objectAtIndex:0] doubleValue];
-#if 1
-			NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
+			if(url)
+				{
+				seconds=[[c objectAtIndex:0] doubleValue];
+#if 0
+				NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
 #endif
-			[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] _performClientRedirectToURL:url delay:seconds];
+				[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] _performClientRedirectToURL:url delay:seconds];
+				}
+			// else raise some error...
 			}
 		}
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
@@ -753,7 +757,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	if([self hasAttribute:@"src"])
 		// FIXME: && [[webView preferences] isJavaScriptEnabled])
 		{ // we have an external script to load first
-#if 1
+#if 0
 		NSLog(@"load <script src=%@>", [self getAttribute:@"src"]);
 #endif
 		[self _loadSubresourceWithAttributeString:@"src" blocking:YES];	// trigger loading of script or get from cache - notifications will be tied to self, i.e. this instance of the <script element>
@@ -773,7 +777,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		{ // external script
 		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// if we are called, we know that it has been loaded - fetch from cache
 		script=[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
-#if 1
+#if 0
 		NSLog(@"external script: %@", script);
 #endif
 #if 0
@@ -790,7 +794,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		if([script hasSuffix:@"-->"])
 			script=[script substringWithRange:NSMakeRange(0, [script length]-3)];	// remove
 		// checkme: is it permitted to write <script><!CDATA[....? and how is that represented
-#if 1
+#if 0
 		{
 		id r;
 		NSLog(@"evaluate inlined <script>%@</script>", script);
@@ -854,7 +858,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	unsigned count=[children length];
 	unsigned childIndex=0;
 	unsigned subviewIndex=0;
-#if 1
+#if 0
 	NSLog(@"_layout: %@", self);
 	NSLog(@"attribs: %@", [self _attributes]);
 #endif
@@ -902,7 +906,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 				[view addSubview:childView];
 				subviewIndex++;
 				}
-#if 1
+#if 0
 			NSLog(@"adjust subframe %u to (w=%f, h=%f) %@", subviewIndex, [colWidth floatValue], height, NSStringFromRect(newChildFrame));
 			NSLog(@"element: %@", child);
 			NSLog(@"view: %@", childView);
@@ -965,7 +969,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	WebFrame *frame;
 	WebFrameView *frameView;
 	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
-#if 1
+#if 0
 	NSLog(@"_layout: %@", self);
 	NSLog(@"attribs: %@", [self _attributes]);
 #endif
@@ -1068,7 +1072,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 									// background color
 			text, NSForegroundColorAttributeName,		// default text color - may be nil!
 			nil];
-#if 1
+#if 0
 		NSLog(@"_style for <body> with attribs %@ is %@", [self _attributes], _style);
 #endif
 		}
@@ -1152,7 +1156,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	// FIXME: how do we handle <pre> which should not respond to width changes?
 	// maybe, by an NSParagraphStyle
 	
-#if 1
+#if 0
 	NSLog(@"%@ _layout: %@", NSStringFromClass(isa), view);
 	NSLog(@"attribs: %@", [self _attributes]);
 #endif
@@ -1193,8 +1197,10 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	// as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
 
 	[self _processPhoneNumbers:ts];	// update content
-	[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
-	[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
+	if([self hasAttribute:@"bgcolor"])
+		{
+		[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
+		[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
 //	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
 #if 1	// WORKAROUND
 	/* the next line is a workaround for the following problem:
@@ -1206,9 +1212,11 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		And, the background is only drawn for the not-wide-enough NSTextView.
 		As a workaround, we set the background also for the ScrollView.
 	*/
-	if(bg) [sc setBackgroundColor:bg];
+		if(bg) [sc setBackgroundColor:bg];
 #endif
-	[(_WebHTMLDocumentView *) view setLinkColor:link];	// change link color
+		}
+	if([self hasAttribute:@"link"])
+		[(_WebHTMLDocumentView *) view setLinkColor:link];	// change link color
 	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 	if([anchor length] != 0)
 		{ // locate a matching anchor
@@ -1223,8 +1231,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 			[(_WebHTMLDocumentView *) view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
 		}
 	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
-	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
 	[sc tile];
+	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
 #if 0	// show view hierarchy
 	{
 		NSView *parent;
@@ -1633,7 +1641,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	unsigned spacing=[[self getAttribute:@"cellspacing"] intValue];
 	unsigned padding=[[self getAttribute:@"cellpadding"] intValue];
 	unsigned cols=[[self getAttribute:@"cols"] intValue];
-#if 1
+#if 0
 	NSLog(@"<table>: %@", [self _attributes]);
 #endif
 	if([align isEqualToString:@"left"])
@@ -1661,7 +1669,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	// reset font style, color etc. to defaults!
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// is a block element
 	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];	// update paragraph style
-#if 1
+#if 0
 	NSLog(@"<table> _style=%@", _style);
 #endif
 }
@@ -1674,7 +1682,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSMutableAttributedString *str;
 	DOMNodeList *children;
 	unsigned int i, cnt;
-#if 1
+#if 0
 	NSLog(@"<table>: %@", [self _attributes]);
 #endif
 	if(!textTableClass)
@@ -1719,7 +1727,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[(NSObject *) textTable release];
 		[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"\n"] autorelease]];	// finish table
 		}
-#if 1
+#if 0
 	NSLog(@"<table>: %@", str);
 #endif
 	return str;
@@ -1872,6 +1880,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
 	table=[_style objectForKey:@"TableBlock"];	// inherited from enclosing table
+	if(!table)
+		return;	// error...
 	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
 														   startingRow:row
 															   rowSpan:rowspan
@@ -1892,7 +1902,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		blocks=[NSMutableArray arrayWithCapacity:2];	// rarely more nesting
 	[blocks addObject:cell];	// add to list of text blocks
 	[paragraph setTextBlocks:blocks];	// add to paragraph style
-#if 1
+#if 0
 	NSLog(@"<td> _style=%@", _style);
 #endif
 	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
@@ -1942,7 +1952,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	if(body)
 		[request setHTTPBody:body];
 	[body release];
-#if 1
+#if 0
 	NSLog(@"submit <form> to %@ using method %@", [request URL], [request HTTPMethod]);
 #endif
 	[request setMainDocumentURL:[[[htmlDocument _webDataSource] request] URL]];
@@ -1993,7 +2003,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		{ // ignore for rendering purposes - will be collected when sending the <form>
 		return nil;
 		}
-#if 1
+#if 0
 	NSLog(@"<input>: %@", [self _attributes]);
 #endif
 	if([type isEqualToString:@"submit"] || [type isEqualToString:@"reset"] ||
@@ -2044,7 +2054,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		else
 			[(NSButtonCell *) cell setTitle:val?val:@"Button"];
 		}
-#if 1
+#if 0
 	NSLog(@"  cell: %@", cell);
 	NSLog(@"  cell control view: %@", [cell controlView]);
 #endif
@@ -2072,7 +2082,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *size=[self getAttribute:@"size"];
 	// ?? NSString *val=[self getAttribute:@"value"];
 	[self _spliceTo:value];	// recursively splice all child element strings into our string
-#if 1
+#if 0
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSButtonCell class]];
@@ -2081,7 +2091,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[cell setAttributedTitle:value];	// formatted by contents between <buton> and </button>
 	[cell setTarget:self];
 	[cell setAction:@selector(_formAction:)];
-#if 1
+#if 0
 	NSLog(@"  cell: %@", cell);
 #endif
 	return attachment;
@@ -2104,7 +2114,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	BOOL multiSelect=[self hasAttribute:@"multiple"];
 	if(!val)
 		val=@"";
-#if 1
+#if 0
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
 	if([size intValue] <= 1)
@@ -2121,7 +2131,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		attachment=nil;
 		cell=nil;
 		}
-#if 1
+#if 0
 	NSLog(@"  cell: %@", cell);
 #endif
 	return attachment;
@@ -2149,7 +2159,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *name=[self getAttribute:@"name"];
 	NSString *size=[self getAttribute:@"cols"];
 	NSString *type=[self getAttribute:@"lines"];
-#if 1
+#if 0
 	NSLog(@"<textarea>: %@", [self _attributes]);
 #endif
 	// we should create a NSTextAttachment which includes an NSTextField with scrollbar (!) that is initialized with str
@@ -2219,7 +2229,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[list release];
 		[paragraph setTextLists:lists];
 		}
-#if 1
+#if 0
 	NSLog(@"lists=%@", lists);
 #endif
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
@@ -2246,7 +2256,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[list release];
 		[paragraph setTextLists:lists];
 		}
-#if 1
+#if 0
 	NSLog(@"lists=%@", lists);
 #endif
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
@@ -2276,7 +2286,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[paragraph setTextLists:lists];
 		[lists release];
 		}
-#if 1
+#if 0
 	NSLog(@"lists=%@", lists);
 #endif
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
