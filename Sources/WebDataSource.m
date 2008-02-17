@@ -24,7 +24,7 @@
 #import "Private.h"
 #import <WebKit/WebDataSource.h>
 #import <WebKit/WebResource.h>
-#import <WebKit/WebFrameLoadDelegate.h>
+#import <WebKit/WebResourceLoadDelegate.h>
 #import "WebDocumentRepresentation.h"
 
 @implementation WebDataSource
@@ -56,7 +56,7 @@
 		{ // If an error occurs here, send a [self release] message and return nil.
 		_initial=[request copy];
 		_request=[_initial mutableCopy];
-#if 1
+#if 0
 		NSLog(@"WebDataSource load URL %@", [[_initial URL] absoluteString]);
 #endif
 		}
@@ -65,7 +65,7 @@
 
 - (void) dealloc;
 {
-#if 1
+#if 0
 	NSLog(@"dealloc %@", self);
 #endif
 	[_connection cancel];	// cancel any pending actions 
@@ -117,21 +117,21 @@
 - (WebDataSource *) _subresourceWithURL:(NSURL *) url delegate:(id <WebDocumentRepresentation>) rep;	// triggers loading if not (yet) available and optionally stalls main data source
 { // creates a subresource loader
 	WebDataSource *subsource;
-#if 1
+#if 0
 	NSLog(@"_subresourceWithURL:%@", url);
 	NSLog(@"_subresources[url]=%@", [_subresources objectForKey:url]);
 #endif
 	NSAssert(url != nil, @"trying to load nil subresource");
 	NSAssert([_subresources objectForKey:url] == nil, @"already loaded!");
 	subsource=[_subdatasources objectForKey:url];
-#if 1
+#if 0
 		NSLog(@"load subresource from %@", url);
 		NSLog(@"_subdatasources=%@", _subdatasources);
 		NSLog(@"subsource=%@", subsource);
 #endif
 	if(!subsource)
 		{ // not yet known
-#if 1
+#if 0
 		NSLog(@"start new load");
 #endif
 		subsource=[[[isa alloc] initWithRequest:[NSURLRequest requestWithURL:url]] autorelease];	// make new request
@@ -144,7 +144,7 @@
 		[_subdatasources setObject:subsource forKey:url];	// add to list of resources currently loading
 		[subsource _setWebFrame:_webFrame];	// hm... finally this will set the frameName
 		}
-#if 1
+#if 0
 		NSLog(@"started new load");
 #endif
 	return subsource;
@@ -156,7 +156,7 @@
 	[self addSubresource:[source mainResource]];	// save as WebResource
 	[source retain];	// keep us for some more time
 	[_subdatasources removeObjectForKey:[[source request] URL]];	// is no longer loading
-#if 1
+#if 0
 	NSLog(@"subresource committed (%d loaded, %d loading): %@", [_subresources count], [_subdatasources count], source);
 #endif
 	if(_finishedLoading && [_subdatasources count] == 0)
@@ -244,7 +244,7 @@
 		_connection=[NSObject new];	// dummy connection object
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
 		if(!_parent)
-			[[webView frameLoadDelegate] webView:webView didStartProvisionalLoadForFrame:_webFrame];
+			[_webFrame _didStartLoad];
 		[self connection:_connection didReceiveResponse:[(_NSURLRequestNSData *) _request response]];	// simulate callbacks from NSURLConnection
 		[self connection:_connection didReceiveData:[(_NSURLRequestNSData *) _request data]];
 		[self connectionDidFinishLoading:_connection];	// notify
@@ -254,15 +254,15 @@
 	else
 		{
 		_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
-#if 1
+#if 0
 		NSLog(@"connection = %@", _connection);
 		NSLog(@"currentMode = %@", [[NSRunLoop currentRunLoop] currentMode]);
 #endif
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
 		if(!_parent)
-			[[webView frameLoadDelegate] webView:webView didStartProvisionalLoadForFrame:_webFrame];
+			[_webFrame _didStartLoad];
 		}
-	[self release];
+	[self release];	// now it is safe to (finally) release if we are deallocated during one of the delegate methods
 }
 
 - (void) _setWebFrame:(WebFrame *) wf;
@@ -277,7 +277,7 @@
 {
 	WebView *webView=[_webFrame webView];
 	[self retain];	// one of the delegate might make us being released!
-#if 1
+#if 0
 	NSLog(@"WebDataSource error: %@", error);
 #endif
 	[_representation receivedError:error withDataSource:self];
@@ -292,7 +292,7 @@
 - (NSURLRequest *) connection:(NSURLConnection *) connection willSendRequest:(NSURLRequest *) request redirectResponse:(NSURLResponse *) redirectResponse;
 { // we received a HTTP redirect (not a HTML <meta http-equiv="Refresh" content="4;url=http://www.domain.com/link.html">)	
 	WebView *webView=[_webFrame webView];
-#if 1
+#if 0
 	NSLog(@"willSendRequest: %@", request);
 #endif
 	request=[[webView resourceLoadDelegate] webView:webView
@@ -311,7 +311,7 @@
 	long long len=[response expectedContentLength];
 	Class repclass;
 	_response=[response retain];
-#if 1
+#if 0
 	NSLog(@"response received: %@", response);
 	if([response respondsToSelector:@selector(allHeaderFields)])
 		NSLog(@"status code: %d all headers: %@", [(NSHTTPURLResponse *) response statusCode], [(NSHTTPURLResponse *) response allHeaderFields]);
@@ -328,7 +328,7 @@
 	repclass=[WebView _representationClassForMIMEType:[response MIMEType]];
 	if(repclass == Nil)
 		{ // don't know what to do now...		
-#if 1
+#if 0
 		NSLog(@"*** no repclass ***");
 		NSLog(@"repclass=%@", NSStringFromClass(repclass));
 		NSLog(@"response: %@", response);
@@ -355,6 +355,7 @@
 		_loadedData=[data mutableCopy];	// first segment
 	else
 		[_loadedData appendData:data];	// followup segment
+	[_webFrame _didReceiveData];	// notify to switch us to committed state
 	[_representation receivedData:data withDataSource:self];
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didReceiveContentLength:[data length] fromDataSource:_parent?_parent:self];
 }
@@ -363,7 +364,7 @@
 {
 	WebView *webView=[_webFrame webView];
 	[self retain];	// we might indirectly dealloc ourselves in _commitSubresource
-#if 1
+#if 0
 	NSLog(@"connectionDidFinishLoading: %p", connection);
 	NSLog(@"URL: %@", [[self request] URL]);
 #endif
@@ -371,11 +372,12 @@
 		[_representation finishedLoadingWithDataSource:self];
 	else
 		_finishedLoading=YES;	// postpone notification until all immediately loading subresources are available - note: there may be subresouces that load afterwards
-//	[_connection autorelease];
-    	NSLog(@"connection retainCount: %d", [_connection retainCount]);
+#if 0
+	NSLog(@"connection retainCount: %d", [_connection retainCount]);
+#endif
 	_connection=nil;
 	[_parent _commitSubresource:self];	// this may release us finally + the connection!
-#if 1
+#if 0
 	NSLog(@"subresources: %d loaded, %d loading: %@", [_subresources count], [_subdatasources count], self);
 #endif
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didFinishLoadingFromDataSource:_parent?_parent:self];

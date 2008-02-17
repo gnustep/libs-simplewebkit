@@ -78,7 +78,7 @@
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"WebXMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
 	[_parser _parseData:nil];	// finish parsing
@@ -86,7 +86,7 @@
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"WebXMLDocumentRepresentation receivedError: %@", error);
 #endif
 }
@@ -106,7 +106,7 @@
 		{
 		WebFrame *webFrame=[source webFrame];
 		WebView *webView=[webFrame webView];
-#if 1
+#if 0
 		NSLog(@"notify delegate for title %@: %@", title, [webView frameLoadDelegate]);
 #endif
 		[[webView frameLoadDelegate] webView:webView didReceiveTitle:title forFrame:webFrame];	// update title
@@ -218,7 +218,7 @@
 
 - (void) parserDidEndDocument:(NSXMLParser *) parser
 { // done
-#if 1
+#if 0
 	NSLog(@"WebXMLDocumentRepresentation parserDidEndDocument:%@", parser);
 #endif
 	[_parser release];

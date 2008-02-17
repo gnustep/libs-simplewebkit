@@ -290,6 +290,8 @@
 
 // Activity window
 
+// FIXME - handle close of document windows - the oulineview needs to reload data!!!
+
 - (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
 {
 #if 0

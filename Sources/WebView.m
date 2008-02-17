@@ -532,7 +532,8 @@ static NSArray *_htmlMimeTypes;
     { // is being orphaned from the current window
       [_hostWindow setContentView:self];	// make us the content view of the host view
     }
-  [super viewWillMoveToWindow: win];
+	// FIXME:
+  [super viewWillMoveToWindow: win];	// this is a FIX for GNUstep only
 }
 
 - (void) viewWillMoveToSuperview:(NSView *) view
@@ -541,7 +542,8 @@ static NSArray *_htmlMimeTypes;
     { // is being orphaned from the current superview
       [_hostWindow setContentView:self];	// make us the content view of the host view
     }
-  [super viewWillMoveToSuperview: view];
+	// FIXME:
+  [super viewWillMoveToSuperview: view];	// this is a FIX for GNUstep only
 }
 
 - (NSString *) userAgentForURL:(NSURL *) url

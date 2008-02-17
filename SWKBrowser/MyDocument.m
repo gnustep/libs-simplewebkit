@@ -245,30 +245,32 @@
 // UI delegate methods
 
 - (WebView *) webView:(WebView *)sender createWebViewWithRequest:(NSURLRequest *)request
-{
+{ // create a new window
 	id myDocument = [[NSDocumentController sharedDocumentController] openUntitledDocumentOfType:@"Hypertext Markup Language" display:YES];
-	// should we delay displaying until first response is coming in?
 	[[[myDocument webView] mainFrame] loadRequest:request];
 	return [myDocument webView];
 }
 
 - (void) webViewShow:(WebView *)sender
-{
+{ // show window
 	id myDocument = [[NSDocumentController sharedDocumentController] documentForWindow:[sender window]];
+#if 1
 	NSLog(@"webViewShow=%@", sender);
+#endif
 	[myDocument showWindows];
 }
 
 - (void) webView:(WebView *) sender setFrame:(NSRect) frame;
-{
+{ // resize window by JavaScript request
+	// [window setFrame:frame];
 }
 
 - (void) webView:(WebView *) sender setResizable:(BOOL) flag;
-{
+{ // allow user to resize window
 }
 
 - (void) webView:(WebView *) sender setStatusBarVisible:(BOOL) flag;
-{
+{ // show status bar
 	hasStatusBar=flag;
 	[self tile];
 }
@@ -333,20 +335,34 @@
 		@"The error message is: %@",
 		/* FIXME: htmlentities() if path contains & or ; */[[[frame provisionalDataSource] request] URL], error];
 	[frame loadAlternateHTMLString:message baseURL:nil forUnreachableURL:[[[frame provisionalDataSource] request] URL]];
+	[self showStatus:@"Server error."];
 }
+
+- (void) webView:(WebView *)sender didFailLoadWithError:(NSError *)error :(WebFrame *)frame
+{
+	// FIXME: here you can substitute any nicely formatted error message using embedded CSS and JavaScript
+	NSString *message=[NSString stringWithFormat:
+		@"<title>Page load failed</title>"
+		@"<h2>Error while trying to load URL %@</h2>"
+						  @"The error message is: %@",
+										/* FIXME: htmlentities() if path contains & or ; */[[[frame dataSource] request] URL], error];
+	[frame loadAlternateHTMLString:message baseURL:nil forUnreachableURL:[[[frame dataSource] request] URL]];
+	[self showStatus:@"Load error."];
+}
+
 
 - (void) webView:(WebView *)sender didStartProvisionalLoadForFrame:(WebFrame *)frame
 {
-	NSURL *url=[[[frame provisionalDataSource] request] URL];
 #if 1
 	NSLog(@"didStartProvisionalLoadForFrame:%@", frame);
 #endif
 	if(frame == [sender mainFrame])
 		{
+		NSURL *url=[[[frame provisionalDataSource] request] URL];
 		if(url)
 			{
 			[currentURL setStringValue:[url absoluteString]];
-			[self showStatus:@"Loading..."];
+			[self showStatus:[NSString stringWithFormat:@"Loading %@...", [url absoluteString]]];
 			}
 		else
 			{
@@ -363,12 +379,7 @@
 #endif
 	if(frame == [sender mainFrame])
 		{
-		NSURL *url=[[[frame provisionalDataSource] request] URL];
 		[self setFileName:title];
-		if(url)
-			[currentURL setStringValue:[url absoluteString]];
-		else
-			NSLog(@"nil URL?");
 		}
 }
 

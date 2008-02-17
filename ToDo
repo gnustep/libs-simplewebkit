@@ -74,7 +74,7 @@ EcmaScript:
 - add execution context ("this", global variables, document/event/images/anchors etc.)
 - add prototype objects Array, Number, Object, String, etc. with their methods
 - connect to the DOMHTMLTree (via -[WebView webscriptObject])
-- handle more triggers like <... onmouse="...">
+- handle more triggers like <... onmouse="..."> - this needs to define and trap cursorRects
 
 CSS:
 - add DOMCSS elements according to the DOM specs
@@ -85,7 +85,7 @@ General:
 - (DOMText *) splitText: what is the semantics?
 - innerHTML and outerHTML do not really return valid HTML (needs generating entities)
 - add getters&setters for HTMLEntities
-- history page cache not complete (should cache WebFrame and WebFrameViews and swap them as subviews within the WebView)
+- history page cache not complete (should cache WebFrame and WebFrameViews and swap them as subviews within the WebView or parent WebFrame)
 
 mySTEP's extension requests:
 - NSURLConnection needs to handle:
@@ -97,7 +97,7 @@ mySTEP's extension requests:
   - server redirection
   - handle "feed:" scheme (load the feed XML and translate into an ECMAScript/HTML result when done)
 - NSTextTable is not rendered
-- NSTextList is not rendered - NOTE: this is not rendered at all (!) just a hint attribute...
+- NSTextList is not rendered - NOTE: this is not to be rendered at all (!) just a hint attribute...
 
 GNUstep extension requests:
 - NSTextTable etc. is missing

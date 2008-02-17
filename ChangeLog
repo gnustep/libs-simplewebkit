@@ -1,4 +1,11 @@
+2008-02-16  Nikolaus Schaller <hns@computer.org>
+	* fixed issue with committing data source too late
+	* improved correctness of frameLoadDelegate calls
+	* reduced debug NSLog()
+
 2008-02-10 17:31-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+    NOTE (Nikolaus Schaller <hns@computer.org>): this appears to be a bug in GNUstep-GUI
 
 	* Sources/WebView.m: Corrected calls to viewWillMove... to include
 	calls to the super-class version of it.  Fixes issue observed by
@@ -19,7 +26,7 @@
 	* Sources/GNUmakefile: Fixed makefile issue.
 
 2008-01-17  Riccardo Mottola <riccardo@kaffe.org>
-	* Sources/WebHTMLDocumentView.m: improved HR draw code
+	* Sources/WebHTMLDocumentView.m: improved <HR> draw code
 	* Sources/DOMHTML.m: parse of shade and size attributes
 	
 2008-01-16 16:22-EST Gregory John Casamento <greg_casamento@yahoo.com>

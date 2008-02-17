@@ -133,7 +133,7 @@ static NSDictionary *tagtable;
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"WebHTMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
 	[_parser _parseData:nil];	// notify parser that no more data will arrive
@@ -141,7 +141,7 @@ static NSDictionary *tagtable;
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"WebHTMLDocumentRepresentation receivedError: %@", error);
 #endif
 }
@@ -169,7 +169,7 @@ static NSDictionary *tagtable;
 		{
 		WebFrame *webFrame=[source webFrame];
 		WebView *webView=[webFrame webView];
-#if 1
+#if 0
 		NSLog(@"notify delegate for title %@: %@", title, [webView frameLoadDelegate]);
 #endif
 		[[webView frameLoadDelegate] webView:webView didReceiveTitle:title forFrame:webFrame];	// update title
@@ -218,13 +218,13 @@ static NSDictionary *tagtable;
 					title=[title stringByAppendingString:[t data]];	// splice
 					}
 				}
-#if 1
+#if 0
 			NSLog(@"found <title> %@", title);
 #endif
 			return [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// found!
 			}
 		}
-#if 1
+#if 0
 	NSLog(@"no <title> found in %@", _head);
 #endif
 	return nil;
@@ -320,7 +320,7 @@ static NSDictionary *tagtable;
 #endif
 	if(!c)
 		{
-#if 1
+#if 0
 		NSLog(@"%@ %@: <%@> ignored - no class found", NSStringFromClass(isa), [parser _tagPath], tag);
 #endif
 		return;	// ignore
@@ -411,7 +411,7 @@ static NSDictionary *tagtable;
 
 - (void) parserDidEndDocument:(NSXMLParser *) parser
 { // done
-#if 1
+#if 0
 	NSLog(@"WebHTMLDocumentRepresentation parserDidEndDocument:%@", parser);
 #endif
 	[_parser release];
@@ -447,7 +447,7 @@ static NSDictionary *tagtable;
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"WebHTMLDocumentRepresentation receivedError: %@", error);
 #endif
 }

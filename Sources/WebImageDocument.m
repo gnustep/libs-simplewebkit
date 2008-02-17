@@ -55,7 +55,7 @@ If not, write to the Free Software Foundation,
 	WebFrame *webFrame=[source webFrame];
 	WebView *webView=[webFrame webView];
 	NSString *title;
-#if 1
+#if 0
 	NSLog(@"WebImageDocumentRepresentation finishedLoadingWithDataSource");
 #endif
 	[_image release];
@@ -63,7 +63,7 @@ If not, write to the Free Software Foundation,
 	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
 	[[source webFrame] _finishedLoading];	// notify
 	title=[self title];
-#if 1
+#if 0
 	NSLog(@"notify delegate for title: %@", title, [webView frameLoadDelegate]);
 #endif
 	[[webView frameLoadDelegate] webView:webView didReceiveTitle:title forFrame:webFrame];	// update title
@@ -123,7 +123,7 @@ If not, write to the Free Software Foundation,
 - (void) layout;
 {
 	NSImage *image=[(_WebImageDocumentRepresentation *) [_dataSource representation] getImage];
-#if 1
+#if 0
 	NSLog(@"WebImageView layout img=%@", image);
 #endif
 	[self setImage:image];

@@ -71,7 +71,7 @@ static WebHistory *_optionalSharedHistory;
 	while((item=[e nextObject]))
 		{
 		WebHistoryItem *other=[_itemsByURL objectForKey:[item URLString]];
-#if 1
+#if 0
 		NSLog(@"add item: %@", item);
 #endif
 		if(other)

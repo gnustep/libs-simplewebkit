@@ -64,7 +64,7 @@
 
 - (void) dataSourceUpdated:(WebDataSource *) source;
 {
-#if 1
+#if 0
 	NSLog(@"dataSourceUpdated: %@", source);
 #endif
 #if 0	// show view hierarchy
@@ -77,7 +77,7 @@
 { // do the layout of subviews - NOTE: this is called from within drawRect!
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
 	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or could be a <frameset>
-#if 1
+#if 0
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
@@ -91,7 +91,7 @@
 
 - (void) setNeedsLayout:(BOOL) flag;
 {
-#if 1
+#if 0
 	NSLog(@"setNeedsLayout");
 #endif
 	if(_needsLayout == flag)
@@ -113,7 +113,7 @@
 
 - (void) setLinkColor:(NSColor *) color
 {
-#if 1
+#if 0
 	NSLog(@"setLinkColor: %@", color);
 #endif
 #if defined(__mySTEP__) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
@@ -160,7 +160,7 @@
 
 - (void) drawRect:(NSRect) rect;
 {
-#if 1
+#if 0
 	NSLog(@"%@ drawRect:%@", self, NSStringFromRect(rect));
 #endif
 	if(_needsLayout)
@@ -178,7 +178,7 @@
 { // do the layout especially of subviews
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
 	DOMHTMLElement *frameset=(DOMHTMLElement *) [html lastChild];	// should be a <frameset>
-#if 1
+#if 0
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
@@ -235,7 +235,7 @@
 {
 	NSTextAttachment *attachment=[[[NSTextAttachment alloc] initWithFileWrapper:nil] autorelease];
 	[attachment setAttachmentCell:[[[class alloc] init] autorelease]];	
-#if 1
+#if 0
 	NSLog(@"attachment cell=%@", [attachment attachmentCell]);
 #endif
 	return attachment;

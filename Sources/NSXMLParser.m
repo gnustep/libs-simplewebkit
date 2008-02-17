@@ -722,7 +722,7 @@ static NSDictionary *entitiesTable;
 							NSAssert(path, @"could not locate file HTMLEntities.strings");
 							//			entitiesTable=[[NSMutableDictionary alloc] initWithContentsOfFile:path];
 							s = [NSString stringWithContentsOfFile: path];
-#if 1
+#if 0
 							NSLog(@"HTMLEntities: %@", s);
 #endif
 							d = [s propertyListFromStringsFileFormat];
@@ -791,7 +791,7 @@ static NSDictionary *entitiesTable;
 
 - (void) _stall:(BOOL) flag;
 { // stall - i.e. queue up calls to delegate method
-#if 1
+#if 0
 	NSLog(@"stall: %d", flag);
 #endif
 	if(flag != isStalled)
@@ -799,7 +799,7 @@ static NSDictionary *entitiesTable;
 		isStalled=flag;
 		if(!isStalled)
 			{
-#if 1
+#if 0
 			NSLog(@"stall cleared");
 #endif
 			[self performSelector:@selector(_parseData:) withObject:[NSData data] afterDelay:0.0];	// continue processing as soon as possible

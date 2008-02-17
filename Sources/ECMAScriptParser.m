@@ -59,7 +59,7 @@
 {
 	if(![self scanString:str intoString:NULL])
 		return NO;	// no verbatim prefix match
-#if 1
+#if 0
 	NSLog(@"token scanned: %@", str);
 #endif
 	return YES;
@@ -82,7 +82,7 @@
 			return NO;
 			}
 		}
-#if 1
+#if 0
 	NSLog(@"multi token scanned: %@", str);
 #endif
 	return YES;
@@ -100,7 +100,7 @@
 		{ // was simply backed up since last call
 		*str=cachedIdentifier;
 		[self setScanLocation:cacheEnd];	// pretend that we have really scanned
-#if 1
+#if 0
 		NSLog(@"identifier: %@", *str);
 #endif
 		return YES;
@@ -121,7 +121,7 @@
 	*str=cachedIdentifier;
 	[cachedIdentifier retain];	// store
 	cacheEnd=[self scanLocation];	// where to go forward
-#if 1
+#if 0
 	NSLog(@"identifier cached: %@", *str);
 #endif
 	return YES;
@@ -133,7 +133,7 @@
 	NSString *ident=@"";
 	if([self _scanIdentifier:&ident] && [ident isEqualToString:str])
 		{
-#if 1
+#if 0
 		NSLog(@"keyword scanned: %@", str);
 #endif
 		return YES;	// ok!
@@ -356,7 +356,7 @@
 				break;	// stop character (or EOF)
 			}
 		[sc _scanToken:@"\""];	// should have been a double quote
-#if 1
+#if 0
 		NSLog(@"parsed string \"%@\"", string);
 //		if([string isEqualToString:@"[B]"])
 //			NSLog(@"");
@@ -382,7 +382,7 @@
 			}
 		[sc _scanToken:@"'"];	// should be a single quote
 		// FIXME: if we need to allow to glue strings together, i.e. "abc"   "def", then check for a second quote and glue fragments together
-#if 1
+#if 0
 		NSLog(@"parsed string '%@'", string);
 #endif
 		r=string;
@@ -408,7 +408,7 @@
 		[sc _scanToken:@"/"];	// should have been a single quote
 		if(![sc _scanIdentifier:&flags])	// regexp flags
 			flags=@"";
-#if 1
+#if 0
 		NSLog(@"parsed regexp /%@/%@", string, flags);
 #endif
 		// r=new RegExp(string, flags)

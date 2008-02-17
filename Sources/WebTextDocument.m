@@ -86,7 +86,7 @@
 
 - (void) setNeedsLayout:(BOOL) flag;
 {
-#if 1
+#if 0
 	NSLog(@"setNeedsLayout");
 #endif
 	_needsLayout=flag;

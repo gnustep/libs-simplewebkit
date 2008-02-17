@@ -42,8 +42,6 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 				   title:(NSString *) title
  lastVisitedTimeInterval:(NSTimeInterval) time;
 {
-	NSAssert(url != nil, @"missing URL");
-//	NSAssert(title != nil, @"missing title");
 	if((self=[super init]))
 		{
 		_originalURLString=[url retain];

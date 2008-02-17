@@ -62,7 +62,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (void) dealloc;
 {
-#if 1
+#if 0
 	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
 #endif
 	[self stopLoading];	// cancel any pending actions (i.e. _provisionalDataSource)
@@ -81,14 +81,14 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (void) reload;
 {
-#if 1
+#if 0
 	NSLog(@"reload %@", self);
 	NSLog(@"_request=%@", _request);
 #endif
 	[self stopLoading];
 	_provisionalDataSource=[[WebDataSource alloc] initWithRequest:_request];
 	NSAssert(_provisionalDataSource != nil, @"can't init with request");
-#if 1
+#if 0
 	NSLog(@"loading %@", _provisionalDataSource);
 #endif
 	// this may trigger the whole loading execution chain but from the RunLoop - which may even issue a new call to -reload!
@@ -122,7 +122,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 	NSEnumerator *e=[_pageCache objectEnumerator];
 	WebFrame *cached;
 	NSAssert(req != nil, @"trying to load nil request");
-#if 1
+#if 0
 	NSLog(@"%@ loadRequest:%@", self, req);
 #endif
 	[_request autorelease];
@@ -150,7 +150,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 - (void) _loadRequestFromRedirectTimer:(NSTimer *) timer;
 {
 	NSURLRequest *request=[NSURLRequest requestWithURL:[timer userInfo]];
-#if 1
+#if 0
 	NSLog(@"do redirect");
 #endif
 	[timer invalidate];	// so that the loadRequest does not again...
@@ -162,7 +162,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 {
 	if(_reloadTimer && [_reloadTimer isValid])
 		{
-#if 1
+#if 0
 		NSLog(@"cancel redirect");
 #endif
 		[_reloadTimer invalidate];	// cancel the meta redirect timer
@@ -178,7 +178,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (void) stopLoading;
 {
-#if 1
+#if 0
 	NSLog(@"stop loading");
 #endif
 	[self _performClientRedirectToURL:nil delay:0.0];	// cancel any redirection timer
@@ -189,30 +189,40 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 }
 
 - (void) _failedWithError:(NSError *) error;
-{ // data source failed
+{ // callback from data source
 	if(_provisionalDataSource)
 		[[_webView frameLoadDelegate] webView:_webView didFailProvisionalLoadWithError:error forFrame:self];
 	else
 		[[_webView frameLoadDelegate] webView:_webView didFailLoadWithError:error forFrame:self];
 }
 
-- (void) _commitDataSource;
-{
-	[_dataSource autorelease];	// previous - if any
-	_dataSource=_provisionalDataSource;	// become new owner
-	_provisionalDataSource=nil;
+- (void) _didStartLoad;
+{ // callback from _load
+	[[_webView frameLoadDelegate] webView:_webView didStartProvisionalLoadForFrame:self];
+}
+
+- (void) _didReceiveData;
+{ // callback from data source, i.e. all the server side redirects are done
+	if(_provisionalDataSource)
+		{ // first call changes to committed state
+#if 0
+		NSLog(@"WebFrame _didReceiveData from %@, replacing %@", _provisionalDataSource, _dataSource);
+#endif
+		NSAssert(_provisionalDataSource != nil, @"_didReceiveData occurred without _provisionalDataSource");
+#if 0
+		NSLog(@"WebFrame _provisionalDataSource=%@", _provisionalDataSource);
+#endif
+		[_dataSource autorelease];	// previous - if any
+		_dataSource=_provisionalDataSource;	// become new owner
+		_provisionalDataSource=nil;
+		[[_webView frameLoadDelegate] webView:_webView didCommitLoadForFrame:self];
+		// here, we receive data and should display new data
+		}
 }
 
 - (void) _finishedLoading;
 { // callback from data source
-#if 1
-	NSLog(@"WebFrame finishedLoading from %@, replacing %@", _provisionalDataSource, _dataSource);
-#endif
-	NSAssert(_provisionalDataSource != nil, @"_finishedLoading occurred without _provisionalDataSource");
-	[self _commitDataSource];
-#if 1
-	NSLog(@"WebFrame _provisionalDataSource=%@", _provisionalDataSource);
-#endif
+	[self _didReceiveData];	// if we did receive 0 bytes...
 	[self _addToHistory];
 	[[_webView frameLoadDelegate] webView:_webView didFinishLoadForFrame:self];	// set status "Done."
 }
@@ -306,7 +316,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		// FIXME: check if [[_dataSource response] URL] exists!
 		NSURL *url=[[NSURL URLWithString:link relativeToURL:[[_dataSource response] URL]] absoluteURL];	// normalize
 		NSString *scheme=[url scheme];
-#if 1
+#if 0
 		NSLog(@"url=%@", url);
 		NSLog(@"scheme=%@", scheme);
 #endif
@@ -315,18 +325,18 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 			// FIXME: check for "javascript" scheme
 			}
 		else if([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"])
-			{ // open ourselves in (new) window
+			{ // open in (new) window
 			NSString *target=@"_self";	// default
 			NSURLRequest *request=[NSURLRequest requestWithURL:url];
 			// FIXME: get from ??? e.g. the DOMHTMLTargetAttribute string attributes at charIndex
 			// find out if we have a DOMHTMLTargetAttribute which names the window (frame) we should reload			
-#if 1
+#if 0
 			NSLog(@"jump to link %@ for target %@", link, target);
 #endif
 			if([target isEqualToString:@"_blank"])
 				{ // create a new window
 					// there should be a context menu for a link so that we can call this manually
-				WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// should create a new window - or return nil
+				WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// should create a new window loading the request - or return nil
 				if(newView)
 					{
 					[[_webView UIDelegate] webViewShow:newView];	// and show
@@ -337,7 +347,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 				newFrame=[self findFrameNamed:target];	// find by name
 			if(!newFrame)
 				newFrame=self;
-			// push current location to history
+			// an intra-page anchor should just scroll and call [[webView frameLoadDelegate] webView:webView didChangeLocationWithinPageForFrame:self];
 			[newFrame loadRequest:request];	// make page load (new) URL
 			return YES;
 			}

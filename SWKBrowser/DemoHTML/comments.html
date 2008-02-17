@@ -1,0 +1,32 @@
+<html>
+<head>
+<title>Comments</title>
+</head>
+
+<body>
+
+<!-- two dashes is what delimits a comment, so the text "->ERROR<!-" earlier on this line is actually part of a comment -->
+
+<!-- Your parser doesn't handle commenting out HTML text. --><P>
+
+<!--
+Your parser doesn't handle comments that cross a line boundary. --><P>
+
+<!-- > <P>Your parsers terminates comments on &gt; inside a comment. --><P>
+
+<!-- -- -- Your parser doesn't handle a second pair of dashes to start cooments. --><P>
+
+<!--  -- --> Your parser terminates on dash-dash-&gt; whether it terminates the comment or not --><P>
+
+<!-->Your parser thinks the first pair of -'s can terminate a comment.<!-->
+
+<p>If your parser is working correctly, This sentence is the first one
+that that appears in this section.</p>
+
+<P>Your parser does <!-- -- > NOT --> ignore whitespace between the -- and &gt; as it should.</P>
+<P>Your parser does <!-- --
+> NOT --> ignore newline between the -- and &gt; as it should.</P>
+
+</body>
+
+</html>
