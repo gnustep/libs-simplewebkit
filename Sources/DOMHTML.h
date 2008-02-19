@@ -37,9 +37,9 @@
 
 typedef enum 
 {
-	DOMHTMLNoNesting,			// character-like tags e.g. <img>, <hr>, <br>, <img>
-	DOMHTMLStandardNesting,		// standard e.g. <b>, <ul>, <span>
-	DOMHTMLLazyNesting,			// old HTML compatibility mode: a<p>b<p>c or <ul><li>a<li>b</ul> as a<p>b</p><p>c</p> or <ul><li>a</li><li>b</li></ul>
+	DOMHTMLNoNesting,			// Required/Illegal - character-like tags e.g. <img>, <hr>, <br>, <img>
+	DOMHTMLStandardNesting,		// Required/Required - standard e.g. <b>, <ul>, <span>
+	DOMHTMLLazyNesting,			// Required/Optional - old HTML compatibility mode: a<p>b<p>c or <ul><li>a<li>b</ul> as a<p>b</p><p>c</p> or <ul><li>a</li><li>b</li></ul>
 	DOMHTMLSingletonNesting,	// merge all into single node (e.g. <body>)
 	DOMHTMLIgnore				// ignore node
 } DOMHTMLNestingStyle;

@@ -426,6 +426,7 @@
 		[historyTable reloadData];
 		[backForwardTable reloadData];
 		[self showStatus:@"Main Frame Done."];
+		currentItem=nil;
 		[domNodes release];
 		domNodes=nil;
 		[domTree reloadData];

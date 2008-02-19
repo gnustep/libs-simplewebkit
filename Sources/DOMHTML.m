@@ -1749,10 +1749,10 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	while([n isKindOfClass:[DOMHTMLElement class]])
 		{
 		if([[n nodeName] isEqualToString:@"TABLE"])
-			return (DOMHTMLElement *) n;
+			return (DOMHTMLElement *) n;	// we have found the table node
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tbody" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy table
 }
 
 @end
@@ -1781,7 +1781,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 			}
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tr" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
 }
 
 - (void) _addAttributesToStyle;
@@ -1848,6 +1848,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 @end
 
 @implementation DOMHTMLTableCellElement
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
@@ -2113,6 +2115,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[cell setTitle:val];
 		[cell setTarget:[_style objectForKey:@"<form>"]];
 		[cell setAction:@selector(submit:)];
+		// process children to get the option items
+		// we could remove to return _string nil
+		// and add [_style setObject:self forKey:@"<select>"]
+		// and add [_style setObject:[cell menu] forKey:@"<select-menu>"]
+		// and use that to add items when processed by OptGroup and OptionElement
+		// this would allow to create submenus (if OptGroup overwrites select-menu)
 		}
 	else
 		{ // embed NSTableView with [size intValue] visible lines
@@ -2125,11 +2133,15 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	return attachment;
 }
 
+- (NSString *) _string; { return nil; }	// don't process content
+
 @end
 
 // FIXME:
 
 @implementation DOMHTMLOptionElement
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
 @end
 

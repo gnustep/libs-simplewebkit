@@ -74,18 +74,25 @@
 
 - (NSString *) description;
 {
+	NSAutoreleasePool *arp=[NSAutoreleasePool new];
 	NSString *str=[NSString stringWithFormat:@"%@:\n", _nodeName];
 	int i;
 	for(i=0; i<[_childNodes length]; i++)
 		{
-		NSEnumerator *e=[[[[_childNodes item:i] description] componentsSeparatedByString:@"\n"] objectEnumerator];
+		NSString *c=[[_childNodes item:i] description];
+		NSEnumerator *e=[[c componentsSeparatedByString:@"\n"] objectEnumerator];
 		NSString *d;
 		while((d=[e nextObject]))		// append line by line and indent each one by @"  "
 			{
 			if([d length] > 0)
 				str=[str stringByAppendingFormat:@"  %@\n", d];
 			}
+		if([str length] > 5000)
+			break;	// ignore further children
 		}
+	[str retain];
+	[arp release];
+	[str autorelease];	// move one ARP level up
 	return str;
 }
 
