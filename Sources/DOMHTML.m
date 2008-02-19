@@ -389,9 +389,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		{ // add styled string (if available)
 		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];
 		}
-	for(i=0; i<[_childNodes length]; i++)
-		{ // add children nodes (if available)
-		[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];
+	if(string)
+		{ // must be @""
+		for(i=0; i<[_childNodes length]; i++)
+			{ // add children nodes (if available)
+			[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];
+			}
 		}
 	if(!isInline)
 		{ // close our block
@@ -1920,7 +1923,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[_style setObject:self forKey:@"<form>"];	// make available to attributed string
 }
 
-- (void) submit;
+- (void) submit:(id) sender;
 { // post current request
 	NSMutableURLRequest *request;
 	DOMHTMLDocument *htmlDocument;
@@ -1929,7 +1932,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSString *target;
 	NSMutableData *body=nil;
 	[self _triggerEvent:@"onsubmit"];
-	// can the script abort sending?
+	// can the trigger abort sending?
 	htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];	// may have been changed by script
 	action=[self getAttribute:@"action"];
 	method=[self getAttribute:@"method"];
@@ -1976,16 +1979,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	// recursively go down
 }
 
-- (IBAction) _formAction:(id) sender;
-{
-	// find the enclosing <form>
-	// if it is a radio button, update the state of the others with the same name
-	// for doing that we must be able to attach the visual rep to a node
-	// and recursively go down
-	// collect all values
-	// POST
-}
-
 - (NSTextAttachment *) _attachment;
 {
 	NSTextAttachment *attachment;
@@ -2017,8 +2010,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	else
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
-	[(NSTextFieldCell *) cell setTarget:self];
-	[(NSTextFieldCell *) cell setAction:@selector(_formAction:)];
+	[cell setTarget:[_style objectForKey:@"<form>"]];
+	[(NSTextFieldCell *) cell setAction:@selector(submit:)];
 	[cell setEditable:![self hasAttribute:@"disabled"] && ![self hasAttribute:@"readonly"]];
 	if([cell isKindOfClass:[NSTextFieldCell class]])
 		{ // set text field, placeholder etc.
@@ -2065,13 +2058,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLButtonElement
 
-- (IBAction) _formAction:(id) sender;
-{
-	// find the enclosing <form>
-	// collect all values
-	// POST
-}
-
 - (NSTextAttachment *) _attachment;
 { // 
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
@@ -2080,8 +2066,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 	NSString *size=[self getAttribute:@"size"];
-	// ?? NSString *val=[self getAttribute:@"value"];
-	[self _spliceTo:value];	// recursively splice all child element strings into our string
+	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
 #if 0
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
@@ -2089,13 +2074,15 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	cell=(NSButtonCell *) [attachment attachmentCell];	// get the real cell
 	[cell setBezelStyle:0];	// select a grey square button bezel by default
 	[cell setAttributedTitle:value];	// formatted by contents between <buton> and </button>
-	[cell setTarget:self];
-	[cell setAction:@selector(_formAction:)];
+	[cell setTarget:[_style objectForKey:@"<form>"]];
+	[cell setAction:@selector(submit:)];
 #if 0
 	NSLog(@"  cell: %@", cell);
 #endif
 	return attachment;
 }
+
+- (NSString *) _string; { return nil; }	// don't process content
 
 @end
 
@@ -2106,7 +2093,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 - (NSTextAttachment *) _attachment
 { // 
 	NSTextAttachment *attachment;
-	NSCell *cell;
+	NSPopUpButtonCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 	NSString *val=[self getAttribute:@"value"];
@@ -2120,11 +2107,12 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	if([size intValue] <= 1)
 		{ // dropdown
 		  // how to handle multiSelect flag?
+		// we may have to use a private subclass that has our own selectItem which does not disable the previous
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
-		cell=(NSCell *) [attachment attachmentCell];	// get the real cell
+		cell=(NSPopUpButtonCell *) [attachment attachmentCell];	// get the real cell
 		[cell setTitle:val];
-		[cell setTarget:self];
-		[cell setAction:@selector(_formAction:)];
+		[cell setTarget:[_style objectForKey:@"<form>"]];
+		[cell setAction:@selector(submit:)];
 		}
 	else
 		{ // embed NSTableView with [size intValue] visible lines
@@ -2139,6 +2127,8 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @end
 
+// FIXME:
+
 @implementation DOMHTMLOptionElement
 
 @end
@@ -2151,21 +2141,36 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @end
 
+// FIXME:
+
 @implementation DOMHTMLTextAreaElement
 
 - (NSTextAttachment *) _attachment;
-{ // 
-	NSAttributedString *value=[self attributedString];	// get content between <textarea> and </textarea>
+{ // <textarea cols=xxx lines=yyy>value</textarea> 
+	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
+	NSTextAttachment *attachment;
+	NSTextFieldCell *cell;
+	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
-	NSString *size=[self getAttribute:@"cols"];
-	NSString *type=[self getAttribute:@"lines"];
+	NSString *cols=[self getAttribute:@"cols"];
+	NSString *lines=[self getAttribute:@"lines"];
+	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
 #if 0
-	NSLog(@"<textarea>: %@", [self _attributes]);
+	NSLog(@"<button>: %@", [self _attributes]);
 #endif
-	// we should create a NSTextAttachment which includes an NSTextField with scrollbar (!) that is initialized with str
-	//	return [NSMutableAttributedString attributedStringWithAttachment:];
-	return nil;
+	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
+	cell=(NSTextFieldCell *) [attachment attachmentCell];	// get the real cell
+//	[cell setBezelStyle:0];	// select a grey square button bezel by default
+	[cell setAttributedStringValue:value];	// formatted by contents between <textarea> and </textarea>
+	[cell setTarget:[_style objectForKey:@"<form>"]];
+	[cell setAction:@selector(submit:)];
+#if 0
+	NSLog(@"  cell: %@", cell);
+#endif
+	return attachment;
 }
+
+- (NSString *) _string; { return nil; }	// don't process content
 
 @end
 

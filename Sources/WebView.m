@@ -486,11 +486,19 @@ static NSArray *_htmlMimeTypes;
 	// should be created only once
 	WebScriptObject *o;
 	/*
-	should be the 'window' object - or is this the "global" object???
+	should this be the 'window' object - or is this the "global" object???
 	but also handle
 	[[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
+	 
+	 http://developer.apple.com/documentation/Cocoa/Conceptual/DisplayWebContent/Tasks/JavaScriptFromObjC.html
+	 
+	 inidcates it is the 'window' object because one can write 
+	 
+	 [[webView windowScriptObject] evaluateWebScript:@"location.href"];
+	 
 	*/
-	// FIXME: there is also a webView:windowScriptObjectAvailable: frameload delegate method
+	// FIXME: there is also a webView:windowScriptObjectAvailable: frameload delegate method!
+	
 	// probably called when the mainFrame has its DOMDocument initialized
 	o=[[_WindowScriptObject new] autorelease];
 	[o setValue:[_mainFrame DOMDocument] forKey:@"document"];
@@ -531,6 +539,7 @@ static NSArray *_htmlMimeTypes;
   if(!win && _hostWindow)
     { // is being orphaned from the current window
       [_hostWindow setContentView:self];	// make us the content view of the host view
+	  // notify the WebDocumentView(s)
     }
 	// FIXME:
   [super viewWillMoveToWindow: win];	// this is a FIX for GNUstep only
@@ -541,6 +550,7 @@ static NSArray *_htmlMimeTypes;
   if(!view && _hostWindow)
     { // is being orphaned from the current superview
       [_hostWindow setContentView:self];	// make us the content view of the host view
+											// notify the WebDocumentView(s)
     }
 	// FIXME:
   [super viewWillMoveToSuperview: view];	// this is a FIX for GNUstep only

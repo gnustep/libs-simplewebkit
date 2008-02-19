@@ -243,8 +243,6 @@
 		{ // handle special mySTEP case when loading from NSData
 		_connection=[NSObject new];	// dummy connection object
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
-		if(!_parent)
-			[_webFrame _didStartLoad];
 		[self connection:_connection didReceiveResponse:[(_NSURLRequestNSData *) _request response]];	// simulate callbacks from NSURLConnection
 		[self connection:_connection didReceiveData:[(_NSURLRequestNSData *) _request data]];
 		[self connectionDidFinishLoading:_connection];	// notify
@@ -254,13 +252,11 @@
 	else
 		{
 		_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
+		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
 #if 0
 		NSLog(@"connection = %@", _connection);
 		NSLog(@"currentMode = %@", [[NSRunLoop currentRunLoop] currentMode]);
 #endif
-		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
-		if(!_parent)
-			[_webFrame _didStartLoad];
 		}
 	[self release];	// now it is safe to (finally) release if we are deallocated during one of the delegate methods
 }
@@ -268,6 +264,8 @@
 - (void) _setWebFrame:(WebFrame *) wf;
 { // this triggers loading but from the RunLoop
 	_webFrame=wf;
+	if(!_parent)
+		[_webFrame _didStartLoad];
 	[self _load];
 }
 
@@ -290,7 +288,7 @@
 }
 
 - (NSURLRequest *) connection:(NSURLConnection *) connection willSendRequest:(NSURLRequest *) request redirectResponse:(NSURLResponse *) redirectResponse;
-{ // we received a HTTP redirect (not a HTML <meta http-equiv="Refresh" content="4;url=http://www.domain.com/link.html">)	
+{ // we received a HTTP redirect (NOTE: not a HTML <meta http-equiv="Refresh" content="4;url=http://www.domain.com/link.html">)	
 	WebView *webView=[_webFrame webView];
 #if 0
 	NSLog(@"willSendRequest: %@", request);
