@@ -33,6 +33,8 @@ If not, write to the Free Software Foundation,
 
 #import "Private.h"
 
+#import <math.h>
+
 @implementation WebScriptObject (_WebScriptObjectAccess)
 
 // default implementations for all WebScriptObjects

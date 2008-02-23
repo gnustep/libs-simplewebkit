@@ -2018,7 +2018,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	if([cell isKindOfClass:[NSTextFieldCell class]])
 		{ // set text field, placeholder etc.
 		[(NSTextFieldCell *) cell setBezeled:YES];
-		[(NSTextFieldCell *) cell setStringValue:val?val:@""];
+		[(NSTextFieldCell *) cell setStringValue: (val != nil) ? val : (NSString *)@""];
 		// how to handle the size attribute?
 		// an NSCell has no inherent size
 		// should we pad the placeholder string?
@@ -2030,9 +2030,9 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 		[(NSButtonCell *) cell setButtonType:NSMomentaryLightButton];
 		[(NSButtonCell *) cell setBezelStyle:NSRoundedBezelStyle];
 		if([type isEqualToString:@"submit"])
-			[(NSButtonCell *) cell setTitle:val?val:@"Submit"];
+			[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];
 		else if([type isEqualToString:@"reset"])
-			[(NSButtonCell *) cell setTitle:val?val:@"Cancel"];
+			[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Cancel"];
 		else if([type isEqualToString:@"checkbox"])
 			{
 			[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
@@ -2047,7 +2047,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 			_visualRepresentation=(NSObject <WebDocumentView> *) cell;
 			}
 		else
-			[(NSButtonCell *) cell setTitle:val?val:@"Button"];
+			[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
 		}
 #if 0
 	NSLog(@"  cell: %@", cell);
@@ -2258,26 +2258,37 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 @implementation DOMHTMLOListElement		// <ol>
 
 - (void) _addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self getAttribute:@"align"];
-	NSArray *lists=[paragraph textLists];	// get (nested) list
-	NSTextList *list;
-	// FIXME: decode HTML list formats and options and translate
-	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{decimal}." options:NSTextListPrependEnclosingMarker];
-	if(list)
-		{
-		if(!lists) lists=[NSMutableArray new];	// start new one
-		else lists=[lists mutableCopy];			// make mutable
-		[(NSMutableArray *) lists addObject:list];
-		[list release];
-		[paragraph setTextLists:lists];
-		}
+{ 
+  NSMutableParagraphStyle *paragraph=
+    [[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+  NSString *align=[self getAttribute:@"align"];
+  NSArray *lists=[paragraph textLists];	// get (nested) list
+  NSTextList *list;
+  // add attributes to style
+
+  // FIXME: decode HTML list formats and options and translate
+  list=[[NSClassFromString(@"NSTextList") alloc] 
+         initWithMarkerFormat: @"{decimal}." 
+         options: NSTextListPrependEnclosingMarker];
+
+  if(list)
+    {
+      if(!lists) 
+        lists=[NSMutableArray new];	// start new one
+      else 
+        lists=[lists mutableCopy];	// make mutable
+
+      [(NSMutableArray *) lists addObject:list];
+      [list release];
+      [paragraph setTextLists:lists];
+    }
 #if 0
-	NSLog(@"lists=%@", lists);
+  NSLog(@"lists=%@", lists);
 #endif
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+  [_style setObject: @"block" 
+          forKey:DOMHTMLBlockInlineLevel];
+  [_style setObject: [paragraph autorelease] 
+          forKey: NSParagraphStyleAttributeName];
 }
 
 @end
@@ -2286,28 +2297,28 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSArray *lists=[paragraph textLists];	// get (nested) list
-	NSTextList *list;
-
-		// FIXME: decode list formats and options
-		// e.g. change the marker style depending on nesting level disc -> circle -> hyphen
-		
-	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
-	if(list)
-		{
-		if(!lists) lists=[NSMutableArray new];	// start new one
-		else lists=[lists mutableCopy];			// make mutable
-		[(NSMutableArray *) lists addObject:list];
-		[list release];
-		[paragraph setTextLists:lists];
-		[lists release];
-		}
+  NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+  NSArray *lists=[paragraph textLists];	// get (nested) list
+  NSTextList *list;
+  
+  // FIXME: decode list formats and options
+  // e.g. change the marker style depending on nesting level disc -> circle -> hyphen
+  
+  list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
+  if(list)
+    {
+      if(!lists) lists=[NSMutableArray new];	// start new one
+      else lists=[lists mutableCopy];			// make mutable
+      [(NSMutableArray *) lists addObject:list];
+      [list release];
+      [paragraph setTextLists:lists];
+      [lists release];
+    }
 #if 0
-	NSLog(@"lists=%@", lists);
+  NSLog(@"lists=%@", lists);
 #endif
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+  [_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+  [_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
 }
 
 @end

@@ -1,4 +1,8 @@
+include $(GNUSTEP_MAKEFILES)/common.make
+
+PACKAGE_NAME=SimpleWebKit
 FRAMEWORK_NAME=SimpleWebKit
+SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
 
 SimpleWebKit_HEADER_FILES = \
 DOM.h \
@@ -40,8 +44,6 @@ WebUndefined.h \
 WebView.h \
 WebXMLDocument.h 
 
-SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
-
 SimpleWebKit_OBJC_FILES = \
 DOMCore.m \
 DOMCSS.m \
@@ -77,11 +79,9 @@ SimpleWebKit_RESOURCE_FILES = \
 	DOMHTML.plist
 
 -include Makefile.preamble
-
 -include GNUmakefile.local
 
-include $(GNUSTEP_MAKEFILES)/common.make
+include $(GNUSTEP_MAKEFILES)/aggregate.make
 include $(GNUSTEP_MAKEFILES)/framework.make
-# include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include Makefile.postamble

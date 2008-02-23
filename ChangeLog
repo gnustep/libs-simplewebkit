@@ -1,3 +1,11 @@
+2008-02-23 18:26-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* GNUmakefile: Correct makefile issue
+	* Sources/DOMCore.m: Corrected some compilation warnings.
+	* Sources/DOMHTML.m: Minor cleanup.
+	* Sources/ECMAScriptEvaluator.m: Corrected some compilation warnings.
+	* Sources/GNUmakefile: Correct makefile issue.
+
 2008-02-16  Nikolaus Schaller <hns@computer.org>
 	* fixed issue with committing data source too late
 	* improved correctness of frameLoadDelegate calls
@@ -6,7 +14,7 @@
 2008-02-10 17:31-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
     NOTE (Nikolaus Schaller <hns@computer.org>): this appears to be a bug in GNUstep-GUI
-
+    NOTE: It has been corrected there, I believe.  (GJC)
 	* Sources/WebView.m: Corrected calls to viewWillMove... to include
 	calls to the super-class version of it.  Fixes issue observed by
 	myself and Riccardo.  Document Window for both SWKBrowser and Vespucci
