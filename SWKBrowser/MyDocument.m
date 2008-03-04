@@ -454,8 +454,10 @@
 		NSEnumerator *e;
 		destinations=[[NSMutableArray alloc] init];
 		[destinations addObject:@"-- rendering tests --"];
-		[destinations addObject:@"http://www.webstandards.org/files/acid2/test.html"];
 		[destinations addObject:@"http://www.mired.org/home/mwm/bugs.html"];
+		[destinations addObject:@"http://dillo.rti-zone.org/Html.testsuite/"];
+		[destinations addObject:@"http://www.webstandards.org/files/acid2/test.html"];
+		[destinations addObject:@"http://acid3.acidtests.org/"];
 		[destinations addObject:@"-- JavaScript speed --"];
 		[destinations addObject:@"http://celtickane.com/webdesign/jsspeed2007.php"];
 		[destinations addObject:@"http://pentestmonkey.net/jsbm/index.html"];
