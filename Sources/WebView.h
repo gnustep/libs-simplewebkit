@@ -76,6 +76,7 @@ extern NSString *WebViewProgressStartedNotification;
 	NSString *_mediaStyle;
 	NSString *_preferencesIdentifier;
 	DOMCSSStyleDeclaration *_typingStyle;
+	WebScriptObject *_global;
 	id _downloadDelegate;
 	id _editingDelegate;
 	id /*<WebFrameLoadDelegate>*/ _frameLoadDelegate;

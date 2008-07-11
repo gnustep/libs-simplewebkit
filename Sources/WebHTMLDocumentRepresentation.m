@@ -43,11 +43,11 @@
 #include "NSXMLParser.h"	// directly include header here - note that the class is renamed!
 #include "NSXMLParser.m"	// directly include source here - note that the class is renamed!
 
+#endif
+
 @interface NSXMLParser (Private)
 - (void) _parseData:(NSData *) data;
 @end
-
-#endif
 
 @implementation _WebHTMLDocumentRepresentation
 

@@ -223,11 +223,20 @@
 
 - (IBAction) script:(id) sender
 { // evaluate java script
-	NSString *r=[webView stringByEvaluatingJavaScriptFromString:[sender stringValue]];
+	NSString *cmd=[sender stringValue];
+	NSString *r;
+	[[result textStorage] appendAttributedString:[[[NSAttributedString alloc] initWithString:cmd] autorelease]];
+	[[result textStorage] appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n"] autorelease]];
+	[result scrollRangeToVisible:NSMakeRange([[result textStorage] length], 0)];
+	[sender setStringValue:@""];	// clear
+//	r=[[webView stringByEvaluatingJavaScriptFromString:cmd] description];	<- this one returns NSString only (or substitutes @"")
+	r=[[webView windowScriptObject] evaluateWebScript:cmd];
 	if(!r)
 		r=@"<nil>";
-	[result setStringValue:r];
-	[sender setStringValue:@""];	// clear
+	[[result textStorage] appendAttributedString:[[[NSAttributedString alloc] initWithString:@"-> "] autorelease]];
+	[[result textStorage] appendAttributedString:[[[NSAttributedString alloc] initWithString:[r description]] autorelease]];
+	[[result textStorage] appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n"] autorelease]];
+	[result scrollRangeToVisible:NSMakeRange([[result textStorage] length], 0)];
 	[[sender window] makeFirstResponder:sender];	// stay first responder
 }
 
@@ -415,6 +424,8 @@
 	NSLog(@"windowScriptObject document=%@", [[sender windowScriptObject] valueForKeyPath:@"document"]);
 	NSLog(@"windowScriptObject document.documentElement=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement"]);
 	NSLog(@"windowScriptObject document.documentElement.offsetWidth=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"]);
+	NSLog(@"windowScriptObject frames=%@", [[sender windowScriptObject] evaluateWebScript:@"frames"]);
+	NSLog(@"windowScriptObject frames[0]=%@", [[sender windowScriptObject] evaluateWebScript:@"frames[0]"]);
 #endif
 	// and... print subviews hierarchy
 #endif
@@ -464,6 +475,7 @@
 		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
 		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];
 		[destinations addObject:@"http://maps.google.com/maps?z=16&ll=48.137583,11.57444&spn=0.009465,0.029998&t=k&om=1"];
+		[destinations addObject:@"javascript:alert(\"hello world.\")"];	// special URL
 		[destinations addObject:@"-- important public pages --"];
 		[destinations addObject:@"http://www.quantum-step.com"];
 		[destinations addObject:@"http://www.gnustep.org"];

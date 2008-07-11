@@ -28,9 +28,13 @@
 
 @class WebArchive;
 @class WebFrame;
+@class DOMCSSRuleList;
+
+// DOM Document Additions
 
 @interface RENAME(DOMDocument) (WebDOMOperations)
 // FIXME: that is strange from the Doc - DOMHTMLElements don't inherit from DOMDocument but Doc says it is used in DOMHTMLAnchorElement
+- (DOMCSSRuleList *) getMatchedCSSRules:(DOMElement *) elt :(NSString *) pseudoElt;
 - (NSURL *) URLWithAttributeString:(NSString *) string;
 - (WebFrame *) webFrame;
 @end

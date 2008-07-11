@@ -41,23 +41,20 @@
 		_scrollView=[[[NSScrollView alloc] initWithFrame:[self bounds]] autorelease];
 		[_scrollView setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize
 		[_scrollView setBorderType:NSNoBorder];
+		[_scrollView setHasHorizontalScroller:YES];
+		[_scrollView setHasVerticalScroller:YES];
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+		[_scrollView setAutohidesScrollers:YES];	// default
+#endif
 		[self addSubview:_scrollView];
-//		[self setNeedsDisplay:YES];
 		}
 	return self;
 }
 
 - (void) _setDocumentView:(NSView *) view;
 {
-	[view setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize if we can
+	// FIXME: due to some strange settings, this toggles visibility of the horizontal scroller
 	[_scrollView setDocumentView:view];
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
-	[_scrollView setAutohidesScrollers:YES];	// default
-#endif
-	[_scrollView setHasHorizontalScroller:YES];
-	[_scrollView setHasVerticalScroller:YES];
-	//	[_scrollView tile];
-//	[_scrollView reflectScrolledClipView:[_scrollView contentView]];
 }
 
 - (void) _setWebFrame:(WebFrame *) wframe;

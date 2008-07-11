@@ -212,6 +212,8 @@
 
 @end
 
+#if MAC_OS_X_VERSION_10_5 > MAC_OS_X_VERSION_MAX_ALLOWED
+
 @interface NSCharacterSet (NewlineExtension)
 + (NSCharacterSet *) newlineCharacterSet;
 @end
@@ -222,11 +224,12 @@
 {
 	static NSCharacterSet *newline;
 	if(!newline)
-		newline=[[NSCharacterSet characterSetWithCharactersInString:@"\n\r"] retain];
+		newline=[[NSCharacterSet characterSetWithCharactersInString:@"\n\r"] retain];	// FIXME: should include U+0085
 	return newline;
 }
 
 @end
+#endif
 
 @implementation _WebScriptTreeNode
 

@@ -35,21 +35,17 @@ NSString *WebScriptException=@"WebScriptException";
 
 @implementation WebScriptObject
 
-// CHECKME: are we the "global" object or its runtime extension?
-
-+ (void) initialize;
+- (id) init;
 {
+	if((self=[super init]))
+		{
 	/* predefine global variables so that they return a prototype object
 		Array, Boolean, Date, Function, Math, Number, Object, RegExp, String
 	with predefined WebScriptBuiltinFunction for methods like length, size etc.
 	
-		Browser predefines variables through the context like
-	navigator
-	document
-	event
-	window
-	
 	*/
+		}
+	return self;
 }
 
 + (BOOL) throwException:(NSString *) message;
@@ -64,49 +60,36 @@ NSString *WebScriptException=@"WebScriptException";
 }
 
 - (id) evaluateWebScript:(NSString *) script;
-{ // evaluate for given node - is this also the eval("") method?
+{ // evaluate for given node as the global object - is this also the eval("") method?
 	// couldn't we use [self callWebScriptMethod:@"eval" withArguments:[NSArray arrayWithObject:script]];
 	id r=nil;
 	// if(disabled by WebPrefs) return nil;
 	NS_DURING
 		{
+			WebScriptContext context;
 			NSScanner *sc=[NSScanner scannerWithString:script];
 			r=[_WebScriptTreeNode _programWithScanner:sc block:NO];
-			//				NSLog(@"script=%@", r);
-			// how do we pass all the environment context (windows, event, etc.)?
-			// well, if we are a DOMElement we should know our DOMDocument and that should know everything
-			// but sample code from the WWW shows that this method runs with "self" as the "this" object, i.e.
-			// they use [[webView windowScriptObject] evaluateWebScript:@"xxx"]
-			// and [[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
-#if 0	// disabled for tests if the parser is working well
-			r=[r _evaluate];	// evaluate
+			// NSLog(@"script=%@", r);
+#if 1	// can be disabled to test if the parser is working well
+			context.global=self;
+			context.this=self;
+			context.nextContext=NULL;	// start of chain
+			r=[r _evaluate:&context];	// evaluate with self as global/this object
 			r=[r _getValue];	// dereference if needed
-			r=[r _toString];	// always convert to NSString (?)
 #endif
 		}
 	NS_HANDLER
 		r=[NSString stringWithFormat:@"<WebScript Exception: %@>", [localException reason]];
 #if 1
-		NSRunCriticalAlertPanel(@"WebScript",@"%@",@"Continue",nil,nil,r);	// show a popup
+		NSRunCriticalAlertPanel(@"WebScript", @"%@", @"Continue", nil, nil, r);	// show a popup
 #endif
 	NS_ENDHANDLER
 	return r;
 }
 
-- (void) removeWebScriptKey:(NSString *) key;
-{
-	NIMP;	// not for generic object
-}
-
 - (void) setException:(NSString *) message;
 {
 	[[NSException exceptionWithName:WebScriptException reason:message userInfo:[NSDictionary dictionaryWithObject:self forKey:@"this"]] raise];
-}
-
-- (void) setWebScriptValueAtIndex:(unsigned int) index value:(id) val;
-{
-	NIMP;	// not for generic object
-	_PUT(self, @"key from index", val);
 }
 
 - (NSString *) stringRepresentation;
@@ -115,10 +98,21 @@ NSString *WebScriptException=@"WebScriptException";
 	return [self description];
 }
 
+- (void) setWebScriptValueAtIndex:(unsigned int) index value:(id) val;
+{
+	NIMP;	// not for generic object
+	_PUT(self, ([NSString stringWithFormat:@"%u", index]), val);
+}
+
 - (id) webScriptValueAtIndex:(unsigned int) index;
 {
 	return NIMP;	// not for generic object
-	return _GET(self, @"key from index");
+	return _GET(self, ([NSString stringWithFormat:@"%u", index]));
+}
+
+- (void) removeWebScriptKey:(NSString *) key;
+{
+	NIMP;	// not for generic object
 }
 
 - (void) setValue:(id) value forKey:(NSString *) key;
@@ -127,7 +121,7 @@ NSString *WebScriptException=@"WebScriptException";
 }
 
 - (id) valueForKey:(NSString *) key;
-{ // KVG getter
+{ // KVC getter
 	return NIMP;
 }
 

@@ -19,7 +19,7 @@
 	IBOutlet NSButton *forwardButton;	
 	// JavaScript window
 	IBOutlet NSTextField *command;
-	IBOutlet NSTextField *result;
+	IBOutlet NSTextView *result;
 	// document source
 	IBOutlet NSTextView *docSource;
 	// DOM Tree

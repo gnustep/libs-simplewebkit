@@ -163,11 +163,14 @@
 				[m setTitle:title];
 				[m setAction:@selector(loadPageFromHistoryItem:)];
 				}
-			else	// add a new one
-				m=[menu insertItemWithTitle:title action:@selector(loadPageFromHistoryItem:) keyEquivalent:@"" atIndex:idx], end=++idx;	// target=nil, i.e. first responder
+			else
+				{ // add a new one
+				m=[menu insertItemWithTitle:title action:@selector(loadPageFromHistoryItem:) keyEquivalent:@"" atIndex:idx];
+				end=++idx;	// target=nil, i.e. first responder
+				}
 			[m setRepresentedObject:item];
 			}
-		// may handle group-by-day by creating submenus
+		// may/should handle group-by-day by creating submenus
 		}
 	while(idx < end)
 		[menu removeItemAtIndex:idx], end--;	// if new list is shorter

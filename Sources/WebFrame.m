@@ -320,11 +320,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		NSLog(@"url=%@", url);
 		NSLog(@"scheme=%@", scheme);
 #endif
-		if([scheme isEqualToString:@"javascript"])
-			{
-			// FIXME: check for "javascript" scheme
-			}
-		else if([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"])
+		if([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"])
 			{ // open in (new) window
 			NSString *target=@"_self";	// default
 			NSURLRequest *request=[NSURLRequest requestWithURL:url];

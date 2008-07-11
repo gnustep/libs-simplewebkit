@@ -33,8 +33,6 @@ If not, write to the Free Software Foundation,
 
 #import "Private.h"
 
-#import <math.h>
-
 @implementation WebScriptObject (_WebScriptObjectAccess)
 
 // default implementations for all WebScriptObjects
@@ -185,7 +183,8 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 - (id) _getValue;
 { // 8.7.1
 	if([left isKindOfClass:[NSNull class]])
-		[self setException:@"ReferenceError"];	// 3. - is not an lvalue
+//		[self setException:@"ReferenceError"];	// 3. - is not an lvalue
+		return [WebUndefined undefined];
 	return _GET(left, right);
 }
 
@@ -201,67 +200,43 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 
 @implementation NSObject (_WebScriptEvaluation)
 
-- (id) _evaluate;	{ return self; }	// primitives evaluate to themselves; statements evaluate to array triples
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
+{ return self; }	// primitives evaluate to themselves; statements evaluate to array triples
 
 @end
 
-typedef struct _WebScriptScope
-{
-	WebScriptObject *object;
-	struct _WebScriptScope *next;
-} _WebScriptScope;
-
 @implementation _WebScriptTreeNode (_WebScriptEvaluation)
 
-// FIXME: do we need this?
-
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 {
 	// SUBCLASS
 	return NIMP;	// nodes can't be evaluated unless they overwrite this method
-}
-
-- (id) _evaluateWithScope:(_WebScriptScope *) scope activation:(WebScriptObject *) activationObject this:(WebScriptObject *) this;
-{
-	// establish the scope chain
-	return nil;
-}
-
-// FIXME: do we need this?
-
-- (id) evaluateWithGlobalObjects:(NSDictionary *) objects;
-{ // evaluate in given context
-	WebScriptObject *globalObject;
-	_WebScriptScope outerScope={ globalObject, nil };
-	// create the global object
-	// populate with Array, Date, Math, String etc.
-	// populate with external objects (e.g. windows)
-	// create activation object
-	[self _evaluateWithScope:&outerScope activation:nil this:globalObject];
-	return nil;
 }
 
 @end
 
 @implementation _WebScriptTreeNodeIdentifier (_WebScriptEvaluation)
 
-//- (id) _evaluate:(WebScriptScope *) scopeChain :(WebScriptObject *) vars :(WebScriptObject *) this;
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 10.1.4 - evaluate an identifier
-	/*
-	 scopeObject=context;
-	 while((scopeChain=scopeChain->next))	// walk through scope chain
-	 if([scopeChain->obejct _hasProperty:right])
-	 return [_WebScriptTreeNodeReference node:scopeObject :right];	// form a real reference
-	 */
-	return [[_WebScriptTreeNodeReference node:[NSNull null] :right] autorelease];
+	while(context)
+		{ // walk through scope chain
+		if([context->this _hasProperty:right])
+			return [_WebScriptTreeNodeReference node:context->this :right];	// form a real reference
+		context=context->nextContext;
+		}
+	return [[_WebScriptTreeNodeReference node:[NSNull null] :right] autorelease];	// undefined reference
 }
 
 @end
 
 @implementation _WebScriptTreeNodeArrayLiteralConstructor (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { 
 	id l;
 	id r;
@@ -274,7 +249,7 @@ typedef struct _WebScriptScope
 		{
 		if([r isKindOfClass:[WebUndefined class]])
 			continue;	// elision
-		r=[r _evaluate];
+		r=[r _evaluate:context];
 		r=[r _getValue];
 		_PUT(l, ([NSString stringWithFormat:@"%u", idx++]), r);	// store at next position
 		}
@@ -286,7 +261,8 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeObjectLiteralConstructor (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 {
 	id l;
 	id key, val;
@@ -304,7 +280,7 @@ typedef struct _WebScriptScope
 			key=[key _getValue];
 			key=[key _toString];
 			}
-		val=[val _evaluate];
+		val=[val _evaluate:context];
 		val=[val _getValue];
 		_PUT(l, key, val);
 		}
@@ -315,17 +291,18 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeThis (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.1.1
-  // FIXME: get "this" from current execution context
-	return nil;
+	return context->this;
 }
 
 @end
 
 @implementation _WebScriptTreeNodeReference (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 {
 	return NIMP;	// should never be called (?)
 }
@@ -334,17 +311,19 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeNew (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.2.2
 	id l;
 	NSMutableArray *arglist=[NSMutableArray arrayWithCapacity:[right count]];
 	NSEnumerator *e;
 	id arg;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _getValue];
 	e=[right objectEnumerator];
 	while((arg=[e nextObject]))
-		[arglist addObject:[arg _evaluate]];
+		[arglist addObject:[arg _evaluate:context]
+];
 	if(![l isKindOfClass:[WebScriptObject class]])
 		[self setException:@"TypeError"];
 	if(![l respondsToSelector:@selector(_construct:)])
@@ -356,15 +335,17 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeCall (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.2.3
 	NSMutableArray *arglist=[NSMutableArray arrayWithCapacity:[right count]];
 	NSEnumerator *e;
 	id l, fn, arg, this;
-	l=[left _evaluate];	// 1.
+	l=[left _evaluate:context];	// 1.
 	e=[right objectEnumerator];
 	while((arg=[e nextObject]))
-		[arglist addObject:[[arg _evaluate] _getValue]];	// 2.	
+		[arglist addObject:[[arg _evaluate:context]
+ _getValue]];	// 2.	
 	fn=[l _getValue];		// 3.
 	if(![fn isKindOfClass:[WebScriptObject class]])
 		[self setException:@"TypeError"];
@@ -412,12 +393,13 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeIndex (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.2.1
 	id l, r;
-	l=[left _evaluate];			// 1.
+	l=[left _evaluate:context];			// 1.
 	l=[l _getValue];				// 2.
-	r=[right _evaluate];		// 3.
+	r=[right _evaluate:context];		// 3.
 	r=[r _getValue];				// 4.
 	l=[l _toObject];				// 5.
 	r=[r _toString];				// 6.
@@ -428,7 +410,8 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodePostfix (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.3
 	id r;
 	r=[[left _getValue] _toNumber];
@@ -450,39 +433,44 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeUnary (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.4
 	id r, l;
 	switch(op)
 		{
 		default:
 		case UPlusPlus:
-			r=[right _evaluate];			
+			r=[right _evaluate:context];			
 			l=[[r _getValue] _toNumber];
 			// add 1 to l
 			[r _putValue:l];
 			return l;
 		case UMinusMinus:
-			r=[right _evaluate];			
+			r=[right _evaluate:context];			
 			l=[[r _getValue] _toNumber];
 			// subtract 1 fm l
 			[r _putValue:l];
 			return l;
 		case Plus:
-			return [[[right _evaluate] _getValue] _toNumber];
+			return [[[right _evaluate:context]
+ _getValue] _toNumber];
 		case Minus:
-			r=[[[right _evaluate] _getValue] _toNumber];
+			r=[[[right _evaluate:context]
+ _getValue] _toNumber];
 			// if NaN return l
 			return [NSNumber numberWithDouble:-[r doubleValue]];
 		case Neg:
-			r=[[[right _evaluate] _getValue] _toInt32];
+			r=[[[right _evaluate:context]
+ _getValue] _toInt32];
 			return [NSNumber numberWithDouble:(double) ~[r intValue]];
 		case Not:
-			r=[[[right _evaluate] _getValue] _toBoolean];
+			r=[[[right _evaluate:context]
+ _getValue] _toBoolean];
 			return [NSNumber numberWithBool:![r boolValue]];
 		case Delete:
 			{ // 11.4.1
-				r=[right _evaluate];			
+				r=[right _evaluate:context];			
 				if(![r _isReference])
 					return [NSNumber numberWithBool:YES];
 				NS_DURING
@@ -494,12 +482,13 @@ typedef struct _WebScriptScope
 			}
 		case Void:
 			{ // 11.4.2
-				[[right _evaluate] _getValue];		// evaluate
+				[[right _evaluate:context]
+ _getValue];		// evaluate
 				return [WebUndefined undefined];	// throw away
 			}
 		case Typeof:
 			{ // 11.4.3
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				if([r _isReference] && ![r getBase])
 					return [WebUndefined undefined];
 				r=[r _getValue];
@@ -528,7 +517,8 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeMultiplicative (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.5
 	id r, l;
 	switch(op)
@@ -536,9 +526,9 @@ typedef struct _WebScriptScope
 		default:
 		case Mult:
 			{
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toNumber];
 				r=[r _toNumber];
@@ -546,9 +536,9 @@ typedef struct _WebScriptScope
 			}
 		case Div:
 			{
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toNumber];
 				r=[r _toNumber];
@@ -556,9 +546,9 @@ typedef struct _WebScriptScope
 			}
 		case Mod:
 			{
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toNumber];
 				r=[r _toNumber];
@@ -567,6 +557,10 @@ typedef struct _WebScriptScope
 		}
 }
 
+@end
+
+@interface _WebScriptTreeNodeAdditive (_WebScriptEvaluation)
++ (id) _abstractAdd:(id) l and:(id) r;
 @end
 
 @implementation _WebScriptTreeNodeAdditive (_WebScriptEvaluation)
@@ -589,7 +583,8 @@ typedef struct _WebScriptScope
 		}
 }
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.6
 	id r, l;
 	switch(op)
@@ -597,17 +592,17 @@ typedef struct _WebScriptScope
 		default:
 		case Add:
 			{
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				return [isa _abstractAdd:l and:r];
 			}
 		case Sub:
 			{
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toNumber];
 				r=[r _toNumber];
@@ -620,7 +615,8 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeShift (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.7
 	id r, l;
 	switch(op)
@@ -628,9 +624,9 @@ typedef struct _WebScriptScope
 		default:
 		case Shl:
 			{ // 11.7.1
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toInt32];
 				r=[r _toUint32];
@@ -638,9 +634,9 @@ typedef struct _WebScriptScope
 			}
 		case Shr:
 			{ // 11.7.2
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toInt32];
 				r=[r _toUint32];
@@ -648,9 +644,9 @@ typedef struct _WebScriptScope
 			}
 		case UShr:
 			{ // 11.7.3
-				l=[left _evaluate];
+				l=[left _evaluate:context];
 				l=[l _getValue];
-				r=[right _evaluate];
+				r=[right _evaluate:context];
 				r=[r _getValue];
 				l=[l _toInt32];
 				r=[r _toUint32];
@@ -663,12 +659,13 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeRelational (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 10.8
 	id r, l;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _getValue];
-	r=[right _evaluate];
+	r=[right _evaluate:context];
 	r=[r _getValue];
 	switch(op)
 		{
@@ -708,12 +705,13 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeEquality (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.9
 	id r, l;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _getValue];
-	r=[right _evaluate];
+	r=[right _evaluate:context];
 	r=[r _getValue];
 	if(!strict)
 		{ // 11.9.3
@@ -737,12 +735,13 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeBitwise (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.10
 	id r, l;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _getValue];
-	r=[right _evaluate];
+	r=[right _evaluate:context];
 	r=[r _getValue];
 	l=[l _toUint32];
 	r=[r _toUint32];
@@ -768,10 +767,11 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeLogical (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.11
 	id l;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _getValue];
 	l=[l _toBoolean];
 	switch(op)
@@ -780,13 +780,13 @@ typedef struct _WebScriptScope
 		case LAnd:
 			{
 				if([l boolValue])
-					return [right _evaluate];
+					return [right _evaluate:context];
 				return l;
 			}
 		case LOr:
 			{
 				if(![l boolValue])
-					return [right _evaluate];
+					return [right _evaluate:context];
 				return l;
 			}
 		}
@@ -796,51 +796,81 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeConditional (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.12
 	id l;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _toBoolean];
 	if([l boolValue])
-		return [right _evaluate];
+		return [right _evaluate:context];
 	else
-		return [otherwise _evaluate];
+		return [otherwise _evaluate:context];
 }
 
 @end
 
 @implementation _WebScriptTreeNodeAssignment (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.13
 	id r, l;
 	r=[right _getValue];
+	if(op == Assign)
+		{ // plain assignment
+		[left _putValue:r];	// left must be a reference...
+		return left;
+		}
+	l=[left _getValue];	// get current value
 	switch(op)
 		{
+		case MultAssign:
+			r=[r _evaluate:context];
+			l=[l _toNumber];
+			r=[r _toNumber];
+			r=[NSNumber numberWithDouble:[l doubleValue]*[r doubleValue]];
+			break;
+		// FIXME: case ModAssign:
+		case DivAssign:
+			r=[r _evaluate:context];
+			l=[l _toNumber];
+			r=[r _toNumber];
+			r=[NSNumber numberWithDouble:[l doubleValue]/[r doubleValue]];
+			break;
+		case PlusAssign:
+			r=[r _evaluate:context];
+			r=[_WebScriptTreeNodeAdditive _abstractAdd:l and:r];
+			break;
+		case MinusAssign:
+			r=[r _evaluate:context];
+			l=[l _toNumber];
+			r=[r _toNumber];
+			r=[NSNumber numberWithDouble:[l doubleValue]-[r doubleValue]];
+			break;
+		/* FIXME: case ShlAssign:
+		case UShrAssign:
+		case ShrAssign:
+		case AndAssign:
+		case XorAssign:
+		case OrAssign: */
 		default:
 			[WebScriptObject throwException:@"Assignment type not implemented"];
 			break;
-		case Assign:
-			{ // plain assignment
-				[left _putValue:r];	// must be a reference...
-				return left;
-			}
-			// FIXME: add other operations
-			// need to current _getValue
-			// operate on it
-			// _putValue back
 		}
-	return nil;
+	[left _putValue:r];	// left must be a reference...
+	return left;	// result
 }
 
 @end
 
 @implementation _WebScriptTreeNodeComma (_WebScriptEvaluation)	// comma operator
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.14
   // ignore left - or must we evaluate and call _getValue???
-	return [right _evaluate];
+	return [right _evaluate:context];
 }
 
 @end
@@ -849,34 +879,40 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeStatementList (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 { // 11.
-	[left _evaluate];
-	return [right _evaluate];
+	[left _evaluate:context];
+	return [right _evaluate:context];
 }
 
 @end
 
 @implementation _WebScriptTreeNodeVar (_WebScriptEvaluation)
 
-// define variable and handle assignment
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
+{ // define variable and handle assignment
+	// add property to context->this
+	// assign inital value
+	// return reference to new variable
+	return nil;
+}
 
 @end
 
-// @interface _WebScriptTreeNodeExpression : _WebScriptTreeNode
-/// @end
-
 @implementation _WebScriptTreeNodeIf (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 {
 	id l;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[l _toBoolean];
 	if([l boolValue])
-		return [right _evaluate];
+		return [right _evaluate:context];
 	else
-		return [otherwise _evaluate];	// FIXME: returns nil if else part is not present!?!
+		return [otherwise _evaluate:context];	// FIXME: returns nil if else part is not present!?!
 }
 
 @end
@@ -898,14 +934,19 @@ typedef struct _WebScriptScope
 
 @implementation _WebScriptTreeNodeWith (_WebScriptEvaluation)
 
-- (id) _evaluate;
+- (id) _evaluate:(WebScriptContext *) context;
+// evaluate a tree node according to evaluation rules
 {
+	WebScriptContext newContext=*context;
 	id l, r;
-	l=[left _evaluate];
+	l=[left _evaluate:context];
 	l=[[l _getValue] _toObject];	// 2. & 3.
-									// add l to the front of the scope chain
+	newContext.nextContext=context;	// chain context
+	// FIXME: is this different from scope?
+	// i.e. what does with(x) really do? It does NOT replace 'this'
+	newContext.this=l;
 	NS_DURING
-		r=[right _evaluate];
+		r=[right _evaluate:&newContext];
 	NS_HANDLER
 		r=nil;	// (trow, localException, empty)
 	NS_ENDHANDLER

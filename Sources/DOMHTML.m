@@ -187,6 +187,13 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	return [rep _lastObject];	// default is to build a tree
 }
 
+// DOMDocumentAdditions
+
+- (DOMCSSRuleList *) getMatchedCSSRules:(DOMElement *) elt :(NSString *) pseudoElt;
+{
+	return nil;
+}
+
 - (WebFrame *) webFrame
 {
 	return [(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame];
@@ -1155,10 +1162,6 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	NSColor *link=[[self getAttribute:@"link"] _htmlColor];
 	NSTextStorage *ts;
 	NSScrollView *sc=[view enclosingScrollView];
-	
-	// FIXME: how do we handle <pre> which should not respond to width changes?
-	// maybe, by an NSParagraphStyle
-	
 #if 0
 	NSLog(@"%@ _layout: %@", NSStringFromClass(isa), view);
 	NSLog(@"attribs: %@", [self _attributes]);
@@ -1194,6 +1197,13 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 	[self _spliceTo:ts];	// translate DOM-Tree into attributed string
 	[self _flushStyles];	// clear style cache in the DOM Tree
 	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
+	
+	// to handle <pre>:
+	// scan through all paragraphs
+	// find all non-breaking paras, i.e. those with lineBreakMode == NSLineBreakByClipping
+	// determine unlimited width of any such paragraph
+	// resize textView to MIN(clipView.width, maxWidth+2*inset)
+	// also look for oversized attachments!
 
 	// FIXME: we should recognize this element:
 	// <meta name = "format-detection" content = "telephone=no">
@@ -1849,7 +1859,7 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLTableCellElement
 
-+ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
+// + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
 - (void) _addAttributesToStyle;
 { // add attributes to style

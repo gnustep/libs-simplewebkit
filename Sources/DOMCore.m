@@ -40,6 +40,35 @@
 
 @end
 
+@implementation DOMWindow
+
+- (void) removeWebScriptKey:(NSString *) key;
+{
+	NIMP;
+}
+
+- (void) setWebScriptValueAtIndex:(unsigned int) index value:(id) val;
+{
+	NIMP;
+}
+
+- (id) webScriptValueAtIndex:(unsigned int) index;
+{
+	return NIMP;	// not for generic object
+}
+
+- (void) setValue:(id) value forKey:(NSString *) key;
+{ // KVC setter
+	NIMP;
+}
+
+- (id) valueForKey:(NSString *) key;
+{ // KVC getter
+	return NIMP;
+}
+
+@end
+
 @implementation DOMNode
 
 - (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri document:(RENAME(DOMDocument) *) document;

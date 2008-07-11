@@ -63,7 +63,6 @@ typedef enum _WebScriptPropertyAttribute
 + (NSString *) webScriptNameForSelector:(SEL) sel;
 - (void) finalizeForWebScript;
 - (id) invokeDefaultMethodWithArguments:(NSArray *) args;
-- (id) invokeUndefinedMethodFromWebScript:(NSString *) name
-														withArguments:(NSArray *) args;
+- (id) invokeUndefinedMethodFromWebScript:(NSString *) name withArguments:(NSArray *) args;
 
 @end

@@ -37,15 +37,13 @@
 
 #define __WebKit__ 1							// this disables some includes in mySTEP NSXMLParser.h/.m
 
-#include "NSXMLParser.h"	// directly include header here - note that the class is renamed!
-// class interface and implementation is already compiled in WebHTMLDocumentRepresentation.m
-// #include "NSXMLParser.m"	// directly include source here - note that the class is renamed!
+#include "NSXMLParser.h"	// directly include header here - note that the class may be renamed!
+
+#endif
 
 @interface NSXMLParser (Private)
 - (void) _parseData:(NSData *) data;
 @end
-
-#endif
 
 @implementation _WebXMLDocumentRepresentation
 
@@ -81,7 +79,7 @@
 #if 0
 	NSLog(@"WebXMLDocumentRepresentation finishedLoadingWithDataSource:%@", source);
 #endif
-	[_parser _parseData:nil];	// finish parsing
+	[(NSXMLParser *) _parser _parseData:nil];	// finish parsing
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;

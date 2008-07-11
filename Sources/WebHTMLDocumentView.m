@@ -37,9 +37,10 @@
 		[self setEditable:NO];
 		[self setSelectable:YES];
 		[self setVerticallyResizable:YES];
-		[self setHorizontallyResizable:YES];
+		[self setHorizontallyResizable:NO];	// for proper line breaks
 		[self setTextContainerInset:NSMakeSize(2.0, 4.0)];	// leave some margin
 		[[self textContainer] setWidthTracksTextView:YES];
+		[[self textContainer] setHeightTracksTextView:NO];
 		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
 	//	[self setLinkTextAttributes:blue ]
 	//	[self setMarkedTextAttributes: ]

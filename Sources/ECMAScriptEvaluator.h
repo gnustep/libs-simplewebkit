@@ -26,11 +26,15 @@
 
 @interface NSObject (_WebScriptEvaluation)
 
-- (id) _evaluate;	// evaluate a tree node according to evaluation rules
+typedef struct WebScriptContext
+{
+	WebScriptObject *global;	// the global object
+	WebScriptObject *this;		// the real 'this' object
+	WebScriptObject *scope;		// the object defined by with(var)
+	struct WebScriptContext *nextContext;
+} WebScriptContext;
 
-// should we use?
-
-- (id) _evaluate:(WebScriptObject *) scopeChain global:(WebScriptObject *) vars this:(WebScriptObject *) this;
+- (id) _evaluate:(WebScriptContext *) context;	// evaluate a tree node according to evaluation rules
 
 @end
 

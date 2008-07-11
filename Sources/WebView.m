@@ -73,7 +73,7 @@
 * this allows to store scripts in translated form and reevaluate them when needed (e.g. on mouse events)
 * uses Foundation for basic types (string, number, boolean, null)
 * uses WebScriptObject as the base Object representation
-* DOMObjects are a subclass of WebScriptObjects and therefore provide bridging, so that changing a DOMHTML tree element through
+* DOMObjects are a subclass of WebScriptObjects and therefore provide automatic bridging, so that changing a DOMHTML tree element through
   JavaScript automativally triggers the appropriate WebDocumentView notification
 
 */
@@ -117,15 +117,6 @@ NSString *WebViewDidEndEditingNotification=@"WebViewDidEndEditing";
 NSString *WebViewProgressEstimateChangedNotification=@"WebViewProgressEstimateChanged";
 NSString *WebViewProgressFinishedNotification=@"WebViewProgressFinished";
 NSString *WebViewProgressStartedNotification=@"WebViewProgressStarted";
-
-@interface _WindowScriptObject : WebScriptObject
-{
-	DOMHTMLDocument *document; 
-}
-@end
-
-@implementation _WindowScriptObject
-@end
 
 @implementation WebView
 
@@ -265,6 +256,7 @@ static NSArray *_htmlMimeTypes;
 	[_customAgent release];
 	[_customTextEncoding release];
 	[_applicationName release];
+	[_global release];
 	[super dealloc];
 }
 
@@ -388,7 +380,10 @@ static NSArray *_htmlMimeTypes;
 
 - (NSString *) stringByEvaluatingJavaScriptFromString:(NSString *) script;
 {
-	return [[_mainFrame DOMDocument] evaluateWebScript:script];
+	id result=[[self windowScriptObject] evaluateWebScript:script];
+	if([result isKindOfClass:[NSString class]])
+		return result;
+	return @"";	// result is not a string
 }
 
 - (void) drawRect:(NSRect) rect;
@@ -482,30 +477,19 @@ static NSArray *_htmlMimeTypes;
 - (void) stopSpeaking:(id) sender; { [(NSTextView *) [[_mainFrame frameView] documentView] stopSpeaking:sender]; }
 
 - (WebScriptObject *) windowScriptObject
-{
-	// should be created only once
-	WebScriptObject *o;
-	/*
-	should this be the 'window' object - or is this the "global" object???
-	but also handle
-	[[[webView windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"] floatValue]
-	 
-	 http://developer.apple.com/documentation/Cocoa/Conceptual/DisplayWebContent/Tasks/JavaScriptFromObjC.html
-	 
-	 inidcates it is the 'window' object because one can write 
-	 
-	 [[webView windowScriptObject] evaluateWebScript:@"location.href"];
-	 
-	*/
-	// FIXME: there is also a webView:windowScriptObjectAvailable: frameload delegate method!
-	
-	// probably called when the mainFrame has its DOMDocument initialized
-	o=[[_WindowScriptObject new] autorelease];
-	[o setValue:[_mainFrame DOMDocument] forKey:@"document"];
-//	[o setValue:nil forKey:@"window"]; -- no we are the "window" object. A browser has a windows array?
-//	[o setValue:nil forKey:@"event"];
-//	[o setValue:nil forKey:@"event"]; -- etc.
-	return o;
+{ // return the gobal object of the main frame
+	if(!_global)
+		{
+			// we should derive/initialize from a global prototype which already has been initialized only once!
+			// this will provide global class prototypes and their methods like Array, Math, etc.
+			_global=[DOMWindow new];
+			[_global setValue:[_mainFrame DOMDocument] forKey:@"document"];	// should this be a getter for the current mainFrame???
+			[_global setValue:self forKey:@"window"];
+			[_global setValue:self forKey:@"self"];
+			// FIXME: is this correctly used here???
+			[_frameLoadDelegate webView:self windowScriptObjectAvailable:_global];
+		}
+	return _global;
 }
 
 - (NSDictionary *) elementAtPoint:(NSPoint) point;

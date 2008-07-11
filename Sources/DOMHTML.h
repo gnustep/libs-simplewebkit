@@ -31,6 +31,12 @@
 
 @class _WebHTMLDocumentRepresentation;
 
+@interface DOMHTMLCollection : WebScriptObject
+{
+	NSMutableArray *elements;
+}
+@end
+
 @interface DOMElement (DOMHTMLElement)		// DOMElements also have tag attributes
 
 // generic parser support and control
@@ -113,6 +119,14 @@ typedef enum
 - (WebFrame *) webFrame;
 - (void) _setWebDataSource:(WebDataSource *) src;
 - (WebDataSource *) _webDataSource;
+
+/* in Javascript, we have additional properties
+- (DOMHTMLBodyWlwment *) body;
+- (DOMHTMLCollection *) anchors;
+- (DOMHTMLCollection *) forms;
+- (DOMHTMLCollection *) images;
+- (DOMHTMLCollection *) links;
+*/
 
 @end
 

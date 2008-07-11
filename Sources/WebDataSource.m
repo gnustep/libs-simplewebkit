@@ -238,8 +238,27 @@
 - (void) _load;
 {
 	WebView *webView=[_webFrame webView];
-	[self retain];	// the frameLoadDelegate may send us a release by loading a different web address
-	if([_request isKindOfClass:[_NSURLRequestNSData class]])
+	if(![_request URL])
+		{
+		NSLog(@"attempt to _load for nil URL!");
+		return;
+		}
+	[self retain];	// the frameLoadDelegate may send us a release when loading a different web address
+#if 1
+	NSLog(@"request=%@", _request);
+#endif
+	if([[[_request URL] scheme] isEqualToString:@"javascript"])
+		{ // evaluate script and "return" result
+		NSString *res=[[[webView windowScriptObject] evaluateWebScript:[[_request URL] path]] description];
+		_connection=[NSObject new];	// dummy connection object
+		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
+// FIXME:		[self connection:_connection didReceiveResponse:[(_NSURLRequestNSData *) _request response]];	// simulate callbacks from NSURLConnection
+		[self connection:_connection didReceiveData:[res dataUsingEncoding:NSUTF8StringEncoding]];
+		[self connectionDidFinishLoading:_connection];	// notify
+		[_connection release];
+		_connection=nil;
+		}
+	else if([_request isKindOfClass:[_NSURLRequestNSData class]])
 		{ // handle special mySTEP case when loading from NSData
 		_connection=[NSObject new];	// dummy connection object
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];

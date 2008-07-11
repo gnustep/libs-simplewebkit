@@ -1,59 +1,65 @@
 {
-    IBClasses = (
-        {
-            ACTIONS = {
-                back = id; 
-                flip = id; 
-                forward = id; 
-                home = id; 
-                load = id; 
-                searchGoogle = id; 
-                stopLoading = id; 
-            }; 
-            CLASS = FirstResponder; 
-            LANGUAGE = ObjC; 
-            SUPERCLASS = NSObject; 
-        }, 
-        {
-            CLASS = MyApplication; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {activity = NSOutlineView; }; 
-            SUPERCLASS = NSObject; 
-        }, 
-        {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }, 
-        {
-            ACTIONS = {
-                goBack = id; 
-                goForward = id; 
-                home = id; 
-                loadPageFromComboBox = id; 
-                loadPageFromMenuItem = id; 
-                openJavaScriptConsole = id; 
-                script = id; 
-                scriptFromMenuItem = id; 
-                showDOMTree = id; 
-                showSource = id; 
-            }; 
-            CLASS = MyDocument; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {
-                backButton = NSButton; 
-                backForwardTable = NSTableView; 
-                command = NSTextField; 
-                currentItem = id; 
-                currentURL = NSComboBoxCell; 
-                docSource = NSTextView; 
-                domAttribs = NSTableView; 
-                domSource = NSTextView; 
-                domTree = NSOutlineView; 
-                forwardButton = NSButton; 
-                historyTable = NSTableView; 
-                result = NSTextField; 
-                status = NSTextField; 
-                webView = WebView; 
-            }; 
-            SUPERCLASS = NSDocument; 
+    IBClasses =     (
+                {
+            ACTIONS =             {
+                back = id;
+                flip = id;
+                forward = id;
+                home = id;
+                load = id;
+                searchGoogle = id;
+                stopLoading = id;
+            };
+            CLASS = FirstResponder;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSObject;
+        },
+                {
+            CLASS = MyApplication;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                activity = NSOutlineView;
+            };
+            SUPERCLASS = NSObject;
+        },
+                {
+            CLASS = MyComboBoxCell;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSComboBoxCell;
+        },
+                {
+            ACTIONS =             {
+                goBack = id;
+                goForward = id;
+                home = id;
+                loadPageFromComboBox = id;
+                loadPageFromMenuItem = id;
+                openJavaScriptConsole = id;
+                script = id;
+                scriptFromMenuItem = id;
+                showDOMTree = id;
+                showSource = id;
+            };
+            CLASS = MyDocument;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                backButton = NSButton;
+                backForwardTable = NSTableView;
+                command = NSTextField;
+                currentItem = id;
+                currentURL = NSComboBoxCell;
+                docSource = NSTextView;
+                domAttribs = NSTableView;
+                domSource = NSTextView;
+                domTree = NSOutlineView;
+                forwardButton = NSButton;
+                historyTable = NSTableView;
+                result = NSTextView;
+                status = NSTextView;
+                webView = WebView;
+            };
+            SUPERCLASS = NSDocument;
         }
-    ); 
-    IBVersion = 1; 
+    );
+    IBVersion = 1;
 }

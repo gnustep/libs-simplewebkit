@@ -65,6 +65,16 @@
 
 @end
 
+@interface DOMWindow : DOMObject
+// this is the global windowScriptObject
+/*
+ - (DOMHTMLDocument *) document;
+ - (DOMAbstractView *) top;
+ - (DOMAbstractView *) parent;
+ - (DOMAbstractView *) frames;
+ */
+@end
+
 @interface DOMNode : DOMObject
 {
 	NSString *_nodeName;
