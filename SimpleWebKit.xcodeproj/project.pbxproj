@@ -114,6 +114,7 @@
 		EEE9B4A80BC9295C00757F02 /* WebKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
 		EEE9B5AC0BC9621900757F02 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
 		EEE9B5AD0BC9621900757F02 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
+		EEFA5A850E288A2600B86693 /* WebPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = EEFA5A840E288A2500B86693 /* WebPlugin.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -267,6 +268,7 @@
 		EEE9B0D80BC828EA00757F02 /* MyComboBoxCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyComboBoxCell.h; sourceTree = "<group>"; };
 		EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyComboBoxCell.m; sourceTree = "<group>"; };
 		EEE9B5AB0BC9621900757F02 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MyDocument.nib; sourceTree = "<group>"; };
+		EEFA5A840E288A2500B86693 /* WebPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPlugin.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -488,6 +490,7 @@
 				EE5D27DD0A1A69BE000E507B /* WebHistoryItem.m */,
 				EEA3D39A095468BA001244CF /* WebKit.h */,
 				EE5EBCF00A1A4E270045B88D /* WebPlugin.h */,
+				EEFA5A840E288A2500B86693 /* WebPlugin.m */,
 				EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */,
 				EE044A900CF0A0040003D697 /* WebPreferences.h */,
 				EE044A910CF0A0040003D697 /* WebPreferences.m */,
@@ -845,6 +848,7 @@
 				EE6FBB200C21D9F80095EEA6 /* WebXMLDocument.m in Sources */,
 				EE6FBBC60C21DBD00095EEA6 /* WebTextDocument.m in Sources */,
 				EE044A930CF0A0040003D697 /* WebPreferences.m in Sources */,
+				EEFA5A850E288A2600B86693 /* WebPlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

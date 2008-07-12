@@ -18,10 +18,10 @@
 			EE2152620C1F0370007E9D47 /* NSXMLParser.m:292 */,
 			EE2152880C1F2E40007E9D47 /* WebDataSource.m:376 */,
 			EEAC9CC70C1F309800FB014F /* NSXMLParser.m:250 */,
-			EEAC9CE30C1F36DE00FB014F /* DOMHTML.m:761 */,
-			EEAC9E430C1F377900FB014F /* DOMHTML.m:761 */,
+			EEAC9CE30C1F36DE00FB014F /* DOMHTML.m:766 */,
+			EEAC9E430C1F377900FB014F /* DOMHTML.m:766 */,
 			EEAC9E510C1F3B2A00FB014F /* WebHTMLDocumentRepresentation.m:387 */,
-			EEAC9E620C1F441600FB014F /* DOMHTML.m:763 */,
+			EEAC9E620C1F441600FB014F /* DOMHTML.m:768 */,
 			EEAC9E950C1F5D4800FB014F /* NSXMLParser.m:345 */,
 			EEAC9E970C1F5D4900FB014F /* NSXMLParser.m:345 */,
 			EE24FC080C20765A001947BB /* NSXMLParser.m:635 */,
@@ -45,17 +45,17 @@
 			EE1D184A0C2B01F300606B0B /* NSXMLParser.m:491 */,
 			EE6E13730C43653700853C28 /* NSXMLParser.m:688 */,
 			EEC9313F0C4F6B7A00F64F64 /* WebDataSource.m:124 */,
-			EE82B84D0C88C0F400036409 /* DOMHTML.m:1629 */,
+			EE82B84D0C88C0F400036409 /* DOMHTML.m:1634 */,
 			EE82B8C60C89C28A00036409 /* DOMCore.m:442 */,
 			EEA401130CC1077500DB0FF7 /* WebHTMLDocumentRepresentation.m:312 */,
 			EEA401370CC111D000DB0FF7 /* szone_error */,
 			EEA401530CC1132E00DB0FF7 /* -[_NSZombie methodSignatureForSelector:] */,
 			EEA401650CC1162200DB0FF7 /* DOMCore.m:88 */,
 			EEA4016F0CC116A500DB0FF7 /* WebHTMLDocumentRepresentation.m:359 */,
-			EEA403EA0CC12C2300DB0FF7 /* DOMHTML.m:293 */,
-			EEA4040C0CC12D9E00DB0FF7 /* DOMHTML.m:285 */,
+			EEA403EA0CC12C2300DB0FF7 /* DOMHTML.m:298 */,
+			EEA4040C0CC12D9E00DB0FF7 /* DOMHTML.m:290 */,
 			EE042D760CEF55CE0003D697 /* WebDataSource.m:385 */,
-			EE042D910CEF58920003D697 /* DOMHTML.m:813 */,
+			EE042D910CEF58920003D697 /* DOMHTML.m:818 */,
 			EE042DD40CF05CA00003D697 /* ECMAScriptParser.m:521 */,
 			EE044A7C0CF0945E0003D697 /* ECMAScriptParser.m:1020 */,
 			EE605E400CF0E0520015A499 /* ECMAScriptParser.m:1054 */,
@@ -80,44 +80,44 @@
 			EE795F0F0CF246B000C0D04F /* ECMAScriptParser.m:813 */,
 			EE795F150CF2494000C0D04F /* ECMAScriptParser.m:794 */,
 			EE795F220CF24A2D00C0D04F /* MyDocument.m:227 */,
-			EE87B32D0D001B6B00B2037D /* DOMHTML.m:1607 */,
-			EE8721030D01C40600B2037D /* DOMHTML.m:537 */,
-			EE87210C0D01C49F00B2037D /* DOMHTML.m:187 */,
-			EE8721550D01F80400B2037D /* DOMHTML.m:1320 */,
-			EE87220B0D021D3700B2037D /* DOMHTML.m:1316 */,
-			EE87220D0D021D5100B2037D /* DOMHTML.m:267 */,
+			EE87B32D0D001B6B00B2037D /* DOMHTML.m:1612 */,
+			EE8721030D01C40600B2037D /* DOMHTML.m:542 */,
+			EE87210C0D01C49F00B2037D /* DOMHTML.m:192 */,
+			EE8721550D01F80400B2037D /* DOMHTML.m:1325 */,
+			EE87220B0D021D3700B2037D /* DOMHTML.m:1321 */,
+			EE87220D0D021D5100B2037D /* DOMHTML.m:272 */,
 			EE12796E0D034F15000E4BA5 /* WebHTMLDocumentRepresentation.m:262 */,
 			EE12797B0D03571E000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */,
 			EE1279920D03E9C4000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */,
 			EE1279E00D040758000E4BA5 /* NSXMLParser.m:353 */,
-			EE1279F90D041313000E4BA5 /* DOMHTML.m:1075 */,
-			EE1279FF0D041360000E4BA5 /* DOMHTML.m:1087 */,
+			EE1279F90D041313000E4BA5 /* DOMHTML.m:1080 */,
+			EE1279FF0D041360000E4BA5 /* DOMHTML.m:1092 */,
 			EEB143B90D125C94001212B5 /* MyDocument.m:198 */,
 			EEB143DF0D126121001212B5 /* MyDocument.m:195 */,
 			EEB143E60D1262B4001212B5 /* WebHTMLDocumentRepresentation.m:237 */,
 			EEB143EE0D1262CC001212B5 /* MyDocument.m:198 */,
-			EEB179DB0D1283F5001212B5 /* DOMHTML.m:746 */,
-			EEB179F70D128FE6001212B5 /* DOMHTML.m:808 */,
-			EEB179FC0D12913E001212B5 /* DOMHTML.m:809 */,
-			EEB179FE0D1291AA001212B5 /* DOMHTML.m:777 */,
-			EEB17A140D12A4EC001212B5 /* DOMHTML.m:244 */,
-			EEB17A190D12A514001212B5 /* DOMHTML.m:252 */,
+			EEB179DB0D1283F5001212B5 /* DOMHTML.m:751 */,
+			EEB179F70D128FE6001212B5 /* DOMHTML.m:813 */,
+			EEB179FC0D12913E001212B5 /* DOMHTML.m:814 */,
+			EEB179FE0D1291AA001212B5 /* DOMHTML.m:782 */,
+			EEB17A140D12A4EC001212B5 /* DOMHTML.m:249 */,
+			EEB17A190D12A514001212B5 /* DOMHTML.m:257 */,
 			EEB17A690D12BC5B001212B5 /* WebHTMLDocumentRepresentation.m:139 */,
-			EEB17A950D12BD97001212B5 /* DOMHTML.m:249 */,
-			EEB17A970D12BD98001212B5 /* DOMHTML.m:248 */,
-			EE9DB0EF0D12BE780090A70F /* DOMHTML.m:250 */,
+			EEB17A950D12BD97001212B5 /* DOMHTML.m:254 */,
+			EEB17A970D12BD98001212B5 /* DOMHTML.m:253 */,
+			EE9DB0EF0D12BE780090A70F /* DOMHTML.m:255 */,
 			EE9DB1160D12C0590090A70F /* WebHTMLDocumentRepresentation.m:417 */,
-			EE9DB1F80D12CA520090A70F /* DOMHTML.m:1194 */,
+			EE9DB1F80D12CA520090A70F /* DOMHTML.m:1199 */,
 			EEC3D7740D12E83800F8727D /* WebFrameView.m:57 */,
 			EEFD24C00D170272003853F2 /* WebScriptObject.m:82 */,
 			EE40F5B70D26B0C40083978F /* WebView.m:459 */,
-			EE3E63E00D29082700B28288 /* DOMHTML.m:2251 */,
-			EE3E643A0D2910A300B28288 /* DOMHTML.m:2277 */,
-			EE3E648F0D2945E900B28288 /* DOMHTML.m:2175 */,
+			EE3E63E00D29082700B28288 /* DOMHTML.m:2256 */,
+			EE3E643A0D2910A300B28288 /* DOMHTML.m:2282 */,
+			EE3E648F0D2945E900B28288 /* DOMHTML.m:2180 */,
 			EE4C1BC40D34E7B800B1513B /* ECMAScriptParser.m:163 */,
-			EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1753 */,
-			EE4C3FF60D3684C700B1513B /* DOMHTML.m:1236 */,
-			EE4C40070D36858800B1513B /* DOMHTML.m:1166 */,
+			EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1758 */,
+			EE4C3FF60D3684C700B1513B /* DOMHTML.m:1241 */,
+			EE4C40070D36858800B1513B /* DOMHTML.m:1171 */,
 			EE5ADD7A0D531906008D0EC9 /* WebHistory.m:177 */,
 			EE5AE56B0D5370F4008D0EC9 /* WebFrame.m:101 */,
 			EE5AE58C0D537759008D0EC9 /* WebFrame.m:126 */,
@@ -136,13 +136,13 @@
 			EEAA6B4D0D6783CA001143C2 /* WebFrame.m:226 */,
 			EEAA6B4F0D6783D0001143C2 /* WebFrame.m:209 */,
 			EEAA6B510D6783D3001143C2 /* WebFrame.m:201 */,
-			EEAA6B5A0D678592001143C2 /* DOMHTML.m:1903 */,
-			EEAA6CD30D678DEF001143C2 /* DOMHTML.m:653 */,
-			EEAA6CD70D678F00001143C2 /* DOMHTML.m:667 */,
-			EEA69C320D6790FF005582FB /* DOMHTML.m:656 */,
-			EEA69C360D679124005582FB /* DOMHTML.m:1902 */,
-			EE43914A0D6ACD6C00E06EB8 /* DOMHTML.m:1944 */,
-			EE19ED2C0D6DC88700B5840F /* DOMHTML.m:1175 */,
+			EEAA6B5A0D678592001143C2 /* DOMHTML.m:1908 */,
+			EEAA6CD30D678DEF001143C2 /* DOMHTML.m:658 */,
+			EEAA6CD70D678F00001143C2 /* DOMHTML.m:672 */,
+			EEA69C320D6790FF005582FB /* DOMHTML.m:661 */,
+			EEA69C360D679124005582FB /* DOMHTML.m:1907 */,
+			EE43914A0D6ACD6C00E06EB8 /* DOMHTML.m:1949 */,
+			EE19ED2C0D6DC88700B5840F /* DOMHTML.m:1180 */,
 			EEAA51EB0DDA05D200D42522 /* WebDataSource.m:241 */,
 			EEAA51FD0DDA076A00D42522 /* MyDocument.m:423 */,
 			EECDF29E0DDC727F00DAEEE8 /* WebScriptObject.m:77 */,
@@ -210,7 +210,7 @@
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
 					20,
-					935,
+					768,
 					20,
 					48,
 					43,
@@ -273,7 +273,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXTargetDataSource_PrimaryAttribute;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					919,
+					752,
 					60,
 					20,
 					48,
@@ -446,6 +446,32 @@
 			EEFA5ACF0E28955200B86693 /* PBXTextBookmark */ = EEFA5ACF0E28955200B86693 /* PBXTextBookmark */;
 			EEFA5AD00E28955200B86693 /* PBXTextBookmark */ = EEFA5AD00E28955200B86693 /* PBXTextBookmark */;
 			EEFA5AD10E28955200B86693 /* PBXTextBookmark */ = EEFA5AD10E28955200B86693 /* PBXTextBookmark */;
+			EEFA5B8D0E28D04300B86693 /* PBXTextBookmark */ = EEFA5B8D0E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B8E0E28D04300B86693 /* PBXTextBookmark */ = EEFA5B8E0E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B8F0E28D04300B86693 /* PBXTextBookmark */ = EEFA5B8F0E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B900E28D04300B86693 /* PBXTextBookmark */ = EEFA5B900E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B920E28D04300B86693 /* PBXTextBookmark */ = EEFA5B920E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B930E28D04300B86693 /* PBXTextBookmark */ = EEFA5B930E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B940E28D04300B86693 /* PBXTextBookmark */ = EEFA5B940E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B950E28D04300B86693 /* PBXTextBookmark */ = EEFA5B950E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B960E28D04300B86693 /* PBXTextBookmark */ = EEFA5B960E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B970E28D04300B86693 /* PBXTextBookmark */ = EEFA5B970E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B990E28D04300B86693 /* PBXTextBookmark */ = EEFA5B990E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B9A0E28D04300B86693 /* PBXTextBookmark */ = EEFA5B9A0E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5B9B0E28D04300B86693 /* PBXTextBookmark */ = EEFA5B9B0E28D04300B86693 /* PBXTextBookmark */;
+			EEFA5DE10E28D4C300B86693 /* PBXTextBookmark */ = EEFA5DE10E28D4C300B86693 /* PBXTextBookmark */;
+			EEFA5DFB0E28D70800B86693 /* PBXTextBookmark */ = EEFA5DFB0E28D70800B86693 /* PBXTextBookmark */;
+			EEFA5E060E28D8B000B86693 /* PBXTextBookmark */ = EEFA5E060E28D8B000B86693 /* PBXTextBookmark */;
+			EEFA60F80E290D3D00B86693 /* PBXTextBookmark */ = EEFA60F80E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA60F90E290D3D00B86693 /* PBXTextBookmark */ = EEFA60F90E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA60FA0E290D3D00B86693 /* PBXTextBookmark */ = EEFA60FA0E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA60FC0E290D3D00B86693 /* PBXTextBookmark */ = EEFA60FC0E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA60FD0E290D3D00B86693 /* PBXTextBookmark */ = EEFA60FD0E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA60FE0E290D3D00B86693 /* PBXTextBookmark */ = EEFA60FE0E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA60FF0E290D3D00B86693 /* PBXTextBookmark */ = EEFA60FF0E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA61010E290D3D00B86693 /* PBXTextBookmark */ = EEFA61010E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA61020E290D3D00B86693 /* PBXTextBookmark */ = EEFA61020E290D3D00B86693 /* PBXTextBookmark */;
+			EEFA61030E290D3D00B86693 /* PBXTextBookmark */ = EEFA61030E290D3D00B86693 /* PBXTextBookmark */;
 		};
 		sourceControlManager = EE4440B00BDBEA6B0031F556 /* Source Control */;
 		userBookmarkGroup = EE24FBA40C207610001947BB /* PBXBookmarkGroup */;
@@ -503,10 +529,10 @@
 		ignoreCount = 0;
 		lineNumber = 385;
 		location = WebKit;
-		modificationTime = 237512853.562889;
+		modificationTime = 237557508.440775;
 		state = 2;
 	};
-	EE042D910CEF58920003D697 /* DOMHTML.m:813 */ = {
+	EE042D910CEF58920003D697 /* DOMHTML.m:818 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -518,9 +544,9 @@
 		functionName = "-_elementLoaded";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 813;
+		lineNumber = 818;
 		location = WebKit;
-		modificationTime = 237512853.563114;
+		modificationTime = 237557508.441124;
 		state = 2;
 	};
 	EE042DD40CF05CA00003D697 /* ECMAScriptParser.m:521 */ = {
@@ -537,7 +563,7 @@
 		ignoreCount = 0;
 		lineNumber = 521;
 		location = WebKit;
-		modificationTime = 237512853.563305;
+		modificationTime = 237557508.441535;
 		state = 2;
 	};
 	EE044A7C0CF0945E0003D697 /* ECMAScriptParser.m:1020 */ = {
@@ -554,7 +580,7 @@
 		ignoreCount = 0;
 		lineNumber = 1020;
 		location = WebKit;
-		modificationTime = 237512853.563556;
+		modificationTime = 237557508.441903;
 		state = 2;
 	};
 	EE044A900CF0A0040003D697 /* WebPreferences.h */ = {
@@ -584,7 +610,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 262;
-		modificationTime = 237512853.57043;
+		modificationTime = 237557508.452277;
 		state = 2;
 	};
 	EE12797B0D03571E000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */ = {
@@ -601,7 +627,7 @@
 		ignoreCount = 0;
 		lineNumber = 386;
 		location = WebKit;
-		modificationTime = 237512853.570676;
+		modificationTime = 237557508.452625;
 		state = 2;
 	};
 	EE1279920D03E9C4000E4BA5 /* WebHTMLDocumentRepresentation.m:386 */ = {
@@ -618,7 +644,7 @@
 		ignoreCount = 0;
 		lineNumber = 386;
 		location = WebKit;
-		modificationTime = 237512853.570925;
+		modificationTime = 237557508.452976;
 		state = 2;
 	};
 	EE1279E00D040758000E4BA5 /* NSXMLParser.m:353 */ = {
@@ -635,10 +661,10 @@
 		ignoreCount = 0;
 		lineNumber = 353;
 		location = WebKit;
-		modificationTime = 237512853.571171;
+		modificationTime = 237557508.453342;
 		state = 2;
 	};
-	EE1279F90D041313000E4BA5 /* DOMHTML.m:1075 */ = {
+	EE1279F90D041313000E4BA5 /* DOMHTML.m:1080 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -650,11 +676,11 @@
 		functionName = "-_style";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1075;
-		modificationTime = 237512853.571421;
+		lineNumber = 1080;
+		modificationTime = 237557508.453733;
 		state = 2;
 	};
-	EE1279FF0D041360000E4BA5 /* DOMHTML.m:1087 */ = {
+	EE1279FF0D041360000E4BA5 /* DOMHTML.m:1092 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -666,9 +692,9 @@
 		functionName = "-_style";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1087;
+		lineNumber = 1092;
 		location = WebKit;
-		modificationTime = 237512853.571672;
+		modificationTime = 237557508.454091;
 		state = 2;
 	};
 	EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */ = {
@@ -692,7 +718,7 @@
 			EE4440220BDBEA410031F556 /* SWK Browser */,
 		);
 	};
-	EE19ED2C0D6DC88700B5840F /* DOMHTML.m:1175 */ = {
+	EE19ED2C0D6DC88700B5840F /* DOMHTML.m:1180 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -704,9 +730,8 @@
 		functionName = "-_layout:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1175;
-		location = WebKit;
-		modificationTime = 237512853.585876;
+		lineNumber = 1180;
+		modificationTime = 237557935.043697;
 		state = 1;
 	};
 	EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */ = {
@@ -752,7 +777,7 @@
 		ignoreCount = 0;
 		lineNumber = 491;
 		location = WebKit;
-		modificationTime = 237512853.560766;
+		modificationTime = 237557508.436965;
 		state = 2;
 	};
 	EE2151EB0C1E1CC5007E9D47 /* -[NSException raise] */ = {
@@ -784,7 +809,7 @@
 		ignoreCount = 0;
 		lineNumber = 345;
 		location = WebKit;
-		modificationTime = 237512853.552818;
+		modificationTime = 237557508.384266;
 		state = 2;
 	};
 	EE21521D0C1E7101007E9D47 /* NSXMLParser.m:511 */ = {
@@ -801,7 +826,7 @@
 		ignoreCount = 0;
 		lineNumber = 511;
 		location = WebKit;
-		modificationTime = 237512853.553112;
+		modificationTime = 237557508.390267;
 		state = 2;
 	};
 	EE2152200C1E7272007E9D47 /* NSXMLParser.m:440 */ = {
@@ -817,7 +842,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 440;
-		modificationTime = 237512853.553393;
+		modificationTime = 237557508.390755;
 		state = 2;
 	};
 	EE2152260C1E72C9007E9D47 /* NSXMLParser.m:439 */ = {
@@ -834,7 +859,7 @@
 		ignoreCount = 0;
 		lineNumber = 439;
 		location = WebKit;
-		modificationTime = 237512853.553669;
+		modificationTime = 237557508.39102;
 		state = 2;
 	};
 	EE21523E0C1EE8F5007E9D47 /* NSXMLParser.m:307 */ = {
@@ -851,7 +876,7 @@
 		ignoreCount = 0;
 		lineNumber = 307;
 		location = WebKit;
-		modificationTime = 237512853.553913;
+		modificationTime = 237557508.391293;
 		state = 2;
 	};
 	EE2152600C1F0369007E9D47 /* NSXMLParser.m:292 */ = {
@@ -868,7 +893,7 @@
 		ignoreCount = 0;
 		lineNumber = 292;
 		location = WebKit;
-		modificationTime = 237512853.554157;
+		modificationTime = 237557508.391541;
 		state = 2;
 	};
 	EE2152620C1F0370007E9D47 /* NSXMLParser.m:292 */ = {
@@ -885,7 +910,7 @@
 		ignoreCount = 0;
 		lineNumber = 292;
 		location = WebKit;
-		modificationTime = 237512853.554404;
+		modificationTime = 237557508.391788;
 		state = 2;
 	};
 	EE2152880C1F2E40007E9D47 /* WebDataSource.m:376 */ = {
@@ -902,7 +927,7 @@
 		ignoreCount = 0;
 		lineNumber = 376;
 		location = WebKit;
-		modificationTime = 237512853.55465;
+		modificationTime = 237557508.392038;
 		state = 2;
 	};
 	EE24FBA40C207610001947BB /* PBXBookmarkGroup */ = {
@@ -926,7 +951,7 @@
 		ignoreCount = 0;
 		lineNumber = 635;
 		location = WebKit;
-		modificationTime = 237512853.556644;
+		modificationTime = 237557508.43154;
 		state = 2;
 	};
 	EE24FC0A0C207665001947BB /* NSXMLParser.m:647 */ = {
@@ -943,7 +968,7 @@
 		ignoreCount = 0;
 		lineNumber = 647;
 		location = WebKit;
-		modificationTime = 237512853.556872;
+		modificationTime = 237557508.431825;
 		state = 2;
 	};
 	EE24FC330C208391001947BB /* NSXMLParser.m:636 */ = {
@@ -960,7 +985,7 @@
 		ignoreCount = 0;
 		lineNumber = 636;
 		location = WebKit;
-		modificationTime = 237512853.557103;
+		modificationTime = 237557508.432125;
 		state = 2;
 	};
 	EE24FC350C208397001947BB /* NSXMLParser.m:633 */ = {
@@ -977,7 +1002,7 @@
 		ignoreCount = 0;
 		lineNumber = 633;
 		location = WebKit;
-		modificationTime = 237512853.557352;
+		modificationTime = 237557508.432416;
 		state = 2;
 	};
 	EE24FC370C208398001947BB /* NSXMLParser.m:632 */ = {
@@ -994,7 +1019,7 @@
 		ignoreCount = 0;
 		lineNumber = 632;
 		location = WebKit;
-		modificationTime = 237512853.557585;
+		modificationTime = 237557508.432685;
 		state = 2;
 	};
 	EE24FC390C2083A9001947BB /* NSXMLParser.m:151 */ = {
@@ -1011,7 +1036,7 @@
 		ignoreCount = 0;
 		lineNumber = 151;
 		location = WebKit;
-		modificationTime = 237512853.557819;
+		modificationTime = 237557508.432975;
 		state = 2;
 	};
 	EE24FC3D0C2083DF001947BB /* NSXMLParser.m:342 */ = {
@@ -1028,7 +1053,7 @@
 		ignoreCount = 0;
 		lineNumber = 342;
 		location = WebKit;
-		modificationTime = 237512853.558054;
+		modificationTime = 237557508.433246;
 		state = 2;
 	};
 	EE24FC450C208A45001947BB /* MyDocument.m:566 */ = {
@@ -1045,7 +1070,7 @@
 		ignoreCount = 0;
 		lineNumber = 566;
 		location = SWKBrowser;
-		modificationTime = 237512853.558302;
+		modificationTime = 237557508.43351;
 		state = 2;
 	};
 	EE24FCE00C2094CE001947BB /* MyDocument.m:560 */ = {
@@ -1062,7 +1087,7 @@
 		ignoreCount = 0;
 		lineNumber = 560;
 		location = SWKBrowser;
-		modificationTime = 237512853.55854;
+		modificationTime = 237557508.433821;
 		state = 2;
 	};
 	EE24FCE50C2094E2001947BB /* MyDocument.m:542 */ = {
@@ -1079,7 +1104,7 @@
 		ignoreCount = 0;
 		lineNumber = 542;
 		location = SWKBrowser;
-		modificationTime = 237512853.55878;
+		modificationTime = 237557508.43409;
 		state = 2;
 	};
 	EE24FD0F0C209B18001947BB /* PBXBookmark */ = {
@@ -1108,7 +1133,7 @@
 		ignoreCount = 0;
 		lineNumber = 163;
 		location = WebKit;
-		modificationTime = 237512853.559019;
+		modificationTime = 237557508.434365;
 		state = 2;
 	};
 	EE24FD690C20BBFE001947BB /* NSXMLParser.m:467 */ = {
@@ -1125,7 +1150,7 @@
 		ignoreCount = 0;
 		lineNumber = 467;
 		location = WebKit;
-		modificationTime = 237512853.559299;
+		modificationTime = 237557508.434668;
 		state = 2;
 	};
 	EE24FD6B0C20BC46001947BB /* NSXMLParser.m:465 */ = {
@@ -1142,7 +1167,7 @@
 		ignoreCount = 0;
 		lineNumber = 465;
 		location = WebKit;
-		modificationTime = 237512853.559559;
+		modificationTime = 237557508.434969;
 		state = 2;
 	};
 	EE24FD920C20E66A001947BB /* WebScriptObject.m:71 */ = {
@@ -1159,7 +1184,7 @@
 		ignoreCount = 0;
 		lineNumber = 71;
 		location = WebKit;
-		modificationTime = 237512853.559765;
+		modificationTime = 237557508.435283;
 		state = 2;
 	};
 	EE24FDA40C20EB72001947BB /* WebHTMLDocumentRepresentation.m:283 */ = {
@@ -1175,8 +1200,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 283;
-		location = WebKit;
-		modificationTime = 237512853.559961;
+		modificationTime = 237557935.044248;
 		state = 1;
 	};
 	EE2689340D5C552100116FAC /* WebView.m:354 */ = {
@@ -1193,7 +1217,7 @@
 		ignoreCount = 0;
 		lineNumber = 354;
 		location = WebKit;
-		modificationTime = 237512853.581934;
+		modificationTime = 237557508.470418;
 		state = 2;
 	};
 	EE27270005426A7F0000013C /* mySTEP.make */ = {
@@ -1213,13 +1237,13 @@
 	};
 	EE291C080AD78194004A1CA6 /* WebScriptObject.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1071, 2240}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1071, 2254}}";
 			sepNavSelRange = "{2426, 0}";
 			sepNavVisRange = "{1795, 1178}";
 			sepNavVisRect = "{{0, 848}, {932, 756}}";
 		};
 	};
-	EE3E63E00D29082700B28288 /* DOMHTML.m:2251 */ = {
+	EE3E63E00D29082700B28288 /* DOMHTML.m:2256 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1231,12 +1255,12 @@
 		functionName = "-_addAttributesToStyle";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 2251;
+		lineNumber = 2256;
 		location = WebKit;
-		modificationTime = 237512853.576872;
+		modificationTime = 237557508.462284;
 		state = 2;
 	};
-	EE3E643A0D2910A300B28288 /* DOMHTML.m:2277 */ = {
+	EE3E643A0D2910A300B28288 /* DOMHTML.m:2282 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1248,12 +1272,12 @@
 		functionName = "-_addAttributesToStyle";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 2277;
+		lineNumber = 2282;
 		location = WebKit;
-		modificationTime = 237512853.577169;
+		modificationTime = 237557508.462674;
 		state = 2;
 	};
-	EE3E648F0D2945E900B28288 /* DOMHTML.m:2175 */ = {
+	EE3E648F0D2945E900B28288 /* DOMHTML.m:2180 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1265,9 +1289,9 @@
 		functionName = "-_string";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 2175;
+		lineNumber = 2180;
 		location = WebKit;
-		modificationTime = 237512853.577438;
+		modificationTime = 237557508.46308;
 		state = 2;
 	};
 	EE40F5B70D26B0C40083978F /* WebView.m:459 */ = {
@@ -1284,7 +1308,7 @@
 		ignoreCount = 0;
 		lineNumber = 459;
 		location = WebKit;
-		modificationTime = 237512853.576603;
+		modificationTime = 237557508.461877;
 		state = 2;
 	};
 	EE428B340A4819A2003437D2 /* WebResource.h */ = {
@@ -1301,7 +1325,7 @@
 			sepNavVisRect = "{{0, 0}, {932, 756}}";
 		};
 	};
-	EE43914A0D6ACD6C00E06EB8 /* DOMHTML.m:1944 */ = {
+	EE43914A0D6ACD6C00E06EB8 /* DOMHTML.m:1949 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1313,9 +1337,8 @@
 		functionName = "-submit:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1944;
-		location = WebKit;
-		modificationTime = 237512853.585576;
+		lineNumber = 1949;
+		modificationTime = 237557935.04175;
 		state = 1;
 	};
 	EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */ = {
@@ -1426,10 +1449,10 @@
 		ignoreCount = 0;
 		lineNumber = 163;
 		location = WebKit;
-		modificationTime = 237512853.577709;
+		modificationTime = 237557508.463514;
 		state = 2;
 	};
-	EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1753 */ = {
+	EE4C1C1A0D3552F000B1513B /* DOMHTML.m:1758 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1441,12 +1464,12 @@
 		functionName = "+_designatedParentNode:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1753;
+		lineNumber = 1758;
 		location = WebKit;
-		modificationTime = 237512853.577978;
+		modificationTime = 237557508.463909;
 		state = 2;
 	};
-	EE4C3FF60D3684C700B1513B /* DOMHTML.m:1236 */ = {
+	EE4C3FF60D3684C700B1513B /* DOMHTML.m:1241 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1458,12 +1481,12 @@
 		functionName = "-_layout:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1236;
+		lineNumber = 1241;
 		location = WebKit;
-		modificationTime = 237512853.57825;
+		modificationTime = 237557508.464386;
 		state = 2;
 	};
-	EE4C40070D36858800B1513B /* DOMHTML.m:1166 */ = {
+	EE4C40070D36858800B1513B /* DOMHTML.m:1171 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1475,9 +1498,9 @@
 		functionName = "-_layout:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1166;
+		lineNumber = 1171;
 		location = WebKit;
-		modificationTime = 237512853.578521;
+		modificationTime = 237557508.464813;
 		state = 2;
 	};
 	EE5A1BA30D565296008D0EC9 /* WebHistory.m:75 */ = {
@@ -1494,7 +1517,7 @@
 		ignoreCount = 0;
 		lineNumber = 75;
 		location = WebKit;
-		modificationTime = 237512853.579884;
+		modificationTime = 237557508.46695;
 		state = 2;
 	};
 	EE5A1BAF0D5653D7008D0EC9 /* MyApplication.m:233 */ = {
@@ -1511,7 +1534,7 @@
 		ignoreCount = 0;
 		lineNumber = 233;
 		location = SWKBrowser;
-		modificationTime = 237512853.580164;
+		modificationTime = 237557508.467473;
 		state = 2;
 	};
 	EE5A1BB10D5653DF008D0EC9 /* MyApplication.m:217 */ = {
@@ -1527,8 +1550,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 217;
-		location = SWKBrowser;
-		modificationTime = 237512853.580488;
+		modificationTime = 237557935.045147;
 		state = 1;
 	};
 	EE5A1BC60D565736008D0EC9 /* MyApplication.m:143 */ = {
@@ -1545,7 +1567,7 @@
 		ignoreCount = 0;
 		lineNumber = 143;
 		location = SWKBrowser;
-		modificationTime = 237512853.580768;
+		modificationTime = 237557508.468488;
 		state = 2;
 	};
 	EE5ADD7A0D531906008D0EC9 /* WebHistory.m:177 */ = {
@@ -1561,8 +1583,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 177;
-		location = WebKit;
-		modificationTime = 237512853.578792;
+		modificationTime = 237557935.046426;
 		state = 1;
 	};
 	EE5AE56B0D5370F4008D0EC9 /* WebFrame.m:101 */ = {
@@ -1579,7 +1600,7 @@
 		ignoreCount = 0;
 		lineNumber = 101;
 		location = WebKit;
-		modificationTime = 237512853.579065;
+		modificationTime = 237557508.465674;
 		state = 2;
 	};
 	EE5AE58C0D537759008D0EC9 /* WebFrame.m:126 */ = {
@@ -1596,7 +1617,7 @@
 		ignoreCount = 0;
 		lineNumber = 126;
 		location = WebKit;
-		modificationTime = 237512853.579337;
+		modificationTime = 237557508.466131;
 		state = 2;
 	};
 	EE5AE59A0D53794C008D0EC9 /* WebHistory.m:90 */ = {
@@ -1613,7 +1634,7 @@
 		ignoreCount = 0;
 		lineNumber = 90;
 		location = WebKit;
-		modificationTime = 237512853.579609;
+		modificationTime = 237557508.466535;
 		state = 2;
 	};
 	EE5D27D60A1A677A000E507B /* WebBackForwardList.m */ = {
@@ -1736,7 +1757,7 @@
 		ignoreCount = 0;
 		lineNumber = 1054;
 		location = WebKit;
-		modificationTime = 237512853.563777;
+		modificationTime = 237557508.442256;
 		state = 2;
 	};
 	EE605E5B0CF0E0820015A499 /* ECMAScriptParser.m:1048 */ = {
@@ -1753,7 +1774,7 @@
 		ignoreCount = 0;
 		lineNumber = 1048;
 		location = WebKit;
-		modificationTime = 237512853.563998;
+		modificationTime = 237557508.442694;
 		state = 2;
 	};
 	EE605E5D0CF0E0880015A499 /* ECMAScriptParser.m:1045 */ = {
@@ -1770,7 +1791,7 @@
 		ignoreCount = 0;
 		lineNumber = 1045;
 		location = WebKit;
-		modificationTime = 237512853.564219;
+		modificationTime = 237557508.44304;
 		state = 2;
 	};
 	EE605E710CF0E2A90015A499 /* ECMAScriptParser.m:1333 */ = {
@@ -1787,7 +1808,7 @@
 		ignoreCount = 0;
 		lineNumber = 1333;
 		location = WebKit;
-		modificationTime = 237512853.56444;
+		modificationTime = 237557508.443351;
 		state = 2;
 	};
 	EE605E780CF0E3020015A499 /* ECMAScriptParser.m:1307 */ = {
@@ -1804,7 +1825,7 @@
 		ignoreCount = 0;
 		lineNumber = 1307;
 		location = WebKit;
-		modificationTime = 237512853.564664;
+		modificationTime = 237557508.443681;
 		state = 2;
 	};
 	EE6072E00CF18C530015A499 /* ECMAScriptParser.m:536 */ = {
@@ -1821,7 +1842,7 @@
 		ignoreCount = 0;
 		lineNumber = 536;
 		location = WebKit;
-		modificationTime = 237512853.564888;
+		modificationTime = 237557508.444014;
 		state = 2;
 	};
 	EE6072E50CF18D4B0015A499 /* ECMAScriptParser.m:545 */ = {
@@ -1838,7 +1859,7 @@
 		ignoreCount = 0;
 		lineNumber = 545;
 		location = WebKit;
-		modificationTime = 237512853.565115;
+		modificationTime = 237557508.444328;
 		state = 2;
 	};
 	EE6072EE0CF18F030015A499 /* ECMAScriptParser.m:1281 */ = {
@@ -1855,7 +1876,7 @@
 		ignoreCount = 0;
 		lineNumber = 1281;
 		location = WebKit;
-		modificationTime = 237512853.565382;
+		modificationTime = 237557508.444663;
 		state = 2;
 	};
 	EE6072F40CF18FE70015A499 /* ECMAScriptParser.m:1293 */ = {
@@ -1872,7 +1893,7 @@
 		ignoreCount = 0;
 		lineNumber = 1293;
 		location = WebKit;
-		modificationTime = 237512853.565611;
+		modificationTime = 237557508.444982;
 		state = 2;
 	};
 	EE6072FE0CF1921F0015A499 /* ECMAScriptParser.m:1118 */ = {
@@ -1889,7 +1910,7 @@
 		ignoreCount = 0;
 		lineNumber = 1118;
 		location = WebKit;
-		modificationTime = 237512853.565842;
+		modificationTime = 237557508.445318;
 		state = 2;
 	};
 	EE60731A0CF1B1090015A499 /* ECMAScriptParser.m:149 */ = {
@@ -1905,7 +1926,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 149;
-		modificationTime = 237512853.566071;
+		modificationTime = 237557508.445654;
 		state = 2;
 	};
 	EE60731C0CF1B10F0015A499 /* ECMAScriptParser.m:158 */ = {
@@ -1922,7 +1943,7 @@
 		ignoreCount = 0;
 		lineNumber = 158;
 		location = WebKit;
-		modificationTime = 237512853.566353;
+		modificationTime = 237557508.445972;
 		state = 2;
 	};
 	EE6073200CF1B1640015A499 /* ECMAScriptParser.m:561 */ = {
@@ -1939,7 +1960,7 @@
 		ignoreCount = 0;
 		lineNumber = 561;
 		location = WebKit;
-		modificationTime = 237512853.566583;
+		modificationTime = 237557508.446294;
 		state = 2;
 	};
 	EE6073250CF1B1940015A499 /* ECMAScriptParser.m:148 */ = {
@@ -1956,7 +1977,7 @@
 		ignoreCount = 0;
 		lineNumber = 148;
 		location = WebKit;
-		modificationTime = 237512853.566815;
+		modificationTime = 237557508.44667;
 		state = 2;
 	};
 	EE6073270CF1D47F0015A499 /* ECMAScriptParser.m:361 */ = {
@@ -1973,7 +1994,7 @@
 		ignoreCount = 0;
 		lineNumber = 361;
 		location = WebKit;
-		modificationTime = 237512853.567059;
+		modificationTime = 237557508.447014;
 		state = 2;
 	};
 	EE60732B0CF1D8510015A499 /* ECMAScriptParser.m:365 */ = {
@@ -1990,7 +2011,7 @@
 		ignoreCount = 0;
 		lineNumber = 365;
 		location = WebKit;
-		modificationTime = 237512853.567294;
+		modificationTime = 237557508.447358;
 		state = 2;
 	};
 	EE60733A0CF1DCED0015A499 /* ECMAScriptParser.m:1108 */ = {
@@ -2006,8 +2027,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 1108;
-		location = WebKit;
-		modificationTime = 237512853.567531;
+		modificationTime = 237557935.046865;
 		state = 1;
 	};
 	EE60FA780BA6928400503BB4 /* WebArchive.h */ = {
@@ -2164,7 +2184,7 @@
 		ignoreCount = 0;
 		lineNumber = 688;
 		location = WebKit;
-		modificationTime = 237512853.560966;
+		modificationTime = 237557508.437322;
 		state = 2;
 	};
 	EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */ = {
@@ -2183,15 +2203,17 @@
 	};
 	EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {825, 658}}";
-			sepNavSelRange = "{1305, 0}";
+			sepNavIntBoundsRect = "{{0, 0}, {970, 560}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 907}";
 			sepNavVisRect = "{{0, 110}, {825, 548}}";
 		};
 	};
 	EE6FBB160C21D9F80095EEA6 /* WebPDFDocument.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {900, 1260}}";
-			sepNavSelRange = "{1055, 317}";
+			sepNavIntBoundsRect = "{{0, 0}, {970, 1050}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 906}";
 			sepNavVisRect = "{{0, 140}, {900, 566}}";
 		};
 	};
@@ -2320,7 +2342,7 @@
 		ignoreCount = 0;
 		lineNumber = 69;
 		location = WebKit;
-		modificationTime = 237512853.567765;
+		modificationTime = 237557508.448139;
 		state = 2;
 	};
 	EE795F070CF242D500C0D04F /* ECMAScriptParser.m:284 */ = {
@@ -2336,8 +2358,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 284;
-		location = WebKit;
-		modificationTime = 237512853.568002;
+		modificationTime = 237557935.047215;
 		state = 1;
 	};
 	EE795F0F0CF246B000C0D04F /* ECMAScriptParser.m:813 */ = {
@@ -2354,7 +2375,7 @@
 		ignoreCount = 0;
 		lineNumber = 813;
 		location = WebKit;
-		modificationTime = 237512853.56824;
+		modificationTime = 237557508.448873;
 		state = 2;
 	};
 	EE795F150CF2494000C0D04F /* ECMAScriptParser.m:794 */ = {
@@ -2371,7 +2392,7 @@
 		ignoreCount = 0;
 		lineNumber = 794;
 		location = WebKit;
-		modificationTime = 237512853.568477;
+		modificationTime = 237557508.449266;
 		state = 2;
 	};
 	EE795F220CF24A2D00C0D04F /* MyDocument.m:227 */ = {
@@ -2388,7 +2409,7 @@
 		ignoreCount = 0;
 		lineNumber = 227;
 		location = SWKBrowser;
-		modificationTime = 237512853.568716;
+		modificationTime = 237557508.449611;
 		state = 2;
 	};
 	EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */ = {
@@ -2399,7 +2420,7 @@
 			sepNavVisRect = "{{0, 0}, {825, 548}}";
 		};
 	};
-	EE82B84D0C88C0F400036409 /* DOMHTML.m:1629 */ = {
+	EE82B84D0C88C0F400036409 /* DOMHTML.m:1634 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2411,9 +2432,9 @@
 		functionName = "-_elementLoaded";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1629;
+		lineNumber = 1634;
 		location = WebKit;
-		modificationTime = 237512853.561371;
+		modificationTime = 237557508.438019;
 		state = 2;
 	};
 	EE82B8C60C89C28A00036409 /* DOMCore.m:442 */ = {
@@ -2429,11 +2450,10 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 442;
-		location = WebKit;
-		modificationTime = 237512853.561573;
+		modificationTime = 237557935.046113;
 		state = 1;
 	};
-	EE8721030D01C40600B2037D /* DOMHTML.m:537 */ = {
+	EE8721030D01C40600B2037D /* DOMHTML.m:542 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2445,12 +2465,12 @@
 		functionName = "-_string";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 537;
+		lineNumber = 542;
 		location = WebKit;
-		modificationTime = 237512853.569195;
+		modificationTime = 237557508.450337;
 		state = 2;
 	};
-	EE87210C0D01C49F00B2037D /* DOMHTML.m:187 */ = {
+	EE87210C0D01C49F00B2037D /* DOMHTML.m:192 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2462,12 +2482,12 @@
 		functionName = "-attributedString";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 187;
+		lineNumber = 192;
 		location = WebKit;
-		modificationTime = 237512853.569438;
+		modificationTime = 237557508.450698;
 		state = 2;
 	};
-	EE8721550D01F80400B2037D /* DOMHTML.m:1320 */ = {
+	EE8721550D01F80400B2037D /* DOMHTML.m:1325 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2479,9 +2499,9 @@
 		functionName = "-_addAttributesToStyle:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1320;
+		lineNumber = 1325;
 		location = WebKit;
-		modificationTime = 237512853.569682;
+		modificationTime = 237557508.451048;
 		state = 2;
 	};
 	EE8721C10D0214F600B2037D /* GNUmakefile */ = {
@@ -2508,7 +2528,7 @@
 			sepNavVisRect = "{{0, 0}, {856, 566}}";
 		};
 	};
-	EE87220B0D021D3700B2037D /* DOMHTML.m:1316 */ = {
+	EE87220B0D021D3700B2037D /* DOMHTML.m:1321 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2520,12 +2540,12 @@
 		functionName = "-_blockLevel";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1316;
+		lineNumber = 1321;
 		location = WebKit;
-		modificationTime = 237512853.569926;
+		modificationTime = 237557508.451454;
 		state = 2;
 	};
-	EE87220D0D021D5100B2037D /* DOMHTML.m:267 */ = {
+	EE87220D0D021D5100B2037D /* DOMHTML.m:272 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2537,9 +2557,9 @@
 		functionName = "-_blockLevel";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 267;
+		lineNumber = 272;
 		location = WebKit;
-		modificationTime = 237512853.570179;
+		modificationTime = 237557508.451821;
 		state = 2;
 	};
 	EE87B3120D0015A300B2037D /* GNUmakefile */ = {
@@ -2550,7 +2570,7 @@
 			sepNavVisRect = "{{0, 98}, {856, 566}}";
 		};
 	};
-	EE87B32D0D001B6B00B2037D /* DOMHTML.m:1607 */ = {
+	EE87B32D0D001B6B00B2037D /* DOMHTML.m:1612 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2562,9 +2582,9 @@
 		functionName = "-_shouldSpliceNewline:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1607;
+		lineNumber = 1612;
 		location = WebKit;
-		modificationTime = 237512853.568956;
+		modificationTime = 237557508.449975;
 		state = 2;
 	};
 	EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */ = {
@@ -2584,17 +2604,17 @@
 	};
 	EE8AFF880B6C8F9200346917 /* DOMHTML.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1137, 2030}}";
-			sepNavSelRange = "{1242, 0}";
-			sepNavVisRange = "{913, 648}";
+			sepNavIntBoundsRect = "{{0, 0}, {1032, 3626}}";
+			sepNavSelRange = "{1022, 10}";
+			sepNavVisRange = "{913, 567}";
 			sepNavVisRect = "{{0, 361}, {900, 566}}";
 		};
 	};
 	EE8AFF890B6C8F9200346917 /* DOMHTML.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1137, 32928}}";
-			sepNavSelRange = "{29247, 0}";
-			sepNavVisRange = "{28846, 564}";
+			sepNavIntBoundsRect = "{{0, 0}, {970, 33138}}";
+			sepNavSelRange = "{3084, 0}";
+			sepNavVisRange = "{2803, 490}";
 			sepNavVisRect = "{{0, 16044}, {900, 566}}";
 			sepNavWindowFrame = "{{15, 143}, {1078, 730}}";
 		};
@@ -2651,7 +2671,7 @@
 			sepNavVisRect = "{{0, 0}, {900, 566}}";
 		};
 	};
-	EE9DB0EF0D12BE780090A70F /* DOMHTML.m:250 */ = {
+	EE9DB0EF0D12BE780090A70F /* DOMHTML.m:255 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2663,9 +2683,9 @@
 		functionName = "-finishedLoadingWithDataSource:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 250;
+		lineNumber = 255;
 		location = WebKit;
-		modificationTime = 237512853.57527;
+		modificationTime = 237557508.459781;
 		state = 2;
 	};
 	EE9DB1160D12C0590090A70F /* WebHTMLDocumentRepresentation.m:417 */ = {
@@ -2682,10 +2702,10 @@
 		ignoreCount = 0;
 		lineNumber = 417;
 		location = WebKit;
-		modificationTime = 237512853.575552;
+		modificationTime = 237557508.460209;
 		state = 2;
 	};
-	EE9DB1F80D12CA520090A70F /* DOMHTML.m:1194 */ = {
+	EE9DB1F80D12CA520090A70F /* DOMHTML.m:1199 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2697,9 +2717,9 @@
 		functionName = "-_layout:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1194;
+		lineNumber = 1199;
 		location = WebKit;
-		modificationTime = 237512853.575812;
+		modificationTime = 237557508.460606;
 		state = 2;
 	};
 	EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */ = {
@@ -2774,9 +2794,9 @@
 	};
 	EEA3D39C095468BA001244CF /* WebView.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1137, 10766}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1137, 10724}}";
 			sepNavSelRange = "{8269, 0}";
-			sepNavVisRange = "{7364, 1083}";
+			sepNavVisRange = "{7468, 979}";
 			sepNavVisRect = "{{0, 6602}, {900, 566}}";
 		};
 	};
@@ -2794,7 +2814,7 @@
 		ignoreCount = 0;
 		lineNumber = 312;
 		location = WebKit;
-		modificationTime = 237512853.561775;
+		modificationTime = 237557508.438868;
 		state = 2;
 	};
 	EEA401370CC111D000DB0FF7 /* szone_error */ = {
@@ -2842,7 +2862,7 @@
 		ignoreCount = 0;
 		lineNumber = 88;
 		location = WebKit;
-		modificationTime = 237512853.561985;
+		modificationTime = 237557508.439313;
 		state = 2;
 	};
 	EEA4016F0CC116A500DB0FF7 /* WebHTMLDocumentRepresentation.m:359 */ = {
@@ -2859,10 +2879,10 @@
 		ignoreCount = 0;
 		lineNumber = 359;
 		location = WebKit;
-		modificationTime = 237512853.562201;
+		modificationTime = 237557508.439759;
 		state = 2;
 	};
-	EEA403EA0CC12C2300DB0FF7 /* DOMHTML.m:293 */ = {
+	EEA403EA0CC12C2300DB0FF7 /* DOMHTML.m:298 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2874,12 +2894,12 @@
 		functionName = "-_elementDidAwakeFromDocumentRepresentation:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 293;
+		lineNumber = 298;
 		location = WebKit;
-		modificationTime = 237512853.56241;
+		modificationTime = 237557508.440092;
 		state = 2;
 	};
-	EEA4040C0CC12D9E00DB0FF7 /* DOMHTML.m:285 */ = {
+	EEA4040C0CC12D9E00DB0FF7 /* DOMHTML.m:290 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2891,12 +2911,12 @@
 		functionName = "-_triggerEvent:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 285;
+		lineNumber = 290;
 		location = WebKit;
-		modificationTime = 237512853.562621;
+		modificationTime = 237557508.440408;
 		state = 2;
 	};
-	EEA69C320D6790FF005582FB /* DOMHTML.m:656 */ = {
+	EEA69C320D6790FF005582FB /* DOMHTML.m:661 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2908,12 +2928,12 @@
 		functionName = "-_elementDidAwakeFromDocumentRepresentation:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 656;
+		lineNumber = 661;
 		location = WebKit;
-		modificationTime = 237512853.58498;
+		modificationTime = 237557508.475452;
 		state = 2;
 	};
-	EEA69C360D679124005582FB /* DOMHTML.m:1902 */ = {
+	EEA69C360D679124005582FB /* DOMHTML.m:1907 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2925,9 +2945,9 @@
 		functionName = "-_addAttributesToStyle";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1902;
+		lineNumber = 1907;
 		location = WebKit;
-		modificationTime = 237512853.585272;
+		modificationTime = 237557508.475958;
 		state = 2;
 	};
 	EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */ = {
@@ -3071,7 +3091,7 @@
 		ignoreCount = 0;
 		lineNumber = 241;
 		location = WebKit;
-		modificationTime = 237512853.586173;
+		modificationTime = 237557508.477548;
 		state = 2;
 	};
 	EEAA51FD0DDA076A00D42522 /* MyDocument.m:423 */ = {
@@ -3088,7 +3108,7 @@
 		ignoreCount = 0;
 		lineNumber = 423;
 		location = SWKBrowser;
-		modificationTime = 237512853.586472;
+		modificationTime = 237557508.478141;
 		state = 2;
 	};
 	EEAA52390DDA1B4900D42522 /* PBXTextBookmark */ = {
@@ -3280,7 +3300,7 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = "DOMHTML.m: 194";
 		rLen = 0;
-		rLoc = 6068;
+		rLoc = 6120;
 		rType = 0;
 		vrLen = 720;
 		vrLoc = 5758;
@@ -3483,7 +3503,7 @@
 		ignoreCount = 0;
 		lineNumber = 265;
 		location = WebKit;
-		modificationTime = 237512853.582219;
+		modificationTime = 237557508.470928;
 		state = 2;
 	};
 	EEAA6B290D677E95001143C2 /* WebDataSource.m:279 */ = {
@@ -3499,7 +3519,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 279;
-		modificationTime = 237512853.582503;
+		modificationTime = 237557508.471409;
 		state = 2;
 	};
 	EEAA6B2B0D677E98001143C2 /* WebDataSource.m:279 */ = {
@@ -3516,7 +3536,7 @@
 		ignoreCount = 0;
 		lineNumber = 279;
 		location = WebKit;
-		modificationTime = 237512853.582787;
+		modificationTime = 237557508.47196;
 		state = 2;
 	};
 	EEAA6B4D0D6783CA001143C2 /* WebFrame.m:226 */ = {
@@ -3533,7 +3553,7 @@
 		ignoreCount = 0;
 		lineNumber = 226;
 		location = WebKit;
-		modificationTime = 237512853.583229;
+		modificationTime = 237557508.472539;
 		state = 2;
 	};
 	EEAA6B4F0D6783D0001143C2 /* WebFrame.m:209 */ = {
@@ -3550,7 +3570,7 @@
 		ignoreCount = 0;
 		lineNumber = 209;
 		location = WebKit;
-		modificationTime = 237512853.583527;
+		modificationTime = 237557508.473012;
 		state = 2;
 	};
 	EEAA6B510D6783D3001143C2 /* WebFrame.m:201 */ = {
@@ -3567,10 +3587,10 @@
 		ignoreCount = 0;
 		lineNumber = 201;
 		location = WebKit;
-		modificationTime = 237512853.583817;
+		modificationTime = 237557508.473511;
 		state = 2;
 	};
-	EEAA6B5A0D678592001143C2 /* DOMHTML.m:1903 */ = {
+	EEAA6B5A0D678592001143C2 /* DOMHTML.m:1908 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3582,12 +3602,12 @@
 		functionName = "-_addAttributesToStyle";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1903;
+		lineNumber = 1908;
 		location = WebKit;
-		modificationTime = 237512853.584105;
+		modificationTime = 237557508.474013;
 		state = 2;
 	};
-	EEAA6CD30D678DEF001143C2 /* DOMHTML.m:653 */ = {
+	EEAA6CD30D678DEF001143C2 /* DOMHTML.m:658 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3599,12 +3619,12 @@
 		functionName = "-_elementDidAwakeFromDocumentRepresentation:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 653;
+		lineNumber = 658;
 		location = WebKit;
-		modificationTime = 237512853.584398;
+		modificationTime = 237557508.474443;
 		state = 2;
 	};
-	EEAA6CD70D678F00001143C2 /* DOMHTML.m:667 */ = {
+	EEAA6CD70D678F00001143C2 /* DOMHTML.m:672 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3616,9 +3636,8 @@
 		functionName = "-_elementDidAwakeFromDocumentRepresentation:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 667;
-		location = WebKit;
-		modificationTime = 237512853.584689;
+		lineNumber = 672;
+		modificationTime = 237557935.045594;
 		state = 1;
 	};
 	EEAC9CC70C1F309800FB014F /* NSXMLParser.m:250 */ = {
@@ -3635,10 +3654,10 @@
 		ignoreCount = 0;
 		lineNumber = 250;
 		location = WebKit;
-		modificationTime = 237512853.554894;
+		modificationTime = 237557508.392351;
 		state = 2;
 	};
-	EEAC9CE30C1F36DE00FB014F /* DOMHTML.m:761 */ = {
+	EEAC9CE30C1F36DE00FB014F /* DOMHTML.m:766 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3650,12 +3669,12 @@
 		functionName = "+_readMode";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 761;
+		lineNumber = 766;
 		location = WebKit;
-		modificationTime = 237512853.555136;
+		modificationTime = 237557508.429733;
 		state = 2;
 	};
-	EEAC9E430C1F377900FB014F /* DOMHTML.m:761 */ = {
+	EEAC9E430C1F377900FB014F /* DOMHTML.m:766 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3667,9 +3686,9 @@
 		functionName = "+_readMode";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 761;
+		lineNumber = 766;
 		location = WebKit;
-		modificationTime = 237512853.555436;
+		modificationTime = 237557508.430083;
 		state = 2;
 	};
 	EEAC9E510C1F3B2A00FB014F /* WebHTMLDocumentRepresentation.m:387 */ = {
@@ -3686,10 +3705,10 @@
 		ignoreCount = 0;
 		lineNumber = 387;
 		location = WebKit;
-		modificationTime = 237512853.555682;
+		modificationTime = 237557508.430385;
 		state = 2;
 	};
-	EEAC9E620C1F441600FB014F /* DOMHTML.m:763 */ = {
+	EEAC9E620C1F441600FB014F /* DOMHTML.m:768 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3701,9 +3720,9 @@
 		functionName = "-_awakeFromDocumentRepresentation:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 763;
+		lineNumber = 768;
 		location = WebKit;
-		modificationTime = 237512853.555926;
+		modificationTime = 237557508.430692;
 		state = 2;
 	};
 	EEAC9E950C1F5D4800FB014F /* NSXMLParser.m:345 */ = {
@@ -3719,7 +3738,7 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 345;
-		modificationTime = 237512853.55619;
+		modificationTime = 237557508.431006;
 		state = 2;
 	};
 	EEAC9E970C1F5D4900FB014F /* NSXMLParser.m:345 */ = {
@@ -3736,7 +3755,7 @@
 		ignoreCount = 0;
 		lineNumber = 345;
 		location = WebKit;
-		modificationTime = 237512853.556416;
+		modificationTime = 237557508.431269;
 		state = 2;
 	};
 	EEAF44080D7D749F007B4990 /* PBXTextBookmark */ = {
@@ -3821,7 +3840,7 @@
 		ignoreCount = 0;
 		lineNumber = 198;
 		location = SWKBrowser;
-		modificationTime = 237512853.571923;
+		modificationTime = 237557508.454463;
 		state = 2;
 	};
 	EEB143DF0D126121001212B5 /* MyDocument.m:195 */ = {
@@ -3838,7 +3857,7 @@
 		ignoreCount = 0;
 		lineNumber = 195;
 		location = SWKBrowser;
-		modificationTime = 237512853.57218;
+		modificationTime = 237557508.45488;
 		state = 2;
 	};
 	EEB143E60D1262B4001212B5 /* WebHTMLDocumentRepresentation.m:237 */ = {
@@ -3855,7 +3874,7 @@
 		ignoreCount = 0;
 		lineNumber = 237;
 		location = WebKit;
-		modificationTime = 237512853.572433;
+		modificationTime = 237557508.455298;
 		state = 2;
 	};
 	EEB143EE0D1262CC001212B5 /* MyDocument.m:198 */ = {
@@ -3872,10 +3891,10 @@
 		ignoreCount = 0;
 		lineNumber = 198;
 		location = SWKBrowser;
-		modificationTime = 237512853.572685;
+		modificationTime = 237557508.455722;
 		state = 2;
 	};
-	EEB179DB0D1283F5001212B5 /* DOMHTML.m:746 */ = {
+	EEB179DB0D1283F5001212B5 /* DOMHTML.m:751 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3887,12 +3906,12 @@
 		functionName = "-_elementDidAwakeFromDocumentRepresentation:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 746;
+		lineNumber = 751;
 		location = WebKit;
-		modificationTime = 237512853.572947;
+		modificationTime = 237557508.456177;
 		state = 2;
 	};
-	EEB179F70D128FE6001212B5 /* DOMHTML.m:808 */ = {
+	EEB179F70D128FE6001212B5 /* DOMHTML.m:813 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3904,12 +3923,12 @@
 		functionName = "-_elementLoaded";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 808;
+		lineNumber = 813;
 		location = WebKit;
-		modificationTime = 237512853.573212;
+		modificationTime = 237557508.456551;
 		state = 2;
 	};
-	EEB179FC0D12913E001212B5 /* DOMHTML.m:809 */ = {
+	EEB179FC0D12913E001212B5 /* DOMHTML.m:814 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3921,12 +3940,12 @@
 		functionName = "-_elementLoaded";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 809;
+		lineNumber = 814;
 		location = WebKit;
-		modificationTime = 237512853.573466;
+		modificationTime = 237557508.456935;
 		state = 2;
 	};
-	EEB179FE0D1291AA001212B5 /* DOMHTML.m:777 */ = {
+	EEB179FE0D1291AA001212B5 /* DOMHTML.m:782 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3938,12 +3957,12 @@
 		functionName = "-_elementLoaded";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 777;
+		lineNumber = 782;
 		location = WebKit;
-		modificationTime = 237512853.573724;
+		modificationTime = 237557508.457337;
 		state = 2;
 	};
-	EEB17A140D12A4EC001212B5 /* DOMHTML.m:244 */ = {
+	EEB17A140D12A4EC001212B5 /* DOMHTML.m:249 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3955,12 +3974,12 @@
 		functionName = "-finishedLoadingWithDataSource:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 244;
+		lineNumber = 249;
 		location = WebKit;
-		modificationTime = 237512853.57398;
+		modificationTime = 237557508.457724;
 		state = 2;
 	};
-	EEB17A190D12A514001212B5 /* DOMHTML.m:252 */ = {
+	EEB17A190D12A514001212B5 /* DOMHTML.m:257 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -3972,9 +3991,9 @@
 		functionName = "-finishedLoadingWithDataSource:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 252;
+		lineNumber = 257;
 		location = WebKit;
-		modificationTime = 237512853.574239;
+		modificationTime = 237557508.458144;
 		state = 2;
 	};
 	EEB17A690D12BC5B001212B5 /* WebHTMLDocumentRepresentation.m:139 */ = {
@@ -3991,10 +4010,10 @@
 		ignoreCount = 0;
 		lineNumber = 139;
 		location = WebKit;
-		modificationTime = 237512853.574498;
+		modificationTime = 237557508.458579;
 		state = 2;
 	};
-	EEB17A950D12BD97001212B5 /* DOMHTML.m:249 */ = {
+	EEB17A950D12BD97001212B5 /* DOMHTML.m:254 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -4006,12 +4025,12 @@
 		functionName = "-finishedLoadingWithDataSource:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 249;
+		lineNumber = 254;
 		location = WebKit;
-		modificationTime = 237512853.574755;
+		modificationTime = 237557508.459011;
 		state = 2;
 	};
-	EEB17A970D12BD98001212B5 /* DOMHTML.m:248 */ = {
+	EEB17A970D12BD98001212B5 /* DOMHTML.m:253 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -4023,9 +4042,9 @@
 		functionName = "-finishedLoadingWithDataSource:";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 248;
+		lineNumber = 253;
 		location = WebKit;
-		modificationTime = 237512853.575013;
+		modificationTime = 237557508.459402;
 		state = 2;
 	};
 	EEB6E08C0C2193E6006A6ABB /* WebHTMLDocumentView.m:450 */ = {
@@ -4042,7 +4061,7 @@
 		ignoreCount = 0;
 		lineNumber = 450;
 		location = WebKit;
-		modificationTime = 237512853.560156;
+		modificationTime = 237557508.43601;
 		state = 2;
 	};
 	EEB6E08E0C2193E8006A6ABB /* WebHTMLDocumentView.m:417 */ = {
@@ -4059,7 +4078,7 @@
 		ignoreCount = 0;
 		lineNumber = 417;
 		location = WebKit;
-		modificationTime = 237512853.560352;
+		modificationTime = 237557508.436299;
 		state = 2;
 	};
 	EEB6E0D60C21948B006A6ABB /* WebHTMLDocumentView.m:427 */ = {
@@ -4076,7 +4095,7 @@
 		ignoreCount = 0;
 		lineNumber = 427;
 		location = WebKit;
-		modificationTime = 237512853.560566;
+		modificationTime = 237557508.436607;
 		state = 2;
 	};
 	EEC3D7740D12E83800F8727D /* WebFrameView.m:57 */ = {
@@ -4093,7 +4112,7 @@
 		ignoreCount = 0;
 		lineNumber = 57;
 		location = WebKit;
-		modificationTime = 237512853.576074;
+		modificationTime = 237557508.460994;
 		state = 2;
 	};
 	EEC9313F0C4F6B7A00F64F64 /* WebDataSource.m:124 */ = {
@@ -4110,7 +4129,7 @@
 		ignoreCount = 0;
 		lineNumber = 124;
 		location = WebKit;
-		modificationTime = 237512853.561172;
+		modificationTime = 237557508.437643;
 		state = 2;
 	};
 	EECC1E600BA14EA20001C219 /* ToDo */ = {
@@ -4280,11 +4299,10 @@
 		delayBeforeContinue = 0;
 		fileReference = EE291C080AD78194004A1CA6 /* WebScriptObject.m */;
 		functionName = "-evaluateWebScript:";
-		hitCount = 1;
+		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 77;
-		location = WebKit;
-		modificationTime = 237512928.939906;
+		modificationTime = 237557935.044539;
 		state = 1;
 	};
 	EECDF2DD0DDC785B00DAEEE8 /* PBXTextBookmark */ = {
@@ -4390,7 +4408,7 @@
 		ignoreCount = 0;
 		lineNumber = 600;
 		location = SWKBrowser;
-		modificationTime = 237512853.581045;
+		modificationTime = 237557508.468989;
 		state = 2;
 	};
 	EEF677700D58DCEE0068CEFC /* WebView.m:361 */ = {
@@ -4407,7 +4425,7 @@
 		ignoreCount = 0;
 		lineNumber = 361;
 		location = WebKit;
-		modificationTime = 237512853.581323;
+		modificationTime = 237557508.469472;
 		state = 2;
 	};
 	EEF677760D58DD370068CEFC /* WebView.m:368 */ = {
@@ -4424,7 +4442,7 @@
 		ignoreCount = 0;
 		lineNumber = 368;
 		location = WebKit;
-		modificationTime = 237512853.581603;
+		modificationTime = 237557508.469946;
 		state = 2;
 	};
 	EEFA5A5E0E28281D00B86693 /* PBXTextBookmark */ = {
@@ -4646,9 +4664,9 @@
 	};
 	EEFA5A840E288A2500B86693 /* WebPlugin.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1137, 518}}";
+			sepNavIntBoundsRect = "{{0, 0}, {970, 518}}";
 			sepNavSelRange = "{927, 0}";
-			sepNavVisRange = "{570, 680}";
+			sepNavVisRange = "{503, 747}";
 		};
 	};
 	EEFA5A990E288F9F00B86693 /* PBXTextBookmark */ = {
@@ -4926,7 +4944,7 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = "DOMHTML.m: 826";
 		rLen = 0;
-		rLoc = 29247;
+		rLoc = 29299;
 		rType = 0;
 		vrLen = 689;
 		vrLoc = 28721;
@@ -4994,7 +5012,7 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = "DOMHTML.m: 826";
 		rLen = 0;
-		rLoc = 29247;
+		rLoc = 29299;
 		rType = 0;
 		vrLen = 689;
 		vrLoc = 28721;
@@ -5034,7 +5052,7 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = "DOMHTML.m: 826";
 		rLen = 0;
-		rLoc = 29247;
+		rLoc = 29299;
 		rType = 0;
 		vrLen = 564;
 		vrLoc = 28846;
@@ -5054,7 +5072,7 @@
 		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
 		name = "DOMHTML.m: 826";
 		rLen = 0;
-		rLoc = 29247;
+		rLoc = 29299;
 		rType = 0;
 		vrLen = 564;
 		vrLoc = 28846;
@@ -5068,6 +5086,291 @@
 		rType = 0;
 		vrLen = 1111;
 		vrLoc = 0;
+	};
+	EEFA5B8D0E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE4440B30BDBEA980031F556 /* ChangeLog */;
+		name = "ChangeLog: 1";
+		rLen = 0;
+		rLoc = 10;
+		rType = 0;
+		vrLen = 1111;
+		vrLoc = 0;
+	};
+	EEFA5B8E0E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
+		name = "DOMHTML.m: 826";
+		rLen = 0;
+		rLoc = 29299;
+		rType = 0;
+		vrLen = 564;
+		vrLoc = 28846;
+	};
+	EEFA5B8F0E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEA3D39C095468BA001244CF /* WebView.m */;
+		name = "WebView.m: 174";
+		rLen = 0;
+		rLoc = 8269;
+		rType = 0;
+		vrLen = 979;
+		vrLoc = 7468;
+	};
+	EEFA5B900E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEFA5B910E28D04300B86693 /* hns.pbxuser */;
+		name = "hns.pbxuser: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 962;
+		vrLoc = 0;
+	};
+	EEFA5B910E28D04300B86693 /* hns.pbxuser */ = {
+		isa = PBXFileReference;
+		name = hns.pbxuser;
+		path = /Users/hns/Documents/Projects/QuantumSTEP/System/Sources/Frameworks/SimpleWebKit/SimpleWebKit.xcodeproj/hns.pbxuser;
+		sourceTree = "<absolute>";
+	};
+	EEFA5B920E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB160C21D9F80095EEA6 /* WebPDFDocument.m */;
+		name = "WebPDFDocument.m: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 906;
+		vrLoc = 0;
+	};
+	EEFA5B930E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA5B940E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE4440B30BDBEA980031F556 /* ChangeLog */;
+		name = "ChangeLog: 1";
+		rLen = 0;
+		rLoc = 10;
+		rType = 0;
+		vrLen = 1111;
+		vrLoc = 0;
+	};
+	EEFA5B950E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
+		name = "DOMHTML.m: 826";
+		rLen = 0;
+		rLoc = 29299;
+		rType = 0;
+		vrLen = 564;
+		vrLoc = 28846;
+	};
+	EEFA5B960E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEA3D39C095468BA001244CF /* WebView.m */;
+		name = "WebView.m: 174";
+		rLen = 0;
+		rLoc = 8269;
+		rType = 0;
+		vrLen = 979;
+		vrLoc = 7468;
+	};
+	EEFA5B970E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEFA5B980E28D04300B86693 /* hns.pbxuser */;
+		name = "hns.pbxuser: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 962;
+		vrLoc = 0;
+	};
+	EEFA5B980E28D04300B86693 /* hns.pbxuser */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = hns.pbxuser;
+		path = /Users/hns/Documents/Projects/QuantumSTEP/System/Sources/Frameworks/SimpleWebKit/SimpleWebKit.xcodeproj/hns.pbxuser;
+		sourceTree = "<absolute>";
+	};
+	EEFA5B990E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA5B9A0E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB160C21D9F80095EEA6 /* WebPDFDocument.m */;
+		name = "WebPDFDocument.m: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 906;
+		vrLoc = 0;
+	};
+	EEFA5B9B0E28D04300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA5DE10E28D4C300B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA5DFB0E28D70800B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA5E060E28D8B000B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA60F80E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA60F90E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF880B6C8F9200346917 /* DOMHTML.h */;
+		name = "DOMHTML.h: 29";
+		rLen = 10;
+		rLoc = 1022;
+		rType = 0;
+		vrLen = 567;
+		vrLoc = 913;
+	};
+	EEFA60FA0E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEFA60FB0E290D3D00B86693 /* NSTextList.h */;
+		name = "NSTextList.h: 13";
+		rLen = 58;
+		rLoc = 226;
+		rType = 0;
+		vrLen = 491;
+		vrLoc = 0;
+	};
+	EEFA60FB0E290D3D00B86693 /* NSTextList.h */ = {
+		isa = PBXFileReference;
+		name = NSTextList.h;
+		path = /System/Library/Frameworks/AppKit.framework/Versions/C/Headers/NSTextList.h;
+		sourceTree = "<absolute>";
+	};
+	EEFA60FC0E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
+		name = "DOMHTML.m: 86";
+		rLen = 0;
+		rLoc = 3084;
+		rType = 0;
+		vrLen = 490;
+		vrLoc = 2803;
+	};
+	EEFA60FD0E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEFA5A840E288A2500B86693 /* WebPlugin.m */;
+		name = "WebPlugin.m: 26";
+		rLen = 0;
+		rLoc = 927;
+		rType = 0;
+		vrLen = 747;
+		vrLoc = 503;
+	};
+	EEFA60FE0E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */;
+		name = "WebPDFDocument.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 907;
+		vrLoc = 0;
+	};
+	EEFA60FF0E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEFA61000E290D3D00B86693 /* NSTextList.h */;
+		name = "NSTextList.h: 6";
+		rLen = 0;
+		rLoc = 114;
+		rType = 0;
+		vrLen = 491;
+		vrLoc = 0;
+	};
+	EEFA61000E290D3D00B86693 /* NSTextList.h */ = {
+		isa = PBXFileReference;
+		name = NSTextList.h;
+		path = /System/Library/Frameworks/AppKit.framework/Versions/C/Headers/NSTextList.h;
+		sourceTree = "<absolute>";
+	};
+	EEFA61010E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF880B6C8F9200346917 /* DOMHTML.h */;
+		name = "DOMHTML.h: 29";
+		rLen = 10;
+		rLoc = 1022;
+		rType = 0;
+		vrLen = 567;
+		vrLoc = 913;
+	};
+	EEFA61020E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */;
+		name = "DOMHTML.m: 86";
+		rLen = 0;
+		rLoc = 3084;
+		rType = 0;
+		vrLen = 490;
+		vrLoc = 2803;
+	};
+	EEFA61030E290D3D00B86693 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EEFA5A840E288A2500B86693 /* WebPlugin.m */;
+		name = "WebPlugin.m: 26";
+		rLen = 0;
+		rLoc = 927;
+		rType = 0;
+		vrLen = 747;
+		vrLoc = 503;
 	};
 	EEFD24C00D170272003853F2 /* WebScriptObject.m:82 */ = {
 		isa = PBXFileBreakpoint;
@@ -5083,7 +5386,7 @@
 		ignoreCount = 0;
 		lineNumber = 82;
 		location = WebKit;
-		modificationTime = 237512853.576339;
+		modificationTime = 237557508.461395;
 		state = 2;
 	};
 }

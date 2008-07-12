@@ -81,6 +81,11 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 - (NSString *) markerFormat;
 @end
 
+enum
+{
+    NSTextListPrependEnclosingMarker = 1
+};
+
 #endif
 #endif
 
