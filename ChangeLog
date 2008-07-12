@@ -1,8 +1,11 @@
+2008-07-12  Nikolaus Schaller <hns@computer.org>
+	* worked on WebPlugin (so that we can integrate e.g. GNASH in some far future; should be stored as "/Library/Internet Plug-Ins/Flash Player.bundle")
+
 2008-05-13  Nikolaus Schaller <hns@computer.org>
-	* moved javascript: URL handling to WebDataSource
+	* moved handling fof 'javascript:' URL scheme to WebDataSource
 	* worked on windowScriptObject (is the self/window/global object) - new class DOMWindow
 	* added macro to omit our private -newlineCharacterSet if we compile for OSX 10.5
-	* stringByEvaluatingJavaScriptFromString: fixed oto return NSStrings only (even if empty)
+	* stringByEvaluatingJavaScriptFromString: fixed to return NSStrings only (even if empty)
 	* Javascript Console improved
 
 2008-02-23 18:26-EST Gregory John Casamento <greg_casamento@yahoo.com>

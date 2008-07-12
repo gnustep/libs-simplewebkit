@@ -122,6 +122,7 @@ NSString *WebViewProgressStartedNotification=@"WebViewProgressStarted";
 
 static NSMutableDictionary *_viewClasses;
 static NSMutableDictionary *_representationClasses;
+static NSMutableDictionary *_webPlugIns;
 static NSArray *_htmlMimeTypes;
 
 + (BOOL) canShowMIMEType:(NSString *) MIMEType;
@@ -134,6 +135,60 @@ static NSArray *_htmlMimeTypes;
 	return [_htmlMimeTypes containsObject:MIMEType];	// FIXME: case insensitive???
 }
 
++ (NSBundle *) _webPluginForMIMEType:(NSString *) MIMEType
+{ // used to find the WebPlugin bundle in _WebPluginContainerView
+	return [_webPlugIns objectForKey:MIMEType];
+}
+
++ (void) _loadWebPluginsInDirectory:(NSString *) directory
+{ // load WebPlugin.h based bundles
+	if(directory)
+		{ // may be nil
+			NSEnumerator *e=[[[NSFileManager defaultManager] directoryContentsAtPath:directory] objectEnumerator];
+			NSString *path;
+			while((path=[e nextObject]))
+				{ // potential plugin
+					NSBundle *b;
+					NSEnumerator *f;
+					NSDictionary *mimeTypes;
+					NSString *mime;
+					path=[directory stringByAppendingPathComponent:path];	// full qualified name
+					b=[NSBundle bundleWithPath:path];	// NOTE: the extension .webplugin is recommended ut not required
+					if(!b)
+						continue;	// is not a bundle
+					if(![[b objectForInfoDictionaryKey:@"CFBundlePackageType"] isEqualToString:@"WBPL"])
+						continue;	// this is not a WebKit plugin
+#if 1
+					NSLog(@"%@: installing %@ (%@)", path, [b objectForInfoDictionaryKey:@"WebPluginName"], [b objectForInfoDictionaryKey:@"WebPluginDescription"]);
+#endif
+					mimeTypes=[b objectForInfoDictionaryKey:@"WebPluginMIMETypes"];
+					f=[mimeTypes keyEnumerator];
+					while((mime=[f nextObject]))
+					{
+						if(!_webPlugIns)
+							_webPlugIns=[[NSMutableDictionary alloc] initWithCapacity:10];
+						[_webPlugIns setObject:b forKey:mime];	// associate mime type with plugin bundle
+#if FIXME
+						/*
+						 we should have a _WebPluginContainerView
+						 that implements the WebPluginContainer informal protocol
+						 so that a plugin (which is itself a NSView subclass) can
+						 use [[self superview] webFrame] etc.
+						 
+						 the containerview is created for a matching MIME type
+						 it should then load the bundle
+						 initialize the plugin and instantiate principleClass as its subview
+						 */
+						
+						[self registerViewClass:[_WebPluginContainerView class];
+							representationClass:[_WebPluginDocumentRepresentation class]	// default
+									forMIMEType:mime];
+#endif
+					}
+				}
+			}
+}
+					
 + (void) initialize;
 {
 #if 0
@@ -155,6 +210,9 @@ static NSArray *_htmlMimeTypes;
 	[self registerViewClass:[_WebTextDocumentView class]
 		representationClass:[_WebTextDocumentRepresentation class]
 				forMIMEType:@"text/"];		// match all other text file types and try our best
+	[self _loadWebPluginsInDirectory:@"/Library/Internet Plug-ins"];
+	[self _loadWebPluginsInDirectory:@"/Library/Internet Plug-ins"];
+	[self _loadWebPluginsInDirectory:[[NSBundle mainBundle] builtInPlugInsPath]];
 }
 
 + (NSArray *) MIMETypesShownAsHTML; { return _htmlMimeTypes; }

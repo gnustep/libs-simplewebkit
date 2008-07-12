@@ -821,6 +821,10 @@ static NSString *DOMHTMLBlockInlineLevel=@"display";
 
 @implementation DOMHTMLObjectElement
 
+// use [WebView _webPluginForMIMEType] to get the plugin
+// use _WebPluginContainerView to load and manage
+// we should create an _WebPluginContainerView as a text attachment container
+
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
 - (void) _addAttributesToStyle
