@@ -65,6 +65,7 @@
 	NSDictionary *options=nil;
 	NSDictionary *attribs=nil;
 	NSError *error;
+    // FIXME: this is 10.4 only
 	NSTextStorage *ts=[[NSTextStorage alloc] initWithData:[source data] options:options documentAttributes:&attribs error:&error];
 	if(!ts)
 		{ // if data source is completed, show error message
