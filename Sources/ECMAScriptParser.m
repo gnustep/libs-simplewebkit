@@ -212,7 +212,7 @@
 
 @end
 
-#if MAC_OS_X_VERSION_10_5 > MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4 
 
 @interface NSCharacterSet (NewlineExtension)
 + (NSCharacterSet *) newlineCharacterSet;
@@ -275,7 +275,7 @@
 		[sc _scanError:@"unexpected end of file"];
 		return nil;	// unexpected EOF
 		}
-	else if([sc _scanToken:@"("])
+    if([sc _scanToken:@"("])
 		{ // grouping operator 11.1.6
 		[self _skipComments:sc];
 		r=[self _expressionWithScanner:sc noIn:NO];
@@ -419,12 +419,9 @@
 		}
 	else if([sc _scanToken:@"0x"])	// we have setCaseSensitive:NO - which does not harm parsing of identifiers
 		{ // 7.8.3
-		if([sc scanHexInt:&ui])
-			{ // Hex ints are converted to double
-			r=[NSNumber numberWithDouble:(double) ui];
-			}
-		else
-			return nil;	// invalid 0x
+		if(![sc scanHexInt:&ui])
+            [sc _scanError:[NSString stringWithFormat:@"invalid hex constant"]];
+        r=[NSNumber numberWithDouble:(double) ui];  // Hex ints are converted to double
 		}
 	else if([sc scanDouble:&d])
 		{ // 7.8.3

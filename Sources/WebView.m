@@ -718,7 +718,7 @@ method definition for '-alignCenter:' not found
 - (void) webViewClose:(WebView *) sender; { [[sender window] close]; }
 - (NSRect) webViewContentRect:(WebView *) sender; { return [[[sender window] contentView] frame]; }
 - (NSResponder *) webViewFirstResponder:(WebView *) sender; { return [[sender window] firstResponder]; }
-- (void) webViewFocus:(WebView *) sender; { return [[sender window] orderFront:nil]; }
+- (void) webViewFocus:(WebView *) sender; { [[sender window] orderFront:nil]; }
 - (NSRect) webViewFrame:(WebView *) sender; { return [sender frame]; }
 - (BOOL) webViewIsResizable:(WebView *) sender; { return NO; }
 - (BOOL) webViewIsStatusBarVisible:(WebView *) sender; { return NO; }

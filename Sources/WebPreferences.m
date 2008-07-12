@@ -66,9 +66,9 @@ static NSString *PREF_DOMAIN=@"com.quantum-step.WebKit.WebPreferences";
 #define STRING_GETTER(NAME, KEY) - (NSString *) NAME; { return [_dict objectForKey:KEY]; }
 #define BOOL_GETTER(NAME, KEY) - (NSString *) NAME; { return [[_dict objectForKey:KEY] boolValue]; }
 #define INT_GETTER(NAME, KEY) - (NSString *) NAME; { return [[_dict objectForKey:KEY] intValue]; }
-#define STRING_SETTER(NAME, KEY) - (void) NAME:(NSString *) val; { return [self setValue:val forKey:KEY]; }
-#define BOOL_SETTER(NAME, KEY) - (void) NAME:(BOOL) val; { return [self setValue:[NSNumber numberWithBool:val] forKey:KEY]; }
-#define INT_SETTER(NAME, KEY) - (void) NAME:(int) val; { return [self setValue:[NSNumber numberWithInt:val] forKey:KEY]; }
+#define STRING_SETTER(NAME, KEY) - (void) NAME:(NSString *) val; { [self setValue:val forKey:KEY]; }
+#define BOOL_SETTER(NAME, KEY) - (void) NAME:(BOOL) val; { [self setValue:[NSNumber numberWithBool:val] forKey:KEY]; }
+#define INT_SETTER(NAME, KEY) - (void) NAME:(int) val; { [self setValue:[NSNumber numberWithInt:val] forKey:KEY]; }
 
 STRING_GETTER(defaultTextEncodingName, @"TextEncoding");
 STRING_SETTER(setDefaultTextEncodingName, @"TextEncoding");
