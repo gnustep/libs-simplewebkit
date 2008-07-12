@@ -322,27 +322,24 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 #endif
 		if([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"])
 			{ // open in (new) window
-			NSString *target=@"_self";	// default
+			NSString *target=[[tv textStorage] attribute:DOMHTMLAnchorElementTargetWindow atIndex:charIndex effectiveRange:NULL];
 			NSURLRequest *request=[NSURLRequest requestWithURL:url];
-			// FIXME: get from ??? e.g. the DOMHTMLTargetAttribute string attributes at charIndex
-			// find out if we have a DOMHTMLTargetAttribute which names the window (frame) we should reload			
+			if(!target) target=@"_self";	// default
 #if 0
 			NSLog(@"jump to link %@ for target %@", link, target);
 #endif
-			if([target isEqualToString:@"_blank"])
-				{ // create a new window
+			if([target isEqualToString:@"_blank"] || !(newFrame=[self findFrameNamed:target]))
+				{ // if not found or explicitly wanted or not found by name, create a new window
 					// there should be a context menu for a link so that we can call this manually
 				WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// should create a new window loading the request - or return nil
 				if(newView)
 					{
+					if(![target hasPrefix:@"_"])
+						[[newView mainFrame] _setFrameName:target];
 					[[_webView UIDelegate] webViewShow:newView];	// and show
 					return YES;	// done
 					}
 				}
-			else if(target)
-				newFrame=[self findFrameNamed:target];	// find by name
-			if(!newFrame)
-				newFrame=self;
 			// an intra-page anchor should just scroll and call [[webView frameLoadDelegate] webView:webView didChangeLocationWithinPageForFrame:self];
 			[newFrame loadRequest:request];	// make page load (new) URL
 			return YES;

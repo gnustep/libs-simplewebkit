@@ -31,6 +31,12 @@
 
 @class _WebHTMLDocumentRepresentation;
 
+// special style attributes
+
+extern NSString *DOMHTMLAnchorElementTargetWindow;
+extern NSString *DOMHTMLAnchorElementAnchorName;
+extern NSString *DOMHTMLBlockInlineLevel;
+
 @interface DOMHTMLCollection : WebScriptObject
 {
 	NSMutableArray *elements;

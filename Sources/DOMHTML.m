@@ -33,9 +33,9 @@ If not, write to the Free Software Foundation,
 #import "WebHTMLDocumentRepresentation.h"
 #import "Private.h"
 
-static NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
-static NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
-static NSString *DOMHTMLBlockInlineLevel=@"display";
+NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
+NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
+NSString *DOMHTMLBlockInlineLevel=@"display";
 
 #if defined(__APPLE__)
 #if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
@@ -1010,7 +1010,7 @@ enum
 		frameView=(WebFrameView *) view;
 		frame=[frameView webFrame];		// get the webframe
 		}
-	[frame _setFrameName:name];	// we should be able to change the name if we were originally created from a partial file that stops right within the name argument...
+	[frame _setFrameName:name];
 								// FIXME: how to notify the scroll view for all three states: auto, yes, no?
 	if([self hasAttribute:@"scrolling"])
 		{

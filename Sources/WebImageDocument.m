@@ -44,7 +44,7 @@ If not, write to the Free Software Foundation,
 	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];
 	view=[[viewclass alloc] initWithFrame:[frameView frame]];
 	[view setDataSource:dataSource];
-	[frameView _setDocumentView:view];
+	[frameView _setDocumentView:view];	// this should retain
 	[[frame DOMDocument] _setVisualRepresentation:view];	// make the view receive change notifications
 	[view release];
 	[super setDataSource:dataSource];

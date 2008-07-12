@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		EE01D4560B7786570089A538 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB590A188F970045B88D /* MainMenu.nib */; };
-		EE01D4570B7786570089A538 /* FullWebKitTest-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB5E0A188F970045B88D /* FullWebKitTest-Info.plist */; };
 		EE01D4590B7786570089A538 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5B0A188F970045B88D /* main.m */; };
 		EE01D45A0B7786570089A538 /* MyApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5D0A188F970045B88D /* MyApplication.m */; };
 		EE01D45D0B7786570089A538 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
@@ -19,7 +18,6 @@
 		EE044A930CF0A0040003D697 /* WebPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = EE044A910CF0A0040003D697 /* WebPreferences.m */; };
 		EE1396B50BA5B0EE00A9A16C /* WebDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */; };
 		EE1396B60BA5B0EE00A9A16C /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
-		EE1AB3930C20544A005F3F98 /* SWKBrowser-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */; };
 		EE1AB3940C20544A005F3F98 /* DemoHTML in Resources */ = {isa = PBXBuildFile; fileRef = EE8A012B0B6CD10D00346917 /* DemoHTML */; };
 		EE1AB3950C20544A005F3F98 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB590A188F970045B88D /* MainMenu.nib */; };
 		EE1AB3960C20544A005F3F98 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
@@ -37,7 +35,6 @@
 		EE291C090AD78194004A1CA6 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
 		EE428B360A4819A2003437D2 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE428B370A4819A2003437D2 /* WebResource.m in Sources */ = {isa = PBXBuildFile; fileRef = EE428B350A4819A2003437D2 /* WebResource.m */; };
-		EE443FBC0BDBE66A0031F556 /* SWKBrowser-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */; };
 		EE443FBE0BDBE6B80031F556 /* HTMLEntities.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */; };
 		EE45352C0A166B6200C660D5 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
 		EE45355D0A166D6F00C660D5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
@@ -690,7 +687,6 @@
 			files = (
 				EEE9A52E0BC42AF200757F02 /* DemoHTML in Resources */,
 				EE01D4560B7786570089A538 /* MainMenu.nib in Resources */,
-				EE01D4570B7786570089A538 /* FullWebKitTest-Info.plist in Resources */,
 				EEE9B5AD0BC9621900757F02 /* MyDocument.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -699,7 +695,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE443FBC0BDBE66A0031F556 /* SWKBrowser-Info.plist in Resources */,
 				EEE9A52D0BC42AE500757F02 /* DemoHTML in Resources */,
 				EE5EBB5F0A188F970045B88D /* MainMenu.nib in Resources */,
 				EEE9B5AC0BC9621900757F02 /* MyDocument.nib in Resources */,
@@ -710,7 +705,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE1AB3930C20544A005F3F98 /* SWKBrowser-Info.plist in Resources */,
 				EE1AB3940C20544A005F3F98 /* DemoHTML in Resources */,
 				EE1AB3950C20544A005F3F98 /* MainMenu.nib in Resources */,
 				EE1AB3960C20544A005F3F98 /* MyDocument.nib in Resources */,
