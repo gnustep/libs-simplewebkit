@@ -168,6 +168,9 @@ static NSArray *_htmlMimeTypes;
 						if(!_webPlugIns)
 							_webPlugIns=[[NSMutableDictionary alloc] initWithCapacity:10];
 						[_webPlugIns setObject:b forKey:mime];	// associate mime type with plugin bundle
+#if 1
+						NSLog(@"  -> MIME Type: %@", mime);
+#endif
 #if FIXME
 						/*
 						 we should have a _WebPluginContainerView

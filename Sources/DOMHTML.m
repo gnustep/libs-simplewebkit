@@ -503,14 +503,12 @@ enum
 		{ // make subscript
 		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f)
-			[_style setObject:f forKey:NSFontAttributeName];
+		if(f) [_style setObject:f forKey:NSFontAttributeName];
 		[_style setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
 		}
 	else if([node isEqualToString:@"BIG"])
 		{ // make font larger +1
 		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		[_style setObject:[NSFont fontWithName:[f fontName] size:[f pointSize]*1.2] forKey:NSFontAttributeName];
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]*1.2];
 		if(f) [_style setObject:f forKey:NSFontAttributeName];
 		}
@@ -1332,7 +1330,9 @@ enum
 	NSString *align=[self getAttribute:@"align"];
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 	[paragraph setHeaderLevel:level];	// if someone wants to convert the attributed string back to HTML...
+#endif
 	switch(level)
 		{
 		case 1:
@@ -1394,7 +1394,7 @@ enum
 				{ // found a different font - replace
 				f=ff;	// if we modify face AND size
 				[_style setObject:ff forKey:NSFontAttributeName];
-				break;	// found
+				break;	// take the first one we have found
 				}
 			}
 		}
@@ -1429,6 +1429,7 @@ enum
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:sz];	// try to convert
 		if(f)
 			[_style setObject:f forKey:NSFontAttributeName];
+		else NSLog(@"could not convert %@ to size %lf", [_style objectForKey:NSFontAttributeName], sz);
 		}
 	if(color)
 		[_style setObject:color forKey:NSForegroundColorAttributeName];
