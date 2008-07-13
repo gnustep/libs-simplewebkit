@@ -275,13 +275,38 @@
 }
 
 - (BOOL) trackMouse:(NSEvent *)event 
-						 inRect:(NSRect)cellFrame 
-						 ofView:(NSView *)controlTextView 
+			 inRect:(NSRect)cellFrame 
+			 ofView:(NSView *)controlTextView 
    atCharacterIndex:(unsigned) index
-			 untilMouseUp:(BOOL)flag;
+	   untilMouseUp:(BOOL)flag;
 {
-	NSLog(@"trackMouse: %@ inRect: %@ ofView: %@ atCharacterIndex: %@ untilOp: %d", event, NSStringFromRect(cellFrame), controlTextView, index, flag);
-	return [self trackMouse:event inRect:cellFrame ofView:controlTextView untilMouseUp:flag];
+	BOOL done=NO;
+//	NSLog(@"mouse in view %@", NSStringFromPoint([controlTextView convertPoint:[event locationInWindow] fromView:nil]));
+//	NSLog(@"trackMouse: %@ inRect: %@ ofView: %@ atCharacterIndex: %u untilOp: %d", event, NSStringFromRect(cellFrame), controlTextView, index, flag);
+	while([event type] != NSLeftMouseUp)	// loop outside until mouse goes up 
+		{
+			NSPoint p = [controlTextView convertPoint:[event locationInWindow] fromView:nil];
+			if(NSMouseInRect(p, cellFrame, [controlTextView isFlipped]))
+				{ // highlight cell
+					[self setHighlighted:YES];	
+					[controlTextView setNeedsDisplay:YES];
+					done=[self trackMouse:event
+									inRect:cellFrame
+									ofView:controlTextView
+							 untilMouseUp:NO];
+					[self setHighlighted:NO];	
+					[controlTextView setNeedsDisplay:YES];
+					if(done)
+						break;
+				}
+			if(!flag)
+				break;	// don't wait until mouse is up, i.e. exit if we leave the rect
+			event = [NSApp nextEventMatchingMask:NSLeftMouseDownMask | NSLeftMouseUpMask | NSMouseMovedMask | NSLeftMouseDraggedMask
+									   untilDate:[NSDate distantFuture]						// get next event
+										  inMode:NSEventTrackingRunLoopMode 
+										 dequeue:YES];			
+  		}
+	return done;
 }
 
 - (BOOL) wantsToTrackMouse;
@@ -290,27 +315,27 @@
 }
 
 - (BOOL) wantsToTrackMouseForEvent:(NSEvent *) event
-														inRect:(NSRect) rect
-														ofView:(NSView *) controlView
-									atCharacterIndex:(unsigned) index;
-{
+							inRect:(NSRect) rect
+							ofView:(NSView *) controlView
+				  atCharacterIndex:(unsigned) index;
+{ // this could make tracking only on parts of the cell or depend on the attributes of the character
 	return [self wantsToTrackMouse];
 }
 
 @end
 #endif
 
-@implementation NSButtonCell (NSTextAttachment)
+@implementation NSActionCell (NSTextAttachment)
 
-- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
-
-// add missing methods
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -30.0); }
 
 @end
 
-@implementation NSActionCell (NSTextAttachment)
+@implementation NSButtonCell (NSTextAttachment)
 
-- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -40.0); }
+
+// add missing methods
 
 @end
 
@@ -363,13 +388,16 @@
 @end
 
 @implementation NSHRAttachmentCell
+
 - (id)init
 {
-    [super init];
-    _shaded = NO;
-    _size = 2;
-    _width = 100;
-    _widthIsPercent = YES;
+    if((self=[super initTextCell:@"<hr>"]))
+		{
+		_shaded = NO;
+		_size = 2;
+		_width = 100;
+		_widthIsPercent = YES;
+		}
     return self;
 }
 

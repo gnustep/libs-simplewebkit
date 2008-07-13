@@ -20,64 +20,6 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-
-/* short description how this all works togehter
-
-1. the WebView
-* is the master view object and there is only one per browser (or browser tab)
-* it holds the mainFrame which represents either the normal <body> or the top level <frame> or <frameset>
-* if there is a <frameset> hierarchy, there are additional child WebFrames
-
-2. the WebFrame
-* is repsonsible for loading and rendering content from a specific URL
-* it uses a WebDataSource to trigger loading and get callbacks
-* it is also the owner of the DOMDocument tree
-* JavaScript statements are evaluated in a frame context
-* it is also the target of user clicks on links since it knows the base URL (through the WebDataSource)
-
-3. the WebDataSource
-* is responsible for loading data from an URL
-* it may cache data and handle/synchronize loading fo subresources (e.g. for an embedded <img> tag)
-* it translates the request and the response URLs
-* it provides an estimated content length (for a progress indicator) and the MIMEType of the incoming data stream
-* as soon as the header comes in a WebDocomentRepresentation is created and incoming segments are notified
-* it also collects the incoming data, so that a WebDocomentRepresentation can handle either segments or the collected data
-
-4. the WebDocumentRepresentation(s)
-* there is one for each MIME type (the WebView provides a mapping database)
-* it is responsible for parsing the incoming data stream (either completely when finished, or partially)
-* and provide a better suitable representation, e.g. an NSImage or a DOMHTMLTree
-* finally, it creates a WebDocumentView as the child of the WebView and attaches it to the WebFrame as the -webFrameView
-* so, if you want to handle an additional MIME type, write a class that conforms to the WebDocumentRepresentation protocol
-
-5. the DOMHTMLTree
-* is only for HTML content
-* is (re)built each time a new segment of HTML data comes in
-* any change in the DOMHTMLTree is notified to the WebDocumentView (or one of its subviews) by setNeedsLayout
-
-6. the WebDocumentView(s) an its subviews
-* are responsible for displaying the contents of its WebDataRepresentation
-* either HTML, Images, PDF or whatever (e.g. SVG, XML, ...)
-* they gets notified about changes either by updates of the WebDataSource (-dadaSourceUpdated:) or directly (-setNeedsLayout:)
-* if one needs layout, it must go to the DOM Tree to find out what has changed and update its size, content, children, layout etc.
-* this is a little tricky/risky since the -layout method is called within -drawRect: - so changing e.g. the View frame is very
-  critical and may result in drawing glitches
-* for HTML, we do a simple trick: the WebDocumentView is an NSTextView and the DOMHTMLTree objects can be traversed to
-  return an attributedString with embedded Tables and NSTextAttachments
-
-7. the JavaScript engine
-* is programmed according to the specificaion of ECMA-262
-* uses a simple recursive stateless parser (could be optimized in stack useage and speed by a state-table driven approach)
-* parses the script into a Tree representation in a first step
-* then, evaluates the expressions and statements according to the current environement
-* this allows to store scripts in translated form and reevaluate them when needed (e.g. on mouse events)
-* uses Foundation for basic types (string, number, boolean, null)
-* uses WebScriptObject as the base Object representation
-* DOMObjects are a subclass of WebScriptObjects and therefore provide automatic bridging, so that changing a DOMHTML tree element through
-  JavaScript automativally triggers the appropriate WebDocumentView notification
-
-*/
-
 #import "Private.h"
 #import <WebKit/WebView.h>
 #import <WebKit/WebFrame.h>

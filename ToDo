@@ -5,7 +5,7 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-08 Feb 2007
+13 May 2008
 -----------
 
 Completion indicator
@@ -19,21 +19,22 @@ EcmaScript
 	Parser				90%		not well tested for completeness and robustness
 	Evaluator			50%
 	Objects				0%
+	DOM Integration		10%
 CSS
 	Loading				100%
 	Parser				0%
 	Evaluator			0%
+	DOM Integration		1%
 WebView, WebFrame, ...
 	Basics				100%
-	Advanced			70%		(Scrolling, Forms, Frames)
+	Advanced			80%		(Scrolling, Forms, Frames)
 	Editing				0%
 
 High Prio:
 
-1. solve redisplay/refresh issues
-2. <frame> and scrollers should work correctly
-3. <table> elements should really work
-4. make <form> work (buttons and text fields interaction)
+1. <frame> and scrollers should work correctly
+2. <table> elements should really work
+3. make <form> work (buttons and text fields interaction)
 
 HTML Loading:
 - does not use NSURLCache
@@ -50,7 +51,7 @@ HTML Evaluator:
 - small problem with space after tag "<p> " and inline-elements surrounded by blanks -> "abc <span> def" renders two spaces
 - color does only understand #rrggbb and no plain text (X11) names yet
 - <table> does not handle colspan, rowspan
-- (better) handle <pre>
+- (better) handle <pre> incl. keeping newlines -> <br>
 
 - <textarea>, <select>/<option> not completely implemented
 - link color definition by <body> and if link was visited recently (history)

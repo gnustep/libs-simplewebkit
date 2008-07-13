@@ -266,6 +266,7 @@
 		EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyComboBoxCell.m; sourceTree = "<group>"; };
 		EEE9B5AB0BC9621900757F02 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MyDocument.nib; sourceTree = "<group>"; };
 		EEFA5A840E288A2500B86693 /* WebPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPlugin.m; sourceTree = "<group>"; };
+		EEFA7D870E29FFEF00B86693 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -321,6 +322,7 @@
 				EE27270005426A7F0000013C /* mySTEP.make */,
 				EE8721B30D0214A900B2037D /* GNUmakefile */,
 				EE4440B30BDBEA980031F556 /* ChangeLog */,
+				EEFA7D870E29FFEF00B86693 /* README */,
 				EECC1E600BA14EA20001C219 /* ToDo */,
 				EE9BE9BF0AFA53B800D445DA /* Private */,
 				EED0DD400BAED3CB005B0381 /* ECMA Script */,
