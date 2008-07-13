@@ -237,7 +237,7 @@ static NSDictionary *entitiesTable;
 
 - (void) _parseData:(NSData *) d;
 { // incremental parser - tries to do its best and reports/removes only complete elements; returns otherwise (or raises exceptions)
-	const char *ep=NULL;
+	const char *ep;
 #if 0
 	NSLog(@"parse data=%@", d);
 #endif
@@ -247,8 +247,8 @@ static NSDictionary *entitiesTable;
 		{ // notifies end of data
 		done=YES;
 		}
-	if(!buffer || cp == ep)
-		{ // first fragment or we have processed the current buffer completely (that should happen regularily when we end between tags
+	if(!buffer || cp == (const char *) [buffer bytes]+[buffer length])
+		{ // first fragment or we have processed the current buffer completely (that should happen regularily when we end up between tags)
 		[buffer release];	// for the second condition...
 		buffer=[d copy];	// should make a copy only if really needed!
 		cp=[buffer bytes];
@@ -263,7 +263,7 @@ static NSDictionary *entitiesTable;
 			[b release];					// release previous (immutable) buffer
 			}
 		[(NSMutableData *) buffer appendData:d];	// append new fragment
-		cp=(const char *) [buffer bytes]+cpoff;
+		cp=(const char *) [buffer bytes]+cpoff;		// advance by offset into new buffer
 		}
 	else if(d)
 		{
