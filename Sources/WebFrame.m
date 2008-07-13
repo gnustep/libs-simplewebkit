@@ -308,6 +308,8 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (BOOL) textView:(NSTextView *) tv clickedOnLink:(id) link atIndex:(unsigned) charIndex;
 {
+	// if current event has control Key pressed, pop up specific context menu that allows to follow the link in current or new window
+	
 	if(link)
 		{
 		WebFrame *newFrame=nil;
@@ -324,13 +326,11 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 			{ // open in (new) window
 			NSString *target=[[tv textStorage] attribute:DOMHTMLAnchorElementTargetWindow atIndex:charIndex effectiveRange:NULL];
 			NSURLRequest *request=[NSURLRequest requestWithURL:url];
-			if(!target) target=@"_self";	// default
 #if 0
 			NSLog(@"jump to link %@ for target %@", link, target);
 #endif
-			if([target isEqualToString:@"_blank"] || !(newFrame=[self findFrameNamed:target]))
+			if(target && ([target isEqualToString:@"_blank"] || !(newFrame=[self findFrameNamed:target])))
 				{ // if not found or explicitly wanted or not found by name, create a new window
-					// there should be a context menu for a link so that we can call this manually
 				WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// should create a new window loading the request - or return nil
 				if(newView)
 					{

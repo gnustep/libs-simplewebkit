@@ -280,6 +280,7 @@
    atCharacterIndex:(unsigned) index
 			 untilMouseUp:(BOOL)flag;
 {
+	NSLog(@"trackMouse: %@ inRect: %@ ofView: %@ atCharacterIndex: %@ untilOp: %d", event, NSStringFromRect(cellFrame), controlTextView, index, flag);
 	return [self trackMouse:event inRect:cellFrame ofView:controlTextView untilMouseUp:flag];
 }
 
@@ -302,7 +303,6 @@
 @implementation NSButtonCell (NSTextAttachment)
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
-- (BOOL) wantsToTrackMouse; { return YES; }
 
 // add missing methods
 
@@ -311,7 +311,6 @@
 @implementation NSActionCell (NSTextAttachment)
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
-- (BOOL) wantsToTrackMouse; { return YES; }
 
 @end
 
@@ -320,7 +319,6 @@
 - (NSSize) cellSize; { return NSMakeSize(200.0, 22.0); }		// should depend on font&SIZE parameter
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
-- (BOOL) wantsToTrackMouse; { return YES; }
 
 // add missing methods
 
@@ -331,7 +329,6 @@
 - (NSSize) cellSize; { return NSMakeSize(200.0, 22.0); }		// should depend on font&SIZE parameter
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
-- (BOOL) wantsToTrackMouse; { return YES; }
 
 	// add missing methods
 
@@ -361,43 +358,6 @@
 {
 	[view setNeedsDisplayInRect:cellFrame];
 	[view drawRect:cellFrame];
-}
-
-- (void) drawWithFrame:(NSRect)cellFrame
-				inView:(NSView *)controlView
-		characterIndex:(unsigned) index;
-{
-	[self drawWithFrame:cellFrame inView:controlView];
-}
-
-- (void) drawWithFrame:(NSRect)cellFrame
-				inView:(NSView *)controlView
-		characterIndex:(unsigned) index
-		 layoutManager:(NSLayoutManager *) manager;
-{
-	[self drawWithFrame:cellFrame inView:controlView];
-}
-
-- (BOOL) trackMouse:(NSEvent *)event 
-			 inRect:(NSRect)cellFrame 
-			 ofView:(NSView *)controlTextView 
-   atCharacterIndex:(unsigned) index
-	   untilMouseUp:(BOOL)flag;
-{
-	return [self trackMouse:event inRect:cellFrame ofView:controlTextView untilMouseUp:flag];
-}
-
-- (BOOL) wantsToTrackMouse;
-{
-	return NO;
-}
-
-- (BOOL) wantsToTrackMouseForEvent:(NSEvent *) event
-							inRect:(NSRect) rect
-							ofView:(NSView *) controlView
-				  atCharacterIndex:(unsigned) index;
-{
-	return [self wantsToTrackMouse];
 }
 
 @end
@@ -457,16 +417,12 @@
 	NSRect bar;
 	NSBezierPath *p;
 	NSBezierPath *shadow;
-	
 	float lineWidth;
-	
-	
+		
 	lineWidth = _size;
 	
 	upLeft = NSMakePoint(NSMinX(cellFrame)+4, NSMidY(cellFrame)- lineWidth/2);
 	lowRight = NSMakePoint(NSMaxX(cellFrame)-4, NSMidY(cellFrame)+lineWidth/2);
-	
-
 	
 	if (_shaded)
 	{
@@ -503,41 +459,6 @@
 
 }
 
-- (void) drawWithFrame:(NSRect)cellFrame
-				inView:(NSView *)controlView
-		characterIndex:(unsigned) index;
-{
-	[self drawWithFrame:cellFrame inView:controlView];
-}
-
-- (void) drawWithFrame:(NSRect)cellFrame
-				inView:(NSView *)controlView
-		characterIndex:(unsigned) index
-		 layoutManager:(NSLayoutManager *) manager;
-{
-	[self drawWithFrame:cellFrame inView:controlView];
-}
-
-- (BOOL) trackMouse:(NSEvent *)event 
-			 inRect:(NSRect)cellFrame 
-			 ofView:(NSView *)controlTextView 
-   atCharacterIndex:(unsigned) index
-	   untilMouseUp:(BOOL)flag;
-{
-	return [self trackMouse:event inRect:cellFrame ofView:controlTextView untilMouseUp:flag];
-}
-
-- (BOOL) wantsToTrackMouse;
-{
-	return NO;
-}
-
-- (BOOL) wantsToTrackMouseForEvent:(NSEvent *) event
-							inRect:(NSRect) rect
-							ofView:(NSView *) controlView
-				  atCharacterIndex:(unsigned) index;
-{
-	return [self wantsToTrackMouse];
-}
+- (BOOL) wantsToTrackMouse; { return NO; }
 
 @end
