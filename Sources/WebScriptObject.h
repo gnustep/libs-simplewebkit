@@ -66,3 +66,4 @@ typedef enum _WebScriptPropertyAttribute
 - (id) invokeUndefinedMethodFromWebScript:(NSString *) name withArguments:(NSArray *) args;
 
 @end
+
