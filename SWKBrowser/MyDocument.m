@@ -7,6 +7,7 @@
 //
 
 #import "MyDocument.h"
+#import "MyApplication.h"
 
 @implementation MyDocument
 
@@ -591,6 +592,10 @@
 	return 0;
 }
 
+- (IBAction) singleClick:(id) sender;
+{
+}
+
 - (id) tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
 	NSString *ident=[aTableColumn identifier];
@@ -624,6 +629,28 @@
 			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
 		}
 	return @"";
+}
+
+- (IBAction) cancelBookmark:(id) sender
+{
+	[NSApp stopModalWithCode:NSCancelButton];
+	[addBookmarkWindow orderOut:sender];
+}
+
+- (IBAction) saveBookmark:(id) sender
+{
+	[NSApp stopModalWithCode:NSOKButton];
+	[addBookmarkWindow orderOut:sender];
+}
+
+- (IBAction) addBookmark:(id) sender;
+{
+	NSString *title=[[[webView mainFrame] dataSource] pageTitle];
+	[bookmarkURL setStringValue:[currentURL stringValue]];
+	if(title)
+		[bookmarkTitle setStringValue:title]; 
+	if([NSApp runModalForWindow:addBookmarkWindow] == NSOKButton)
+		 [[NSApp delegate] addBookmark:[bookmarkTitle stringValue] forURL:[bookmarkURL stringValue]];
 }
 
 @end

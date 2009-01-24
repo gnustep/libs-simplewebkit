@@ -242,7 +242,7 @@ static NSDictionary *entitiesTable;
 	NSLog(@"parse data=%@", d);
 #endif
 	if(error)
-		return;	// ignore this junk of input data if there was already a parse error
+		return;	// ignore this chunk of input data if there was already a parse error
 	if(!d)
 		{ // notifies end of data
 		done=YES;

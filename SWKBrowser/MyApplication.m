@@ -187,22 +187,24 @@
 - (void) awakeFromNib
 {
 	NSError *error;
-    WebHistory *myHistory = [[[WebHistory alloc] init] autorelease];
-    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+	WebHistory *myHistory = [[[WebHistory alloc] init] autorelease];
+	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 #if 1
 	NSLog(@"AppController awakeFromNib");
-//	NSLog(@"%@", [[NSDocumentController sharedDocumentController] defaultType]);
+	//	NSLog(@"%@", [[NSDocumentController sharedDocumentController] defaultType]);
 #endif
-    [WebHistory setOptionalSharedHistory:myHistory];
+	[WebHistory setOptionalSharedHistory:myHistory];
 	if(![myHistory loadFromURL:[NSURL fileURLWithPath:HISTORY_PATH] error:&error])
 		; // siltently ignore errors
 	[self updateHistoryMenu];
-    [nc addObserver:self selector:@selector(historyDidRemoveAllItems:)
-               name:WebHistoryAllItemsRemovedNotification object:myHistory];
-    [nc addObserver:self selector:@selector(historyDidAddItems:)
-               name:WebHistoryItemsAddedNotification object:myHistory];
-    [nc addObserver:self selector:@selector(historyDidRemoveItems:)
-               name:WebHistoryItemsRemovedNotification object:myHistory];
+	[nc addObserver:self selector:@selector(historyDidRemoveAllItems:)
+						 name:WebHistoryAllItemsRemovedNotification object:myHistory];
+	[nc addObserver:self selector:@selector(historyDidAddItems:)
+						 name:WebHistoryItemsAddedNotification object:myHistory];
+	[nc addObserver:self selector:@selector(historyDidRemoveItems:)
+						 name:WebHistoryItemsRemovedNotification object:myHistory];
+	bookmarks=[[NSDictionary alloc] initWithContentsOfFile:BOOKMARKS_PATH];
+	[bookmarksTable reloadData];
 }
 
 /*
@@ -293,43 +295,61 @@
 
 // Activity window
 
-// FIXME - handle close of document windows - the oulineview needs to reload data!!!
+// FIXME - handle close of document windows - the outlineview needs to reload data!!!
 
 - (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
 {
 #if 0
 	NSLog(@"child:%u %@", index, item);
 #endif
-	if(item == nil)
-		{
-		return [[[[[NSDocumentController sharedDocumentController] documents] objectAtIndex:index] webView] mainFrame];
-		}
-	if([item isKindOfClass:[WebFrame class]])
-		{
-		unsigned children=[[(WebFrame *) item childFrames] count];
-		if(index < children)
-			return [[(WebFrame *) item childFrames] objectAtIndex:index];
-		return [activities objectAtIndex:index-children]; // get i-th data source
-		}
+	if(outlineView == activity)
+			{
+				if(item == nil)
+						{
+							return [[[[[NSDocumentController sharedDocumentController] documents] objectAtIndex:index] webView] mainFrame];
+						}
+				if([item isKindOfClass:[WebFrame class]])
+						{
+							unsigned children=[[(WebFrame *) item childFrames] count];
+							if(index < children)
+								return [[(WebFrame *) item childFrames] objectAtIndex:index];
+							return [activities objectAtIndex:index-children]; // get i-th data source
+						}
+			}
+	if(outlineView == bookmarksTable)
+			{
+				if(item == nil)
+					item=bookmarks;	// root object
+				return [[item objectForKey:@"Children"] objectAtIndex:index];
+			}
 	return nil;
 }
 
 - (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
 {
-	return [self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
+		return [self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
 }
 
 - (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
 {
-	if(item == nil)
-		{
-		return [[[NSDocumentController sharedDocumentController] documents] count];
-		}
-	if([item isKindOfClass:[WebFrame class]])
-		{
-		return [[(WebFrame *) item childFrames] count] +									// subframes
-						[activities count];	// and our subresources
-		}
+	if(outlineView == activity)
+			{
+				if(item == nil)
+						{
+							return [[[NSDocumentController sharedDocumentController] documents] count];
+						}
+				if([item isKindOfClass:[WebFrame class]])
+						{
+							return [[(WebFrame *) item childFrames] count] +									// subframes
+							[activities count];	// and our subresources
+						}
+			}
+	if(outlineView == bookmarksTable)
+			{
+				if(item == nil)
+					item=bookmarks;	// root object
+				return [[item objectForKey:@"Children"] count];
+			}
 	return 0;
 }
 
@@ -339,28 +359,107 @@
 #if 0
 	NSLog(@"display %@", item);
 #endif
-	if([item isKindOfClass:[WebFrame class]])
-		{
-		WebDataSource *src=[(WebFrame *) item dataSource];
-		if([ident isEqualToString:@"address"])
+	if(outlineView == activity)
 			{
-			NSString *title=[src pageTitle];
-			if(!title)
-				title=[[[src response] URL] absoluteString];
-			if(!title)
-				title=[[[src initialRequest] URL] absoluteString];
-			if(!title)
-				title=@"unknown";
-			return title;
+				if([item isKindOfClass:[WebFrame class]])
+						{
+							WebDataSource *src=[(WebFrame *) item dataSource];
+							if([ident isEqualToString:@"address"])
+									{
+										NSString *title=[src pageTitle];
+										if(!title)
+											title=[[[src response] URL] absoluteString];
+										if(!title)
+											title=[[[src initialRequest] URL] absoluteString];
+										if(!title)
+											title=@"unknown";
+										return title;
+									}
+							else
+									{
+										return [NSString stringWithFormat:@"%u Objects", 1+[[src subresources] count]];
+									}
+						}
+				if([item isKindOfClass:[SubResource class]])
+					return [(SubResource *) item objectValueForKey:ident];
+				return NSStringFromClass([item class]);
 			}
-		else
+	if(outlineView == bookmarksTable)
 			{
-			return [NSString stringWithFormat:@"%u Objects", 1+[[src subresources] count]];
+				if([[item objectForKey:@"WebBookmarkType"] isEqualToString:@"WebBookmarkTypeLeaf"])
+					return [[item objectForKey:@"URIDictionary"] objectForKey:ident];	// @"" or @"title"
+				if([[item objectForKey:@"WebBookmarkType"] isEqualToString:@"WebBookmarkTypeList"])
+						{
+							if([ident isEqualToString:@"title"])
+								return [item objectForKey:@"Title"];
+							return @"";
+						}
 			}
-		}
-	if([item isKindOfClass:[SubResource class]])
-		return [(SubResource *) item objectValueForKey:ident];
-	return NSStringFromClass([item class]);
+	return @"?";
+}
+
+- (IBAction) singleClick:(id) sender;
+{
+	if(sender == bookmarksTable)
+			{
+			}
+}
+
+- (IBAction) showBookmarks:(id) sender;
+{
+	[bookmarksPanel orderFront:sender]; 
+}
+
+// addBookmarkToRecord
+
+- (void) addBookmarkChild:(NSMutableDictionary *) child toRecord:(NSMutableDictionary *) list;
+{ // add a node
+	NSMutableArray *children=[list objectForKey:@"Children"];
+	if(!children)
+			{
+				[list setObject:children=[NSMutableArray arrayWithCapacity:5] forKey:@"Children"];
+				[list setObject:@"WebBookmarkTypeList" forKey:@"WebBookmarkType"];
+			}
+	[children addObject:child];
+}
+
+- (void) adList:(NSString *) title toRecord:(NSMutableDictionary *) list;
+{ // add a title node
+	NSMutableDictionary *record=[NSMutableDictionary dictionaryWithObjectsAndKeys:
+															 title, @"Title",
+															 @"WebBookmarkTypeList", @"WebBookmarkType",
+															 [[NSProcessInfo processInfo] globallyUniqueString], @"WebBookmarkUUID",
+															 nil];
+	[self addBookmarkChild:record toRecord:list];
+}
+
+- (void) addBookmark:(NSString *) title forURL:(NSString *) str toRecord:(NSMutableDictionary *) list;
+{ // add a leaf node
+	NSMutableDictionary *record=[NSMutableDictionary dictionaryWithObjectsAndKeys:
+															 [NSMutableDictionary dictionaryWithObjectsAndKeys:title, @"title", str, @"", nil], @"URIDictionary",
+															 str, @"URLString",
+															 @"WebBookmarkTypeLeaf", @"WebBookmarkType",
+															 [[NSProcessInfo processInfo] globallyUniqueString], @"WebBookmarkUUID",
+															 nil];
+	[self addBookmarkChild:record toRecord:list];
+}
+
+- (void) addBookmark:(NSString *) title forURL:(NSString *) str;
+{
+	title=[title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	if([title length] == 0)
+		return;	// no title
+	if(!bookmarks)
+			{ // create root object
+				bookmarks=[[NSMutableDictionary alloc] initWithCapacity:10];
+				[bookmarks setObject:[NSNumber numberWithInt:1] forKey:@"WebBookmarkFileVersion"];
+				[bookmarks setObject:@"Root" forKey:@"WebBookmarkUUID"];
+				[bookmarks setObject:@"" forKey:@"Title"];
+			}
+	[self addBookmark:title forURL:str toRecord:bookmarks];
+	[bookmarks writeToFile:BOOKMARKS_PATH atomically:YES];
+	[bookmarksPanel orderFront:nil]; 
+	[bookmarksTable reloadData];
 }
 
 @end

@@ -29,12 +29,15 @@
         },
                 {
             ACTIONS =             {
+                addBookmark = id;
+                cancelBookmark = id;
                 goBack = id;
                 goForward = id;
                 home = id;
                 loadPageFromComboBox = id;
                 loadPageFromMenuItem = id;
                 openJavaScriptConsole = id;
+                saveBookmark = id;
                 script = id;
                 scriptFromMenuItem = id;
                 showDOMTree = id;
@@ -43,8 +46,11 @@
             CLASS = MyDocument;
             LANGUAGE = ObjC;
             OUTLETS =             {
+                addBookmarkWindow = NSPanel;
                 backButton = NSButton;
                 backForwardTable = NSTableView;
+                bookmarkTitle = NSFormCell;
+                bookmarkURL = NSFormCell;
                 command = NSTextField;
                 currentItem = id;
                 currentURL = NSComboBoxCell;
@@ -55,7 +61,7 @@
                 forwardButton = NSButton;
                 historyTable = NSTableView;
                 result = NSTextView;
-                status = NSTextView;
+                status = NSTextField;
                 webView = WebView;
             };
             SUPERCLASS = NSDocument;

@@ -1,39 +1,51 @@
 {
-    IBClasses = (
-        {
-            ACTIONS = {
-                back = id; 
-                clearHistory = id; 
-                flip = id; 
-                forward = id; 
-                home = id; 
-                load = id; 
-                loadPageFromMenuItem = id; 
-                makeTextDefault = id; 
-                makeTextLarger = id; 
-                makeTextSmaller = id; 
-                openJavaScriptConsole = id; 
-                searchGoogle = id; 
-                showAttributedString = id; 
-                showDOMTree = id; 
-                showSource = id; 
-                stopLoading = id; 
-            }; 
-            CLASS = FirstResponder; 
-            LANGUAGE = ObjC; 
-            SUPERCLASS = NSObject; 
-        }, 
-        {
-            CLASS = MyApplication; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {
-                activity = NSOutlineView; 
-                separatorAfterHistory = NSMenuItem; 
-                separatorBeforeHistory = NSMenuItem; 
-            }; 
-            SUPERCLASS = NSObject; 
-        }, 
-        {CLASS = MyComboBoxCell; LANGUAGE = ObjC; SUPERCLASS = NSComboBoxCell; }
-    ); 
-    IBVersion = 1; 
+    IBClasses =     (
+                {
+            ACTIONS =             {
+                addBookmark = id;
+                back = id;
+                clearHistory = id;
+                flip = id;
+                forward = id;
+                home = id;
+                load = id;
+                loadPageFromMenuItem = id;
+                makeTextDefault = id;
+                makeTextLarger = id;
+                makeTextSmaller = id;
+                openJavaScriptConsole = id;
+                searchGoogle = id;
+                showAttributedString = id;
+                showBookmarks = id;
+                showDOMTree = id;
+                showSource = id;
+                stopLoading = id;
+            };
+            CLASS = FirstResponder;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSObject;
+        },
+                {
+            ACTIONS =             {
+                showBookmarks = id;
+                singleClick = id;
+            };
+            CLASS = MyApplication;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                activity = NSOutlineView;
+                bookmarksPanel = NSPanel;
+                bookmarksTable = NSOutlineView;
+                separatorAfterHistory = NSMenuItem;
+                separatorBeforeHistory = NSMenuItem;
+            };
+            SUPERCLASS = NSObject;
+        },
+                {
+            CLASS = MyComboBoxCell;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSComboBoxCell;
+        }
+    );
+    IBVersion = 1;
 }

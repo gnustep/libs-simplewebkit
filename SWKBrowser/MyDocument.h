@@ -31,6 +31,10 @@
 	// History View
 	IBOutlet NSTableView *historyTable;
 	IBOutlet NSTableView *backForwardTable;
+	// Add Bookmarks
+	IBOutlet NSPanel *addBookmarkWindow;
+	IBOutlet NSFormCell *bookmarkURL;
+	IBOutlet NSFormCell *bookmarkTitle;
 	// Misc
 	NSURL *openfile;		// used only during Open...
 	BOOL hasToolbar;
@@ -52,5 +56,8 @@
 - (IBAction) showDOMTree:(id) sender;
 - (IBAction) goBack:(id) sender;
 - (IBAction) goForward:(id) sender;
+- (IBAction) addBookmark:(id) sender;
+- (IBAction) cancelBookmark:(id) sender;
+- (IBAction) saveBookmark:(id) sender;
 
 @end
