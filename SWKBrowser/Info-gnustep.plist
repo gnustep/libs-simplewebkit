@@ -20,7 +20,8 @@
 	    NSName = HTML;
 	    NSRole = Editor;
 	    NSUnixExtensions = (
-		"htm html"
+		"htm",
+		"html"
 	    );
 	}
     );
