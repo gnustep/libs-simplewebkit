@@ -120,6 +120,11 @@
 
 @implementation MyApplication
 
+- (NSString *) plistPath:(NSString *) database	// History.plist, Bookmarks.plist, Downloads.plist
+{
+	return [[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] stringByAppendingPathComponent:[[NSProcessInfo processInfo] processName]] stringByAppendingPathComponent:database];
+}
+
 - (BOOL) applicationShouldOpenUntitledFile:(NSApplication *) sender;
 {
 	return YES;
@@ -179,9 +184,34 @@
 - (void) saveHistory;
 {
 	NSError *error;
-	[[NSFileManager defaultManager] createDirectoryAtPath:[HISTORY_PATH stringByDeletingLastPathComponent] attributes:nil];	// create directory (ignore errors)
-	if(![[WebHistory optionalSharedHistory] saveToURL:[NSURL fileURLWithPath:HISTORY_PATH] error:&error])
+	[[NSFileManager defaultManager] createDirectoryAtPath:[[self plistPath:@"History.plist"] stringByDeletingLastPathComponent] attributes:nil];	// create directory (ignore errors)
+	if(![[WebHistory optionalSharedHistory] saveToURL:[NSURL fileURLWithPath:[self plistPath:@"History.plist"]] error:&error])
 		;	// silently ignore errors
+}
+
+- (void) updateBookmarksMenuItem:(NSMenuItem *) item forBookmark:(NSDictionary *) bm;
+{
+	if([bm objectForKey:@"Children"])
+			{ // has children
+				// make item have a sumbenu
+				// populate submenu
+			}
+}
+
+- (void) updateBookmarksMenu
+{
+//	NSMenu *menu=[separatorAfterBookmarks menu];
+	// go through all root element children
+	// start behind separator
+	[self updateBookmarksMenuItem:nil forBookmark:bookmarks];
+	// make list longer/shorter
+}
+
+- (void) saveBookmarks;
+{
+	[self updateBookmarksMenu];
+	[bookmarks writeToFile:[self plistPath:@"Bookmarks.plist"] atomically:YES];
+	[bookmarksTable reloadData];
 }
 
 - (void) awakeFromNib
@@ -192,10 +222,12 @@
 #if 1
 	NSLog(@"AppController awakeFromNib");
 	//	NSLog(@"%@", [[NSDocumentController sharedDocumentController] defaultType]);
+	NSLog(@"AppController bookmarks %@", [self plistPath:@"Bookmarks.plist"]);
+	NSLog(@"AppController history %@", [self plistPath:@"History.plist"]);
 #endif
 	[WebHistory setOptionalSharedHistory:myHistory];
-	if(![myHistory loadFromURL:[NSURL fileURLWithPath:HISTORY_PATH] error:&error])
-		; // siltently ignore errors
+	if(![myHistory loadFromURL:[NSURL fileURLWithPath:[self plistPath:@"History.plist"]] error:&error])
+		; // silently ignore errors
 	[self updateHistoryMenu];
 	[nc addObserver:self selector:@selector(historyDidRemoveAllItems:)
 						 name:WebHistoryAllItemsRemovedNotification object:myHistory];
@@ -203,7 +235,7 @@
 						 name:WebHistoryItemsAddedNotification object:myHistory];
 	[nc addObserver:self selector:@selector(historyDidRemoveItems:)
 						 name:WebHistoryItemsRemovedNotification object:myHistory];
-	bookmarks=[[NSDictionary alloc] initWithContentsOfFile:BOOKMARKS_PATH];
+	bookmarks=[[NSDictionary alloc] initWithContentsOfFile:[self plistPath:@"Bookmarks.plist"]];
 	[bookmarksTable reloadData];
 }
 
@@ -386,6 +418,7 @@
 			}
 	if(outlineView == bookmarksTable)
 			{
+				if(!ident) ident=@"";
 				if([[item objectForKey:@"WebBookmarkType"] isEqualToString:@"WebBookmarkTypeLeaf"])
 					return [[item objectForKey:@"URIDictionary"] objectForKey:ident];	// @"" or @"title"
 				if([[item objectForKey:@"WebBookmarkType"] isEqualToString:@"WebBookmarkTypeList"])
@@ -398,11 +431,55 @@
 	return @"?";
 }
 
+- (void)outlineView:(NSOutlineView *)outlineView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+{
+	NSString *ident=[tableColumn identifier];
+	if(outlineView == bookmarksTable)
+			{
+				if(!ident) ident=@"";
+				if([[item objectForKey:@"WebBookmarkType"] isEqualToString:@"WebBookmarkTypeLeaf"])
+						{
+							[[item objectForKey:@"URIDictionary"] setObject:object forKey:ident];	// @"" or @"title"
+							[self saveBookmarks];
+						}
+				else if([[item objectForKey:@"WebBookmarkType"] isEqualToString:@"WebBookmarkTypeList"])
+						{
+							if([ident isEqualToString:@"title"])
+									{
+										[item setOject:object forKey:@"Title"];
+										[self saveBookmarks];
+									}
+						}
+			}
+}
+
+// double click -> go to link
+// single click -> select
+// 2 single clicks -> start editing
+
 - (IBAction) singleClick:(id) sender;
 {
+	NSLog(@"single clicked item=%@", [sender itemAtRow:[sender clickedRow]]);
+	if([sender clickedRow] < 0)
+		return;	// outside
 	if(sender == bookmarksTable)
-			{
+			{ // click on item
+				if([sender clickedRow] == [sender selectedRow])
+						{ // was already selected: start editing
+							[sender editColumn:[sender clickedColumn] row:[sender clickedRow] withEvent:nil select:NO];
+						}
 			}
+}
+
+- (IBAction) doubleClick:(id) sender;
+{
+	NSString *url=[[[sender itemAtRow:[sender clickedRow]] objectForKey:@"URIDictionary"] objectForKey:@""];
+	NSLog(@"double clicked item=%@", [sender itemAtRow:[sender clickedRow]]);
+	if([sender clickedRow] < 0)
+		return;	// outside
+// get clicked item
+// if leaf - extract url
+// and open
 }
 
 - (IBAction) showBookmarks:(id) sender;
@@ -457,9 +534,8 @@
 				[bookmarks setObject:@"" forKey:@"Title"];
 			}
 	[self addBookmark:title forURL:str toRecord:bookmarks];
-	[bookmarks writeToFile:BOOKMARKS_PATH atomically:YES];
-	[bookmarksPanel orderFront:nil]; 
-	[bookmarksTable reloadData];
+	[bookmarksPanel orderFront:nil];
+	[self saveBookmarks];
 }
 
 @end

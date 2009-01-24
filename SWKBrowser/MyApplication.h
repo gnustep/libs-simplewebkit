@@ -8,10 +8,6 @@
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
-#define HISTORY_PATH [NSHomeDirectory() stringByAppendingPathComponent:@"Library/SWKBrowser/History.plist"]
-#define DOWNLOADS_PATH [NSHomeDirectory() stringByAppendingPathComponent:@"Library/SWKBrowser/Downloads.plist"]
-#define BOOKMARKS_PATH [[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] stringByAppendingPathComponent:[[NSProcessInfo processInfo] processName]] stringByAppendingPathComponent:@"Bookmarks.plist"]
-
 @interface MyApplication : NSObject
 {
 	IBOutlet NSOutlineView *activity;
