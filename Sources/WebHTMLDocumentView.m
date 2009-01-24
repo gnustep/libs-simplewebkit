@@ -333,7 +333,7 @@
 
 @implementation NSButtonCell (NSTextAttachment)
 
-- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -40.0); }
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -20.0); }
 
 // add missing methods
 
@@ -344,6 +344,26 @@
 - (NSSize) cellSize; { return NSMakeSize(200.0, 22.0); }		// should depend on font&SIZE parameter
 
 - (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+
+- (BOOL) trackMouse:(NSEvent *)event 
+						 inRect:(NSRect)cellFrame 
+						 ofView:(NSView *)controlTextView 
+   atCharacterIndex:(unsigned) index
+			 untilMouseUp:(BOOL)flag;
+{ // click into text field
+	if(![self isEditable])
+		return NO;
+	if([[controlTextView window] makeFirstResponder:controlTextView])
+			{
+				[self editWithFrame:cellFrame
+										 inView:controlTextView
+										 editor:[self setUpFieldEditorAttributes:[[controlTextView window] fieldEditor:YES forObject:controlTextView]]
+									 delegate:[self target]
+											event:event];
+				return YES;	// field editor should now be in editing mode
+			}
+	return NO;
+}
 
 // add missing methods
 
@@ -362,6 +382,9 @@
 @implementation NSViewAttachmentCell
 
 // show a generic view as an attachment cell (e.g. an WebFrameView for <iframe>)
+// or an embedded NSTextView
+
+// is the view a subview of our control view???
 
 - (void) dealloc;
 {
@@ -383,6 +406,16 @@
 {
 	[view setNeedsDisplayInRect:cellFrame];
 	[view drawRect:cellFrame];
+}
+
+- (BOOL) trackMouse:(NSEvent *)event 
+						 inRect:(NSRect)cellFrame 
+						 ofView:(NSView *)controlTextView 
+   atCharacterIndex:(unsigned) index
+			 untilMouseUp:(BOOL)flag;
+{ // click into text field
+	if([[controlTextView window] makeFirstResponder:view])
+		[view mouseDown:event];
 }
 
 @end

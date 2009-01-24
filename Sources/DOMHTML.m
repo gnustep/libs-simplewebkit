@@ -351,6 +351,7 @@ enum
 	return str;
 }
 
+
 // Hm... how do we run the parser here?
 // it can't be the full parser
 // what happens if we set illegal html?
@@ -524,6 +525,61 @@ enum
 
 - (NSTextAttachment *) _attachment; { return nil; }	// default is no attachment
 
+- (void) _performSelectorForAllFormElements:(SEL) sel withObject:(id) obj
+{ // go recursively down to all form elements
+	int i;
+	if([self respondsToSelector:sel])
+		[self performSelector:sel withObject:obj];	// apply to self
+	for(i=0; i<[_childNodes length]; i++)	// and to all chilren that exist
+		[(DOMHTMLElement *) [_childNodes item:i] _performSelectorForAllFormElements:sel withObject:obj];
+}
+
+- (NSString *) _formValue; { return nil; }	// non-buttons have no value
+
+- (void) _addToPOSTBody:(NSMutableData *) data;
+{ // add POST data for button (even if hidden!)
+	NSString *val=[self _formValue];
+	if(val)
+			{
+				NSString *name=[self getAttribute:@"name"];
+				if(name)
+					[data appendData:[[NSString stringWithFormat:@"%@=%@", name, val] dataUsingEncoding:NSUTF8StringEncoding]];
+			}
+}
+
+- (void) _addToGETBody:(NSMutableString *) str;
+{ // add GET data for buttons
+	NSString *val=[self _formValue];
+	if(val)
+			{
+				NSString *name=[self getAttribute:@"name"];
+				if(name)
+						{
+							NSMutableArray *a=[[NSMutableArray alloc] initWithCapacity:10];
+							NSEnumerator *e=[[val componentsSeparatedByString:@"+"] objectEnumerator];
+							NSMutableString *s;
+							while((s=[e nextObject]))
+									{ // convert components
+#if 1
+										NSLog(@"percent-escaping: %@ -> %@", s, [s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding]);
+#endif
+										s=[[s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding] mutableCopy];
+										[s replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [s length])];
+										// CHECKME: which of these are already converted!
+										[s replaceOccurrencesOfString:@"&" withString:@"%26" options:0 range:NSMakeRange(0, [s length])];
+										[s replaceOccurrencesOfString:@"?" withString:@"%3F" options:0 range:NSMakeRange(0, [s length])];
+										[s replaceOccurrencesOfString:@"-" withString:@"%3D" options:0 range:NSMakeRange(0, [s length])];
+										[s replaceOccurrencesOfString:@";" withString:@"%3B" options:0 range:NSMakeRange(0, [s length])];
+										[s replaceOccurrencesOfString:@"," withString:@"%2C" options:0 range:NSMakeRange(0, [s length])];
+										[a addObject:s];
+										[s release];										
+									}
+							val=[a componentsJoinedByString:@"%2B"];
+							[str appendFormat:@"&%@=%@", name, val];
+						}
+			}
+}
+
 @end
 
 @implementation DOMCharacterData (DOMHTMLElement)
@@ -570,6 +626,10 @@ enum
 - (void) _layout:(NSView *) parent;
 {
 	return;	// ignore if mixed with <frame> and <frameset> elements
+}
+
+- (void) _performSelectorForAllFormElements:(SEL) sel withObject:(id) obj
+{ // no children or form handling
 }
 
 @end
@@ -760,7 +820,7 @@ enum
 
 @implementation DOMHTMLScriptElement
 
-// FIXME: or should we use designatedParentNode; { return nil; } so that it is NOT stored in DOM Tree?
+// FIXME: or should we use designatedParentNode; { return nil; } so that it is NOT even stored in DOM Tree?
 
 - (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore if in <body> context
 
@@ -1483,12 +1543,6 @@ enum
 	// 1. we need an official mechanism to postpone loading until we click on the image (e.g. for HTML mails)
 	// 2. note that images have to be collected in DOMDocument so that we can access them through "document.images[index]"
 
-- (IBAction) _imgAction:(id) sender;
-{
-	// make image load in separate window
-	// we can also set the link attribute with the URL for the text attachment
-}
-
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSString *align=[self getAttribute:@"align"];
@@ -1577,6 +1631,13 @@ enum
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
 	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+}
+
+- (IBAction) _imgAction:(id) sender;
+{
+	// make image load in separate window
+	// we can also set the link attribute with the URL for the text attachment
+	// how do we handle images within frames?
 }
 
 @end
@@ -1937,7 +1998,7 @@ enum
 
 @implementation DOMHTMLFormElement
 
-+ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLStandardNesting; }
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
@@ -1945,7 +2006,7 @@ enum
 	[_style setObject:self forKey:@"<form>"];	// make available to attributed string
 }
 
-- (void) submit:(id) sender;
+- (IBAction) _submitForm:(DOMHTMLElement *) clickedElement;
 { // post current request
 	NSMutableURLRequest *request;
 	DOMHTMLDocument *htmlDocument;
@@ -1954,40 +2015,42 @@ enum
 	NSString *target;
 	NSMutableData *body=nil;
 	[self _triggerEvent:@"onsubmit"];
-	// can the trigger abort sending?
-	htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];	// may have been changed by script
+	// can the trigger abort sending the form? Through an exception?
+	htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];	// may have been changed by the onsubmit script
 	action=[self getAttribute:@"action"];
 	method=[self getAttribute:@"method"];
 	target=[self getAttribute:@"target"];
-	if([method caseInsensitiveCompare:@"post"])
-		body=[NSMutableData new];
 	if(!action)
 		action=@"";	// we simply reuse the current - FIXME: we should remove all ? components
-					// walk through all input fields
-	while(NO)
-		{
-		if(body)
-			; // add to the body as [@"name=value\n" dataWithEncoding:]
-		else
-			; // append to URL as &name=value - add a ? for the first one if there is no ? component as part of the action
-		}
+	if([method caseInsensitiveCompare:@"post"])
+			{
+				body=[NSMutableData new];
+				[self _performSelectorForAllFormElements:@selector(_addToPOSTBody:) withObject:body];
+			}
+	else
+			{ // everything else is GET
+				NSMutableString *getURL=[NSMutableString stringWithCapacity:100];
+				[self _performSelectorForAllFormElements:@selector(_addToGETBody:) withObject:getURL];
+				if([getURL length] > 0)
+					action=[action stringByAppendingFormat:@"?%@", [getURL substringFromIndex:1]];	// change first & to ?
+#if 1
+				NSLog(@"action = %@", action);
+#endif
+			}
+	// FIXME: remove ?query part and replace
 	request=(NSMutableURLRequest *)[NSMutableURLRequest requestWithURL:[NSURL URLWithString:action relativeToURL:[[[htmlDocument _webDataSource] response] URL]]];
 	if(method)
-		[request setHTTPMethod:[method uppercaseString]];	// use default "GET" otherwise
+		[request setHTTPMethod:[method uppercaseString]];	// will default to "GET" otherwise
 	if(body)
-		[request setHTTPBody:body];
-	[body release];
-#if 0
+			{
+				[request setHTTPBody:body];
+				[body release];
+			}
+#if 1
 	NSLog(@"submit <form> to %@ using method %@", [request URL], [request HTTPMethod]);
 #endif
 	[request setMainDocumentURL:[[[htmlDocument _webDataSource] request] URL]];
 	[[self webFrame] loadRequest:request];	// and submit the request
-}
-
-- (void) reset;
-{
-	[self _triggerEvent:@"onreset"];
-	// clear all form entries
 }
 
 @end
@@ -2004,7 +2067,6 @@ enum
 - (NSTextAttachment *) _attachment;
 {
 	NSTextAttachment *attachment;
-	NSCell *cell;
 	NSString *type=[[self getAttribute:@"type"] lowercaseString];
 	NSString *name=[self getAttribute:@"name"];
 	NSString *val=[self getAttribute:@"value"];
@@ -2018,7 +2080,7 @@ enum
 		{ // ignore for rendering purposes - will be collected when sending the <form>
 		return nil;
 		}
-#if 0
+#if 1
 	NSLog(@"<input>: %@", [self _attributes]);
 #endif
 	if([type isEqualToString:@"submit"] || [type isEqualToString:@"reset"] ||
@@ -2032,9 +2094,9 @@ enum
 	else
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
-	[cell setTarget:[_style objectForKey:@"<form>"]];
-	[(NSTextFieldCell *) cell setAction:@selector(submit:)];
-	[cell setEditable:![self hasAttribute:@"disabled"] && ![self hasAttribute:@"readonly"]];
+	[(NSActionCell *) cell setTarget:self];
+	[(NSActionCell *) cell setAction:@selector(_submit:)];	// default action
+	[cell setEditable:!([self hasAttribute:@"disabled"] || [self hasAttribute:@"readonly"])];
 	if([cell isKindOfClass:[NSTextFieldCell class]])
 		{ // set text field, placeholder etc.
 		[(NSTextFieldCell *) cell setBezeled:YES];
@@ -2050,30 +2112,141 @@ enum
 		[(NSButtonCell *) cell setButtonType:NSMomentaryLightButton];
 		[(NSButtonCell *) cell setBezelStyle:NSRoundedBezelStyle];
 		if([type isEqualToString:@"submit"])
-			[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];
+			[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];	// FIXME: Localization!
 		else if([type isEqualToString:@"reset"])
-			[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Cancel"];
+				{
+					[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Reset"];
+					[(NSActionCell *) cell setAction:@selector(_reset:)];
+				}
 		else if([type isEqualToString:@"checkbox"])
 			{
 			[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
 			[(NSButtonCell *) cell setButtonType:NSSwitchButton];
 			[(NSButtonCell *) cell setTitle:@""];
+				[(NSActionCell *) cell setAction:@selector(_checkbox:)];
 			}
 		else if([type isEqualToString:@"radio"])
 			{
 			[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
 			[(NSButtonCell *) cell setButtonType:NSRadioButton];
 			[(NSButtonCell *) cell setTitle:@""];
-			_visualRepresentation=(NSObject <WebDocumentView> *) cell;
+				[(NSActionCell *) cell setAction:@selector(_radio:)];
 			}
 		else
 			[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
 		}
-#if 0
+#if 1
 	NSLog(@"  cell: %@", cell);
 	NSLog(@"  cell control view: %@", [cell controlView]);
+	NSLog(@"  _style: %@", _style);
 #endif
 	return attachment;
+}
+
+- (void) _submit:(id) sender
+{ // forward to <form> so that it can handle
+	DOMHTMLFormElement *form=(DOMHTMLFormElement *) self;
+	[self _triggerEvent:@"onclick"];
+	while(form && ![form isKindOfClass:[DOMHTMLFormElement class]])
+		form=(DOMHTMLFormElement *) [form parentNode];	// go one level up
+	[form _submitForm:self];
+}
+
+- (void) _reset:(id) sender;
+{
+	DOMHTMLFormElement *form=(DOMHTMLFormElement *) self;
+	[self _triggerEvent:@"onclick"];
+	while(form && ![form isKindOfClass:[DOMHTMLFormElement class]])
+		form=(DOMHTMLFormElement *) [form parentNode];	// go one level up
+	[form _performSelectorForAllFormElements:@selector(_resetForm:) withObject:nil];
+}
+
+- (void) _checkbox:(id) sender;
+{
+	[self _triggerEvent:@"onclick"];
+}
+
+- (void) _resetForm:(DOMHTMLElement *) ignored;
+{
+	NSString *type=[[self getAttribute:@"type"] lowercaseString];
+	if([type isEqualToString:@"checkbox"])
+		[cell setState:NSOffState];
+	else if([type isEqualToString:@"radio"])
+		[cell setState:[self hasAttribute:@"checked"]];	// reset to default
+	else
+		[cell setStringValue:@""];	// clear string
+}
+
+- (void) _radio:(id) sender;
+{
+	DOMHTMLFormElement *form=(DOMHTMLFormElement *) self;
+	[self _triggerEvent:@"onclick"];
+	while(form && ![form isKindOfClass:[DOMHTMLFormElement class]])
+		form=(DOMHTMLFormElement *) [form parentNode];	// go one level up
+	[form _performSelectorForAllFormElements:@selector(_radioOff:) withObject:self];	// notify all radio buttons in the same group to switch off
+}
+
+- (void) _radioOff:(DOMHTMLElement *) clickedCell;
+{
+#if 1
+	NSLog(@"radioOff clicked %@ self %@", clickedCell, self);
+#endif
+	if(clickedCell == self)
+		return;	// yes, we know...
+	if(![[[self getAttribute:@"type"] lowercaseString] isEqualToString:@"radio"])
+		return;	// only process radio buttons
+	if([[clickedCell getAttribute:@"name"] caseInsensitiveCompare:[self getAttribute:@"name"]] == NSOrderedSame)
+			{ // yes, they have the same name!
+				[cell setState:NSOffState];	// reset radio button
+			}
+}
+
+- (NSString *) _formValue;	// return nil if not successful according to http://www.w3.org/TR/html401/interact/forms.html#h-17.3 17.13.2 Successful controls
+{
+	NSString *type=[[self getAttribute:@"type"] lowercaseString];
+	NSString *val=[self getAttribute:@"value"];
+	if([type isEqualToString:@"checkbox"])
+			{
+				if(!val) val=@"on";
+				return [cell state] == NSOnState?val:@"";
+			}
+	else if([type isEqualToString:@"radio"])
+			{ // report only the active button
+				if(!val) val=@"on";
+				return [cell state] == NSOnState?val:nil;
+			}
+	else if([type isEqualToString:@"submit"])
+			{
+				if(![cell isHighlighted])
+					return nil;	// is not the button that has sent submit:
+				if(val)
+					return val;	// send value
+				return [cell title];
+			}
+	else if([type isEqualToString:@"reset"])
+		return nil;	// never send
+	else if([type isEqualToString:@"hidden"])
+		return val;	// pass valur of hidden fields
+	return [cell stringValue];	// text field
+}
+
+- (void) textDidEndEditing:(NSNotification *)aNotification
+{
+	int code = [[aNotification userInfo] objectForKey:@"NSTextMovement"];
+	[cell setStringValue:[[aNotification object] string]];	// copy value to cell
+	[cell endEditing:[aNotification object]];	
+	switch([code intValue])
+		{
+			case NSReturnTextMovement:
+				[self _submit:nil];
+				break;
+			case NSTabTextMovement:
+				break;
+			case NSBacktabTextMovement:
+				break;
+			case NSIllegalTextMovement:
+				break;
+			}
 }
 
 @end
@@ -2084,7 +2257,6 @@ enum
 { // 
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
-	NSButtonCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 	NSString *size=[self getAttribute:@"size"];
@@ -2105,6 +2277,13 @@ enum
 }
 
 - (NSString *) _string; { return nil; }	// don't process content
+
+- (NSString *) _formValue;
+{
+	if(![cell isHighlighted])
+		return nil;	// this is not the button that has sent submit:
+	return [cell title];
+}
 
 @end
 

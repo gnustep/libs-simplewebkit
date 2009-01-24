@@ -93,7 +93,7 @@ typedef enum
 
 @interface DOMHTMLElement : DOMElement	// add private methods that need to work for HTML nodes only
 {
-	NSMutableDictionary *_style;	// cached attribute&CSS style
+	NSMutableDictionary *_style;	// cached attribute&CSS style (only temporarily valid until we _flushStyles!)
 }
 
 - (NSAttributedString *) attributedString;
@@ -233,12 +233,21 @@ typedef enum
 @end
 
 @interface DOMHTMLInputElement : DOMHTMLElement		// <input>
+{
+	id cell;
+}
 @end
 
 @interface DOMHTMLButtonElement : DOMHTMLElement	// <button>
+{
+	id cell;
+}
 @end
 
 @interface DOMHTMLSelectElement : DOMHTMLElement	// <select>
+{
+	id cell;
+}
 @end
 
 @interface DOMHTMLOptionElement : DOMHTMLElement	// <option>
