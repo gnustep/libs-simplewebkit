@@ -18,7 +18,7 @@
 	    NSHumanReadableName = HTML;
 	    NSIcon = "";
 	    NSName = HTML;
-	    NSRole = Viewer;
+	    NSRole = Editor;
 	    NSUnixExtensions = (
 		"htm html"
 	    );
