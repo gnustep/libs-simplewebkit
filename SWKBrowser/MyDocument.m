@@ -92,7 +92,9 @@
 
 - (IBAction) goBack:(id) sender;
 { // button must be set to "continuous" in Interface Builder
+#if 1
 	NSLog(@"goBack %@", [NSApp currentEvent]);
+#endif
 	if([[NSApp currentEvent] type] == NSPeriodic)
 		{
 		NSLog(@"periodic event");
@@ -112,7 +114,9 @@
 
 - (IBAction) goForward:(id) sender;
 { // button must be set to "continuous" in Interface Builder
+#if 1
 	NSLog(@"goForward %@", [NSApp currentEvent]);
+#endif
 	if([[NSApp currentEvent] type] == NSPeriodic)
 		{
 		NSLog(@"periodic event");

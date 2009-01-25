@@ -403,7 +403,7 @@ enum
 		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];
 		}
 	if(string)
-		{ // must be @""
+		{ // if not nil
 		for(i=0; i<[_childNodes length]; i++)
 			{ // add children nodes (if available)
 			[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];
@@ -2232,7 +2232,7 @@ enum
 
 - (void) textDidEndEditing:(NSNotification *)aNotification
 {
-	int code = [[aNotification userInfo] objectForKey:@"NSTextMovement"];
+	NSNumber *code = [[aNotification userInfo] objectForKey:@"NSTextMovement"];
 	[cell setStringValue:[[aNotification object] string]];	// copy value to cell
 	[cell endEditing:[aNotification object]];	
 	switch([code intValue])
@@ -2294,7 +2294,6 @@ enum
 - (NSTextAttachment *) _attachment
 { // 
 	NSTextAttachment *attachment;
-	NSPopUpButtonCell *cell;
 	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 	NSString *val=[self getAttribute:@"value"];
@@ -2310,10 +2309,10 @@ enum
 		  // how to handle multiSelect flag?
 		// we may have to use a private subclass that has our own selectItem which does not disable the previous
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
-		cell=(NSPopUpButtonCell *) [attachment attachmentCell];	// get the real cell
-		[cell setTitle:val];
-		[cell setTarget:[_style objectForKey:@"<form>"]];
-		[cell setAction:@selector(submit:)];
+		cell=[attachment attachmentCell];	// get the real cell
+		[(NSPopUpButtonCell *) cell setTitle:val];
+		[(NSPopUpButtonCell *) cell setTarget:[_style objectForKey:@"<form>"]];
+		[(NSPopUpButtonCell *) cell setAction:@selector(submit:)];
 		// process children to get the option items
 		// we could remove to return _string nil
 		// and add [_style setObject:self forKey:@"<select>"]

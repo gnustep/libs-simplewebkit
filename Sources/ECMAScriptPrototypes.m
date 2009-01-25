@@ -108,7 +108,7 @@
 - (id) _defaultValue:(Class) hint;
 { // 8.6.2.6
 	id val;
-	if([hint isKindOfClass:[NSString class]] || [self isKindOfClass:[NSDate class]])	// Fixme...
+	if([hint isSubclassOfClass:[NSString class]] || [self isKindOfClass:[NSDate class]])	// Fixme...
 		{ // rules for String or Date hint
 		val=_GET(self, @"toString");
 		if([val isKindOfClass:isa])

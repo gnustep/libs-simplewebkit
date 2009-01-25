@@ -331,7 +331,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 #endif
 			if(target && ([target isEqualToString:@"_blank"] || !(newFrame=[self findFrameNamed:target])))
 				{ // if not found or explicitly wanted or not found by name, create a new window
-				WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// should create a new window loading the request - or return nil
+				WebView *newView=[[_webView UIDelegate] webView:_webView createWebViewWithRequest:request];	// should create a new view window loading the request - or return nil
 				if(newView)
 					{
 					if(![target hasPrefix:@"_"])
@@ -340,6 +340,8 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 					return YES;	// done
 					}
 				}
+				if(!newFrame)
+					newFrame=self;	// show in current window - if no target given or named frame not found, but no new window created (because delegate did not create new view window)
 			// an intra-page anchor should just scroll and call [[webView frameLoadDelegate] webView:webView didChangeLocationWithinPageForFrame:self];
 			[newFrame loadRequest:request];	// make page load (new) URL
 			return YES;
