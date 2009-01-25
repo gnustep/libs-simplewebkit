@@ -272,7 +272,7 @@
 		{
 		_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
-#if 0
+#if 1
 		NSLog(@"connection = %@", _connection);
 		NSLog(@"currentMode = %@", [[NSRunLoop currentRunLoop] currentMode]);
 #endif
@@ -294,7 +294,7 @@
 {
 	WebView *webView=[_webFrame webView];
 	[self retain];	// one of the delegate might make us being released!
-#if 0
+#if 1
 	NSLog(@"WebDataSource error: %@", error);
 #endif
 	[_representation receivedError:error withDataSource:self];
@@ -309,16 +309,26 @@
 - (NSURLRequest *) connection:(NSURLConnection *) connection willSendRequest:(NSURLRequest *) request redirectResponse:(NSURLResponse *) redirectResponse;
 { // we received a HTTP redirect (NOTE: not a HTML <meta http-equiv="Refresh" content="4;url=http://www.domain.com/link.html">)	
 	WebView *webView=[_webFrame webView];
-#if 0
-	NSLog(@"willSendRequest: %@", request);
+	id delegate=[webView resourceLoadDelegate];
+#if 1
+	NSLog(@"willSendRequest: %@ redirectResponse: %@", request, redirectResponse);
 #endif
-	request=[[webView resourceLoadDelegate] webView:webView
-																				 resource:_ident
-																	willSendRequest:request
-																 redirectResponse:redirectResponse
-																	 fromDataSource:_parent?_parent:self];
-	[_request autorelease];
+	if(delegate)
+		request=[delegate webView:webView
+										 resource:_ident
+							willSendRequest:request
+						 redirectResponse:redirectResponse
+							 fromDataSource:_parent?_parent:self];
+	else if(redirectResponse)
+			{
+				// FIXME:
+				NSLog(@"should handle redirectResponse: %@", redirectResponse);
+			}
+	[_request autorelease];	// may be redirected several times...
 	_request=[request mutableCopy];	// update to new current request
+#if 1
+	NSLog(@"updated request: %@", _request);
+#endif
 	return _request;
 }
 
@@ -328,7 +338,7 @@
 	long long len=[response expectedContentLength];
 	Class repclass;
 	_response=[response retain];
-#if 0
+#if 1
 	NSLog(@"response received: %@", response);
 	if([response respondsToSelector:@selector(allHeaderFields)])
 		NSLog(@"status code: %d all headers: %@", [(NSHTTPURLResponse *) response statusCode], [(NSHTTPURLResponse *) response allHeaderFields]);
@@ -381,7 +391,7 @@
 {
 	WebView *webView=[_webFrame webView];
 	[self retain];	// we might indirectly dealloc ourselves in _commitSubresource
-#if 0
+#if 1
 	NSLog(@"connectionDidFinishLoading: %p", connection);
 	NSLog(@"URL: %@", [[self request] URL]);
 #endif

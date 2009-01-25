@@ -29,6 +29,7 @@ If not, write to the Free Software Foundation,
 - (void) dealloc;
 {
 	[_image release];
+	[_doc _setVisualRepresentation:nil];
 	[super dealloc];
 }
 
@@ -45,7 +46,8 @@ If not, write to the Free Software Foundation,
 	view=[[viewclass alloc] initWithFrame:[frameView frame]];
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];	// this should retain
-	[[frame DOMDocument] _setVisualRepresentation:view];	// make the view receive change notifications
+	_doc=[frame DOMDocument];	// non-retained reference
+	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
 	[view release];
 	[super setDataSource:dataSource];
 }
@@ -60,7 +62,7 @@ If not, write to the Free Software Foundation,
 #endif
 	[_image release];
 	_image=[[NSImage alloc] initWithData:[source data]];
-	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
+	[[_doc _visualRepresentation] setNeedsLayout:YES];
 	[[source webFrame] _finishedLoading];	// notify
 	title=[self title];
 #if 0

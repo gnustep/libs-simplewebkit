@@ -81,6 +81,7 @@ static NSDictionary *tagtable;
 #if 0
 	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
 #endif
+	[_doc _setVisualRepresentation:nil];
 	[_elementStack release];
 	[super dealloc];
 }

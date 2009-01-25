@@ -33,6 +33,7 @@
 
 @interface _WebImageDocumentRepresentation : _WebDocumentRepresentation
 {
+	RENAME(DOMDocument) *_doc;		// XML document root
 	NSImage *_image;
 }
 

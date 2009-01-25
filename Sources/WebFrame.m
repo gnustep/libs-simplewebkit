@@ -81,17 +81,17 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (void) reload;
 {
-#if 0
+#if 1
 	NSLog(@"reload %@", self);
 	NSLog(@"_request=%@", _request);
 #endif
 	[self stopLoading];
 	_provisionalDataSource=[[WebDataSource alloc] initWithRequest:_request];
 	NSAssert(_provisionalDataSource != nil, @"can't init with request");
-#if 0
+#if 1
 	NSLog(@"loading %@", _provisionalDataSource);
 #endif
-	// this may trigger the whole loading execution chain but from the RunLoop - which may even issue a new call to -reload!
+	// this may trigger the whole loading execution chain; but from the RunLoop - which may even issue a new call to -reload!
 	[_provisionalDataSource performSelector:@selector(_setWebFrame:) withObject:self afterDelay:0.0];
 }
 
@@ -122,7 +122,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 	NSEnumerator *e=[_pageCache objectEnumerator];
 	WebFrame *cached;
 	NSAssert(req != nil, @"trying to load nil request");
-#if 0
+#if 1
 	NSLog(@"%@ loadRequest:%@", self, req);
 #endif
 	[_request autorelease];
@@ -132,7 +132,9 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		// FIXME: ignore anchor!
 		if([[[[cached dataSource] request] URL] isEqual:[req URL]])
 			{ // found
+#if 1
 			NSLog(@"page found in cache: %@", cached);
+#endif
 #if 0
 			// [_webView _setWebFrame:cached]
 			// [_webFrameView removeFromSuperview];

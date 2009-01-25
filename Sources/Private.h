@@ -33,7 +33,7 @@
 #import <WebKit/WebView.h>
 
 #ifndef NIMP
-#define NIMP NSLog(@"not implemented: %@ - %@", NSStringFromSelector(_cmd), self), (id) nil
+#define NIMP NSLog(@"not implemented: [%@ %@] - %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), self), (id) nil
 #endif
 #ifndef ASSIGN
 #define ASSIGN(var, val) ([var release], var=[val retain])

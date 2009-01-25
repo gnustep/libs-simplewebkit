@@ -47,6 +47,13 @@
 
 @implementation _WebXMLDocumentRepresentation
 
+- (void) dealloc
+{
+	[_parser release];
+	[_doc _setVisualRepresentation:nil];
+	[super dealloc];
+}
+
 // methods from WebDocumentRepresentation protocol
 
 - (void) setDataSource:(WebDataSource *) dataSource;
