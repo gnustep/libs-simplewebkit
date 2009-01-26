@@ -27,7 +27,9 @@
         },
                 {
             ACTIONS =             {
+                prefChanged = id;
                 showBookmarks = id;
+                showPreferences = id;
                 singleClick = id;
             };
             CLASS = MyApplication;
@@ -36,6 +38,12 @@
                 activity = NSOutlineView;
                 bookmarksPanel = NSPanel;
                 bookmarksTable = NSOutlineView;
+                enableJavaScriptPref = NSButtonCell;
+                homePref = NSFormCell;
+                loadImagesPref = NSButtonCell;
+                popupBlockerPref = NSButtonCell;
+                prefsWindow = NSWindow;
+                privateBrowsingPref = NSButtonCell;
                 separatorAfterHistory = NSMenuItem;
                 separatorBeforeHistory = NSMenuItem;
             };

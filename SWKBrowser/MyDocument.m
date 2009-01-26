@@ -83,8 +83,12 @@
 
 - (IBAction) home:(id) Sender;
 {
+	// CHECKME; should this be stored in [WebPreferences standardPrefs]?
+	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomeURL"];
+	if(!home)
+		home=@"about:blank";
 #if 1
-	[self setLocationAndLoad:[NSURL URLWithString:@"about:blank"]];
+	[self setLocationAndLoad:[NSURL URLWithString:home]];
 #else
 	[[webView mainFrame] loadHTMLString:@"<html><head><title>Document Title</title></head><body bgcolor=\"#f0f0f0f0\">Welcome to the GNUstep Web Browser</body></html>" baseURL:nil];
 #endif

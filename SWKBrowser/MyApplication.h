@@ -17,9 +17,17 @@
 	IBOutlet NSPanel *bookmarksPanel;
 	IBOutlet NSOutlineView *bookmarksTable;
 	NSMutableDictionary *bookmarks;
+	IBOutlet NSWindow *prefsWindow;
+	IBOutlet NSFormCell *homePref;
+	IBOutlet NSButtonCell *loadImagesPref;
+	IBOutlet NSButtonCell *enableJavaScriptPref;
+	IBOutlet NSButtonCell *popupBlockerPref;
+	IBOutlet NSButtonCell *privateBrowsingPref;
 }
 
 - (IBAction) showBookmarks:(id) sender;
+- (IBAction) showPreferences:(id) sender;
+- (IBAction) prefChanged:(id) sender;
 - (IBAction) singleClick:(id) sender;
 - (void) addBookmark:(NSString *) title forURL:(NSString *) str;
 

@@ -29,6 +29,7 @@ If not, write to the Free Software Foundation,
 
 #import <WebKit/WebView.h>
 #import <WebKit/WebResource.h>
+#import <WebKit/WebPreferences.h>
 #import "WebHTMLDocumentView.h"
 #import "WebHTMLDocumentRepresentation.h"
 #import "Private.h"
@@ -172,6 +173,7 @@ enum
 @end
 
 // FIXME: read this from our WebPreferences!
+// WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 // [[webView preferences] fixedFontFamily] etc.
 // [[webView preferences] fixedFontSize] etc.
 
@@ -274,25 +276,27 @@ enum
 
 - (void) _triggerEvent:(NSString *) event;
 {
-	NSString *script=[(DOMElement *) self getAttribute:event];
-	if(script)
-		{
+	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	if([[webView preferences] isJavaScriptEnabled])
+			{
+				NSString *script=[(DOMElement *) self getAttribute:event];
+				if(script)
+						{
 #if 0
-		NSLog(@"trigger %@=%@", event, script);
+							NSLog(@"trigger %@=%@", event, script);
 #endif
-		// FIXME: make an event object available to the script
-		// FIXME: make depend on [[webView preferences] isJavaScriptEnabled]
 #if 0
-		{
-			id r;
-			NSLog(@"trigger <script>%@</script>", script);
-			r=[self evaluateWebScript:script];	// try to parse and directly execute script in current document context
-			NSLog(@"result=%@", r);
-		}
+								{
+									id r;
+									NSLog(@"trigger <script>%@</script>", script);
+									r=[self evaluateWebScript:script];	// try to parse and directly execute script in current document context
+									NSLog(@"result=%@", r);
+								}
 #else
-		[self evaluateWebScript:script];	// evaluate code defined by event attribute (protected against exceptions)
+							[self evaluateWebScript:script];	// evaluate code defined by event attribute (protected against exceptions)
 #endif
-		}
+						}
+			}
 }
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
@@ -826,9 +830,10 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
+	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
-		// FIXME: && [[webView preferences] isJavaScriptEnabled])
+	if([[webView preferences] isJavaScriptEnabled])
 		{ // we have an external script to load first
 #if 0
 		NSLog(@"load <script src=%@>", [self getAttribute:@"src"]);
@@ -843,9 +848,11 @@ enum
 	NSString *type=[self getAttribute:@"type"];	// should be "text/javascript" or "application/javascript"
 	NSString *lang=[[self getAttribute:@"lang"] lowercaseString];	// optional language "JavaScript" or "JavaScript1.2"
 	NSString *script;
-	// FIXME: if(![[webView preferences] isJavaScriptEnabled]) return;	// ignore script
+	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	if(![[webView preferences] isJavaScriptEnabled])
+		return;	// ignore script
 	if(![type isEqualToString:@"text/javascript"] && ![type isEqualToString:@"application/javascript"] && ![lang hasPrefix:@"javascript"])
-		return;	// ignore
+		return;	// ignore if it is not javascript
 	if([self hasAttribute:@"src"])
 		{ // external script
 		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// if we are called, we know that it has been loaded - fetch from cache
@@ -1563,6 +1570,7 @@ enum
 
 - (NSTextAttachment *) _attachment;
 {
+	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	NSImage *image=nil;
@@ -1589,20 +1597,20 @@ enum
 #endif
 	[cell setTarget:self];
 	[cell setAction:@selector(_imgAction:)];
-	// if([[webView preferences] loadsImagesAutomatically])
-	{
-		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
-	if(data)
-		{ // we got some or all
-		image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
-		[image setScalesWhenResized:YES];
-		}
-	}
+	if([[webView preferences] loadsImagesAutomatically])
+			{
+				NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+				if(data)
+						{ // we got some or all
+							image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
+							[image setScalesWhenResized:YES];
+						}
+			}
 	if(!image)
-		{ // could not convert
-		image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
-		[image setScalesWhenResized:NO];	// hm... does not really work
-		}
+			{ // could not convert
+				image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
+				[image setScalesWhenResized:NO];	// hm... does not really work
+			}
 	if(width || height) // resize image
 		[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
 	[cell setImage:image];	// set image

@@ -22,12 +22,12 @@
 
 A. INSTALLATION on GNUstep
 
-./configure
+(./configure)
 ./make
 
 
 
-B. Short Description how this all Works Togehter
+B. Short Description how this all Works Together
 
 1. the WebView
 * is the master view object and there is only one per browser (or browser tab)

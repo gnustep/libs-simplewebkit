@@ -538,4 +538,38 @@
 	[self saveBookmarks];
 }
 
+// could we implement this through KVB?
+
+- (IBAction) showPreferences:(id) sender;
+{
+	WebPreferences *pref=[WebPreferences standardPreferences];	// all windows share this
+	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomeURL"];
+	if(!home) home=@"about:blank";
+	[homePref setStringValue:home];
+	[loadImagesPref setState:[pref loadsImagesAutomatically]?NSOnState:NSOffState];
+	[enableJavaScriptPref setState:[pref isJavaScriptEnabled]?NSOnState:NSOffState];
+	[popupBlockerPref setState:![pref javaScriptCanOpenWindowsAutomatically]?NSOnState:NSOffState];
+	[privateBrowsingPref setState:[pref privateBrowsingEnabled]?NSOnState:NSOffState];
+	[prefsWindow makeKeyAndOrderFront:sender];
+}
+
+// FIXME: this is not called for FormCells if the window is closed!
+
+- (IBAction) prefChanged:(id) sender;
+{
+	WebPreferences *pref=[WebPreferences standardPreferences];	// all windows share this
+	if(sender == [homePref controlView])
+			{ // text field
+				[[NSUserDefaults standardUserDefaults] setObject:[sender stringValue] forKey:@"HomeURL"];
+			}
+	// this is a little inefficient since it writes unchanged values - we should connect the outlets of the individual checkboxes and change only single attributes
+	else if(sender == [loadImagesPref controlView])
+			{ // checkbox
+				[pref setLoadsImagesAutomatically:[loadImagesPref state] == NSOnState];
+				[pref setJavaScriptEnabled:[enableJavaScriptPref state] == NSOnState];
+				[pref setJavaScriptCanOpenWindowsAutomatically:[popupBlockerPref state] != NSOnState];
+				[pref setPrivateBrowsingEnabled:[privateBrowsingPref state] == NSOnState];
+			}
+}
+
 @end

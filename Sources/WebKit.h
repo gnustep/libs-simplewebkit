@@ -28,13 +28,17 @@
 #import <WebKit/WebDOMOperations.h>
 #import <WebKit/WebDownload.h>
 #import <WebKit/WebFrame.h>
+#import <WebKit/WebFrameLoadDelegate.h>
 #import <WebKit/WebFrameView.h>
 #import <WebKit/WebHistory.h>
 #import <WebKit/WebHistoryItem.h>
 #import <WebKit/WebPlugin.h>
 #import <WebKit/WebPluginContainer.h>
+#import <WebKit/WebPreferences.h>
 #import <WebKit/WebResource.h>
+#import <WebKit/WebResourceLoadDelegate.h>
 #import <WebKit/WebScriptObject.h>
+#import <WebKit/WebUIDelegate.h>
 #import <WebKit/WebView.h>
 
 // EOF
