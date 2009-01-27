@@ -2011,7 +2011,6 @@ enum
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:self forKey:@"<form>"];	// make available to attributed string
 }
 
 - (IBAction) _submitForm:(DOMHTMLElement *) clickedElement;
@@ -2157,6 +2156,8 @@ enum
 	[self _triggerEvent:@"onclick"];
 	while(form && ![form isKindOfClass:[DOMHTMLFormElement class]])
 		form=(DOMHTMLFormElement *) [form parentNode];	// go one level up
+	// if we don't find the <form>, look for the best matching form
+	// even better: store a reference when creating this element
 	[form _submitForm:self];
 }
 
@@ -2276,7 +2277,7 @@ enum
 	cell=(NSButtonCell *) [attachment attachmentCell];	// get the real cell
 	[cell setBezelStyle:0];	// select a grey square button bezel by default
 	[cell setAttributedTitle:value];	// formatted by contents between <buton> and </button>
-	[cell setTarget:[_style objectForKey:@"<form>"]];
+	[cell setTarget:self];
 	[cell setAction:@selector(submit:)];
 #if 0
 	NSLog(@"  cell: %@", cell);
@@ -2285,6 +2286,17 @@ enum
 }
 
 - (NSString *) _string; { return nil; }	// don't process content
+
+- (void) _submit:(id) sender
+{ // forward to <form> so that it can handle
+	DOMHTMLFormElement *form=(DOMHTMLFormElement *) self;
+	[self _triggerEvent:@"onclick"];
+	while(form && ![form isKindOfClass:[DOMHTMLFormElement class]])
+		form=(DOMHTMLFormElement *) [form parentNode];	// go one level up
+	// if we don't find the <form>, look for the best matching form
+	// even better: store a reference when creating this element
+	[form _submitForm:self];
+}
 
 - (NSString *) _formValue;
 {
@@ -2302,7 +2314,6 @@ enum
 - (NSTextAttachment *) _attachment
 { // 
 	NSTextAttachment *attachment;
-	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 	NSString *val=[self getAttribute:@"value"];
 	NSString *size=[self getAttribute:@"size"];
@@ -2319,7 +2330,7 @@ enum
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
 		cell=[attachment attachmentCell];	// get the real cell
 		[(NSPopUpButtonCell *) cell setTitle:val];
-		[(NSPopUpButtonCell *) cell setTarget:[_style objectForKey:@"<form>"]];
+		[(NSPopUpButtonCell *) cell setTarget:self];
 		[(NSPopUpButtonCell *) cell setAction:@selector(submit:)];
 		// process children to get the option items
 		// we could remove to return _string nil
@@ -2340,6 +2351,24 @@ enum
 }
 
 - (NSString *) _string; { return nil; }	// don't process content
+
+- (void) _submit:(id) sender
+{ // forward to <form> so that it can handle
+	DOMHTMLFormElement *form=(DOMHTMLFormElement *) self;
+	[self _triggerEvent:@"onclick"];
+	while(form && ![form isKindOfClass:[DOMHTMLFormElement class]])
+		form=(DOMHTMLFormElement *) [form parentNode];	// go one level up
+	// if we don't find the <form>, look for the best matching form
+	// even better: store a reference when creating this element
+	[form _submitForm:self];
+}
+
+- (NSString *) _formValue;
+{
+	if(![cell isHighlighted])
+		return nil;	// this is not the button that has sent submit:
+	return [cell title];
+}
 
 @end
 
@@ -2368,7 +2397,6 @@ enum
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
 	NSTextFieldCell *cell;
-	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self getAttribute:@"name"];
 	NSString *cols=[self getAttribute:@"cols"];
 	NSString *lines=[self getAttribute:@"lines"];
@@ -2380,7 +2408,7 @@ enum
 	cell=(NSTextFieldCell *) [attachment attachmentCell];	// get the real cell
 //	[cell setBezelStyle:0];	// select a grey square button bezel by default
 	[cell setAttributedStringValue:value];	// formatted by contents between <textarea> and </textarea>
-	[cell setTarget:[_style objectForKey:@"<form>"]];
+	[cell setTarget:self];
 	[cell setAction:@selector(submit:)];
 #if 0
 	NSLog(@"  cell: %@", cell);

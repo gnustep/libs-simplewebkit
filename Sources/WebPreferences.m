@@ -11,7 +11,7 @@
 
 NSString *WebPreferencesChangedNotification=@"WebPreferencesChangedNotification";
 
-static NSString *PREF_DOMAIN=@"org.GNUstep.WebKit.WebPreferences";
+static NSMutableDictionary *knownPrefs;
 
 @implementation WebPreferences
 
@@ -26,30 +26,23 @@ static NSString *PREF_DOMAIN=@"org.GNUstep.WebKit.WebPreferences";
 	return prefs;
 }
 
-- (id) init; { return [self initWithIdentifier:@"standardPreferences"]; }
+- (id) init; { return [self initWithIdentifier:nil]; }	// no identifier
 
 - (id) initWithIdentifier:(NSString *) ident
 {
 	if((self=[super init]))
 		{
+			if([knownPrefs objectForKey:ident])
+					{ // already known
+						[self release];
+						return [[knownPrefs objectForKey:ident] retain];
+					}
 			_identifier=[ident retain];
-			_dict=[[[NSUserDefaults standardUserDefaults] persistentDomainForName:PREF_DOMAIN] mutableCopy];
-			if(!_dict)
-					{ // set defaults
-						_dict=[[NSMutableDictionary alloc] initWithCapacity:30];
-						/* FIXME:
-#define DEFAULT_FONT_SIZE 16.0
-#define DEFAULT_FONT @"Times"
-#define DEFAULT_BOLD_FONT @"Times-Bold"
-#define DEFAULT_TT_SIZE 13.0
-#define DEFAULT_TT_FONT @"Courier"
-						 */
-						[_dict setObject:@"1" forKey:@"JavaScriptEnabled"];
-						[_dict setObject:@"1" forKey:@"JavaScriptCanOpenWindowsAutomatically"];
-						[_dict setObject:@"1" forKey:@"LoadsImagesAutomatically"];
-						[_dict setObject:@"1" forKey:@"MinimumFontSize"];
-						[_dict setObject:@"9" forKey:@"MinimumLogicalFontSize"];
-						[_dict setObject:@"1" forKey:@"UsesPageCache"];
+			if(ident)
+					{
+				if(!knownPrefs)
+					knownPrefs=[[NSMutableDictionary alloc] initWithCapacity:3];
+				[knownPrefs setObject:self forKey:ident];	// FIXME: this prevents that we ever receive a dealloc!
 					}
 		}
 	return self;
@@ -65,68 +58,93 @@ static NSString *PREF_DOMAIN=@"org.GNUstep.WebKit.WebPreferences";
 - (NSString *) identifier; { return _identifier; }
 
 - (BOOL) autosaves; { return _autosaves; }
-- (void) setAutosaves:(BOOL) flag; { _autosaves=flag; /* write any unsaved values? */ }
+- (void) setAutosaves:(BOOL) flag; { _autosaves=flag; /* copy any  values? */ }
+
+- (id) valueForKey:(NSString *) key;
+{
+	if(!_autosaves)
+		return [_dict objectForKey:key];	// stored local
+	if(_identifier)
+		key=[NSString stringWithFormat:@"%@WebKit%@", _identifier, key];	// specific
+	else
+		key=[NSString stringWithFormat:@"WebKit%@", key];	// standard
+	return [[NSUserDefaults standardUserDefaults] objectForKey:key];
+}
 
 - (void) setValue:(id) val forKey:(NSString *) key;
 { // set value
-	if([[_dict objectForKey:key] isEqual:val])
-		return;	// unchanged (val may be a different object but is considered same value)
-	if(val)
-		[_dict setObject:val forKey:key];
+	NSUserDefaults *ud;
+	if(!_autosaves)
+			{
+				if(!_dict)
+					_dict=[[NSMutableDictionary alloc] initWithCapacity:10];
+				if(val)
+					[_dict setObject:val forKey:key];	// stored local
+				else
+					[_dict removeObjectForKey:key];
+				return;
+			}
+	if(_identifier)
+		key=[NSString stringWithFormat:@"%@WebKit%@", _identifier, key];	// specific
 	else
-		[_dict removeObjectForKey:key];
-	if(_autosaves)
-		[[NSUserDefaults standardUserDefaults] setPersistentDomain:_dict forName:PREF_DOMAIN];
+		key=[NSString stringWithFormat:@"WebKit%@", key];	// standard
+	ud=[NSUserDefaults standardUserDefaults];
+	if([[ud objectForKey:key] isEqual:val])
+		return;	// unchanged (val may be a different object but is considered same value) - does not handle the case where val==nil and already removed
+	if(val)
+		[ud setObject:val forKey:key];
+	else
+		[ud removeObjectForKey:key];
 	[[NSNotificationCenter defaultCenter] postNotificationName:WebPreferencesChangedNotification object:self];	// FIXME - should be distributed notification
 }
 
-#define GETSET_OBJECT(TYPE, GETTER, SETTER, KEY)\
+#define GETSET_OBJECT(TYPE, GETTER, SETTER, KEY, DEFAULT)\
 - (TYPE *) GETTER;\
-{ return [_dict objectForKey:KEY]; } \
+{ id val=[self valueForKey:KEY]; if(!val) return DEFAULT; return val; } \
 - (void) SETTER:(TYPE *) val;\
 { [self setValue:val forKey:KEY]; }
 
-#define GETSET_STRING(GETTER, SETTER, KEY) GETSET_OBJECT(NSString, GETTER, SETTER, KEY)
+#define GETSET_STRING(GETTER, SETTER, KEY, DEFAULT) GETSET_OBJECT(NSString, GETTER, SETTER, KEY, DEFAULT)
 
-#define GETSET_BOOL(GETTER, SETTER, KEY)\
+#define GETSET_BOOL(GETTER, SETTER, KEY, DEFAULT)\
 - (BOOL) GETTER;\
-{ return [[_dict objectForKey:KEY] boolValue]; } \
+{ id val=[self valueForKey:KEY]; if(!val) return DEFAULT; return [val boolValue]; } \
 - (void) SETTER:(BOOL) val;\
-{ [self setValue:[NSNumber numberWithBool:val] forKey:KEY]; }
+{ if([self valueForKey:KEY] || val != DEFAULT) [self setValue:[NSNumber numberWithBool:val] forKey:KEY]; }
 
-#define GETSET_TYPE(TYPE, GETTER, SETTER, KEY)\
+#define GETSET_TYPE(TYPE, GETTER, SETTER, KEY, DEFAULT)\
 - (TYPE) GETTER;\
-{ return [[_dict objectForKey:KEY] intValue]; } \
+{ id val=[self valueForKey:KEY]; if(!val) return DEFAULT; return [val intValue]; } \
 - (void) SETTER:(TYPE) val;\
-{ [self setValue:[NSNumber numberWithInt:val] forKey:KEY]; }
+{ if([self valueForKey:KEY] || val != DEFAULT) [self setValue:[NSNumber numberWithInt:val] forKey:KEY]; }
 
-#define GETSET_INT(GETTER, SETTER, KEY) GETSET_TYPE(int, GETTER, SETTER, KEY)
+#define GETSET_INT(GETTER, SETTER, KEY, DEFAULT) GETSET_TYPE(int, GETTER, SETTER, KEY, DEFAULT)
 
-GETSET_BOOL(allowsAnimatedImageLooping, setAllowsAnimatedImageLooping, @"AllowsAnimatedImageLooping");
-GETSET_BOOL(allowsAnimatedImages, setAllowsAnimatedImages, @"AllowsAnimatedImages");
-GETSET_BOOL(arePlugInsEnabled, setPlugInsEnabled, @"PlugInsEnabled");
-GETSET_TYPE(WebCacheModel, cacheModel, setCacheModel, @"CacheModel");
-GETSET_STRING(cursiveFontFamily, setCursiveFontFamily, @"CursiveFontFamily");
-GETSET_INT(defaultFixedFontSize, setDefaultFixedFontSize, @"DefaultFixedFontSize");
-GETSET_INT(defaultFontSize, setDefaultFontSize, @"DefaultFontSize");
-GETSET_STRING(defaultTextEncodingName, setDefaultTextEncodingName, @"DefaultTextEncoding");
-GETSET_STRING(fantasyFontFamily, setFantasyFontFamily, @"FantasyFontFamily");
-GETSET_STRING(fixedFontFamily, setFixedFontFamily, @"FixedFontFamily");
-GETSET_BOOL(isJavaEnabled, setJavaEnabled, @"JavaEnabled");
-GETSET_BOOL(isJavaScriptEnabled, setJavaScriptEnabled, @"JavaScriptEnabled");
-GETSET_BOOL(javaScriptCanOpenWindowsAutomatically, setJavaScriptCanOpenWindowsAutomatically, @"JavaScriptCanOpenWindowsAutomatically");	// popup blocker...
-GETSET_BOOL(loadsImagesAutomatically, setLoadsImagesAutomatically, @"LoadsImagesAutomatically");
-GETSET_INT(minimumFontSize, setMinimumFontSize, @"MinimumFontSize");
-GETSET_INT(minimumLogicalFontSize, setMinimumLogicalFontSize, @"MinimumLogicalFontSize");
-GETSET_BOOL(privateBrowsingEnabled, setPrivateBrowsingEnabled, @"PrivateBrowsingEnabled");
-GETSET_STRING(sansSerifFontFamily, setSansSerifFontFamily, @"SansSerifFontFamily");
-GETSET_STRING(serifFontFamily, setSerifFontFamily, @"SerifFontFamily");
-GETSET_BOOL(shouldPrintBackgrounds, setShouldPrintBackgrounds, @"ShouldPrintBackgrounds");
-GETSET_STRING(standardFontFamily, setStandardFontFamily, @"StandardFontFamily");
-GETSET_BOOL(tabsToLinks, setTabsToLinks, @"TabsToLinks");
-GETSET_BOOL(userStyleSheetEnabled, setUserStyleSheetEnabled, @"UserStyleSheetEnabled");
-GETSET_OBJECT(NSURL, userStyleSheetLocation, setUserStyleSheetLocation, @"UserStyleSheetLocation");
-GETSET_BOOL(usesPageCache, setUsesPageCache, @"UsesPageCache");
+GETSET_BOOL(allowsAnimatedImageLooping, setAllowsAnimatedImageLooping, @"AllowsAnimatedImageLooping", NO);
+GETSET_BOOL(allowsAnimatedImages, setAllowsAnimatedImages, @"AllowsAnimatedImages", NO);
+GETSET_BOOL(arePlugInsEnabled, setPlugInsEnabled, @"PluginsEnabled", NO);
+GETSET_TYPE(WebCacheModel, cacheModel, setCacheModel, @"CacheModelPreferenceKey", 0);
+GETSET_STRING(cursiveFontFamily, setCursiveFontFamily, @"CursiveFontFamily", @"Times-Italic");
+GETSET_INT(defaultFixedFontSize, setDefaultFixedFontSize, @"DefaultFixedFontSize", 13);
+GETSET_INT(defaultFontSize, setDefaultFontSize, @"DefaultFontSize", 16);
+GETSET_STRING(defaultTextEncodingName, setDefaultTextEncodingName, @"DefaultTextEncodingName", @"UTF-8");
+GETSET_STRING(fantasyFontFamily, setFantasyFontFamily, @"FantasyFontFamily", @"Fantasy");
+GETSET_STRING(fixedFontFamily, setFixedFontFamily, @"FixedFontFamily", @"Courier");
+GETSET_BOOL(isJavaEnabled, setJavaEnabled, @"JavaEnabled", NO);
+GETSET_BOOL(isJavaScriptEnabled, setJavaScriptEnabled, @"JavaScriptEnabled", YES);
+GETSET_BOOL(javaScriptCanOpenWindowsAutomatically, setJavaScriptCanOpenWindowsAutomatically, @"JavaScriptCanOpenWindowsAutomatically", YES);	// popup blocker...
+GETSET_BOOL(loadsImagesAutomatically, setLoadsImagesAutomatically, @"LoadsImagesAutomatically", YES);
+GETSET_INT(minimumFontSize, setMinimumFontSize, @"MinimumFontSize", 1);
+GETSET_INT(minimumLogicalFontSize, setMinimumLogicalFontSize, @"MinimumLogicalFontSize", 9);
+GETSET_BOOL(privateBrowsingEnabled, setPrivateBrowsingEnabled, @"PrivateBrowsingEnabled", NO);
+GETSET_STRING(sansSerifFontFamily, setSansSerifFontFamily, @"SansSerifFontFamily", @"Arial");
+GETSET_STRING(serifFontFamily, setSerifFontFamily, @"SerifFontFamily", @"Times");
+GETSET_BOOL(shouldPrintBackgrounds, setShouldPrintBackgrounds, @"ShouldPrintBackgroundsPreferenceKey", YES);
+GETSET_STRING(standardFontFamily, setStandardFontFamily, @"StandardFontFamily", @"Times");
+GETSET_BOOL(tabsToLinks, setTabsToLinks, @"TabsToLinks", NO);
+GETSET_BOOL(userStyleSheetEnabled, setUserStyleSheetEnabled, @"UserStyleSheetEnabledPreferenceKey", NO);
+GETSET_OBJECT(NSURL, userStyleSheetLocation, setUserStyleSheetLocation, @"UserStyleSheetLocation", nil);
+GETSET_BOOL(usesPageCache, setUsesPageCache, @"UsesPageCache", NO);
 
 - (void) encodeWithCoder:(NSCoder *) coder;
 {

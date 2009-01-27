@@ -84,7 +84,7 @@
 - (IBAction) home:(id) Sender;
 {
 	// CHECKME; should this be stored in [WebPreferences standardPrefs]?
-	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomeURL"];
+	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomePage"];
 	if(!home)
 		home=@"about:blank";
 #if 1

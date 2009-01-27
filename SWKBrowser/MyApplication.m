@@ -543,7 +543,16 @@
 - (IBAction) showPreferences:(id) sender;
 {
 	WebPreferences *pref=[WebPreferences standardPreferences];	// all windows share this
-	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomeURL"];
+	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomePage"];
+#if 0
+	NSLog(@"prefs = %@: %@", [pref identifier], pref);
+	pref=[[WebPreferences alloc] initWithIdentifier:@"test"];
+	[pref setAutosaves:YES];
+	[pref setJavaScriptEnabled:YES];	// should autosave
+	NSLog(@"prefs = %@: %@", [pref identifier], pref);
+	NSLog(@"prefs fantasyFontFamily: %@", [pref fantasyFontFamily]);
+	pref=[WebPreferences standardPreferences]
+#endif
 	if(!home) home=@"about:blank";
 	[homePref setStringValue:home];
 	[loadImagesPref setState:[pref loadsImagesAutomatically]?NSOnState:NSOffState];
@@ -560,7 +569,7 @@
 	WebPreferences *pref=[WebPreferences standardPreferences];	// all windows share this
 	if(sender == [homePref controlView])
 			{ // text field
-				[[NSUserDefaults standardUserDefaults] setObject:[sender stringValue] forKey:@"HomeURL"];
+				[[NSUserDefaults standardUserDefaults] setObject:[sender stringValue] forKey:@"HomePage"];
 			}
 	// this is a little inefficient since it writes unchanged values - we should connect the outlets of the individual checkboxes and change only single attributes
 	else if(sender == [loadImagesPref controlView])

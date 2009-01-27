@@ -15,7 +15,11 @@ enum
 	WebCacheModelPrimaryWebBrowser
 };
 
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 typedef NSUInteger WebCacheModel;
+#else
+typedef unsigned WebCacheModel;
+#endif
 
 @interface WebPreferences : NSObject <NSCoding>	// this is a proxy into NSUserDefaults
 {
