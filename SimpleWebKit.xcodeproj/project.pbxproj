@@ -96,6 +96,8 @@
 		EEA3D3AD095468BA001244CF /* WebView.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D39C095468BA001244CF /* WebView.m */; };
 		EEA7DF3B0BB05AC6006B2FDA /* ECMAScriptPrototypes.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */; };
 		EEA7DF3C0BB05AC6006B2FDA /* ECMAScriptPrototypes.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */; };
+		EEBA300E0F2F50F200FA7110 /* DOMSVG.m in Sources */ = {isa = PBXBuildFile; fileRef = EEBA300C0F2F50F200FA7110 /* DOMSVG.m */; };
+		EEBA300F0F2F50F200FA7110 /* DOMSVG.h in Headers */ = {isa = PBXBuildFile; fileRef = EEBA300D0F2F50F200FA7110 /* DOMSVG.h */; };
 		EECCF39A0BA037EF0001C219 /* WebKitIMG.png in Resources */ = {isa = PBXBuildFile; fileRef = EECCF3990BA037EF0001C219 /* WebKitIMG.png */; };
 		EED0DD3A0BAED3C4005B0381 /* ECMAScriptEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */; };
 		EED0DD3B0BAED3C4005B0381 /* ECMAScriptEvaluator.m in Sources */ = {isa = PBXBuildFile; fileRef = EED0DD370BAED3C4005B0381 /* ECMAScriptEvaluator.m */; };
@@ -253,6 +255,8 @@
 		EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECMAScriptPrototypes.h; sourceTree = "<group>"; };
 		EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ECMAScriptPrototypes.m; sourceTree = "<group>"; };
 		EEB0F2D40C29244A003CFAB2 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
+		EEBA300C0F2F50F200FA7110 /* DOMSVG.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOMSVG.m; sourceTree = "<group>"; };
+		EEBA300D0F2F50F200FA7110 /* DOMSVG.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMSVG.h; sourceTree = "<group>"; };
 		EECC1E600BA14EA20001C219 /* ToDo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ToDo; sourceTree = "<group>"; };
 		EECCF3990BA037EF0001C219 /* WebKitIMG.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = WebKitIMG.png; sourceTree = "<group>"; };
 		EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECMAScriptEvaluator.h; sourceTree = "<group>"; };
@@ -450,6 +454,8 @@
 				EE60FCB40BA69A8D00503BB4 /* DOMRange.h */,
 				EE60FCB50BA69A8D00503BB4 /* DOMRange.m */,
 				EE24FD190C209B37001947BB /* DOMHTML.plist */,
+				EEBA300D0F2F50F200FA7110 /* DOMSVG.h */,
+				EEBA300C0F2F50F200FA7110 /* DOMSVG.m */,
 			);
 			name = DOM;
 			path = Sources;
@@ -576,6 +582,7 @@
 				EE8A01C60B6CD7F800346917 /* WebUIDelegate.h in Headers */,
 				EE60FA7D0BA6943F00503BB4 /* WebUndefined.h in Headers */,
 				EE044A920CF0A0040003D697 /* WebPreferences.h in Headers */,
+				EEBA300F0F2F50F200FA7110 /* DOMSVG.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -845,6 +852,7 @@
 				EE6FBBC60C21DBD00095EEA6 /* WebTextDocument.m in Sources */,
 				EE044A930CF0A0040003D697 /* WebPreferences.m in Sources */,
 				EEFA5A850E288A2600B86693 /* WebPlugin.m in Sources */,
+				EEBA300E0F2F50F200FA7110 /* DOMSVG.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

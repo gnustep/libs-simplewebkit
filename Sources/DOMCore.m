@@ -363,18 +363,27 @@
 
 // WebScript bridging
 
-- (NSString *) valueForKey:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
+- (NSString *) valueForKey:(NSString *) name;
+{
+	id attr=[_attributes objectForKey:name];
+	if(attr)
+		return [attr value];
+	return [super valueForKey:name];	// standard KVC (either iVar or getter)
+}
 
 - (void) setValue:(id) val forKey:(NSString *) name;
 {
 	DOMAttr *attr=[_attributes objectForKey:name];
 	if(attr)
 		[attr setValue:val];	// already exists
+	// FIXME: can we call setters?
 	else
 		[self setAttributeNode:[[[DOMAttr alloc] _initWithName:name value:val] autorelease]];	// create new
 }
 
 - (BOOL) _canPut:(NSString *) property; { return YES; }
+
+// FIXME: check if we have iVar or setter
 
 - (BOOL) _hasProperty:(NSString *) property;  { return [_attributes objectForKey:property] != nil; }
 

@@ -41,6 +41,19 @@ extern NSString *DOMHTMLBlockInlineLevel;
 {
 	NSMutableArray *elements;
 }
+
+- (DOMElement *) appendChild:(DOMElement *) node;
+- (DOMNodeList *) childNodes;
+- (DOMElement *) cloneNode:(BOOL) deep;
+- (DOMElement *) firstChild;
+- (BOOL) hasChildNodes;
+- (DOMElement *) insertBefore:(DOMElement *) node :(DOMElement *) ref;
+- (DOMElement *) lastChild;
+- (DOMElement *) nextSibling;
+- (DOMElement *) previousSibling;
+- (DOMElement *) removeChild:(DOMNode *) node;
+- (DOMElement *) replaceChild:(DOMNode *) node :(DOMNode *) old;
+
 @end
 
 @interface DOMElement (DOMHTMLElement)		// DOMElements also have tag attributes
@@ -59,7 +72,7 @@ typedef enum
 + (DOMHTMLNestingStyle) _nesting;		// controls building of tree
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;			// return the parent node
 
-- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;	// node has just been decoded but not processed otherwise
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;	// node has just been decoded from HTML but not processed otherwise
 - (void) _elementLoaded;	// element has been loaded (i.e. tag was closed - not called for all nesting modes)
 
 // HTML access
@@ -119,6 +132,12 @@ typedef enum
 {
 	WebDataSource *_dataSource;		// the datasource we belong to - not retained!
 	WebFrame *_webFrame;			// the webframe we belong to - not retained!
+	// DOM Level 0 containers
+	DOMHTMLCollection *forms;				// all forms
+	DOMHTMLCollection *images;			// all images
+	DOMHTMLCollection *applets;
+	DOMHTMLCollection *links;				// all hyperlinks
+	DOMHTMLCollection *anchors;			// all anchors
 }
 
 - (void) _setWebFrame:(WebFrame *) frame;
@@ -127,12 +146,13 @@ typedef enum
 - (WebDataSource *) _webDataSource;
 
 /* in Javascript, we have additional properties
-- (DOMHTMLBodyWlwment *) body;
+- (DOMHTMLBodyElement *) body;
+*/
+
 - (DOMHTMLCollection *) anchors;
 - (DOMHTMLCollection *) forms;
 - (DOMHTMLCollection *) images;
 - (DOMHTMLCollection *) links;
-*/
 
 @end
 
@@ -217,6 +237,7 @@ typedef enum
 @interface DOMHTMLTableElement : DOMHTMLElement	// <table>
 {
 	id table;
+	DOMHTMLCollection *rows;
 }
 @end
 
@@ -224,29 +245,41 @@ typedef enum
 @end
 
 @interface DOMHTMLTableRowElement : DOMHTMLElement	// <tr>
+{
+	DOMHTMLCollection *columns;
+}
 @end
 
-@interface DOMHTMLTableCellElement : DOMHTMLElement	// <td>
+@interface DOMHTMLTableCellElement : DOMHTMLElement	// <td> and <th>
 @end
 
 @interface DOMHTMLFormElement : DOMHTMLElement	// <form>
+{
+	DOMHTMLCollection *elements;
+}
 @end
 
 @interface DOMHTMLInputElement : DOMHTMLElement		// <input>
 {
+	// Hm. this mixes data model and views!
+	// i.e. we should have a more generic way to link view objects with DOM nodes
 	id cell;
+	/// can we store this in our element attributes? So that we can use JavaScript to directly access input.type, input.form etc.
+	DOMHTMLFormElement *form;	// nonretained
 }
 @end
 
 @interface DOMHTMLButtonElement : DOMHTMLElement	// <button>
 {
 	id cell;
+	DOMHTMLFormElement *form;	// nonretained
 }
 @end
 
 @interface DOMHTMLSelectElement : DOMHTMLElement	// <select>
 {
 	id cell;
+	DOMHTMLFormElement *form;	// nonretained
 }
 @end
 
@@ -260,6 +293,10 @@ typedef enum
 @end
 
 @interface DOMHTMLTextAreaElement : DOMHTMLElement	// <textarea>
+{
+	id cell;
+	DOMHTMLFormElement *form;	// nonretained
+}
 @end
 
 @interface DOMHTMLLIElement : DOMHTMLElement		// <li>, <dt>, <dd>

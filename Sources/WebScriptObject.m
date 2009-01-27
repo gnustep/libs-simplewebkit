@@ -100,13 +100,13 @@ NSString *WebScriptException=@"WebScriptException";
 
 - (void) setWebScriptValueAtIndex:(unsigned int) index value:(id) val;
 {
-	NIMP;	// not for generic object
+	NIMP;	// not available for generic object
 	_PUT(self, ([NSString stringWithFormat:@"%u", index]), val);
 }
 
 - (id) webScriptValueAtIndex:(unsigned int) index;
 {
-	return NIMP;	// not for generic object
+	return NIMP;	// not available for generic object
 	return _GET(self, ([NSString stringWithFormat:@"%u", index]));
 }
 
@@ -115,14 +115,23 @@ NSString *WebScriptException=@"WebScriptException";
 	NIMP;	// not for generic object
 }
 
+#if SIMPLY_INHERIT
 - (void) setValue:(id) value forKey:(NSString *) key;
 { // KVC setter
-	NIMP;
+	[super setValue:value forKey:key];
 }
 
 - (id) valueForKey:(NSString *) key;
 { // KVC getter
-	return NIMP;
+	return [super valueForKey:key];
+}
+#endif
+
+- (id) valueForUndefinedKey:(NSString *)key
+{
+	return nil;
+	// should be...
+	return [WebUndefined undefined];
 }
 
 @end
