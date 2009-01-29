@@ -87,6 +87,26 @@ enum
     NSTextListPrependEnclosingMarker = 1
 };
 
+@interface NSParagraphStyle (NSTextBlock)
+- (NSArray *) textBlocks;
+- (NSArray *) textLists;
+@end
+
+@implementation NSParagraphStyle (NSTextBlock)
+- (NSArray *) textBlocks; { return nil; }
+- (NSArray *) textLists; { return nil; }
+@end
+
+@interface NSMutableParagraphStyle (NSTextBlock)
+- (void) setTextBlocks:(NSArray *) array;
+- (void) setTextLists:(NSArray *) array;
+@end
+
+@implementation NSMutableParagraphStyle (NSTextBlock)
+- (void) setTextBlocks:(NSArray *) array; { return; }	// ignore
+- (void) setTextLists:(NSArray *) array; { return; }	// ignore
+@end
+
 #endif
 #endif
 
@@ -1756,7 +1776,9 @@ enum
 	[table setWidth:border type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
 	[table setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
 	; // NSTextBlockVerticalAlignment
-	[_style setObject:table forKey:@"TableBlock"];	// pass a reference to the NSTextTableBlock of this table down to siblings
+	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
+	if(table)
+		[_style setObject:table forKey:@"TableBlock"];	// pass a reference to the NSTextTableBlock of this table down to siblings
 	// reset to default paragraph
 	// reset font style, color etc. to defaults!
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// is a block element
