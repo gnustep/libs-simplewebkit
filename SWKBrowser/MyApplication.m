@@ -225,6 +225,7 @@
 	NSLog(@"AppController bookmarks %@", [self plistPath:@"Bookmarks.plist"]);
 	NSLog(@"AppController history %@", [self plistPath:@"History.plist"]);
 #endif
+	[[WebPreferences standardPreferences] setPrivateBrowsingEnabled:NO];	// disable whatever it was set to on relaunch...
 	[WebHistory setOptionalSharedHistory:myHistory];
 	if(![myHistory loadFromURL:[NSURL fileURLWithPath:[self plistPath:@"History.plist"]] error:&error])
 		; // silently ignore errors

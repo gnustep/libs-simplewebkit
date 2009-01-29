@@ -6,6 +6,20 @@
 	objectVersion = 42;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		EE95BCA60F31F80600D1D07B /* Clang */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = EE95BCAB0F31F81E00D1D07B /* Build configuration list for PBXAggregateTarget "Clang" */;
+			buildPhases = (
+				EE95BCA50F31F80600D1D07B /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = Clang;
+			productName = Clang;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		EE01D4560B7786570089A538 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB590A188F970045B88D /* MainMenu.nib */; };
 		EE01D4590B7786570089A538 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5B0A188F970045B88D /* main.m */; };
@@ -685,6 +699,7 @@
 				EE147E830A16668700E60AF8 /* SWK Browser */,
 				EE01D4520B7786570089A538 /* SWK Browser with full WebKit */,
 				EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */,
+				EE95BCA60F31F80600D1D07B /* Clang */,
 			);
 		};
 /* End PBXProject section */
@@ -771,6 +786,19 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "export SOURCES=\"Sources/Web*.m Sources/DOM*.m Sources/ECMA*.m\"   \t# all source codes\nexport LIBS=\t\t\t\t\t\t# add any additional libraries like -ltiff etc.\nexport FRAMEWORKS=\t\t\t\t\t# add any additional Frameworks (e.g. AddressBook) etc. (adds -I and -L)\nexport INSTALL_PATH=/System/Library/Frameworks  # override INSTALL_PATH for MacOS X for the Zaurus\n\n# global/compile settings\n#export STRIP_Framework=true        # set to true if you want to strip headers etc.\n#export STRIP_MacOS=true            # set to true if you want a Linux-ARM only bundle\n#export INSTALL=true                # true (or empty) will install locally to $ROOT/$INSTALL_PATH\n#export SEND2ZAURUS=true\t\t\t# true (or empty) will try to install on the Zaurus at /$INSTALL_PATH (using ssh)\n#export RUN=true                    # true (or empty) will finally try to run on the Zaurus (using X11 on host)\nexport ROOT=$HOME/Documents/Projects/QuantumSTEP\t# project root\n/usr/bin/make -f $ROOT/System/Sources/Frameworks/mySTEP.make $ACTION\n";
+		};
+		EE95BCA50F31F80600D1D07B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here\n# project must be in Debug build mode\n\nPATH=../checker-0.146:$PATH\n\nxcodebuild -target SimpleWebKit clean\nscan-build -V xcodebuild -target SimpleWebKit -configuration Development\n\nexit 0";
 		};
 		EEAA53860DDB4F6E00D42522 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1065,6 +1093,27 @@
 			};
 			name = Deployment;
 		};
+		EE95BCA70F31F80600D1D07B /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = Clang;
+			};
+			name = Development;
+		};
+		EE95BCA80F31F80600D1D07B /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = Clang;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
 		EEEB9D6809A7586C00626AB7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1178,6 +1227,15 @@
 			buildConfigurations = (
 				EE1AB3A50C20544A005F3F98 /* Development */,
 				EE1AB3A60C20544A005F3F98 /* Deployment */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Development;
+		};
+		EE95BCAB0F31F81E00D1D07B /* Build configuration list for PBXAggregateTarget "Clang" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE95BCA70F31F80600D1D07B /* Development */,
+				EE95BCA80F31F80600D1D07B /* Deployment */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;

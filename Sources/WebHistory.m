@@ -124,7 +124,7 @@ static WebHistory *_optionalSharedHistory;
 	NSDictionary *dict=[NSDictionary dictionaryWithContentsOfURL:url];
 	NSEnumerator *e;
 	NSDictionary *entry;
-	*error=nil;
+	if(error) *error=nil;
 	if(!dict)
 		return NO;
 	e=[[dict objectForKey:@"WebHistoryDates"] objectEnumerator];
@@ -216,7 +216,7 @@ static WebHistory *_optionalSharedHistory;
 		[[NSNotificationCenter defaultCenter] postNotificationName:WebHistorySavedNotification object:self];
 		return YES;
 		}
-	*error=nil;
+	if(error) *error=nil;
 	return NO;
 }
 

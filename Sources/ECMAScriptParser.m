@@ -508,9 +508,8 @@
 						nil];
 					}
 				if([reservedWords containsObject:string])
-					[sc _scanError:[NSString stringWithFormat:@"unexpected keyword: %@", string]];
-				else
-					r=[_WebScriptTreeNodeIdentifier node:nil :string];	// return the identifier (evaluation will form a reference)
+					[sc _scanError:[NSString stringWithFormat:@"unexpected keyword: %@", string]];	// raises exception
+				r=[_WebScriptTreeNodeIdentifier node:nil :string];	// return the identifier (evaluation will form a reference)
 				}
 			}
 		else
@@ -562,6 +561,7 @@
 					[sc _scanError:@"missing ) in function(arguments)"];
 				}
 			l=[_WebScriptTreeNodeCall node:l :arglist];
+			[arglist release];
 			if(flag)
 				break;	// only one argument list for each new
 			}
@@ -1218,6 +1218,8 @@
 		// go through statement block, collect case+statements and add them to the arrays
 		// "default" is added to ((_WebScriptTreeNodeReturn *) r)->otherwise
 		// can check for multiple defaults
+			[cases release];
+			[statements release];
 		}
 	else if([sc _scanKeyword:@"throw"])
 		{ // 12.13
@@ -1227,7 +1229,7 @@
 		}
 	else if([sc _scanKeyword:@"try"])
 		{ // 12.13
-		id ident;
+		id ident=nil;	// if no catch block
 		id catch=nil;
 		[self _skipComments:sc];
 		r=[self _statementWithScanner:sc];	// should enforce to be a block!
@@ -1247,12 +1249,12 @@
 		((_WebScriptTreeNodeTry *) r)->catch=[catch retain];
 		[self _skipComments:sc];
 		if([sc _scanKeyword:@"finally"])
-			{ // has catch part
+			{ // has finally part
 			[self _skipComments:sc];
 			((_WebScriptTreeNodeTry *) r)->finally=[[self _statementWithScanner:sc] retain];	// should enforce to be a block!
 			}
 		if(!((_WebScriptTreeNodeTry *) r)->catch && !((_WebScriptTreeNodeTry *) r)->finally)
-			[sc _scanError:@"missing catch and finally in try"];
+			[sc _scanError:@"try must have catch and/or finally"];
 		}
 	else
 		{ // 12.4

@@ -1949,7 +1949,7 @@ enum
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
 	NSTextTable *table;	// the table we belong to
-	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
+	NSMutableArray *blocks=[[[paragraph textBlocks] mutableCopy] autorelease];	// the text blocks
 	NSTextTableBlock *cell;
 	int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
 	int rowspan=[[self valueForKey:@"rowspan"] intValue];
@@ -1975,7 +1975,10 @@ enum
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
 	table=[_style objectForKey:@"TableBlock"];	// inherited from enclosing table
 	if(!table)
-		return;	// error...
+			{
+				[paragraph release];
+				return;	// error...
+			}
 	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
 														   startingRow:row
 															   rowSpan:rowspan
@@ -1988,14 +1991,17 @@ enum
 	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
 	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
 	if([valign isEqualToString:@"top"])
-		// [block setVerticalAlignment:...]
-		;
+			{
+				// [block setVerticalAlignment:...]
+				;
+			}
 	if(col+colspan > [table numberOfColumns])
 		[table setNumberOfColumns:col+colspan];			// adjust number of columns of our enclosing table
 	if(!blocks)
 		blocks=[NSMutableArray arrayWithCapacity:2];	// rarely more nesting
 	[blocks addObject:cell];	// add to list of text blocks
 	[paragraph setTextBlocks:blocks];	// add to paragraph style
+	[blocks release];
 #if 0
 	NSLog(@"<td> _style=%@", _style);
 #endif
@@ -2064,37 +2070,38 @@ enum
 			{
 				NSString *name;
 				NSString *val=[element _formValue];	// should be [element valueForKey:@"value"];
+				NSMutableArray *a;
+				NSEnumerator *e;
+				NSMutableString *s;
 				if(!val)
 					continue;
 				name=[element valueForKey:@"name"];
 				if(!name)
 					continue;
-				if(postBody)
-						[postBody appendData:[[NSString stringWithFormat:@"%@=%@", name, val] dataUsingEncoding:NSUTF8StringEncoding]];
-				else
-						{ // GET
-							NSMutableArray *a=[[NSMutableArray alloc] initWithCapacity:10];
-							NSEnumerator *e=[[val componentsSeparatedByString:@"+"] objectEnumerator];
-							NSMutableString *s;
-							while((s=[e nextObject]))
-									{ // convert components
+				a=[[NSMutableArray alloc] initWithCapacity:10];
+				e=[[val componentsSeparatedByString:@"+"] objectEnumerator];
+				while((s=[e nextObject]))
+						{ // URL-Encode components
 #if 1
-										NSLog(@"percent-escaping: %@ -> %@", s, [s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding]);
+							NSLog(@"percent-escaping: %@ -> %@", s, [s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding]);
 #endif
-										s=[[s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding] mutableCopy];
-										[s replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [s length])];
-										// CHECKME: which of these are already converted!
-										[s replaceOccurrencesOfString:@"&" withString:@"%26" options:0 range:NSMakeRange(0, [s length])];
-										[s replaceOccurrencesOfString:@"?" withString:@"%3F" options:0 range:NSMakeRange(0, [s length])];
-										[s replaceOccurrencesOfString:@"-" withString:@"%3D" options:0 range:NSMakeRange(0, [s length])];
-										[s replaceOccurrencesOfString:@";" withString:@"%3B" options:0 range:NSMakeRange(0, [s length])];
-										[s replaceOccurrencesOfString:@"," withString:@"%2C" options:0 range:NSMakeRange(0, [s length])];
-										[a addObject:s];
-										[s release];										
-									}
-							val=[a componentsJoinedByString:@"%2B"];
-							[getURL appendFormat:@"&%@=%@", name, val];
+							s=[[s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding] mutableCopy];
+							[s replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [s length])];
+							// CHECKME: which of these are already converted by stringByAddingPercentEscapesUsingEncoding?
+							[s replaceOccurrencesOfString:@"&" withString:@"%26" options:0 range:NSMakeRange(0, [s length])];
+							[s replaceOccurrencesOfString:@"?" withString:@"%3F" options:0 range:NSMakeRange(0, [s length])];
+							[s replaceOccurrencesOfString:@"-" withString:@"%3D" options:0 range:NSMakeRange(0, [s length])];
+							[s replaceOccurrencesOfString:@";" withString:@"%3B" options:0 range:NSMakeRange(0, [s length])];
+							[s replaceOccurrencesOfString:@"," withString:@"%2C" options:0 range:NSMakeRange(0, [s length])];
+							[a addObject:s];
+							[s release];										
 						}
+				val=[a componentsJoinedByString:@"%2B"];
+				[a release];
+				if(postBody)
+						[postBody appendData:[[NSString stringWithFormat:@"%@=%@\r\n", name, val] dataUsingEncoding:NSUTF8StringEncoding]];
+				else
+						[getURL appendFormat:@"&%@=%@", name, val];
 			}
 	if([getURL length] > 0)
 			{
@@ -2540,6 +2547,7 @@ enum
 		[(NSMutableArray *) lists addObject:list];
 		[list release];
 		[paragraph setTextLists:lists];
+			[lists release];
 		}
 #if 0
 	NSLog(@"lists=%@", lists);
@@ -2576,6 +2584,7 @@ enum
       [(NSMutableArray *) lists addObject:list];
       [list release];
       [paragraph setTextLists:lists];
+			[lists release];
     }
 #if 0
   NSLog(@"lists=%@", lists);
