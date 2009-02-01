@@ -591,7 +591,7 @@ enum
 	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
 	// FIXME: there is a setting in CSS 3.0 which controls this mapping
 	// if we are enclosed in a <PRE> skip this step
-	NSMutableString *s=[[[self data] mutableCopy] autorelease];
+	NSMutableString *s=[[self data] mutableCopy];
 	[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
 	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
 	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
@@ -611,6 +611,7 @@ enum
 		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:s attributes:style] autorelease]];	// add formatted content
 		[style release];
 		}
+	[s release];
 }
 
 - (void) _layout:(NSView *) parent;
@@ -1971,7 +1972,7 @@ enum
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
 	NSTextTable *table;	// the table we belong to
-	NSMutableArray *blocks=[[[paragraph textBlocks] mutableCopy] autorelease];	// the text blocks
+	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
 	NSTextTableBlock *cell;
 	int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
 	int rowspan=[[self valueForKey:@"rowspan"] intValue];
@@ -1995,9 +1996,11 @@ enum
 		[paragraph setAlignment:NSJustifiedTextAlignment];
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
+	// FIXME: should walk the DOM tree upwards until we find the table object
 	table=[_style objectForKey:@"TableBlock"];	// inherited from enclosing table
 	if(!table)
 			{
+				[blocks release];
 				[paragraph release];
 				return;	// error...
 			}
@@ -2019,15 +2022,22 @@ enum
 			}
 	if(col+colspan > [table numberOfColumns])
 		[table setNumberOfColumns:col+colspan];			// adjust number of columns of our enclosing table
-	if(!blocks)
-		blocks=[NSMutableArray arrayWithCapacity:2];	// rarely more nesting
+	if(!blocks)	// didn't inherit text blocks
+		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
 	[blocks addObject:cell];	// add to list of text blocks
+	[cell release];
 	[paragraph setTextBlocks:blocks];	// add to paragraph style
 	[blocks release];
 #if 0
 	NSLog(@"<td> _style=%@", _style);
 #endif
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
+}
+
+- (void) dealloc
+{
+	[super dealloc];
 }
 
 @end
@@ -2156,12 +2166,13 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[form=[self valueForKeyPath:@"ownerDocument.lastChild.forms.lastChild"] elements] appendChild:self];
-	// Objc-2.0? self.ownerDocument.lastChild.forms.lastChild.elements.appendChild=self
-#if 0
-	form=(DOMHTMLFormElement *) [[(DOMHTMLDocument *) [[self ownerDocument] lastChild] forms] lastChild];	// add to last form we have seen
-	[[form elements] appendChild:self];
+	form=[self valueForKeyPath:@"ownerDocument.lastChild.forms.lastChild"];	// add to last form we have seen
+//	form=(DOMHTMLFormElement *) [[(DOMHTMLDocument *) [[self ownerDocument] lastChild] forms] lastChild];
+// Objc-2.0? self.ownerDocument.lastChild.forms.lastChild.elements.appendChild=self
+#if 1
+	NSLog(@"<input>: form=%@", form);
 #endif
+	[[form elements] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -2288,7 +2299,7 @@ enum
 	if(![[[self valueForKey:@"type"] lowercaseString] isEqualToString:@"radio"])
 		return;	// only process radio buttons
 	if([[clickedCell valueForKey:@"name"] caseInsensitiveCompare:[self valueForKey:@"name"]] == NSOrderedSame)
-			{ // yes, they have the same name!
+			{ // yes, they have the same name i.e. group!
 				[cell setState:NSOffState];	// reset radio button
 			}
 }
@@ -2564,8 +2575,10 @@ enum
 	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"\t" options:NSTextListPrependEnclosingMarker];
 	if(list)
 		{ // add initial list marker
-		if(!lists) lists=[NSMutableArray new];	// start new one
-		else lists=[lists mutableCopy];			// make mutable
+		if(!lists)
+			lists=[NSMutableArray new];	// start new one
+		else
+			lists=[lists mutableCopy];			// make mutable
 		[(NSMutableArray *) lists addObject:list];
 		[list release];
 		[paragraph setTextLists:lists];
@@ -2575,7 +2588,8 @@ enum
 	NSLog(@"lists=%@", lists);
 #endif
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -2611,10 +2625,9 @@ enum
 #if 0
   NSLog(@"lists=%@", lists);
 #endif
-  [_style setObject: @"block" 
-          forKey:DOMHTMLBlockInlineLevel];
-  [_style setObject: [paragraph autorelease] 
-          forKey: NSParagraphStyleAttributeName];
+  [_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+  [_style setObject:paragraph forKey: NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -2633,8 +2646,10 @@ enum
   list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
   if(list)
     {
-      if(!lists) lists=[NSMutableArray new];	// start new one
-      else lists=[lists mutableCopy];			// make mutable
+      if(!lists)
+				lists=[NSMutableArray new];	// start new one
+      else
+				lists=[lists mutableCopy];			// make mutable
       [(NSMutableArray *) lists addObject:list];
       [list release];
       [paragraph setTextLists:lists];
@@ -2644,7 +2659,8 @@ enum
   NSLog(@"lists=%@", lists);
 #endif
   [_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-  [_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+  [_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
