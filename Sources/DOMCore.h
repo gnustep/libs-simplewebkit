@@ -56,13 +56,6 @@
 @class DOMText;
 
 @interface DOMObject : WebScriptObject <NSCopying>
-{
-	NSObject <WebDocumentView> *_visualRepresentation;			// non-retained NSView or NSCell that represents the element - notified on changes
-}
-
-- (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view;
-- (NSObject <WebDocumentView> *) _visualRepresentation;	// received DOMObject update notifications
-
 @end
 
 @interface DOMWindow : DOMObject
@@ -82,12 +75,15 @@
 	NSString *_namespaceURI;
 	DOMNodeList *_childNodes;
 	DOMNode *_parentNode;
-	RENAME(DOMDocument) *_document;
 	NSString *_prefix;
+	NSObject <WebDocumentView> *_visualRepresentation;			// retained NSView or NSCell or whatever represents the element - will be notified about changes
 	unsigned short _nodeType;
 }
 
-- (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri document:(RENAME(DOMDocument) *) document;
+- (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view;
+- (NSObject <WebDocumentView> *) _visualRepresentation;
+
+- (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri;
 - (void) _setParent:(DOMNode *) p;
 
 - (DOMNode *) appendChild:(DOMNode *) node;

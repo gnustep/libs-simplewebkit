@@ -35,9 +35,6 @@
 	return [self retain];
 }
 
-- (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view; { _visualRepresentation=view; }	// not retained!
-- (NSObject <WebDocumentView> *) _visualRepresentation;	{ return _visualRepresentation; }
-
 @end
 
 @implementation DOMWindow
@@ -71,13 +68,12 @@
 
 @implementation DOMNode
 
-- (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri document:(RENAME(DOMDocument) *) document;
+- (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri;
 {
 	if((self=[self init]))
 		{
 		_nodeName=[name retain];
 		_namespaceURI=[uri retain];
-		_document=document;
 		_parentNode=nil;	// until we get added somewhere
 		}
 	return self;
@@ -89,6 +85,7 @@
 	[_nodeValue release];
 	[_namespaceURI release];
 	[_childNodes release];
+	[_visualRepresentation release];
 	// [_parentNode release];
 	// [_document release];
 	[_prefix release];
@@ -97,8 +94,19 @@
 
 - (void) _setVisualRepresentation:(NSObject <WebDocumentView> *) view;
 {
-	[super _setVisualRepresentation:view];
-	[_visualRepresentation setNeedsLayout:YES];	// first notification!
+	ASSIGN(_visualRepresentation, view);
+	[_visualRepresentation setNeedsLayout:YES];
+}
+
+- (NSObject <WebDocumentView> *) _visualRepresentation;
+{ // return our specific rep or find in the parent nodes
+	while(self)
+			{ // look upwards
+				if(_visualRepresentation)
+					return _visualRepresentation;
+				self=_parentNode;
+			}
+	return self;
 }
 
 - (NSString *) description;
@@ -131,7 +139,7 @@
 		_childNodes=[[DOMNodeList alloc] init];	// create list
 	[[_childNodes _list] addObject:node];
 	[node _setParent:self];
-	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+	[[self _visualRepresentation] setNeedsLayout:YES];	// we have been updated
 	return node;
 }
 
@@ -164,7 +172,7 @@
 	l=[_childNodes _list];
 	[l insertObject:node atIndex:[l indexOfObject:ref]];
 	[node _setParent:self];
-	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+	[[self _visualRepresentation] setNeedsLayout:YES];	// we have been updated
 	return node;
 }
 
@@ -209,7 +217,8 @@
 	return;
 }
 
-- (RENAME(DOMDocument) *) ownerDocument; { return _document; }
+- (RENAME(DOMDocument) *) ownerDocument; { return [_parentNode ownerDocument]; }	// walk the tree upwards; DOMDocument overrides to return self;
+
 - (DOMNode *) parentNode; { return _parentNode; }
 - (NSString *) prefix; { return _prefix; }
 
@@ -232,7 +241,7 @@
 	if(_childNodes)
 		{
 		[[_childNodes _list] removeObject:node];
-		[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+		[[self _visualRepresentation] setNeedsLayout:YES];	// we have been updated
 		}
 	return node;
 }
@@ -246,21 +255,20 @@
 	l=[_childNodes _list];
 	[l replaceObjectAtIndex:[l indexOfObject:old] withObject:node];
 	[node _setParent:self];
-	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+	[[self _visualRepresentation] setNeedsLayout:YES];	// we have been updated
 	return node;
 }
 
 - (void) _setParent:(DOMNode *) p;
 {
 	_parentNode=p;
-	if(!_visualRepresentation)
-		_visualRepresentation=[p _visualRepresentation];	// inherit our parent's visual representation
+	[[self _visualRepresentation] setNeedsLayout:YES];	// we may now have a visual representation
 }
 
 - (void) setNodeValue:(NSString *) string;
 {
 	ASSIGN(_nodeValue, string);
-	[_visualRepresentation setNeedsLayout:YES];	// we have been updated
+	[[self _visualRepresentation] setNeedsLayout:YES];	// we have been updated
 }
 
 - (void) setPrefix:(NSString *) prefix; { ASSIGN(_prefix, prefix); }
@@ -270,7 +278,7 @@
 @implementation DOMNodeList
 
 - (id) init; { if((self=[super init])) { _list=[[NSMutableArray alloc] initWithCapacity:5]; } return self; }
-- (void) dealloc; { [_list release]; [super dealloc]; }
+- (void) dealloc; { NSLog(@"_list: %@", _list); [_list release]; [super dealloc]; }
 - (NSMutableArray *) _list;	{ return _list; }
 - (DOMNode *) item:(unsigned long) index; { return [_list objectAtIndex:index]; }
 - (unsigned long) length; { return [_list count]; }
@@ -300,7 +308,7 @@
 	if([_value isEqual:val])
 		return;	// unchanged
 	ASSIGN(_value, val);
-	[_visualRepresentation setNeedsLayout:YES];
+	[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (BOOL) specified; { return _value != nil; }
@@ -333,7 +341,7 @@
 {
 	[_attributes removeObjectForKey:[attr name]];
 	[attr _setParent:nil];
-	[_visualRepresentation setNeedsLayout:YES];
+	[[self _visualRepresentation] setNeedsLayout:YES];
 	return attr;
 }
 
@@ -353,8 +361,7 @@
 	if(!_attributes)
 		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
 	[_attributes setObject:attr forKey:[attr name]]; return attr;
-	[attr _setParent:self];	// this will make the attr inherit my _visualRepresentation
-	[_visualRepresentation setNeedsLayout:YES];
+	[attr _setParent:self];
 }
 
 - (DOMAttr *) setAttributeNodeNS:(DOMAttr *) attr; { return NIMP; }
@@ -404,14 +411,14 @@
 
 - (DOMCDATASection *) createCDATASection:(NSString *) data;
 {
-	DOMCDATASection *r=[[[DOMCDATASection alloc] _initWithName:@"#cdata" namespaceURI:nil document:self] autorelease];
+	DOMCDATASection *r=[[[DOMCDATASection alloc] _initWithName:@"#cdata" namespaceURI:nil] autorelease];
 	[r setData:data];
 	return r;
 }
 
 - (DOMComment *) createComment:(NSString *) data;
 {
-	DOMComment *r=[[[DOMComment alloc] _initWithName:@"<!--" namespaceURI:nil document:self] autorelease];
+	DOMComment *r=[[[DOMComment alloc] _initWithName:@"<!--" namespaceURI:nil] autorelease];
 	[r setData:data];
 	return r;
 }
@@ -423,13 +430,13 @@
 
 - (DOMElement *) createElement:(NSString *) tag;
 {
-	DOMElement *r=[[[DOMElement alloc] _initWithName:tag namespaceURI:nil document:self] autorelease];
+	DOMElement *r=[[[DOMElement alloc] _initWithName:tag namespaceURI:nil] autorelease];
 	return r;
 }
 
 - (DOMElement *) createElementNS:(NSString *) uri :(NSString *) tag;
 {
-	DOMElement *r=[[[DOMElement alloc] _initWithName:tag namespaceURI:uri document:self] autorelease];
+	DOMElement *r=[[[DOMElement alloc] _initWithName:tag namespaceURI:uri] autorelease];
 	return r;
 }
 
@@ -444,17 +451,16 @@
 
 - (DOMText *) createTextNode:(NSString *) data;
 {
-	DOMText *r=[[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:self] autorelease];
+	DOMText *r=[[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil] autorelease];
 	[r setData:data];
 	return r;
 }
 
 - (DOMDocumentType *) doctype; {return  NIMP; }
 
-- (DOMElement *) documentElement;
-{
-	return NIMP;	// ??? is this the root element of the document? - or [[self ownerDocument] lastChild]?
-}
+- (DOMElement *) documentElement; { return self; }
+
+- (RENAME(DOMDocument) *) ownerDocument; { return self; }	// end recursion
 
 - (DOMElement *) getElementById:(NSString *) element; {return NIMP; }
 - (DOMNodeList *) getElementsByTagName:(NSString * ) name; { return NIMP; }
@@ -481,7 +487,7 @@
 {
 	[(NSMutableString *) _nodeValue appendString:arg];
 	if([arg length] > 0)
-		[_visualRepresentation setNeedsLayout:YES];
+		[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (NSString *) data; { return _nodeValue; }
@@ -490,21 +496,21 @@
 {
 	[(NSMutableString *) _nodeValue deleteCharactersInRange:NSMakeRange(offset, count)];
 	if(count > 0)
-		[_visualRepresentation setNeedsLayout:YES];
+		[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (void) insertData:(unsigned long) offset :(NSString *) arg;
 {
 	[(NSMutableString *) _nodeValue insertString:arg atIndex:offset];
 	if([arg length] > 0)
-		[_visualRepresentation setNeedsLayout:YES];
+		[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (void) replaceData:(unsigned long) offset :(unsigned long) count :(NSString *) arg;
 {
 	[(NSMutableString *) _nodeValue replaceCharactersInRange:NSMakeRange(offset, count) withString:arg];
 	if([arg length] > 0)
-		[_visualRepresentation setNeedsLayout:YES];
+		[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (unsigned long) length; { return [_nodeValue length]; }
@@ -514,7 +520,7 @@
 	if([_nodeValue isEqual:data])
 		return;	// unchanged
 	[(NSMutableString *) _nodeValue setString:data];
-	[_visualRepresentation setNeedsLayout:YES];
+	[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (void) setData:(NSString *) data;
@@ -522,7 +528,7 @@
 	if([_nodeValue isEqual:data])
 		return;	// unchanged
 	[(NSMutableString *) _nodeValue setString:data];
-	[_visualRepresentation setNeedsLayout:YES];
+	[[self _visualRepresentation] setNeedsLayout:YES];
 }
 
 - (NSString *) substringData:(unsigned long) offset :(unsigned long) count; { return [_nodeValue substringWithRange:NSMakeRange(offset, count)]; }
@@ -539,7 +545,7 @@
 	[(NSMutableString *) _nodeValue setString:last];	// keep last
 	r=[[DOMText new] autorelease];
 	[r setData:first];	// return first part
-	[_visualRepresentation setNeedsLayout:YES];
+	[[self _visualRepresentation] setNeedsLayout:YES];
 	return r;
 }
 

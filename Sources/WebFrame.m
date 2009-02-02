@@ -36,15 +36,15 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (id) initWithName:(NSString *) n webFrameView:(WebFrameView *) frameView webView:(WebView *) webView
 {
-    if((self=[super init]))
+   if((self=[super init]))
 		{ // If an error occurs here, send a [self release] message and return nil.
 		_name=[n retain];
 		_frameView=[frameView retain];
 		_webView=[webView retain];
 		[frameView _setWebFrame:self];
-		_domDocument=[[RENAME(DOMDocument) alloc] _initWithName:@"#DOM" namespaceURI:nil document:nil];	// attach empty DOMDocument
+		_domDocument=[[RENAME(DOMDocument) alloc] _initWithName:@"#DOM" namespaceURI:nil];	// attach empty DOMDocument
 		}
-    return self;
+   return self;
 }
 
 - (void) _addChildFrame:(WebFrame *) child;
@@ -98,6 +98,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 - (void) _addToHistory;
 {
 	int cache=[[_webView backForwardList] pageCacheSize];
+	// FIXME: handle private surfing mode
 	WebHistoryItem *item=[[WebHistoryItem alloc] initWithURLString:[[[_dataSource response] URL] absoluteString]
 															 title:[[_dataSource representation] title]
 										   lastVisitedTimeInterval:[NSDate timeIntervalSinceReferenceDate]];

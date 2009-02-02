@@ -244,18 +244,18 @@ enum
 
 - (WebFrame *) webFrame
 {
-	return [(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame];
+	return [(DOMHTMLDocument *) [self ownerDocument] webFrame];	// should be a DOMHTMLDocument (subclass of DOMDocument)
 }
 
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
 {
-	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 	return [NSURL URLWithString:[self valueForKey:string] relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
 }
 
 - (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) stall;
 {
-	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 	WebDataSource *source=[htmlDocument _webDataSource];
 	NSString *urlstring=[self valueForKey:string];
 	NSURL *url=[[NSURL URLWithString:urlstring relativeToURL:[[source response] URL]] absoluteURL];
@@ -289,7 +289,7 @@ enum
 
 - (void) finishedLoadingWithDataSource:(WebDataSource *) source;
 { // our subresource did load - i.e. we can clear the stall on the main HTML script
-	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 	WebDataSource *mainsource=[htmlDocument _webDataSource];
 #if 0
 	NSLog(@"clear stall for %@", self);
@@ -317,7 +317,7 @@ enum
 
 - (void) _triggerEvent:(NSString *) event;
 {
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 	if([[webView preferences] isJavaScriptEnabled])
 			{
 				NSString *script=[(DOMElement *) self valueForKey:event];
@@ -468,7 +468,7 @@ enum
 		{
 		_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
 		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
-		[_style setObject:[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] forKey:WebElementFrameKey];
+		[_style setObject:[(DOMHTMLDocument *) [self ownerDocument] webFrame] forKey:WebElementFrameKey];
 		[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
 		[self _addAttributesToStyle];
 		[self _addCSSToStyle];
@@ -516,7 +516,7 @@ enum
 		}
 	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
 		{ // make monospaced
-		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+		WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:[[webView preferences] fixedFontFamily]];
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[[webView preferences] defaultFixedFontSize]*[webView textSizeMultiplier]];
@@ -591,11 +591,11 @@ enum
 	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
 	// FIXME: there is a setting in CSS 3.0 which controls this mapping
 	// if we are enclosed in a <PRE> skip this step
-	NSMutableString *s=[[self data] mutableCopy];
+	NSMutableString *s=[NSMutableString stringWithString:[self data]];
 	[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
 	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
 	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-#if QUESTIONABLE_OPTIMIZATION
+#if 1	// QUESTIONABLE_OPTIMIZATION
 	while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
 		;
 #endif
@@ -611,7 +611,6 @@ enum
 		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:s attributes:style] autorelease]];	// add formatted content
 		[style release];
 		}
-	[s release];
 }
 
 - (void) _layout:(NSView *) parent;
@@ -733,7 +732,7 @@ enum
 		NSArray *c=[content componentsSeparatedByString:@";"];
 		if([c count] == 2)
 			{
-			DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+			DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 			NSString *u=[[c lastObject] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 			NSURL *url;
 			NSTimeInterval seconds;
@@ -747,7 +746,7 @@ enum
 #if 0
 				NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
 #endif
-				[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] _performClientRedirectToURL:url delay:seconds];
+				[[(DOMHTMLDocument *) [self ownerDocument] webFrame] _performClientRedirectToURL:url delay:seconds];
 				}
 			// else raise some error...
 			}
@@ -839,7 +838,7 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
 	if([[webView preferences] isJavaScriptEnabled])
@@ -857,7 +856,7 @@ enum
 	NSString *type=[self valueForKey:@"type"];	// should be "text/javascript" or "application/javascript"
 	NSString *lang=[[self valueForKey:@"lang"] lowercaseString];	// optional language "JavaScript" or "JavaScript1.2"
 	NSString *script;
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 	if(![[webView preferences] isJavaScriptEnabled])
 		return;	// ignore script
 	if(![type isEqualToString:@"text/javascript"] && ![type isEqualToString:@"application/javascript"] && ![lang hasPrefix:@"javascript"])
@@ -936,7 +935,7 @@ enum
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <frameset> found!
 			// well, this should never happen
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
 - (void) _layout:(NSView *) view;
@@ -1045,7 +1044,7 @@ enum
 			return (DOMHTMLElement *) n;
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <frameset> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
 	// FIXME!!!
@@ -1061,7 +1060,7 @@ enum
 	BOOL noresize=[self hasAttribute:@"noresize"];
 	WebFrame *frame;
 	WebFrameView *frameView;
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 #if 0
 	NSLog(@"_layout: %@", self);
 	NSLog(@"attribs: %@", [self _attributes]);
@@ -1072,10 +1071,11 @@ enum
 		[[view superview] replaceSubview:view with:frameView];	// replace
 		view=frameView;	// use new
 		[frameView release];
-		frame=[[[WebFrame alloc] initWithName:name
+		frame=[[WebFrame alloc] initWithName:name
 								 webFrameView:frameView
-									  webView:webView] autorelease];	// allocate a new WebFrame
+									  webView:webView];	// allocate a new WebFrame
 		[frameView _setWebFrame:frame];	// create and attach a new WebFrame
+			[frame release];
 		[frame _setFrameElement:self];	// make a link
 										//	[parentFrame _addChildFrame:frame];
 		if(src)
@@ -1132,7 +1132,7 @@ enum
 			return (DOMHTMLElement *) n;
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
 @end
@@ -1152,15 +1152,15 @@ enum
 	if(!_style)
 		{
 		// FIXME: cache data until we are modified
-		WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+		WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 		NSFont *font=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// determine default font
-		NSMutableParagraphStyle *paragraph=[[NSMutableParagraphStyle new] autorelease];
+		NSMutableParagraphStyle *paragraph=[NSMutableParagraphStyle new];
 		[paragraph setParagraphSpacing:[[webView preferences] defaultFontSize]/2.0];	// default
 		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
 			paragraph, NSParagraphStyleAttributeName,
 			font, NSFontAttributeName,
 			self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
-			[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame], WebElementFrameKey,
+			[(DOMHTMLDocument *) [self ownerDocument] webFrame], WebElementFrameKey,
 			@"inline", DOMHTMLBlockInlineLevel,	// treat as inline (i.e. don't surround by \nl)
 									// background color
 			text, NSForegroundColorAttributeName,		// default text color - may be nil!
@@ -1168,6 +1168,7 @@ enum
 #if 0
 		NSLog(@"_style for <body> with attribs %@ is %@", [self _attributes], _style);
 #endif
+			[paragraph release];
 		}
 	return _style;
 }
@@ -1237,7 +1238,7 @@ enum
 
 - (void) _layout:(NSView *) view;
 {
-	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 	WebDataSource *source=[htmlDocument _webDataSource];
 	NSString *anchor=[[[source response] URL] fragment];
 	NSString *backgroundURL=[self valueForKey:@"background"];		// URL for background image
@@ -1356,7 +1357,8 @@ enum
 		[paragraph setAlignment:[align _htmlAlignment]];
 	// and modify others...
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1370,7 +1372,8 @@ enum
 	if(align)
 		[paragraph setAlignment:[align _htmlAlignment]];
 	// and modify others...
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1387,7 +1390,8 @@ enum
 		[paragraph setAlignment:[align _htmlAlignment]];
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 	// and modify others...
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1400,7 +1404,7 @@ enum
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 	float size=[[webView preferences] defaultFontSize]*[webView textSizeMultiplier];
 	NSFont *f;
 	NSString *align=[self valueForKey:@"align"];
@@ -1428,7 +1432,8 @@ enum
 	if(f)
 		[_style setObject:f forKey:NSFontAttributeName];	// set header font
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1445,7 +1450,8 @@ enum
 	[paragraph setLineBreakMode:NSLineBreakByClipping];
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
 	// and modify others...
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1454,7 +1460,7 @@ enum
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 	NSArray *names=[[self valueForKey:@"face"] componentsSeparatedByString:@","];	// is a comma separated list of potential font names!
 	NSString *size=[self valueForKey:@"size"];
 	NSColor *color=[[self valueForKey:@"color"] _htmlColor];
@@ -1528,9 +1534,9 @@ enum
 {
 	NSString *urlString=[self valueForKey:@"href"];
 	if(urlString)
-		[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] links] appendChild:self];	// add to Links[] DOM Level 0 list
+		[[(DOMHTMLDocument *) [self ownerDocument] links] appendChild:self];	// add to Links[] DOM Level 0 list
 	else
-		[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] anchors] appendChild:self];	// add to Links[] DOM Level 0 list
+		[[(DOMHTMLDocument *) [self ownerDocument] anchors] appendChild:self];	// add to Links[] DOM Level 0 list
 }
 
 - (void) _addAttributesToStyle;
@@ -1567,7 +1573,7 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] images] appendChild:self];	// add to Images[] DOM Level 0 list
+	[[(DOMHTMLDocument *) [self ownerDocument] images] appendChild:self];	// add to Images[] DOM Level 0 list
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -1591,7 +1597,7 @@ enum
 
 - (NSTextAttachment *) _attachment;
 {
-	WebView *webView=[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] webFrame] webView];
+	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	NSImage *image=nil;
@@ -1621,6 +1627,7 @@ enum
 	if([[webView preferences] loadsImagesAutomatically])
 			{
 				NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+				[self retain];	// FIXME: if we can cancel the load we don't need to keep us alive until the data source is done
 				if(data)
 						{ // we got some or all
 							image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
@@ -1648,13 +1655,14 @@ enum
 // WebDocumentRepresentation callbacks (source is the subresource)
 
 - (void) setDataSource:(WebDataSource *) dataSource; { return; }
-- (void) finishedLoadingWithDataSource:(WebDataSource *) source; { return; }
+
+- (void) finishedLoadingWithDataSource:(WebDataSource *) source; { [self release]; return; }
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // simply ask our NSTextView for a re-layout
 	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
-	[_visualRepresentation setNeedsLayout:YES];
-	[(NSView *) _visualRepresentation setNeedsDisplay:YES];
+	[[self _visualRepresentation] setNeedsLayout:YES];
+	[(NSView *) [self _visualRepresentation] setNeedsDisplay:YES];
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
@@ -1667,6 +1675,12 @@ enum
 	// make image load in separate window
 	// we can also set the link attribute with the URL for the text attachment
 	// how do we handle images within frames?
+}
+
+- (void) dealloc
+{ // cancel subresource loading
+	// FIXME
+	[super dealloc];
 }
 
 @end
@@ -1682,7 +1696,8 @@ enum
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	[paragraph setParagraphSpacing:0.0];
 	// and modify others...
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1702,7 +1717,8 @@ enum
 		[paragraph setAlignment:[align _htmlAlignment]];
 	[paragraph setParagraphSpacing:6.0];
 	// and modify others...
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 @end
@@ -1783,7 +1799,8 @@ enum
 	// reset to default paragraph
 	// reset font style, color etc. to defaults!
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// is a block element
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];	// update paragraph style
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 #if 0
 	NSLog(@"<table> _style=%@", _style);
 #endif
@@ -1864,7 +1881,7 @@ enum
 			return (DOMHTMLElement *) n;	// we have found the table node
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tbody" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy table
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tbody" namespaceURI:nil] autorelease];	// return dummy table
 }
 
 @end
@@ -1887,13 +1904,14 @@ enum
 				if([[tbe nodeName] isEqualToString:@"TBODY"])
 					return tbe;	// found!
 				}
-			tbe=[[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil document:[n ownerDocument]] autorelease];	// create new <tbody>
+			tbe=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil];	// create new <tbody>
 			[n appendChild:tbe];	// insert a fresh <tbody> element
+				[tbe release];
 			return tbe;
 			}
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tr" namespaceURI:nil document:[[rep _root] ownerDocument]] autorelease];	// return dummy
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tr" namespaceURI:nil] autorelease];	// return dummy
 }
 
 - (void) _addAttributesToStyle;
@@ -1914,7 +1932,8 @@ enum
 		[paragraph setAlignment:NSJustifiedTextAlignment];
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
-	[_style setObject:[paragraph autorelease] forKey:NSParagraphStyleAttributeName];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
 }
 
 #if OLD
@@ -2037,6 +2056,7 @@ enum
 
 - (void) dealloc
 {
+	// FIXME:
 	[super dealloc];
 }
 
@@ -2068,7 +2088,7 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[(DOMHTMLDocument *) [[self ownerDocument] lastChild] forms] appendChild:self];	// add to Forms[] DOM Level 0 list
+	[[(DOMHTMLDocument *) [self ownerDocument] forms] appendChild:self];	// add to Forms[] DOM Level 0 list
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -2087,7 +2107,7 @@ enum
 	DOMHTMLElement *element;
 	[self _triggerEvent:@"onsubmit"];
 	// can the trigger abort sending the form? Through an exception?
-	htmlDocument=(DOMHTMLDocument *) [[self ownerDocument] lastChild];	// may have been changed by the onsubmit script
+	htmlDocument=(DOMHTMLDocument *) [self ownerDocument];	// may have been changed by the onsubmit script
 	action=[self valueForKey:@"action"];
 	method=[self valueForKey:@"method"];
 	target=[self valueForKey:@"target"];
@@ -2166,9 +2186,9 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	form=[self valueForKeyPath:@"ownerDocument.lastChild.forms.lastChild"];	// add to last form we have seen
-//	form=(DOMHTMLFormElement *) [[(DOMHTMLDocument *) [[self ownerDocument] lastChild] forms] lastChild];
-// Objc-2.0? self.ownerDocument.lastChild.forms.lastChild.elements.appendChild=self
+	form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"];	// add to last form we have seen
+//	form=(DOMHTMLFormElement *) [[(DOMHTMLDocument *) [self ownerDocument] forms] lastChild];
+// Objc-2.0? self.ownerDocument.forms.elements.appendChild=self
 #if 1
 	NSLog(@"<input>: form=%@", form);
 #endif
@@ -2358,7 +2378,8 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[form=[self valueForKeyPath:@"ownerDocument.lastChild.forms.lastChild"] elements] appendChild:self];
+	form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"];
+	[[form elements] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -2408,7 +2429,7 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[form=[self valueForKeyPath:@"ownerDocument.lastChild.forms.lastChild"] elements] appendChild:self];
+	[[form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"] elements] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -2490,7 +2511,7 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[form=[self valueForKeyPath:@"ownerDocument.lastChild.forms.lastChild"] elements] appendChild:self];
+	[[form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"] elements] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -2582,7 +2603,7 @@ enum
 		[(NSMutableArray *) lists addObject:list];
 		[list release];
 		[paragraph setTextLists:lists];
-			[lists release];
+		[lists release];
 		}
 #if 0
 	NSLog(@"lists=%@", lists);
@@ -2598,8 +2619,7 @@ enum
 
 - (void) _addAttributesToStyle;
 { 
-  NSMutableParagraphStyle *paragraph=
-    [[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+  NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
   NSString *align=[self valueForKey:@"align"];
   NSArray *lists=[paragraph textLists];	// get (nested) list
   NSTextList *list;
@@ -2609,14 +2629,12 @@ enum
   list=[[NSClassFromString(@"NSTextList") alloc] 
          initWithMarkerFormat: @"{decimal}." 
          options: NSTextListPrependEnclosingMarker];
-
   if(list)
     {
       if(!lists) 
         lists=[NSMutableArray new];	// start new one
       else 
         lists=[lists mutableCopy];	// make mutable
-
       [(NSMutableArray *) lists addObject:list];
       [list release];
       [paragraph setTextLists:lists];

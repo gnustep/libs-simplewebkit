@@ -79,7 +79,7 @@ static WebHistory *_optionalSharedHistory;
 			[other _setVisitCount:[other _visitCount]+1]; // already known
 			[other _touch];
 			}
-		else
+		else if([item URLString])
 			{
 			// take _historyAgeInDaysLimit and _historyItemLimit into account (ignore if 0) if we have too many elements
 			[_itemsByURL setObject:item forKey:[item URLString]];

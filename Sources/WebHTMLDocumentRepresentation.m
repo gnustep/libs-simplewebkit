@@ -112,13 +112,13 @@ static NSDictionary *tagtable;
 	_doc=[frame DOMDocument];
 	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
 	[_doc removeChild:[_doc firstChild]];	// if there is one from the last load
-	_root=[[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil document:_doc] autorelease];	// a new root
+	_root=[[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
 	[(DOMHTMLDocument *) _root _setWebFrame:frame];
 	[(DOMHTMLDocument *) _root _setWebDataSource:dataSource];
 	[_doc appendChild:_root];
-	_html=[[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil document:_doc] autorelease];	// build a minimal tree
+	_html=[[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil] autorelease];	// build a minimal tree
 	[_root appendChild:_html];
-	_body=[[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil document:_doc] autorelease];
+	_body=[[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil] autorelease];
 	[_html appendChild:_body];
 	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
 	[_parser setDelegate:self];
@@ -189,7 +189,7 @@ static NSDictionary *tagtable;
 { // the <head> node
 	if(!_head)
 		{ // create if requested
-		_head=[[DOMHTMLHeadElement alloc] _initWithName:@"HEAD" namespaceURI:nil document:_doc];
+		_head=[[DOMHTMLHeadElement alloc] _initWithName:@"HEAD" namespaceURI:nil];
 		[_html insertBefore:_head :_body];	// insert before <body>
 		}
 	return _head;
@@ -255,7 +255,7 @@ static NSDictionary *tagtable;
 {
 	if([string length] > 0)
 		{
-		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:_doc];
+		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
 		NSLog(@"%@ foundCharacters: %@", NSStringFromClass(isa), string);
 #endif
@@ -269,7 +269,7 @@ static NSDictionary *tagtable;
 {
 	if([comment length] > 0)
 		{
-		DOMComment *r=[[DOMComment alloc] _initWithName:@"#comment" namespaceURI:nil document:_doc];
+		DOMComment *r=[[DOMComment alloc] _initWithName:@"#comment" namespaceURI:nil];
 #if 0
 		NSLog(@"%@ foundComment: %@", NSStringFromClass(isa), string);
 #endif
@@ -281,7 +281,7 @@ static NSDictionary *tagtable;
 
 - (void) parser:(NSXMLParser *) parser foundCData:(NSData *) cdata;
 {
-	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil document:_doc];
+	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil];
 	NSString *string=[[NSString alloc] initWithData:cdata encoding:NSUTF8StringEncoding];	// which encoding???
 #if 0
 	NSLog(@"%@ foundCDATA: %@", NSStringFromClass(isa), string);
@@ -297,7 +297,7 @@ static NSDictionary *tagtable;
 #if 0	// ignore ignorable text
 	if([whitespaceString length] > 0)
 		{
-		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:_doc];
+		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
 		NSLog(@"%@ foundIgnorableWhitespace: %@", NSStringFromClass(isa), whitespaceString);
 #endif
@@ -367,7 +367,7 @@ static NSDictionary *tagtable;
 		}
 	if(!newElement)
 		{ // not a singleton or not yet a child of the desigated parent
-		newElement=[[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri document:_doc] autorelease];
+		newElement=[[[c alloc] _initWithName:[tag uppercaseString] namespaceURI:uri] autorelease];
 		if(!newElement)
 			{
 			NSLog(@"could not alloc element for tag <%@> of class %@", tag, NSStringFromClass(c));

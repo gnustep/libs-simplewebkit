@@ -70,7 +70,7 @@
 	_doc=[frame DOMDocument];
 	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
 	[_doc removeChild:[_doc firstChild]];	// if there is one from the last load
-	_root=[[[RENAME(DOMDocument) alloc] _initWithName:@"#document" namespaceURI:nil document:_doc] autorelease];	// a new root
+	_root=[[[RENAME(DOMDocument) alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
 	[_doc appendChild:_root];
 	_current=(DOMElement *) _root;		// append all to this root
 	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
@@ -139,7 +139,7 @@
 {
 	if([string length] > 0)
 		{
-		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:_doc];
+		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
 		NSLog(@"%@ foundCharacters: %@", NSStringFromClass(isa), string);
 #endif
@@ -153,7 +153,7 @@
 {
 	if([comment length] > 0)
 		{
-		DOMComment *r=[[DOMComment alloc] _initWithName:@"#comment" namespaceURI:nil document:_doc];
+		DOMComment *r=[[DOMComment alloc] _initWithName:@"#comment" namespaceURI:nil];
 #if 0
 		NSLog(@"%@ foundComment: %@", NSStringFromClass(isa), comment);
 #endif
@@ -165,7 +165,7 @@
 
 - (void) parser:(NSXMLParser *) parser foundCData:(NSData *) cdata;
 {
-	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil document:_doc];
+	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil];
 	NSString *string=[[NSString alloc] initWithData:cdata encoding:NSUTF8StringEncoding];	// which encoding???
 #if 0
 	NSLog(@"%@ foundCDATA: %@", NSStringFromClass(isa), string);
@@ -181,7 +181,7 @@
 #if 0	// ignore ignorable text
 	if([whitespaceString length] > 0)
 		{
-		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil document:_doc];
+		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
 		NSLog(@"%@ foundIgnorableWhitespace: %@", NSStringFromClass(isa), whitespaceString);
 #endif
@@ -197,7 +197,7 @@
 	NSEnumerator *e;
 	NSString *key;
 	DOMElement *newElement;
-	newElement=[[[DOMElement alloc] _initWithName:tag namespaceURI:uri document:_doc] autorelease];
+	newElement=[[[DOMElement alloc] _initWithName:tag namespaceURI:uri] autorelease];
 	if(!newElement)
 		{
 		NSLog(@"XMLDocument could not alloc element for tag <%@>", tag);
