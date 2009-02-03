@@ -1980,8 +1980,6 @@ enum
 
 @implementation DOMHTMLTableCellElement
 
-// + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
-
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
@@ -2113,7 +2111,7 @@ enum
 	target=[self valueForKey:@"target"];
 	if(!action)
 		action=@"";	// we simply reuse the current - FIXME: we should remove all ? components
-	if([method caseInsensitiveCompare:@"post"])
+	if([method caseInsensitiveCompare:@"post"] == NSOrderedSame)
 		postBody=[NSMutableData new];
 	else
 		getURL=[NSMutableString stringWithCapacity:100];
@@ -2166,7 +2164,7 @@ enum
 			}
 	request=(NSMutableURLRequest *)[NSMutableURLRequest requestWithURL:[NSURL URLWithString:action relativeToURL:[[[htmlDocument _webDataSource] response] URL]]];
 	if(method)
-		[request setHTTPMethod:[method uppercaseString]];	// will default to "GET" otherwise
+		[request setHTTPMethod:[method uppercaseString]];	// will default to "GET" if missing
 	if(postBody)
 			{
 				[request setHTTPBody:postBody];
@@ -2202,7 +2200,8 @@ enum
 	NSTextAttachment *attachment;
 	NSString *type=[[self valueForKey:@"type"] lowercaseString];
 	NSString *name=[self valueForKey:@"name"];
-	NSString *val=[self valueForKey:@"value"];
+// FIXME:	NSString *val=[self valueForKey:@"value"];   <-- returns e.g. INPUT: WHY???
+	NSString *val=[self getAttribute:@"value"];
 	NSString *title=[self valueForKey:@"title"];
 	NSString *placeholder=[self valueForKey:@"placeholder"];
 	NSString *size=[self valueForKey:@"size"];
@@ -2237,6 +2236,7 @@ enum
 	[cell setEditable:!([self hasAttribute:@"disabled"] || [self hasAttribute:@"readonly"])];
 	if([cell isKindOfClass:[NSTextFieldCell class]])
 			{ // set text field, placeholder etc.
+				[(NSTextFieldCell *) cell setSelectable:YES];
 				[(NSTextFieldCell *) cell setBezeled:YES];
 				[(NSTextFieldCell *) cell setStringValue: (val != nil) ? val : (NSString *)@""];
 				// how to handle the size attribute?
@@ -2371,7 +2371,8 @@ enum
 - (NSString *) _formValue;	// return nil if not successful according to http://www.w3.org/TR/html401/interact/forms.html#h-17.3 17.13.2 Successful controls
 {
 	NSString *type=[[self valueForKey:@"type"] lowercaseString];
-	NSString *val=[self valueForKey:@"value"];
+//	FIXME: NSString *val=[self valueForKey:@"value"];	// returns strange values...
+	NSString *val=[self getAttribute:@"value"];
 	if([type isEqualToString:@"checkbox"])
 			{
 				if(!val) val=@"on";
@@ -2393,7 +2394,7 @@ enum
 	else if([type isEqualToString:@"reset"])
 		return nil;	// never send
 	else if([type isEqualToString:@"hidden"])
-		return val;	// pass valur of hidden fields
+		return val;	// pass value of hidden fields
 	return [cell stringValue];	// text field
 }
 
@@ -2445,11 +2446,12 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
+- (NSString *) _string; { return nil; }	// don't process content
+
 - (NSTextAttachment *) _attachment;
-{ // 
+{ // create a text attachment that display the content of the button
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
-	// search for enclosing <form> element to know how to set target/action etc.
 	NSString *name=[self valueForKey:@"name"];
 	NSString *size=[self valueForKey:@"size"];
 	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
@@ -2459,22 +2461,24 @@ enum
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSButtonCell class]];
 	cell=(NSButtonCell *) [attachment attachmentCell];	// get the real cell
 	[cell setBezelStyle:0];	// select a grey square button bezel by default
+	// NOTE: Safari can display <tables> or other <input> elements nested within a <button>...</button>!
 	[cell setAttributedTitle:value];	// formatted by contents between <buton> and </button>
 	[cell setTarget:self];
-	[cell setAction:@selector(submit:)];
+	[cell setAction:@selector(_submit:)];
 #if 0
 	NSLog(@"  cell: %@", cell);
 #endif
 	return attachment;
 }
 
-- (NSString *) _string; { return nil; }	// don't process content
-
 - (void) _submit:(id) sender
 { // forward to <form> so that it can handle
 	[self _triggerEvent:@"onclick"];
 	[form _submitForm:self];
 }
+
+- (void) _radioOff:(DOMHTMLElement *) clickedCell; { return; }
+- (void) _resetForm:(DOMHTMLElement *) ignored; { return; }
 
 - (NSString *) _formValue;
 {
@@ -2487,16 +2491,36 @@ enum
 
 @implementation DOMHTMLSelectElement
 
-+ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
++ (void) initialize
+{
+}
+
+- (id) init
+{
+	if((self = [super init]))
+			{
+				options=[DOMHTMLCollection new]; 
+				[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_willPopUp:) name:NSPopUpButtonCellWillPopUpNotification object:nil];
+			}
+	return self;
+}
+
+- (void) dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[options release];
+	[super dealloc];
+}
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"] elements] appendChild:self];
+	form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"];
+	[[form elements] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
 - (NSTextAttachment *) _attachment
-{ // 
+{ 
 	NSTextAttachment *attachment;
 	NSString *name=[self valueForKey:@"name"];
 	NSString *val=[self valueForKey:@"value"];
@@ -2507,27 +2531,38 @@ enum
 #if 0
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
-	if([size intValue] <= 1)
-		{ // dropdown
-		  // how to handle multiSelect flag?
-		// we may have to use a private subclass that has our own selectItem which does not disable the previous
-		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
-		cell=[attachment attachmentCell];	// get the real cell
-		[(NSPopUpButtonCell *) cell setTitle:val];
-		[(NSPopUpButtonCell *) cell setTarget:self];
-		[(NSPopUpButtonCell *) cell setAction:@selector(submit:)];
-		// process children to get the option items
-		// we could remove to return _string nil
-		// and add [_style setObject:self forKey:@"<select>"]
-		// and add [_style setObject:[cell menu] forKey:@"<select-menu>"]
-		// and use that to add items when processed by OptGroup and OptionElement
-		// this would allow to create submenus (if OptGroup overwrites select-menu)
-		}
+	if(YES || [size intValue] <= 1)
+			{ // popup menu
+				DOMHTMLOptionElement *option;
+				NSMenu *menu;
+				NSEnumerator *e;
+				attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
+				cell=[attachment attachmentCell];	// get the real cell
+				[(NSPopUpButtonCell *) cell setPullsDown:NO];
+				[(NSPopUpButtonCell *) cell setTitle:val];
+				[(NSPopUpButtonCell *) cell setTarget:self];
+				[(NSPopUpButtonCell *) cell setAction:@selector(_submit:)];
+				[(NSPopUpButtonCell *) cell setAltersStateOfSelectedItem:!multiSelect];
+				// this musst also be done if we update the options nodes
+				[cell removeAllItems];
+				menu=[(NSPopUpButtonCell *) cell menu];
+				[menu setMenuChangedMessagesEnabled:NO];
+				e=[[options valueForKey:@"elements"] objectEnumerator];
+				while((option=[e nextObject]))
+						{
+							NSMenuItem *item=[menu addItemWithTitle:[option text] action:NULL keyEquivalent:@""];
+							if([option hasAttribute:@"disabled"])
+								[item setEnabled:NO];
+							if([option hasAttribute:@"selected"])
+								[cell selectItem:item];
+						}
+				[menu setMenuChangedMessagesEnabled:YES];
+			}
 	else
-		{ // embed NSTableView with [size intValue] visible lines
-		attachment=nil;
-		cell=nil;
-		}
+			{ // embed NSTableView with [size intValue] visible lines
+				attachment=nil;
+				cell=nil;
+			}
 #if 0
 	NSLog(@"  cell: %@", cell);
 #endif
@@ -2538,24 +2573,69 @@ enum
 
 - (void) _submit:(id) sender
 { // forward to <form> so that it can handle
+	// find which option index was clicked
 	[self _triggerEvent:@"onclick"];
 	[form _submitForm:self];
 }
 
-- (NSString *) _formValue;
-{
-	if(![cell isHighlighted])
-		return nil;	// this is not the button that has sent submit:
-	return [cell title];
+- (void) _radioOff:(DOMHTMLElement *) clickedCell; { return; }
+
+- (void) _resetForm:(DOMHTMLElement *) ignored;
+{	// NOTE: Safari simply selects the first option (!)
+	DOMHTMLOptionElement *option;
+	NSArray *elements=[options valueForKey:@"elements"];
+	int i, cnt=[elements count];
+	[cell selectItemAtIndex:0];	// default to select first item
+	for(i=0; i<cnt; i++)
+			{
+				if([[options objectAtIndex:i] hasAttribute:@"selected"])
+					[cell selectItemAtIndex:i];	// selects the last one with "selected"
+			}
 }
 
-@end
+- (void) _willPopUp:(NSNotification *)aNotification
+{
+	[self _triggerEvent:@"onselect"];
+}
 
-// FIXME:
+- (NSString *) _formValue;
+{
+	int idx=[cell indexOfSelectedItem];
+	if(cell < 0)
+		return nil;	// nothing selected
+	return [[[options valueForKey:@"elements"] objectAtIndex:idx] valueForKey:@"value"];
+}
+
+- (DOMHTMLCollection *) options { return options; }
+
+// fixme - translate TextView notifications into JavaScript events: onblur, onselect, onchange, onfocus, ...
+
+@end
 
 @implementation DOMHTMLOptionElement
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
+{
+	DOMHTMLElement *sel=self;
+	while(sel)
+			{ // find enclosing <select>
+				if([sel isKindOfClass:[DOMHTMLSelectElement class]])
+					 break;
+				sel=(DOMHTMLElement *) [sel parentNode];
+			}
+	if(sel)
+			[[(DOMHTMLSelectElement *) sel options] appendChild:self];
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
+}
+
+- (NSString *) text
+{
+	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
+	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
+	return [value string];
+}
 
 @end
 
@@ -2567,15 +2647,16 @@ enum
 
 @end
 
-// FIXME:
-
 @implementation DOMHTMLTextAreaElement
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	[[form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"] elements] appendChild:self];
+	form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"];
+	[[form elements] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
+
+- (NSString *) _string; { return nil; }	// don't process content
 
 - (NSTextAttachment *) _attachment;
 { // <textarea cols=xxx lines=yyy>value</textarea> 
@@ -2586,21 +2667,50 @@ enum
 	NSString *lines=[self valueForKey:@"lines"];
 	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
 #if 0
-	NSLog(@"<button>: %@", [self _attributes]);
+	NSLog(@"<textarea>: %@", [self _attributes]);
 #endif
+	// FIXME: this should be an embedded TextView
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
 	cell=(NSTextFieldCell *) [attachment attachmentCell];	// get the real cell
 //	[cell setBezelStyle:0];	// select a grey square button bezel by default
+	[(NSTextFieldCell *) cell setBezeled:YES];
+	[cell setEditable:!([self hasAttribute:@"disabled"] || [self hasAttribute:@"readonly"])];
+	[(NSTextFieldCell *) cell setSelectable:YES];
 	[cell setAttributedStringValue:value];	// formatted by contents between <textarea> and </textarea>
 	[cell setTarget:self];
-	[cell setAction:@selector(submit:)];
+	[cell setAction:@selector(_submit:)];
 #if 0
 	NSLog(@"  cell: %@", cell);
 #endif
 	return attachment;
 }
 
-- (NSString *) _string; { return nil; }	// don't process content
+- (void) textDidEndEditing:(NSNotification *)aNotification
+{
+	[cell setStringValue:[[aNotification object] string]];	// copy value to cell
+	[cell endEditing:[aNotification object]];	
+}
+
+- (void) _submit:(id) sender
+{ // forward to <form> so that it can handle
+	[self _triggerEvent:@"onclick"];
+	[form _submitForm:self];
+}
+
+- (void) _radioOff:(DOMHTMLElement *) clickedCell; { return; }
+
+- (void) _resetForm:(DOMHTMLElement *) ignored;
+{
+	// FIXME: reset the original string value
+	// should be saved for that purpose!
+}
+
+- (NSString *) _formValue;
+{
+	return [cell stringValue];
+}
+
+// fixme - translate TextView notifications into JavaScript events: onblur, onselect, onchange, onfocus, ...
 
 @end
 

@@ -191,7 +191,7 @@
 
 - (NSURLResponse *) response; { return _response; }
 
-- (NSArray *) subresources; { return _subresources?[_subresources allValues]:[NSArray array]; }
+- (NSArray *) subresources; { return _subresources?[_subresources allValues]:(NSArray *) [NSArray array]; }
 
 - (WebResource *) subresourceForURL:(NSURL *) url;
 {

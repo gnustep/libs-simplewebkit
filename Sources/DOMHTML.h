@@ -107,6 +107,7 @@ typedef enum
 @interface DOMHTMLElement : DOMElement	// add private methods that need to work for HTML nodes only
 {
 	NSMutableDictionary *_style;	// cached attribute&CSS style (only temporarily valid until we _flushStyles!)
+	NSRange _range;		// range within the NSAttributedString
 }
 
 - (NSAttributedString *) attributedString;
@@ -135,7 +136,7 @@ typedef enum
 	// DOM Level 0 containers
 	DOMHTMLCollection *forms;				// all forms
 	DOMHTMLCollection *images;			// all images
-	DOMHTMLCollection *applets;
+	DOMHTMLCollection *applets;			// all applets
 	DOMHTMLCollection *links;				// all hyperlinks
 	DOMHTMLCollection *anchors;			// all anchors
 }
@@ -148,6 +149,8 @@ typedef enum
 /* in Javascript, we have additional properties
 - (DOMHTMLBodyElement *) body;
 */
+
+// we may not need explicit getters/setters if we use KVC
 
 - (DOMHTMLCollection *) anchors;
 - (DOMHTMLCollection *) forms;
@@ -263,23 +266,24 @@ typedef enum
 {
 	// Hm. this mixes data model and views!
 	// i.e. we should have a more generic way to link view objects with DOM nodes
-	id cell;
+	id /* nonretained */ cell;
 	/// can we store this in our element attributes? So that we can use JavaScript to directly access input.type, input.form etc.
-	DOMHTMLFormElement *form;	// nonretained
+	DOMHTMLFormElement /* nonretained */ *form;
 }
 @end
 
 @interface DOMHTMLButtonElement : DOMHTMLElement	// <button>
 {
-	id cell;
-	DOMHTMLFormElement *form;	// nonretained
+	id /* nonretained */ cell;
+	DOMHTMLFormElement /* nonretained */ *form;
 }
 @end
 
 @interface DOMHTMLSelectElement : DOMHTMLElement	// <select>
 {
-	id cell;
-	DOMHTMLFormElement *form;	// nonretained
+	id /* nonretained */ cell;
+	DOMHTMLFormElement /* nonretained */ *form;
+	DOMHTMLCollection *options;
 }
 @end
 
@@ -294,8 +298,8 @@ typedef enum
 
 @interface DOMHTMLTextAreaElement : DOMHTMLElement	// <textarea>
 {
-	id cell;
-	DOMHTMLFormElement *form;	// nonretained
+	id /* nonretained */ cell;
+	DOMHTMLFormElement /* nonretained */ *form;
 }
 @end
 

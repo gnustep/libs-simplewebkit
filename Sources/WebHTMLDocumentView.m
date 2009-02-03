@@ -244,7 +244,7 @@
 
 @end
 
-#if 1 // dummy implementations so that we can use *any* NSCell as an attachment cell - unless overridden explicity in a subclass
+// abstract extensions for NSCell so that we can use *any* subclass as an attachment cell - unless overridden explicity in a subclass
 
 @implementation NSCell (NSTextAttachment)
 
@@ -323,7 +323,6 @@
 }
 
 @end
-#endif
 
 @implementation NSActionCell (NSTextAttachment)
 
@@ -366,6 +365,37 @@
 }
 
 // add missing methods
+
+@end
+
+@interface NSInputTextFieldCell : NSTextFieldCell
+{
+	int lines;
+	int cols;
+}
+
+@end
+
+@implementation NSInputTextFieldCell
+
+- (void) textDidEndEditing:(NSNotification *)aNotification
+{
+	NSNumber *code = [[aNotification userInfo] objectForKey:@"NSTextMovement"];
+	[self setStringValue:[[aNotification object] string]];	// copy value to cell
+	[self endEditing:[aNotification object]];	
+	switch([code intValue])
+		{
+			case NSReturnTextMovement:
+				[self sendAction:[self action] to:[self target]];
+				break;
+			case NSTabTextMovement:
+				break;
+			case NSBacktabTextMovement:
+				break;
+			case NSIllegalTextMovement:
+				break;
+		}
+}
 
 @end
 
@@ -414,8 +444,10 @@
    atCharacterIndex:(unsigned) index
 			 untilMouseUp:(BOOL)flag;
 { // click into text field
-	if([[controlTextView window] makeFirstResponder:view])
-		[view mouseDown:event];
+	if(![[controlTextView window] makeFirstResponder:view])
+		return NO;
+	[view mouseDown:event];	// tracking loop of embedded view
+	return YES;
 }
 
 @end
