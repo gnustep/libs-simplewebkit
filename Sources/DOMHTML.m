@@ -467,8 +467,8 @@ enum
 	if(!_style)
 		{
 		_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
-		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
-		[_style setObject:[(DOMHTMLDocument *) [self ownerDocument] webFrame] forKey:WebElementFrameKey];
+//		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
+//		[_style setObject:[(DOMHTMLDocument *) [self ownerDocument] webFrame] forKey:WebElementFrameKey];
 		[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
 		[self _addAttributesToStyle];
 		[self _addCSSToStyle];
@@ -607,7 +607,7 @@ enum
 		{ // is not empty, get style from parent node and append characters
 		NSMutableDictionary *style=[[(DOMHTMLElement *) [self parentNode] _style] mutableCopy];
 		[style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// text must be regarded as inline
-		[style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
+//		[style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
 		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:s attributes:style] autorelease]];	// add formatted content
 		[style release];
 		}
@@ -1159,8 +1159,8 @@ enum
 		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
 			paragraph, NSParagraphStyleAttributeName,
 			font, NSFontAttributeName,
-			self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
-			[(DOMHTMLDocument *) [self ownerDocument] webFrame], WebElementFrameKey,
+//			self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
+//			[(DOMHTMLDocument *) [self ownerDocument] webFrame], WebElementFrameKey,
 			@"inline", DOMHTMLBlockInlineLevel,	// treat as inline (i.e. don't surround by \nl)
 									// background color
 			text, NSForegroundColorAttributeName,		// default text color - may be nil!
@@ -2121,7 +2121,8 @@ enum
 	while((element=[e nextObject]))
 			{
 				NSString *name;
-				NSString *val=[element _formValue];	// should be [element valueForKey:@"value"];
+				NSString *val=[element _formValue];	// should be [element valueForKey:@"value"]; but then we need to handle active elements here
+				// but we may need anyway since a <input type="file"> defines more than one variable!
 				NSMutableArray *a;
 				NSEnumerator *e;
 				NSMutableString *s;
@@ -2208,10 +2209,11 @@ enum
 	NSString *maxlen=[self valueForKey:@"maxlength"];
 	NSString *results=[self valueForKey:@"results"];
 	NSString *autosave=[self valueForKey:@"autosave"];
+	NSString *align=[self valueForKey:@"align"];
 	if([type isEqualToString:@"hidden"])
-		{ // ignore for rendering purposes - will be collected when sending the <form>
-		return nil;
-		}
+			{ // ignore for rendering purposes - will be collected when sending the <form>
+				return nil;
+			}
 #if 1
 	NSLog(@"<input>: %@", [self _attributes]);
 #endif
@@ -2223,6 +2225,10 @@ enum
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSSearchFieldCell class]];
 	else if([type isEqualToString:@"password"])
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSSecureTextFieldCell class]];
+	else if([type isEqualToString:@"file"])
+		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
+	else if([type isEqualToString:@"image"])
+		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	else
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
@@ -2230,43 +2236,81 @@ enum
 	[(NSActionCell *) cell setAction:@selector(_submit:)];	// default action
 	[cell setEditable:!([self hasAttribute:@"disabled"] || [self hasAttribute:@"readonly"])];
 	if([cell isKindOfClass:[NSTextFieldCell class]])
-		{ // set text field, placeholder etc.
-		[(NSTextFieldCell *) cell setBezeled:YES];
-		[(NSTextFieldCell *) cell setStringValue: (val != nil) ? val : (NSString *)@""];
-		// how to handle the size attribute?
-		// an NSCell has no inherent size
-		// should we pad the placeholder string?
-		if([cell respondsToSelector:@selector(setPlaceholderString:)])
-		   [(NSTextFieldCell *) cell setPlaceholderString:placeholder];
-		}
-	else
-		{ // button
-		[(NSButtonCell *) cell setButtonType:NSMomentaryLightButton];
-		[(NSButtonCell *) cell setBezelStyle:NSRoundedBezelStyle];
-		if([type isEqualToString:@"submit"])
-			[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];	// FIXME: Localization!
-		else if([type isEqualToString:@"reset"])
-				{
-					[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Reset"];
-					[(NSActionCell *) cell setAction:@selector(_reset:)];
-				}
-		else if([type isEqualToString:@"checkbox"])
-			{
-			[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
-			[(NSButtonCell *) cell setButtonType:NSSwitchButton];
-			[(NSButtonCell *) cell setTitle:@""];
-				[(NSActionCell *) cell setAction:@selector(_checkbox:)];
+			{ // set text field, placeholder etc.
+				[(NSTextFieldCell *) cell setBezeled:YES];
+				[(NSTextFieldCell *) cell setStringValue: (val != nil) ? val : (NSString *)@""];
+				// how to handle the size attribute?
+				// an NSCell has no inherent size
+				// should we pad the placeholder string?
+				if([cell respondsToSelector:@selector(setPlaceholderString:)])
+					[(NSTextFieldCell *) cell setPlaceholderString:placeholder];
 			}
-		else if([type isEqualToString:@"radio"])
-			{
-			[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
-			[(NSButtonCell *) cell setButtonType:NSRadioButton];
-			[(NSButtonCell *) cell setTitle:@""];
-				[(NSActionCell *) cell setAction:@selector(_radio:)];
+	else if([cell isKindOfClass:[NSButtonCell class]])
+			{ // button
+				[(NSButtonCell *) cell setButtonType:NSMomentaryLightButton];
+				[(NSButtonCell *) cell setBezelStyle:NSRoundedBezelStyle];
+				if([type isEqualToString:@"submit"])
+					[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];	// FIXME: Localization!
+				else if([type isEqualToString:@"reset"])
+						{
+							[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Reset"];
+							[(NSActionCell *) cell setAction:@selector(_reset:)];
+						}
+				else if([type isEqualToString:@"checkbox"])
+						{
+							[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
+							[(NSButtonCell *) cell setButtonType:NSSwitchButton];
+							[(NSButtonCell *) cell setTitle:@""];
+							[(NSActionCell *) cell setAction:@selector(_checkbox:)];
+						}
+				else if([type isEqualToString:@"radio"])
+						{
+							[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
+							[(NSButtonCell *) cell setButtonType:NSRadioButton];
+							[(NSButtonCell *) cell setTitle:@""];
+							[(NSActionCell *) cell setAction:@selector(_radio:)];
+						}
+				else
+					[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
 			}
-		else
-			[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
-		}
+	else if([type isEqualToString:@"file"])
+		;
+	else if([type isEqualToString:@"image"])
+			{
+				WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+				NSImage *image=nil;
+				NSString *height=[self valueForKey:@"height"];
+				NSString *width=[self valueForKey:@"width"];
+				NSString *border=[self valueForKey:@"border"];
+				NSString *src=[self valueForKey:@"border"];
+#if 0
+				NSLog(@"cell attachment: %@", [cell attachment]);
+#endif
+				if([[webView preferences] loadsImagesAutomatically])
+						{
+							NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+							[self retain];	// FIXME: if we can cancel the load we don't need to keep us alive until the data source is done
+							if(data)
+									{ // we got some or all
+										image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
+										[image setScalesWhenResized:YES];
+									}
+						}
+				if(!image)
+						{ // could not convert
+							image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
+							[image setScalesWhenResized:NO];	// hm... does not really work
+						}
+				if(width || height) // resize image
+					[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
+				[cell setImage:image];	// set image
+				[image release];
+#if 0
+				NSLog(@"attachmentCell=%@", [attachment attachmentCell]);
+				NSLog(@"[attachmentCell attachment]=%@", [[attachment attachmentCell] attachment]);
+				NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
+#endif
+			}
 #if 1
 	NSLog(@"  cell: %@", cell);
 	NSLog(@"  cell control view: %@", [cell controlView]);
@@ -2370,6 +2414,24 @@ enum
 			case NSIllegalTextMovement:
 				break;
 			}
+}
+
+// WebDocumentRepresentation callbacks (source is the subresource) - for type="image"
+
+- (void) setDataSource:(WebDataSource *) dataSource; { return; }
+
+- (void) finishedLoadingWithDataSource:(WebDataSource *) source; { [self release]; return; }
+
+- (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
+{ // simply ask our NSTextView for a re-layout
+	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+	[[self _visualRepresentation] setNeedsLayout:YES];
+	[(NSView *) [self _visualRepresentation] setNeedsDisplay:YES];
+}
+
+- (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
+{ // default error handler
+	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
 }
 
 @end
