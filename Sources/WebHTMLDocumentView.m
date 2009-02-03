@@ -28,6 +28,15 @@
 
 @implementation _WebHTMLDocumentView
 
+#ifdef __GNUstep__
+
+- (BOOL) sendAction:(SEL)action to:(id)target				// Target / Action
+{
+	return [NSApp sendAction:action to:target from:self];
+}
+
+#endif
+
 // NSView overrides
 
 - (id) initWithFrame:(NSRect) rect;

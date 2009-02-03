@@ -401,7 +401,7 @@ enum
 // it can't be the full parser
 // what happens if we set illegal html?
 // what happens if we set unbalanced nodes
-// what happens if we set e.h. <head>, <script>, <frame> etc.?
+// what happens if we set e.g. <head>, <script>, <frame> etc.?
 
 - (void) setInnerHTML:(NSString *) str; { NIMP; }
 - (void) setOuterHTML:(NSString *) str; { NIMP; }

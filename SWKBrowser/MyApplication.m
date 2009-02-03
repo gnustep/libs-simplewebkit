@@ -447,7 +447,7 @@
 						{
 							if([ident isEqualToString:@"title"])
 									{
-										[item setOject:object forKey:@"Title"];
+										[item setObject:object forKey:@"Title"];
 										[self saveBookmarks];
 									}
 						}
