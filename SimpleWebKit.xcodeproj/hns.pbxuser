@@ -1459,9 +1459,9 @@
 	};
 	EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1197, 7672}}";
-			sepNavSelRange = "{1185, 0}";
-			sepNavVisRange = "{991, 920}";
+			sepNavIntBoundsRect = "{{0, 0}, {1197, 7658}}";
+			sepNavSelRange = "{1068, 0}";
+			sepNavVisRange = "{991, 940}";
 			sepNavVisRect = "{{0, 172}, {900, 566}}";
 		};
 	};
@@ -2471,7 +2471,7 @@
 		fRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */;
 		name = "WebHTMLDocumentView.m: 122";
 		rLen = 4;
-		rLoc = 3542;
+		rLoc = 3652;
 		rType = 0;
 		vrLen = 862;
 		vrLoc = 2903;
@@ -2877,7 +2877,7 @@
 	};
 	EE8AFF890B6C8F9200346917 /* DOMHTML.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1197, 40334}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1197, 40306}}";
 			sepNavSelRange = "{2644, 0}";
 			sepNavVisRange = "{2173, 929}";
 			sepNavVisRect = "{{0, 16044}, {900, 566}}";
@@ -4454,7 +4454,7 @@
 		fRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */;
 		name = "WebHTMLDocumentView.m: 419";
 		rLen = 18;
-		rLoc = 11570;
+		rLoc = 11680;
 		rType = 0;
 		vrLen = 883;
 		vrLoc = 13732;
@@ -4525,7 +4525,7 @@
 		fRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */;
 		name = "WebHTMLDocumentView.m: 131";
 		rLen = 7;
-		rLoc = 3906;
+		rLoc = 4016;
 		rType = 0;
 		vrLen = 1057;
 		vrLoc = 3284;
@@ -4572,7 +4572,7 @@
 		fRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */;
 		name = "WebHTMLDocumentView.m: 131";
 		rLen = 7;
-		rLoc = 3906;
+		rLoc = 4016;
 		rType = 0;
 		vrLen = 1057;
 		vrLoc = 3284;
@@ -4652,7 +4652,7 @@
 		fRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */;
 		name = "WebHTMLDocumentView.m: 39";
 		rLen = 0;
-		rLoc = 1185;
+		rLoc = 1295;
 		rType = 0;
 		vrLen = 920;
 		vrLoc = 991;
@@ -4679,7 +4679,7 @@
 		fRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */;
 		name = "WebHTMLDocumentView.m: 39";
 		rLen = 0;
-		rLoc = 1185;
+		rLoc = 1295;
 		rType = 0;
 		vrLen = 920;
 		vrLoc = 991;

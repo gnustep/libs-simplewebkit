@@ -28,7 +28,7 @@
 
 @implementation _WebHTMLDocumentView
 
-#ifdef __GNUstep__
+#if !defined(__mySTEP__) && ! defined(__APPLE__)	// FIXME: this should only be added to GNUstep until there is a solution in GUI
 
 - (BOOL) sendAction:(SEL)action to:(id)target				// Target / Action
 {
