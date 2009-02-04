@@ -293,9 +293,9 @@
 - (void) connection:(NSURLConnection *) connection didFailWithError:(NSError *) error;
 {
 	WebView *webView=[_webFrame webView];
-	[self retain];	// one of the delegate might make us being released!
+	[self retain];	// postpone dealloc - one of the delegate might indirectly try to release us!
 #if 1
-	NSLog(@"WebDataSource error: %@", error);
+	NSLog(@"WebDataSource: connection %@ error: %@", connection, error);
 #endif
 	[_representation receivedError:error withDataSource:self];
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didFailLoadingWithError:error fromDataSource:_parent?_parent:self];

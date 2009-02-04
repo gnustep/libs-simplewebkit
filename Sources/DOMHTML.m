@@ -2111,6 +2111,9 @@ enum
 	target=[self valueForKey:@"target"];
 	if(!action)
 		action=@"";	// we simply reuse the current - FIXME: we should remove all ? components
+#if 1
+	NSLog(@"method = %@", method);
+#endif
 	if([method caseInsensitiveCompare:@"post"] == NSOrderedSame)
 		postBody=[NSMutableData new];
 	else
@@ -2156,6 +2159,9 @@ enum
 			}
 	if([getURL length] > 0)
 			{
+#if 1
+				NSLog(@"getURL = %@", getURL);
+#endif
 				action=[action stringByAppendingFormat:@"?%@", [getURL substringFromIndex:1]];	// change first & to ?
 #if 1
 				NSLog(@"action = %@", action);
@@ -2167,6 +2173,9 @@ enum
 		[request setHTTPMethod:[method uppercaseString]];	// will default to "GET" if missing
 	if(postBody)
 			{
+#if 1
+				NSLog(@"post = %@", postBody);
+#endif
 				[request setHTTPBody:postBody];
 				[postBody release];
 			}

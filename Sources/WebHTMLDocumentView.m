@@ -28,15 +28,6 @@
 
 @implementation _WebHTMLDocumentView
 
-#if !defined(__mySTEP__) && ! defined(__APPLE__)	// FIXME: this should only be added to GNUstep until there is a solution in GUI
-
-- (BOOL) sendAction:(SEL)action to:(id)target				// Target / Action
-{
-	return [NSApp sendAction:action to:target from:self];
-}
-
-#endif
-
 // NSView overrides
 
 - (id) initWithFrame:(NSRect) rect;
