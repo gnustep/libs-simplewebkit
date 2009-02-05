@@ -1794,10 +1794,8 @@ enum
 	[table setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
 	; // NSTextBlockVerticalAlignment
 	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
-	if(table)
-		[_style setObject:table forKey:@"TableBlock"];	// pass a reference to the NSTextTableBlock of this table down to siblings
-	// reset to default paragraph
-	// reset font style, color etc. to defaults!
+	// should reset to default paragraph
+	// should reset font style, color etc. to defaults!
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// is a block element
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
@@ -1805,66 +1803,6 @@ enum
 	NSLog(@"<table> _style=%@", _style);
 #endif
 }
-
-#if OLD
-- (NSAttributedString *) attributedString;
-{
-	NSTextTable *textTable;
-	Class textTableClass=NSClassFromString(@"NSTextTable");
-	NSMutableAttributedString *str;
-	DOMNodeList *children;
-	unsigned int i, cnt;
-#if 0
-	NSLog(@"<table>: %@", [self _attributes]);
-#endif
-	if(!textTableClass)
-		{ // we can't layout tables
-		str=(NSMutableAttributedString *) [super attributedString];	// get content
-		}
-	else
-		{ // use an NSTextTable object and add cells
-		NSString *background=[self valueForKey:@"background"];
-		NSString *width=[self valueForKey:@"width"];
-		unsigned border=[[self valueForKey:@"border"] intValue];
-		unsigned spacing=[[self valueForKey:@"cellspacing"] intValue];
-		unsigned padding=[[self valueForKey:@"cellpadding"] intValue];
-		unsigned cols=[[self valueForKey:@"cols"] intValue];
-		unsigned row=1;
-		unsigned col=1;
-		// to handle all these attributes properly, we might need a subclass of NSTextTable to store them
-		str=[[[NSMutableAttributedString alloc] initWithString:@"\n"] autorelease];	// finish last object
-		textTable=[[textTableClass alloc] init];
-		[textTable setHidesEmptyCells:YES];
-		[textTable setNumberOfColumns:cols > 0?cols:0];	// will be increased automatically as needed!
-		[textTable setBackgroundColor:[NSColor whiteColor]];
-		[textTable setBorderColor:[NSColor blackColor]];
-		// get from attributes...
-		[textTable setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-		[textTable setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-																								// NSTextBlockVerticalAlignment
-		children=[self childNodes];
-		cnt=[children length];	// should be a list of DOMHTMLTableRowElements
-		for(i=0; i<cnt; i++)
-			{
-			if([[[children item:i] nodeName] isEqualToString:@"TBODY"])
-				{ // FIXME: this is a hack to skip TBODY since we don't guarantee that it is available (which we should!)
-				children=[[children item:i] childNodes];
-				cnt=[children length];	// should be a list of DOMHTMLTableRowElements
-				i=-1;
-				continue;
-				}
-			if(str)
-				[str appendAttributedString:[(DOMHTMLElement *) [children item:i] _tableCellsForTable:textTable row:&row col:&col]];
-			}
-		[(NSObject *) textTable release];
-		[str appendAttributedString:[[[NSMutableAttributedString alloc] initWithString:@"\n"] autorelease]];	// finish table
-		}
-#if 0
-	NSLog(@"<table>: %@", str);
-#endif
-	return str;
-}
-#endif
 
 @end
 
@@ -1875,13 +1813,11 @@ enum
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
 	DOMHTMLElement *n=[rep _lastObject];
-	while([n isKindOfClass:[DOMHTMLElement class]])
-		{
-		if([[n nodeName] isEqualToString:@"TABLE"])
-			return (DOMHTMLElement *) n;	// we have found the table node
+	while(n && ![n isKindOfClass:[DOMHTMLTableElement class]])
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
-		}	// no <table> found!
-	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tbody" namespaceURI:nil] autorelease];	// return dummy table
+	if(n)
+		return n;	// found
+	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tbody" namespaceURI:nil] autorelease];	// no <table> found! return dummy table
 }
 
 @end
@@ -1915,13 +1851,13 @@ enum
 }
 
 - (void) _addAttributesToStyle;
-{ // add attributes to style
+{ // add attributes to row style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[[self valueForKey:@"align"] lowercaseString];
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
 	NSString *valign=[self valueForKey:@"valign"];
-	id blocks=[paragraph textBlocks];
+	NSArray *blocks=[paragraph textBlocks];
 	if([align isEqualToString:@"left"])
 		[paragraph setAlignment:NSLeftTextAlignment];
 	if([align isEqualToString:@"center"])
@@ -1936,46 +1872,6 @@ enum
 	[paragraph release];
 }
 
-#if OLD
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
-{ // go down and merge
-	NSMutableAttributedString *str=[[NSMutableAttributedString alloc] initWithString:@""];
-	unsigned int i=0;
-	unsigned maxrow=*row;
-	//		NSString *align=[self valueForKey:@"align"];
-	//	NSString *alignchar=[self valueForKey:@"char"];
-	//	NSString *offset=[self valueForKey:@"charoff"];
-	//	NSString *valign=[self valueForKey:@"valign"];
-	*col=1;	// start over leftmost
-	while(i<[_childNodes length])
-		{ // should be <th> or <td> entries
-		unsigned r=*row;	// have them all start on the same row
-		[str appendAttributedString:[(DOMHTMLElement *) [_childNodes item:i++] _tableCellsForTable:table row:&r col:col]];
-		if(r > *row)
-			maxrow=r;	// determine maximum of all rowspans
-		if(*col > [table numberOfColumns])
-			[table setNumberOfColumns:*col];	// new max column
-		}
-	*row=maxrow;	// take maximum
-	return str;
-}
-
-- (NSAttributedString *) attributedString;
-{ // if we are called we can't use the NSTextTable mechanism - try the best with tabs and new line
-	NSMutableAttributedString *str=[[NSMutableAttributedString alloc] initWithString:@"\n"];	// prefix and suffix with newline
-	NSString *tag=[self nodeName];
-	unsigned int i=0;
-	while(i<[_childNodes length])
-		{
-		[str appendAttributedString:[(DOMHTMLElement *) [_childNodes item:i++] attributedString]];
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:(i == [_childNodes length])?@"\n":@"\t"] autorelease]];
-		}
-	// add a paragraph style
-	return str;
-}
-
-#endif
-
 @end
 
 @implementation DOMHTMLTableCellElement
@@ -1988,9 +1884,10 @@ enum
 	NSString *valign=[[self valueForKey:@"valign"] lowercaseString];
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
-	NSTextTable *table;	// the table we belong to
 	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
 	NSTextTableBlock *cell;
+	DOMHTMLTableElement *tableElement;
+	NSTextTable *table;	// the table we belong to
 	int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
 	int rowspan=[[self valueForKey:@"rowspan"] intValue];
 	int col=1;
@@ -2013,14 +1910,16 @@ enum
 		[paragraph setAlignment:NSJustifiedTextAlignment];
 	//			 if([align isEqualToString:@"char"])
 	//				 [paragraph setAlignment:NSNaturalTextAlignment];
-	// FIXME: should walk the DOM tree upwards until we find the table object
-	table=[_style objectForKey:@"TableBlock"];	// inherited from enclosing table
-	if(!table)
+	tableElement=(DOMHTMLTableElement *) self;
+	while(tableElement && ![tableElement isKindOfClass:[DOMHTMLTableElement class]])
+		tableElement=(DOMHTMLTableElement *)[tableElement parentNode];	// go one level up
+	if(!tableElement)
 			{
 				[blocks release];
 				[paragraph release];
 				return;	// error...
 			}
+	table=[tableElement valueForKey:@"table"];
 	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
 														   startingRow:row
 															   rowSpan:rowspan
@@ -2039,7 +1938,7 @@ enum
 			}
 	if(col+colspan > [table numberOfColumns])
 		[table setNumberOfColumns:col+colspan];			// adjust number of columns of our enclosing table
-	if(!blocks)	// didn't inherit text blocks
+	if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
 		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
 	[blocks addObject:cell];	// add to list of text blocks
 	[cell release];
@@ -2050,12 +1949,6 @@ enum
 #endif
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
-}
-
-- (void) dealloc
-{
-	// FIXME:
-	[super dealloc];
 }
 
 @end
@@ -2114,7 +2007,7 @@ enum
 #if 1
 	NSLog(@"method = %@", method);
 #endif
-	if([method caseInsensitiveCompare:@"post"] == NSOrderedSame)
+	if(method && [method caseInsensitiveCompare:@"post"] == NSOrderedSame)
 		postBody=[NSMutableData new];
 	else
 		getURL=[NSMutableString stringWithCapacity:100];

@@ -25,6 +25,7 @@
 	IBOutlet NSButtonCell *privateBrowsingPref;
 }
 
+- (IBAction) openLocation:(id) sender;
 - (IBAction) showBookmarks:(id) sender;
 - (IBAction) showPreferences:(id) sender;
 - (IBAction) prefChanged:(id) sender;

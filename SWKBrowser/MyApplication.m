@@ -582,4 +582,9 @@
 			}
 }
 
+- (IBAction) openLocation:(id) sender;
+{
+	// allow to type an URL and open a new document with this URL
+}
+
 @end

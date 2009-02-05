@@ -278,7 +278,7 @@
 @implementation DOMNodeList
 
 - (id) init; { if((self=[super init])) { _list=[[NSMutableArray alloc] initWithCapacity:5]; } return self; }
-- (void) dealloc; { NSLog(@"_list: %@", _list); [_list release]; [super dealloc]; }
+- (void) dealloc; { [_list release]; [super dealloc]; }
 - (NSMutableArray *) _list;	{ return _list; }
 - (DOMNode *) item:(unsigned long) index; { return [_list objectAtIndex:index]; }
 - (unsigned long) length; { return [_list count]; }
