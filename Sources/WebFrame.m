@@ -311,7 +311,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (BOOL) textView:(NSTextView *) tv clickedOnLink:(id) link atIndex:(unsigned) charIndex;
 {
-	// if current event has control Key pressed, pop up specific context menu that allows to follow the link in current or new window
+	// if [NSApp currentEvent] has control Key pressed, pop up specific context menu that allows to follow the link in current or new window, to save the page or link contents, to copy&paste etc.
 	
 	if(link)
 		{

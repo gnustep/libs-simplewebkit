@@ -106,7 +106,7 @@
 					return _visualRepresentation;
 				self=_parentNode;
 			}
-	return self;
+	return (NSObject <WebDocumentView> *) self;
 }
 
 - (NSString *) description;
@@ -458,7 +458,7 @@
 
 - (DOMDocumentType *) doctype; {return  NIMP; }
 
-- (DOMElement *) documentElement; { return self; }
+- (DOMElement *) documentElement; { return (DOMElement *) self; }
 
 - (RENAME(DOMDocument) *) ownerDocument; { return self; }	// end recursion
 

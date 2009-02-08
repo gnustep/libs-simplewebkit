@@ -250,20 +250,22 @@ enum
 - (NSURL *) URLWithAttributeString:(NSString *) string;	// we don't inherit from DOMDocument...
 {
 	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
-	return [NSURL URLWithString:[self valueForKey:string] relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
+	NSURL *url=[[NSURL URLWithString:[self valueForKey:string] relativeToURL:[[[htmlDocument _webDataSource] response] URL]] absoluteURL];
+#if 1
+	NSLog(@"URL %@ -> %@", [self valueForKey:string], url);
+#endif
+	return url;
 }
 
 - (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) stall;
 {
-	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
-	WebDataSource *source=[htmlDocument _webDataSource];
-	NSString *urlstring=[self valueForKey:string];
-	NSURL *url=[[NSURL URLWithString:urlstring relativeToURL:[[source response] URL]] absoluteURL];
+	NSURL *url=[self URLWithAttributeString:string];
 	if(url)
 		{
-		WebDataSource *sub;
-		WebResource *res=[source subresourceForURL:url];
-		NSData *data;
+			WebDataSource *source=[(DOMHTMLDocument *) [self ownerDocument] _webDataSource];
+			WebResource *res=[source subresourceForURL:url];
+			WebDataSource *sub;
+			NSData *data;
 		if(res)
 			{
 #if 0
@@ -1580,9 +1582,9 @@ enum
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSString *align=[self valueForKey:@"align"];
-	NSString *urlString=[self valueForKey:@"src"];
+	NSURL *urlString=[self valueForKey:@"src"];	// relative links will be expanded when clicking on the link
 	if(urlString && ![_style objectForKey:NSLinkAttributeName])
-		{ // add a hyperlink with the image source
+		{ // add a hyperlink with the image source (unless we are embedded within a link)
 		NSCursor *cursor=[NSCursor pointingHandCursor];
 		[_style setObject:urlString forKey:NSLinkAttributeName];	// set the link
 		[_style setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
