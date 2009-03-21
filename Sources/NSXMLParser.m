@@ -700,9 +700,9 @@ static NSDictionary *entitiesTable;
 					entity=@"<";
 				else if(strncmp((char *)vp+1, "gt;", 3) == 0)
 					entity=@">";
-				else if(strncmp((char *)ep+1, "quot;", 5) == 0)
+				else if(strncmp((char *)vp+1, "quot;", 5) == 0)
 					entity=@"\"";
-				else if(strncmp((char *)ep+1, "apos;", 5) == 0)
+				else if(strncmp((char *)vp+1, "apos;", 5) == 0)
 					entity=@"'";
 				else
 					{ // other entity
