@@ -715,12 +715,9 @@ static NSDictionary *entitiesTable;
 							NSAutoreleasePool *arp=[NSAutoreleasePool new];
 							NSBundle *b=[NSBundle bundleForClass:[self class]];
 							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
-//							NSEnumerator *e;
-//							NSString *key;
 							NSString *s;
 							NSDictionary *d;
 							NSAssert(path, @"could not locate file HTMLEntities.strings");
-							//			entitiesTable=[[NSMutableDictionary alloc] initWithContentsOfFile:path];
 							s = [NSString stringWithContentsOfFile: path];
 #if 0
 							NSLog(@"HTMLEntities: %@", s);
@@ -728,26 +725,6 @@ static NSDictionary *entitiesTable;
 							d = [s propertyListFromStringsFileFormat];
 							entitiesTable = [d mutableCopy];
 							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load and parse file %@", path]));
-#if OLD
-							e=[entitiesTable keyEnumerator];
-							while((key=[e nextObject]))
-								{ // translate U+xxxx and #&ddd sequences to "real" Unicode characters
-								NSString *val=[entitiesTable objectForKey:key];
-								NSScanner *sc=[NSScanner scannerWithString:val];
-								unsigned code;
-								unichar chars[1];
-								if([sc scanString:@"U+" intoString:NULL] && [sc scanHexInt:&code])
-									{ // replace entry U+xxxx in table with unicode character
-									chars[0]=code;
-									[(NSMutableDictionary *) entitiesTable setObject:[NSString stringWithCharacters:chars length:1] forKey:key];
-									}
-								else if([sc scanString:@"&#" intoString:NULL] && [sc scanInt:(int *)&code])
-									{ // replace entry &#ddd in table with unicode character
-									chars[0]=code;
-									[(NSMutableDictionary *) entitiesTable setObject:[NSString stringWithCharacters:chars length:1] forKey:key];
-									}
-								}
-#endif
 #if 0
 							NSLog(@"bundle=%@", b);
 							NSLog(@"path=%@", path);

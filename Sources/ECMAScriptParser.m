@@ -212,23 +212,24 @@
 
 @end
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4 
+#if !defined(__mySTEP__) && MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4 
 
 @interface NSCharacterSet (NewlineExtension)
-+ (NSCharacterSet *) newlineCharacterSet;
++ (id) newlineCharacterSet;
 @end
 
 @implementation NSCharacterSet (NewlineExtension)
 
-+ (NSCharacterSet *) newlineCharacterSet;
++ (id) newlineCharacterSet;
 {
 	static NSCharacterSet *newline;
 	if(!newline)
-		newline=[[NSCharacterSet characterSetWithCharactersInString:@"\n\r"] retain];	// FIXME: should include U+0085
+		newline=[[NSCharacterSet characterSetWithCharactersInString:@"\n\r"] retain];	// FIXME: should also include U+0085
 	return newline;
 }
 
 @end
+
 #endif
 
 @implementation _WebScriptTreeNode

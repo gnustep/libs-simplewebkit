@@ -238,7 +238,8 @@
 - (void) _load;
 {
 	WebView *webView=[_webFrame webView];
-	if(![_request URL])
+	NSURL *url=[_request URL];
+	if(!url)
 		{
 		NSLog(@"attempt to _load for nil URL!");
 		return;
@@ -247,9 +248,9 @@
 #if 1
 	NSLog(@"request=%@", _request);
 #endif
-	if([[[_request URL] scheme] isEqualToString:@"javascript"])
+	if([[url scheme] isEqualToString:@"javascript"])
 		{ // evaluate script and "return" result
-		NSString *res=[[[webView windowScriptObject] evaluateWebScript:[[_request URL] path]] description];
+		NSString *res=[[[webView windowScriptObject] evaluateWebScript:[url path]] description];
 		_connection=[NSObject new];	// dummy connection object
 		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
 // FIXME:		[self connection:_connection didReceiveResponse:[(_NSURLRequestNSData *) _request response]];	// simulate callbacks from NSURLConnection
@@ -269,9 +270,17 @@
 		_connection=nil;
 		}
 	else
-		{
-		_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
-		_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
+		{ // external request
+			NSString *str;
+			if((str=[[webView preferences] defaultTextEncodingName]))
+				[_request setValue:str forHTTPHeaderField:@"Accept-Charset"];
+			// Make this depend on [[webView preferences] pirvateSurfingEnabled] !!
+			if((str=[webView userAgentForURL:url]))
+				[_request setValue:str forHTTPHeaderField:@"User-Agent"];
+			//	[_request setValue:tbd forHTTPHeaderField:@"Accept-Language"];
+			//	[_request setValue:tbd forHTTPHeaderField:@"Referer"];	// but only if we are not surfing anonymously and NEVER include the fragment!
+			_connection=[[NSURLConnection connectionWithRequest:_request delegate:self] retain];
+			_ident=[[[webView resourceLoadDelegate] webView:webView identifierForInitialRequest:_request fromDataSource:_parent?_parent:self] retain];
 #if 1
 		NSLog(@"connection = %@", _connection);
 		NSLog(@"currentMode = %@", [[NSRunLoop currentRunLoop] currentMode]);

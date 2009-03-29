@@ -47,7 +47,7 @@
 // if we display frames
 // corresponds to the <frameset> tag
 
-@interface _WebHTMLDocumentFrameSetView : NSView <WebDocumentView, WebDocumentText>	
+@interface _WebHTMLDocumentFrameSetView : NSSplitView <WebDocumentView, WebDocumentText>	
 {
 	WebDataSource *_dataSource;
 	BOOL _needsLayout;

@@ -501,7 +501,7 @@
 	[children addObject:child];
 }
 
-- (void) adList:(NSString *) title toRecord:(NSMutableDictionary *) list;
+- (void) addList:(NSString *) title toRecord:(NSMutableDictionary *) list;
 { // add a title node
 	NSMutableDictionary *record=[NSMutableDictionary dictionaryWithObjectsAndKeys:
 															 title, @"Title",

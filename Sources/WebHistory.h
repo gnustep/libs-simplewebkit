@@ -25,7 +25,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class WebHistoryItem;
+#import <WebKit/WebHistoryItem.h>
 
 extern NSString *WebHistoryItemsKey;
 

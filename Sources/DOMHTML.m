@@ -956,9 +956,11 @@ enum
 	NSLog(@"_layout: %@", self);
 	NSLog(@"attribs: %@", [self _attributes]);
 #endif
+	// FIXME: we must manage nested <framesets> and grid framesets (i.e. nest _WebHTMLDocumentFrameSetViews)
 	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
 		{ // add/substitute a new _WebHTMLDocumentFrameSetView view of same dimensions
 		_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:parentFrame];
+		[setView setVertical:YES];
 		/// [[self webFrame] frameView]
 		if([[view superview] isKindOfClass:[NSClipView class]])
 			[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view

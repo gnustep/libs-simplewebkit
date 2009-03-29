@@ -64,6 +64,9 @@
 
 - (void) setLocation:(NSURL *) url;
 {
+#if 1
+	NSLog(@"setLocation %@", url);
+#endif
 	if(!url)
 		return;
 	[currentURL setStringValue:[url absoluteString]];
@@ -83,7 +86,6 @@
 
 - (IBAction) home:(id) Sender;
 {
-	// CHECKME; should this be stored in [WebPreferences standardPrefs]?
 	NSString *home=[[NSUserDefaults standardUserDefaults] objectForKey:@"HomePage"];
 	if(!home)
 		home=@"about:blank";
@@ -488,6 +490,7 @@
 		[destinations addObject:@"-- important public pages --"];
 		[destinations addObject:@"http://www.quantum-step.com"];
 		[destinations addObject:@"http://www.gnustep.org"];
+		[destinations addObject:@"http://www.gnustep.org/resources/documentation/Developer/Base/Reference/index.html"];
 		[destinations addObject:@"http://wiki.gnustep.org/index.php/SimpleWebKit"];
 		[destinations addObject:@"http://www.w3.org/"];
 		[destinations addObject:@"http://de.selfhtml.org/html/xhtml/unterschiede.htm#verweise_anker"];

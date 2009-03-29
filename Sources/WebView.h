@@ -29,9 +29,9 @@
 // #import <WebKit/WebEditingDelegate.h>
 // #import <WebKit/WebPolicyDelegate.h>
 #import <WebKit/WebUIDelegate.h>
+#import <WebKit/WebPreferences.h>
 
 @class WebBackForwardList, WebHistoryItem;
-@class WebPreferences;
 @class WebView;
 @class WebFrame;
 @class WebArchive;

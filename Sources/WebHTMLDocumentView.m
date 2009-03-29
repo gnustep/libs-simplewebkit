@@ -155,8 +155,14 @@
 	if((self=[super initWithFrame:rect]))
 		{
 		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
+			[self setAutosaveName:@"frame name"];
 		}
 	return self;
+}
+
+- (float) dividerThickness
+{
+	return 5.0;
 }
 
 - (void) drawRect:(NSRect) rect;
@@ -386,7 +392,7 @@
 	switch([code intValue])
 		{
 			case NSReturnTextMovement:
-				[self sendAction:[self action] to:[self target]];
+				[NSApp sendAction:[self action] to:[self target] from:self];
 				break;
 			case NSTabTextMovement:
 				break;
