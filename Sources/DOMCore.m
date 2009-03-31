@@ -84,6 +84,7 @@
 	[_nodeName release];
 	[_nodeValue release];
 	[_namespaceURI release];
+	[[_childNodes _list] makeObjectsPerformSelector:@selector(_orphanize)];	
 	[_childNodes release];
 	[_visualRepresentation release];
 	// [_parentNode release];
@@ -237,7 +238,7 @@
 
 - (DOMNode *) removeChild:(DOMNode *) node;
 { // CHECKME: what is the semantics of the return value?
-	[node _setParent:nil];
+	[node _orphanize];
 	if(_childNodes)
 		{
 		[[_childNodes _list] removeObject:node];
@@ -251,7 +252,7 @@
 	NSMutableArray *l;
 	if(!_childNodes)
 		_childNodes=[[DOMNodeList alloc] init];	// create list
-	[old _setParent:nil];
+	[old _orphanize];
 	l=[_childNodes _list];
 	[l replaceObjectAtIndex:[l indexOfObject:old] withObject:node];
 	[node _setParent:self];
@@ -262,6 +263,12 @@
 - (void) _setParent:(DOMNode *) p;
 {
 	_parentNode=p;
+	[[self _visualRepresentation] setNeedsLayout:YES];	// we may now have a visual representation
+}
+
+- (void) _orphanize;
+{
+	_parentNode=nil;
 	[[self _visualRepresentation] setNeedsLayout:YES];	// we may now have a visual representation
 }
 
@@ -318,7 +325,7 @@
 
 @implementation DOMElement
 
-- (void) dealloc; { [_attributes release]; [super dealloc]; }
+- (void) dealloc; { [[_attributes allValues] makeObjectsPerformSelector:@selector(_orphanize)]; [_attributes release]; [super dealloc]; }
 - (NSArray *) _attributes; { return [_attributes allValues]; }
 
 - (NSString *) getAttribute:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
@@ -340,7 +347,7 @@
 - (DOMAttr *) removeAttributeNode:(DOMAttr *) attr;
 {
 	[_attributes removeObjectForKey:[attr name]];
-	[attr _setParent:nil];
+	[attr _orphanize];
 	[[self _visualRepresentation] setNeedsLayout:YES];
 	return attr;
 }
@@ -360,8 +367,9 @@
 {
 	if(!_attributes)
 		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
-	[_attributes setObject:attr forKey:[attr name]]; return attr;
+	[_attributes setObject:attr forKey:[attr name]];
 	[attr _setParent:self];
+	return attr;
 }
 
 - (DOMAttr *) setAttributeNodeNS:(DOMAttr *) attr; { return NIMP; }

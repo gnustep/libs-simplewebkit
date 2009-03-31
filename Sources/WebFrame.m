@@ -60,6 +60,11 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 	_parent=parent;	// weak pointer!
 }
 
+- (void) _orphanize;
+{
+	_parent=nil;	// weak pointer!
+}
+
 - (void) dealloc;
 {
 #if 0
@@ -71,6 +76,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 	[_name release];
 	[_frameView release];
 	[_webView release];
+	[_children makeObjectsPerformSelector:@selector(_orphanize)];
 	[_children release];
 	[_request release];
 	[_dataSource release];
@@ -291,7 +297,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 			return r;	// found
 		f=[f parentFrame];	// try next level
 		}
-	// FIXME: search other main frame hierarchies (how to find those? ask [_webView mainFrame])
+	// FIXME: API doc says: search 'other main frame hierarchies' (how to find those? ask [_webView mainFrame]?)
 	return nil;
 }
 
@@ -329,7 +335,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 			{ // open in (new) window
 			NSString *target=[[tv textStorage] attribute:DOMHTMLAnchorElementTargetWindow atIndex:charIndex effectiveRange:NULL];
 			NSURLRequest *request=[NSURLRequest requestWithURL:url];
-#if 0
+#if 1
 			NSLog(@"jump to link %@ for target %@", link, target);
 #endif
 			if(target && ([target isEqualToString:@"_blank"] || !(newFrame=[self findFrameNamed:target])))

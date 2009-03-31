@@ -85,6 +85,7 @@
 
 - (id) _initWithName:(NSString *) name namespaceURI:(NSString *) uri;
 - (void) _setParent:(DOMNode *) p;
+- (void) _orphanize;
 
 - (DOMNode *) appendChild:(DOMNode *) node;
 - (DOMNodeList *) childNodes;
