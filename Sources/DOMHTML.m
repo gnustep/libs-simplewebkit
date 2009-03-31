@@ -161,7 +161,7 @@ enum
 		float width;
 		element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 		if([element isEqualToString:@"*"])
-			strech=1.0;
+			strech+=1.0;	// count number of '*' positions
 		else
 			{
 			width=[element floatValue];
@@ -169,9 +169,9 @@ enum
 				total+=width;	// accumulate
 			}
 		}
-	if(strech)
+	if(strech > 0)
 		{
-		strech=100.0-total;	// how much is missing
+		strech=(100.0-total)/strech;	// how much is missing to 100% for each *
 		total=100.0;		// 100% total
 		}
 	if(total == 0.0)
@@ -319,7 +319,7 @@ enum
 
 - (void) _triggerEvent:(NSString *) event;
 {
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 	if([[webView preferences] isJavaScriptEnabled])
 			{
 				NSString *script=[(DOMElement *) self valueForKey:event];
@@ -470,7 +470,7 @@ enum
 		{
 		_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
 //		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
-//		[_style setObject:[(DOMHTMLDocument *) [self ownerDocument] webFrame] forKey:WebElementFrameKey];
+//		[_style setObject:[self webFrame] forKey:WebElementFrameKey];
 		[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
 		[self _addAttributesToStyle];
 		[self _addCSSToStyle];
@@ -518,7 +518,7 @@ enum
 		}
 	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
 		{ // make monospaced
-		WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+		WebView *webView=[[self webFrame] webView];
 		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
 		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:[[webView preferences] fixedFontFamily]];
 		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[[webView preferences] defaultFixedFontSize]*[webView textSizeMultiplier]];
@@ -748,7 +748,7 @@ enum
 #if 0
 				NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
 #endif
-				[[(DOMHTMLDocument *) [self ownerDocument] webFrame] _performClientRedirectToURL:url delay:seconds];
+				[[self webFrame] _performClientRedirectToURL:url delay:seconds];
 				}
 			// else raise some error...
 			}
@@ -840,7 +840,7 @@ enum
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
 	if([self hasAttribute:@"src"])
 	if([[webView preferences] isJavaScriptEnabled])
@@ -858,7 +858,7 @@ enum
 	NSString *type=[self valueForKey:@"type"];	// should be "text/javascript" or "application/javascript"
 	NSString *lang=[[self valueForKey:@"lang"] lowercaseString];	// optional language "JavaScript" or "JavaScript1.2"
 	NSString *script;
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 	if(![[webView preferences] isJavaScriptEnabled])
 		return;	// ignore script
 	if(![type isEqualToString:@"text/javascript"] && ![type isEqualToString:@"application/javascript"] && ![lang hasPrefix:@"javascript"])
@@ -942,81 +942,85 @@ enum
 
 - (void) _layout:(NSView *) view;
 { // recursively arrange subviews so that they match children
-	NSString *rows=[self valueForKey:@"rows"];	// comma separated list e.g. "20%,*" or "1*,3*,7*"
-	NSString *cols=[self valueForKey:@"cols"];
-	NSEnumerator *erows, *ecols;
-	NSNumber *rowHeight, *colWidth;
-	NSRect parentFrame=[view frame];
-	NSPoint last=parentFrame.origin;
+	NSString *splits;	// "50%,*"
+	NSEnumerator *e;	// enumerator
+	NSNumber *split;	// current splitting value (float)
 	DOMNodeList *children=[self childNodes];
 	unsigned count=[children length];
 	unsigned childIndex=0;
 	unsigned subviewIndex=0;
+	float position=0.0;
+	float total;
+	NSRect frame;
+	BOOL vertical;
 #if 0
 	NSLog(@"_layout: %@", self);
 	NSLog(@"attribs: %@", [self _attributes]);
 #endif
-	// FIXME: we must manage nested <framesets> and grid framesets (i.e. nest _WebHTMLDocumentFrameSetViews)
-	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
-		{ // add/substitute a new _WebHTMLDocumentFrameSetView view of same dimensions
-		_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:parentFrame];
-		[setView setVertical:YES];
-		/// [[self webFrame] frameView]
+	splits=[self valueForKey:@"cols"];		// cols has precedence if defined
+	if(!(vertical=(splits != nil)))				// if we have any cols...
+		splits=[self valueForKey:@"rows"];	// check for rows
+	if(!splits)	// neither
+		splits=@"100%";	// single entry with full width? or should we evenly split all children?`
+	if(![view isKindOfClass:[_WebHTMLDocumentFrameSetView class]])
+		{ // add/substitute a new _WebHTMLDocumentFrameSetView (subclass of NSSplitView) view of same dimensions
+		_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:[view frame]];
 		if([[view superview] isKindOfClass:[NSClipView class]])
 			[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view
 		else
 			[[view superview] replaceSubview:view with:setView];	// replace
+			[setView setDelegate:self];	// become the delegate (to control no-resize)
 		view=setView;	// use new
 		[setView release];
 		}
-	if(!rows) rows=@"100";	// default to 100% height
-	if(!cols) cols=@"100";	// default to 100% width
-	erows=[rows _htmlFrameSetEnumerator];
-	while((rowHeight=[erows nextObject]))
-		{ // rearrange subviews
-		float height=[rowHeight floatValue];
-		float newHeight=parentFrame.size.height*height;
-		ecols=[cols _htmlFrameSetEnumerator];
-		while((colWidth=[ecols nextObject]))
+	[(NSSplitView *) view setVertical:vertical];
+	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
 			{
-			DOMHTMLElement *child=nil;
-			NSView *childView;
-			NSRect newChildFrame;
-			while(childIndex < count)
-				{ // find next <frame> or <frameset> child
-				child=(DOMHTMLElement *) [children item:childIndex++];
+				DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
 				if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
-					break;
-				}
-			newChildFrame=(NSRect){ last, { parentFrame.size.width*[colWidth floatValue], newHeight } };
-			if(subviewIndex < [[view subviews] count])
-				{	// (re)position subview
-				childView=[[view subviews] objectAtIndex:subviewIndex++];
-				[childView setFrame:newChildFrame];
-				[childView setNeedsDisplay:YES];
-				}
-			else
-				{ // add a new subview/subframe at the specified location
-				  // or should we directly add a WebFrameView
-				childView=[[[_WebHTMLDocumentView alloc] initWithFrame:newChildFrame] autorelease];
-				[view addSubview:childView];
-				subviewIndex++;
-				}
-#if 0
-			NSLog(@"adjust subframe %u to (w=%f, h=%f) %@", subviewIndex, [colWidth floatValue], height, NSStringFromRect(newChildFrame));
-			NSLog(@"element: %@", child);
-			NSLog(@"view: %@", childView);
-#endif
-			[child _layout:childView];		// update layout of child (if DOMHTMLElement is present) to fit in new frame
-			last.x+=newChildFrame.size.width;	// go to next
+						{ // real content
+							subviewIndex++;	// one more
+							if(subviewIndex > [[view subviews] count])
+									{ // we don't have instantiated enough subviews yet - add one
+										_WebHTMLDocumentView *childView=[[_WebHTMLDocumentView alloc] initWithFrame:[view frame]];
+										[view addSubview:childView];
+										[childView release];
+									}
+						}
 			}
-		last.x=parentFrame.origin.x;	// set back
-		last.y+=newHeight;
-		}
 	while([[view subviews] count] > subviewIndex)
-		{ // delete any additional subviews we find
-		[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];
-		}
+			[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];	// we have too many subviews - remove last one
+#if 1
+	NSLog(@"subviews = %@", [view subviews]);
+#endif
+	e=[splits _htmlFrameSetEnumerator];		// comma separated list e.g. "20%,*" or "1*,3*,7*"
+	frame=[view frame];
+	total=(vertical?frame.size.width:frame.size.height)-[(NSSplitView *) view dividerThickness]*(subviewIndex-1);	// how much room we can distribute
+	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
+			{
+				DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
+				if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
+						{ // real content
+							NSView *childView=[[view subviews] objectAtIndex:subviewIndex];
+							[child _layout:childView];	// layout subview
+							split=[e nextObject];	// get next splitting info
+							frame=[childView frame];
+							if(vertical)
+									{ // vertical splitter
+										frame.origin.x=position;
+										position += frame.size.width=[split floatValue]*total;	// how much of total
+									}
+							else
+									{
+										frame.origin.y=position;
+										position += frame.size.height=[split floatValue]*total;	// how much of total
+									}
+							position += [(NSSplitView *) view dividerThickness];	// leave room for divider
+							[childView setFrame:frame];	// adjust
+							subviewIndex++;
+						}
+			}
+	[(NSSplitView *) view adjustSubviews];	// adjust them all
 }
 
 @end
@@ -1064,7 +1068,7 @@ enum
 	BOOL noresize=[self hasAttribute:@"noresize"];
 	WebFrame *frame;
 	WebFrameView *frameView;
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 #if 0
 	NSLog(@"_layout: %@", self);
 	NSLog(@"attribs: %@", [self _attributes]);
@@ -1081,7 +1085,7 @@ enum
 		[frameView _setWebFrame:frame];	// create and attach a new WebFrame
 			[frame release];
 		[frame _setFrameElement:self];	// make a link
-										//	[parentFrame _addChildFrame:frame];
+		[[self webFrame] _addChildFrame:frame];	// make new frame a child of our frame
 		if(src)
 			[frame loadRequest:[NSURLRequest requestWithURL:[self URLWithAttributeString:@"src"]]];
 		}
@@ -1156,7 +1160,7 @@ enum
 	if(!_style)
 		{
 		// FIXME: cache data until we are modified
-		WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+		WebView *webView=[[self webFrame] webView];
 		NSFont *font=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// determine default font
 		NSMutableParagraphStyle *paragraph=[NSMutableParagraphStyle new];
 		[paragraph setParagraphSpacing:[[webView preferences] defaultFontSize]/2.0];	// default
@@ -1164,7 +1168,7 @@ enum
 			paragraph, NSParagraphStyleAttributeName,
 			font, NSFontAttributeName,
 //			self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
-//			[(DOMHTMLDocument *) [self ownerDocument] webFrame], WebElementFrameKey,
+//			[self webFrame], WebElementFrameKey,
 			@"inline", DOMHTMLBlockInlineLevel,	// treat as inline (i.e. don't surround by \nl)
 									// background color
 			text, NSForegroundColorAttributeName,		// default text color - may be nil!
@@ -1408,7 +1412,7 @@ enum
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 	float size=[[webView preferences] defaultFontSize]*[webView textSizeMultiplier];
 	NSFont *f;
 	NSString *align=[self valueForKey:@"align"];
@@ -1464,7 +1468,7 @@ enum
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 	NSArray *names=[[self valueForKey:@"face"] componentsSeparatedByString:@","];	// is a comma separated list of potential font names!
 	NSString *size=[self valueForKey:@"size"];
 	NSColor *color=[[self valueForKey:@"color"] _htmlColor];
@@ -1601,7 +1605,7 @@ enum
 
 - (NSTextAttachment *) _attachment;
 {
-	WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+	WebView *webView=[[self webFrame] webView];
 	NSTextAttachment *attachment;
 	NSCell *cell;
 	NSImage *image=nil;
@@ -2183,7 +2187,7 @@ enum
 		;
 	else if([type isEqualToString:@"image"])
 			{
-				WebView *webView=[[(DOMHTMLDocument *) [self ownerDocument] webFrame] webView];
+				WebView *webView=[[self webFrame] webView];
 				NSImage *image=nil;
 				NSString *height=[self valueForKey:@"height"];
 				NSString *width=[self valueForKey:@"width"];
@@ -2488,13 +2492,13 @@ enum
 
 - (void) _resetForm:(DOMHTMLElement *) ignored;
 {	// NOTE: Safari simply selects the first option (!)
-	DOMHTMLOptionElement *option;
 	NSArray *elements=[options valueForKey:@"elements"];
 	int i, cnt=[elements count];
 	[cell selectItemAtIndex:0];	// default to select first item
 	for(i=0; i<cnt; i++)
 			{
-				if([[options objectAtIndex:i] hasAttribute:@"selected"])
+				DOMHTMLOptionElement *option=[elements objectAtIndex:i];
+				if([option hasAttribute:@"selected"])
 					[cell selectItemAtIndex:i];	// selects the last one with "selected"
 			}
 }

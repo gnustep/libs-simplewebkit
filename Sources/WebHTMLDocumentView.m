@@ -155,14 +155,15 @@
 	if((self=[super initWithFrame:rect]))
 		{
 		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
-			[self setAutosaveName:@"frame name"];
+		[self setAutosaveName:@"frame name"];
+		[self setIsPaneSplitter:NO];
 		}
 	return self;
 }
 
 - (float) dividerThickness
 {
-	return 5.0;
+	return 6.0;
 }
 
 - (void) drawRect:(NSRect) rect;
@@ -172,6 +173,9 @@
 #endif
 	if(_needsLayout)
 		[self layout];
+	[[NSColor lightGrayColor] set];
+	NSRectFill(rect);	// draw a splitter background
+	// if this splitter is moveable:
 	[super drawRect:rect];
 }
 

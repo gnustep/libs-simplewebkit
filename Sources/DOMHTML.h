@@ -288,6 +288,7 @@ typedef enum
 @end
 
 @interface DOMHTMLOptionElement : DOMHTMLElement	// <option>
+- (NSString *) text;
 @end
 
 @interface DOMHTMLOptGroupElement : DOMHTMLElement	// <optgroup>

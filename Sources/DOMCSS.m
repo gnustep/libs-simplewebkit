@@ -63,12 +63,31 @@
 
 - (id) initWithString:(NSString *) style forDocument:(RENAME(DOMDocument) *) doc;
 { // for <style>css</style> or <tag style="css">
-	if((self=[super init]))
+	if((self=[self _initWithScanner:[NSScanner scannerWithString:style] baseURL:nil]))
 		{
-		NSScanner *sc=[NSScanner scannerWithString:style];
 		// parse style string...
 		}
 	return self;
+}
+
++ (DOMCSSStyleDeclaration *) _parseWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+{
+	return [[[self alloc] _initWithScanner:sc baseURL:url] autorelease];
+}
+
+- (id) _initWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+{
+	return nil;
+}
+
+- (NSArray *) allKeys;
+{
+	return nil;
+}
+
+- (NSArray *) valueForKey:(NSString *) key;
+{
+	return nil;
 }
 
 @end

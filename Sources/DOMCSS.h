@@ -65,7 +65,7 @@
 + (DOMCSSStyleDeclaration *) _parseWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
 
 - (id) initWithString:(NSString *) style forDocument:(RENAME(DOMDocument) *) doc;	// for <tag style="css">
-+ (id) _initWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
+- (id) _initWithScanner:(NSScanner *) sc baseURL:(NSURL *) url;
 - (NSArray *) allKeys;
 - (NSArray *) valueForKey:(NSString *) key;
 
