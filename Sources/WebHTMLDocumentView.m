@@ -148,7 +148,7 @@
 
 @implementation _WebHTMLDocumentFrameSetView
 
-// NSView overrides
+// NSSplitView overrides
 
 - (id) initWithFrame:(NSRect) rect;
 {

@@ -6,8 +6,8 @@
 //  Copyright 2007 Golden Delicious Computers GmbH&Co. KG. All rights reserved.
 //
 
-#import "WebPreferences.h"
 #import "Private.h"
+#import <WebKit/WebPreferences.h>
 
 NSString *WebPreferencesChangedNotification=@"WebPreferencesChangedNotification";
 

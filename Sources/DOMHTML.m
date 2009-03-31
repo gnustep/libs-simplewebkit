@@ -209,13 +209,13 @@ enum
 	[super dealloc];
 }
 
-- (DOMHTMLElement *) appendChild:(DOMHTMLElement *) element;
+- (DOMElement *) appendChild:(DOMElement *) element;
 {
 	[elements addObject:element];
 	return element;
 }
 
-- (DOMHTMLElement *) lastChild; { return [elements lastObject]; }
+- (DOMElement *) lastChild; { return [elements lastObject]; }
 
 - (void) _makeObjectsPerformSelector:(SEL) sel withObject:(id) obj
 {
@@ -990,7 +990,7 @@ enum
 			}
 	while([[view subviews] count] > subviewIndex)
 			[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];	// we have too many subviews - remove last one
-#if 1
+#if 0
 	NSLog(@"subviews = %@", [view subviews]);
 #endif
 	e=[splits _htmlFrameSetEnumerator];		// comma separated list e.g. "20%,*" or "1*,3*,7*"
@@ -1002,9 +1002,16 @@ enum
 				if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
 						{ // real content
 							NSView *childView=[[view subviews] objectAtIndex:subviewIndex];
-							[child _layout:childView];	// layout subview
+							[child _layout:childView];	// layout subview - this may replace the original subview!
+							childView=[[view subviews] objectAtIndex:subviewIndex];	// fetch the (new) subview to resize as needed
+#if 0
+							NSLog(@" child = %@ - %@", childView, NSStringFromRect([childView frame]));
+#endif
 							split=[e nextObject];	// get next splitting info
 							frame=[childView frame];
+#if 0
+							NSLog(@"  was = %@", NSStringFromRect([childView frame]));
+#endif
 							if(vertical)
 									{ // vertical splitter
 										frame.origin.x=position;
@@ -1017,6 +1024,9 @@ enum
 									}
 							position += [(NSSplitView *) view dividerThickness];	// leave room for divider
 							[childView setFrame:frame];	// adjust
+#if 0
+							NSLog(@"  is = %@ -> %@", NSStringFromRect(frame), NSStringFromRect([childView frame]));
+#endif
 							subviewIndex++;
 						}
 			}
@@ -1054,8 +1064,6 @@ enum
 		}	// no <frameset> found!
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
-
-	// FIXME!!!
 
 - (void) _layout:(NSView *) view;
 {
@@ -2023,7 +2031,7 @@ enum
 	while((element=[e nextObject]))
 			{
 				NSString *name;
-				NSString *val=[element _formValue];	// should be [element valueForKey:@"value"]; but then we need to handle active elements here
+				NSString *val=[(DOMHTMLInputElement *) element _formValue];	// should be [element valueForKey:@"value"]; but then we need to handle active elements here
 				// but we may need anyway since a <input type="file"> defines more than one variable!
 				NSMutableArray *a;
 				NSEnumerator *e;
