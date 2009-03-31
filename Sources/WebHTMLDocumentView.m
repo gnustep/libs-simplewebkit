@@ -155,7 +155,6 @@
 	if((self=[super initWithFrame:rect]))
 		{
 		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
-		[self setAutosaveName:@"frame name"];
 		[self setIsPaneSplitter:NO];
 		}
 	return self;
