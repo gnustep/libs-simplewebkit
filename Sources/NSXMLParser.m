@@ -685,9 +685,11 @@ static NSDictionary *entitiesTable;
 			if(vp[1] == '#')
 				{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
 				unsigned int val;
-				if(sscanf((char *)vp+3, "x%x;", &val))
+				if(sscanf((char *)vp+3, "x%x;", &val) == 1)
 					entity=[NSString stringWithFormat:@"%C", val];	// &#xhh; hex value
-				else if(sscanf((char *)vp+2, "%d;", &val))
+				else if(sscanf((char *)vp+3, "X%x;", &val) == 1)
+						entity=[NSString stringWithFormat:@"%C", val];	// &#xhh; hex value
+				else if(sscanf((char *)vp+2, "%d;", &val) == 1)
 					entity=[NSString stringWithFormat:@"%C", val];	// &ddd; decimal value
 				else
 					entity=[NSString _string:(char *)vp withEncoding:encoding length:cp-vp];
