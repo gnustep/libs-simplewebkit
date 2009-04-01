@@ -12,9 +12,11 @@
 	<array>
 		<integer>514</integer>
 		<integer>463</integer>
-		<integer>683</integer>
 		<integer>583</integer>
+		<integer>752</integer>
 		<integer>726</integer>
+		<integer>683</integer>
+		<integer>624</integer>
 	</array>
 	<key>IBSystem Version</key>
 	<string>9G55</string>

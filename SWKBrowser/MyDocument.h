@@ -22,12 +22,19 @@
 	IBOutlet NSTextView *result;
 	// document source
 	IBOutlet NSTextView *docSource;
-	// DOM Tree
+	// DOM Hierarchy
     NSMutableSet *domNodes;
 	IBOutlet NSOutlineView *domTree;
 	IBOutlet NSTextView *domSource;
 	id currentItem;
 	IBOutlet NSTableView *domAttribs;
+	// View Hierarchy
+	IBOutlet NSOutlineView *viewTree;
+	IBOutlet NSTextView *viewSource;
+	NSView *currentView;
+	NSMutableArray *viewAttribNames;
+	NSMutableArray *viewAttribValues;
+	IBOutlet NSTableView *viewAttribs;
 	// History View
 	IBOutlet NSTableView *historyTable;
 	IBOutlet NSTableView *backForwardTable;
@@ -54,6 +61,7 @@
 - (IBAction) openJavaScriptConsole:(id) sender;
 - (IBAction) showSource:(id) sender;
 - (IBAction) showDOMTree:(id) sender;
+- (IBAction) showViewTree:(id) sender;
 - (IBAction) goBack:(id) sender;
 - (IBAction) goForward:(id) sender;
 - (IBAction) addBookmark:(id) sender;

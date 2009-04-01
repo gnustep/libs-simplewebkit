@@ -1,3 +1,8 @@
+2009-03-31  Nikolaus Schaller <hns@computer.org>
+	* fixed correct translation and display of <frameset> and <frame>
+	* fixed issue with dangling parent pointer in DOMNodes
+	* added a View Hierarchy debug window to SWK Browser
+
 2009-03-21 Riccardo Mottola <rmottola@users.sf.net>
 	* Sources/NSXMLParser: change from end pointer to vp.
 

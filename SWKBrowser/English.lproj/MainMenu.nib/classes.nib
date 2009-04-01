@@ -20,6 +20,7 @@
                 showBookmarks = id;
                 showDOMTree = id;
                 showSource = id;
+                showViewTree = id;
                 stopLoading = id;
             };
             CLASS = FirstResponder;

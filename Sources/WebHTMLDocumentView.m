@@ -165,6 +165,13 @@
 	return 6.0;
 }
 
+- (void) drawDividerInRect:(NSRect) aRect
+{
+	// draw splitter background
+	// if this splitter is moveable:
+	[super drawDividerInRect:aRect];
+}
+
 - (void) drawRect:(NSRect) rect;
 {
 #if 0
@@ -174,7 +181,6 @@
 		[self layout];
 	[[NSColor lightGrayColor] set];
 	NSRectFill(rect);	// draw a splitter background
-	// if this splitter is moveable:
 	[super drawRect:rect];
 }
 

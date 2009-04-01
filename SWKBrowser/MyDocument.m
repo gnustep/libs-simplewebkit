@@ -227,6 +227,12 @@
 	[domTree reloadData];
 }
 
+- (IBAction) showViewTree:(id) sender;
+{
+	[[viewTree window] makeKeyAndOrderFront:sender];
+	[viewTree reloadData];
+}
+
 - (IBAction) openJavaScriptConsole:(id) sender
 {
 	[[command window] makeKeyAndOrderFront:sender];
@@ -452,6 +458,10 @@
 		[domNodes release];
 		domNodes=nil;
 		[domTree reloadData];
+		[domAttribs reloadData];
+		currentView=nil;
+		[viewTree reloadData];
+		[viewAttribs reloadData];
 		if(!src)
 			src=@"<no document source available>";
 		[docSource setString:src];
@@ -520,62 +530,116 @@
 - (id) outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
 	NSString *ident=[tableColumn identifier];
+	if(outlineView == domTree)
+			{
     if([ident isEqual: @"name"])
         return [item nodeName];
     else if([ident isEqual: @"class"])
         return NSStringFromClass([item class]);
     else if([ident isEqual: @"value"])
         return [item nodeValue];
-    return @"";
+			}
+	else if(outlineView == viewTree)
+			{
+				if([ident isEqual: @"class"])
+					return NSStringFromClass([item class]);
+				else if([ident isEqual: @"frame"])
+						{
+							NSRect frame=[item frame];
+							return [NSString stringWithFormat:@"[(%.1f, %.1f), (%.1f, %.1f)]", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height];
+						}
+				else if([ident isEqual: @"flags"])
+						{ // show some standard attributes
+							NSMutableString *s;
+							s=[NSMutableString stringWithFormat:@"autores=%08x", [item autoresizingMask]];
+							if([item autoresizesSubviews])
+								[s appendFormat:@", autoSubviews"];
+							if([item isFlipped])
+								[s appendFormat:@", isFlipped"];
+							if([item isOpaque])
+								[s appendFormat:@", isOpaque"];
+							return s;
+						}
+			}
+	return ident;
 }
 
 - (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
 {
-    id obj;
-	if (item == nil)
-        return [[webView mainFrame] DOMDocument];	
-	obj = [[(DOMNode *) item childNodes] item:index];
-	[domNodes addObject:obj];
-	return obj;
+	if(outlineView == domTree)
+			{
+				id obj;
+				if (item == nil)
+					return [[webView mainFrame] DOMDocument];	
+				obj = [[(DOMNode *) item childNodes] item:index];
+				[domNodes addObject:obj];
+				return obj;
+			}
+	else if(outlineView == viewTree)
+			{
+				if (item == nil)
+					item=[[[webView window] contentView] superview];
+				if (item == nil)
+					item=[[webView window] contentView];	// system has no private superview
+				return [[item subviews] objectAtIndex:index];
+			}
 }
 
 - (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
 {
-    if (item == nil)
-        item=[[webView mainFrame] DOMDocument];	// replace by root
-    return [[(DOMNode *) item childNodes] length] > 0;
+ 		[self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
 }
 
 - (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
 {
-    if (item == nil)
-        return 1;
-    return [[(DOMNode *) item childNodes] length];
+	if(outlineView == domTree)
+			{
+				if (item == nil)
+					return 1;
+				return [[(DOMNode *) item childNodes] length];
+			}
+	else if(outlineView == viewTree)
+			{
+				if (item == nil)
+					item=[[[webView window] contentView] superview];
+				if (item == nil)
+					item=[[webView window] contentView];	// system has no private superview
+				return [[item subviews] count];
+			}
 }
 
 - (void) outlineViewSelectionDidChange:(NSNotification *)notification
-{ 	
-	int selectedRow = [[notification object] selectedRow];
-	id selectedItem = [[notification object] itemAtRow:selectedRow];
-	if([selectedItem isKindOfClass:[DOMText class]])
-		{
-		[domSource setString:[selectedItem nodeValue]];
-		currentItem=nil;
-		}
-	else 
-		{
-		if([selectedItem respondsToSelector:@selector(outerHTML)])
+{ 
+	NSOutlineView *outlineView = [notification object];
+	int selectedRow = [outlineView selectedRow];
+	id selectedItem = [outlineView itemAtRow:selectedRow];
+	if(outlineView == domTree)
 			{
-			[domSource setString:[selectedItem outerHTML]];
-			currentItem=selectedItem;
+				if([selectedItem isKindOfClass:[DOMText class]])
+						{
+							[domSource setString:[selectedItem nodeValue]];
+							currentItem=nil;
+						}
+				else 
+						{
+							if([selectedItem respondsToSelector:@selector(outerHTML)])
+									{
+										[domSource setString:[selectedItem outerHTML]];
+										currentItem=selectedItem;
+									}
+							else if([selectedItem respondsToSelector:@selector(innerHTML)])
+									{
+										[domSource setString:[selectedItem innerHTML]];
+										currentItem=selectedItem;
+									}
+						}
+				[domAttribs reloadData];
 			}
-		else if([selectedItem respondsToSelector:@selector(innerHTML)])
+	else if(outlineView == viewTree)
 			{
-			[domSource setString:[selectedItem innerHTML]];
-			currentItem=selectedItem;
+				currentView=selectedItem;
+				[viewAttribs reloadData];
 			}
-		}
-	[domAttribs reloadData];
 }
 
 - (int) numberOfRowsInTableView:(NSTableView *)aTableView
@@ -600,6 +664,18 @@
 		if([currentItem respondsToSelector:@selector(_attributes)])
 			return [[(DOMElement *) currentItem _attributes] count];
 		}
+	if(aTableView == viewAttribs)
+			{
+				if(!currentView)
+					return;
+				if(!viewAttribNames)
+						{
+							[currentView class];
+							// check currentView for attributes and convert into two arrays
+							// this either needs a table for each class or a generic walk through all available getters!
+						}
+				return [viewAttribNames	count];
+			}
 	return 0;
 }
 
@@ -639,6 +715,11 @@
 		else if([ident isEqual: @"value"])
 			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
 		}
+	if(aTableView == viewAttribs)
+			{
+				//				NSMutableArray *viewAttribNames;
+				//			NSMutableArray *viewAttribValues;				
+			}
 	return @"";
 }
 

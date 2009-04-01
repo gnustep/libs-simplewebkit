@@ -42,6 +42,7 @@
                 scriptFromMenuItem = id;
                 showDOMTree = id;
                 showSource = id;
+                showViewTree = id;
             };
             CLASS = MyDocument;
             LANGUAGE = ObjC;
@@ -62,6 +63,9 @@
                 historyTable = NSTableView;
                 result = NSTextView;
                 status = NSTextField;
+                viewAttribs = NSTableView;
+                viewSource = NSTextView;
+                viewTree = NSOutlineView;
                 webView = WebView;
             };
             SUPERCLASS = NSDocument;
