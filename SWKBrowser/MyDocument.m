@@ -583,6 +583,7 @@
 					item=[[webView window] contentView];	// system has no private superview
 				return [[item subviews] objectAtIndex:index];
 			}
+	return nil;
 }
 
 - (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
@@ -606,6 +607,7 @@
 					item=[[webView window] contentView];	// system has no private superview
 				return [[item subviews] count];
 			}
+	return 0;
 }
 
 - (void) outlineViewSelectionDidChange:(NSNotification *)notification

@@ -50,7 +50,7 @@ NSString *const NSXMLParserErrorDomain=@"NSXMLParserErrorDomain";
 }
 
 + (NSString *) _string:(void *) bytes withEncoding:(NSStringEncoding) encoding length:(int) len;
-{ // convert tags, values, etc.
+{ // used to convert tags, values, etc.
 	NSData *d;
 	NSString *str;
 	if(len < 0)
@@ -235,6 +235,66 @@ static NSDictionary *entitiesTable;
 #define eat(C) { }
 #define eatstr(STR) { }
 
+- (NSString *) _translateEntity:(const char *) vp length:(int) len		// vp is position of & and length gives position of ;
+{
+	NSString *entity;
+	if(vp[1] == '#')
+			{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
+				unsigned int val;
+				if(sscanf((char *)vp+3, "x%x;", &val) == 1)
+					return [NSString stringWithFormat:@"%C", val];	// &#xhh; hex value
+				if(sscanf((char *)vp+3, "X%x;", &val) == 1)
+					return [NSString stringWithFormat:@"%C", val];	// &#Xhh; hex value
+				if(sscanf((char *)vp+2, "%d;", &val) == 1)
+					return [NSString stringWithFormat:@"%C", val];	// &ddd; decimal value
+				else
+					return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
+			}
+	// check the five predefined entities
+	if(strncmp((char *)vp+1, "amp;", 4) == 0)
+		return @"&";
+	if(strncmp((char *)vp+1, "lt;", 3) == 0)
+		return @"<";
+	if(strncmp((char *)vp+1, "gt;", 3) == 0)
+		return @">";
+	if(strncmp((char *)vp+1, "quot;", 5) == 0)
+		return @"\"";
+	if(strncmp((char *)vp+1, "apos;", 5) == 0)
+		return @"'";
+	entity=[NSString _string:(char *)vp+1 withEncoding:encoding length:len-1];	// start with entity name and ask table and/or delegate to translate
+	if(acceptHTML)
+			{
+				NSString *e;
+				if(!entitiesTable)
+						{ // dynamically load entity translation table on first use
+							NSAutoreleasePool *arp=[NSAutoreleasePool new];
+							NSBundle *b=[NSBundle bundleForClass:[self class]];
+							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
+							NSString *s;
+							NSDictionary *d;
+							NSAssert(path, @"could not locate file HTMLEntities.strings");
+							s = [NSString stringWithContentsOfFile: path];
+#if 0
+							NSLog(@"HTMLEntities: %@", s);
+#endif
+							d = [s propertyListFromStringsFileFormat];
+							entitiesTable = [d mutableCopy];
+							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load and parse file %@", path]));
+#if 0
+							NSLog(@"bundle=%@", b);
+							NSLog(@"path=%@", path);
+							NSLog(@"entitiesTable=%@", entitiesTable);
+#endif
+							[arp release];
+						}
+				e=[entitiesTable objectForKey:entity];	// look up string in entity translation table
+				if(e)
+					return e;	// found
+			}
+	// should also try [delegate parser:self resolveExternalEntityName:entity systemID:(NSString *)systemID]
+	return entity;
+}
+
 - (void) _parseData:(NSData *) d;
 { // incremental parser - tries to do its best and reports/removes only complete elements; returns otherwise (or raises exceptions)
 	const char *ep;
@@ -340,6 +400,7 @@ static NSDictionary *entitiesTable;
 			{ // tag starts
 			NSString *tag;
 			NSMutableDictionary *parameters;
+			NSString *key=nil;		// for arguments
 			const char *tp=++cp;	// remember where tag started
 			BOOL bang;
 			if(cp == ep)
@@ -447,7 +508,7 @@ static NSDictionary *entitiesTable;
 			while(cp < ep)
 				{ // collect arguments
 				BOOL sq, dq;
-				NSString *arg=nil;
+				NSString *arg;
 				const char *ap;
 				while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
 					{
@@ -514,7 +575,7 @@ static NSDictionary *entitiesTable;
 				sq=(*cp == '\'');	// single quoted argument
 				dq=(*cp == '"');	// quoted argument
 				if(sq || dq)
-					cp++;
+					cp++;	// skip quote
 				ap=cp;
 				while(cp < ep)
 					{
@@ -530,10 +591,10 @@ static NSDictionary *entitiesTable;
 						}
 					else
 						{
-						if(*cp == '>' || *cp == '=' || isspace(*cp))
-							break;
-						// if(acceptHTML && (*cp == '/' || *cp == '?'))
-						//	break;
+							if(*cp == '>' || isspace(*cp) || (!key && *cp == '='))
+								break;	// delimited
+							// if(acceptHTML && (*cp == '/' || *cp == '?'))	// <?tag arg?> or <?tag arg/> i.e. not properly quoted or separated by space
+							//	break;
 						}
 					cp++;	// collect argument
 					}
@@ -544,39 +605,70 @@ static NSDictionary *entitiesTable;
 					cp=vp;
 					return;	// incomplete
 					}
-				arg=[NSString _string:(char *)ap withEncoding:encoding length:cp-ap];
+				arg=nil;
+				while(ap < cp)
+					{
+						const char *entityp=ap;
+						NSString *fragment;
+						while(entityp < cp && *entityp != '&')
+							entityp++;
+						fragment=[NSString _string:(char *)ap withEncoding:encoding length:entityp-ap];	// string up to entity or end of argument
+						if(entityp < cp)
+								{ // append entity
+									const char *ee=entityp;
+									while(ee < cp && *ee != ';')
+										ee++;
+									fragment=[fragment stringByAppendingString:[self _translateEntity:entityp length:ee-entityp]];
+									entityp=ee+1;
+								}
+						if(!arg) arg=fragment;
+						else arg=[arg stringByAppendingString:fragment];	// append
+						ap=entityp;
+					}
 				if(sq || dq)
 					cp++;
-				else if(acceptHTML)
-					arg=[arg lowercaseString];	// unquoted keys are case insensitive by default
+				else if(!key && acceptHTML)
+					arg=[arg lowercaseString];	// unquoted keys are case insensitive by default in HTML
 #if 0
 				NSLog(@"arg=%@", arg);
 #endif
-				if([arg length] == 0)
-					{ // missing
-					if(!acceptHTML)
-						{
-						[self _parseError:NSXMLParserAttributeNotStartedError message:[NSString stringWithFormat:@"<%@> attribute name is empty - attributes=%@", tag, parameters]];
-						return;
-						}
-					[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
-					break;
-					}
-				while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
-					{
-					if(*cp == '\n')
-						line++, column=0;
-					cp++;	
-					}
-				if(cp == ep)
-					{
-					if(done)
-						; // error
-					cp=vp;
-					return;	// incomplete
-					}
-				if(*cp == '=')
-					{ // explicit assignment
+					if(!key && [arg length] == 0)
+							{ // missing or invalid key (values may be empty though)
+								if(!acceptHTML)
+										{
+											[self _parseError:NSXMLParserAttributeNotStartedError message:[NSString stringWithFormat:@"<%@> attribute name is empty - attributes=%@", tag, parameters]];
+											return;
+										}
+								[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// ignore invalid argument and handle HTML tag
+								break;
+							}
+					while(cp < ep && isspace(*cp))	// also allows for line break and tabs which are ignored...
+							{
+								if(*cp == '\n')
+									line++, column=0;
+								cp++;	
+							}
+					if(!key && *cp == '=')
+							{ // explicit assignment follows
+								key=arg;	// save as the key
+								cp++;
+							}
+					else if(key)
+							{ // was explicit assignment
+								[parameters setObject:arg forKey:key];
+								key=nil;	// no longer needed
+							}
+					else	// implicit
+							{ // XML does not allow "singletons" ecxept if *tp == '!'
+								if(!acceptHTML && ![tag hasPrefix:@"!"])
+										{
+											[self _parseError:NSXMLParserAttributeHasNoValueError message:[NSString stringWithFormat:@"<%@> attribute %@ has no value - attributes", tag, arg, parameters]];
+											return;
+										}
+								[parameters setObject:[NSNull null] forKey:arg];
+							}
+					
+#if OLD
 					NSString *val;
 					cp++;
 					while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
@@ -603,7 +695,6 @@ static NSDictionary *entitiesTable;
 							{
 							if(*cp == '"')
 								break;
-							// FIXME: we might also have to check for embedded entities (e.g. <input value="&nbsp;X">)
 							}
 						else if(sq)
 							{
@@ -626,6 +717,7 @@ static NSDictionary *entitiesTable;
 						cp=vp;
 						return;	// incomplete
 						}
+						// FIXME: we might also have to check for embedded entities (e.g. <input value="&nbsp;X">)
 					val=[NSString _string:(char *)ap withEncoding:encoding length:cp-ap];
 					if(sq || dq)
 						cp++;
@@ -633,7 +725,7 @@ static NSDictionary *entitiesTable;
 						NSLog(@"invalid key=%@ val=%@", arg, val);
 					else
 						[parameters setObject:val forKey:arg];
-					}
+				}
 				else	// implicit
 					{ // XML does not allow "singletons" ecxept if *tp == '!'
 					if(!acceptHTML && ![tag hasPrefix:@"!"])
@@ -646,6 +738,7 @@ static NSDictionary *entitiesTable;
 					else
 						[parameters setObject:[NSNull null] forKey:arg];
 					}
+#endif
 				if(cp == ep)
 					{
 					if(done)
@@ -682,69 +775,12 @@ static NSDictionary *entitiesTable;
 					[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];	// pass unchanged
 				continue;	// just notify as plain characters
 				}
-			if(vp[1] == '#')
-				{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
-				unsigned int val;
-				if(sscanf((char *)vp+3, "x%x;", &val) == 1)
-					entity=[NSString stringWithFormat:@"%C", val];	// &#xhh; hex value
-				else if(sscanf((char *)vp+3, "X%x;", &val) == 1)
-						entity=[NSString stringWithFormat:@"%C", val];	// &#xhh; hex value
-				else if(sscanf((char *)vp+2, "%d;", &val) == 1)
-					entity=[NSString stringWithFormat:@"%C", val];	// &ddd; decimal value
-				else
-					entity=[NSString _string:(char *)vp withEncoding:encoding length:cp-vp];
-				}
-			else
-				{ // check the five predefined entities
-				if(strncmp((char *)vp+1, "amp;", 4) == 0)
-					entity=@"&";
-				else if(strncmp((char *)vp+1, "lt;", 3) == 0)
-					entity=@"<";
-				else if(strncmp((char *)vp+1, "gt;", 3) == 0)
-					entity=@">";
-				else if(strncmp((char *)vp+1, "quot;", 5) == 0)
-					entity=@"\"";
-				else if(strncmp((char *)vp+1, "apos;", 5) == 0)
-					entity=@"'";
-				else
-					{ // other entity
-					entity=[NSString _string:(char *)vp+1 withEncoding:encoding length:cp-vp-1];
-					if(acceptHTML)
-						{
-						NSString *e;
-						if(!entitiesTable)
-							{ // dynamically load entity translation table on first use
-							NSAutoreleasePool *arp=[NSAutoreleasePool new];
-							NSBundle *b=[NSBundle bundleForClass:[self class]];
-							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
-							NSString *s;
-							NSDictionary *d;
-							NSAssert(path, @"could not locate file HTMLEntities.strings");
-							s = [NSString stringWithContentsOfFile: path];
-#if 0
-							NSLog(@"HTMLEntities: %@", s);
-#endif
-							d = [s propertyListFromStringsFileFormat];
-							entitiesTable = [d mutableCopy];
-							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load and parse file %@", path]));
-#if 0
-							NSLog(@"bundle=%@", b);
-							NSLog(@"path=%@", path);
-							NSLog(@"entitiesTable=%@", entitiesTable);
-#endif
-							[arp release];
-							}
-						e=[entitiesTable objectForKey:entity];	// look up string in entity translation table
-						if(e)
-							entity=e;	// replace
-						}
-					else if(!entity)
-						{
-						[self _parseError:NSXMLParserParsedEntityRefNoNameError message:@"empty entity"];
-						return;
-						}
+			entity=[self _translateEntity:vp length:cp-vp];	// vp is position of & and cp is position of ;
+			if(!entity)
+					{
+					[self _parseError:NSXMLParserParsedEntityRefNoNameError message:@"empty entity"];
+					return;
 					}
-				}
 			if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
 				[delegate parser:self foundCharacters:entity];	// send entity
 			cp++;	// skip ;

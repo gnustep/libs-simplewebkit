@@ -238,7 +238,9 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 
 - (void) loadAlternateHTMLString:(NSString *) string baseURL:(NSURL *) url forUnreachableURL:(NSURL *) unreach;
 { // render HTML string
-	[self loadRequest:[[_NSURLRequestNSData alloc] initWithData:[string dataUsingEncoding:NSUTF8StringEncoding] mime:@"text/html" textEncodingName:@"utf-8" baseURL:url]];
+	// should suppress finishedLoading etc.
+	// or can we simply use setHTML for the DOM root? - no this requires a HTML parser for individual DOM nodes
+	[self loadRequest:[[[_NSURLRequestNSData alloc] initWithData:[string dataUsingEncoding:NSUTF8StringEncoding] mime:@"text/html" textEncodingName:@"utf-8" baseURL:url] autorelease]];
 }
 
 - (void) loadArchive:(WebArchive *) archive;
