@@ -241,12 +241,8 @@ static NSDictionary *entitiesTable;
 	if(vp[1] == '#')
 			{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
 				unsigned int val;
-				if(sscanf((char *)vp+3, "x%x;", &val) == 1)
-					return [NSString stringWithFormat:@"%C", val];	// &#xhh; hex value
-				if(sscanf((char *)vp+3, "X%x;", &val) == 1)
-					return [NSString stringWithFormat:@"%C", val];	// &#Xhh; hex value
-				if(sscanf((char *)vp+2, "%d;", &val) == 1)
-					return [NSString stringWithFormat:@"%C", val];	// &ddd; decimal value
+				if(sscanf((char *)vp+2, "x%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1)
+					return [NSString stringWithFormat:@"%C", val];	// &#xhhhh; hex value; &ddd; decimal value
 				else
 					return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
 			}
@@ -667,78 +663,6 @@ static NSDictionary *entitiesTable;
 										}
 								[parameters setObject:[NSNull null] forKey:arg];
 							}
-					
-#if OLD
-					NSString *val;
-					cp++;
-					while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
-						{
-						if(*cp == '\n')
-							line++, column=0;
-						cp++;	
-						}
-					if(cp == ep)
-						{
-						if(done)
-							; // error
-						cp=vp;
-						return;	// incomplete
-						}
-					sq=(*cp == '\'');	// single quoted argument
-					dq=(*cp == '"');	// quoted argument
-					if(sq || dq)
-						cp++;
-					ap=cp;
-					while(cp < ep)
-						{
-						if(dq)
-							{
-							if(*cp == '"')
-								break;
-							}
-						else if(sq)
-							{
-							if(*cp == '\'')
-								break;
-							}
-						else
-							{
-							if(*cp == '>' || isspace(*cp))
-								break;
-							//	if(acceptHTML && (*cp == '/' || *cp == '?'))
-							//		break;
-							}
-						cp++;	// collect argument
-						}
-					if(cp == ep)
-						{
-						if(done)
-							; // error
-						cp=vp;
-						return;	// incomplete
-						}
-						// FIXME: we might also have to check for embedded entities (e.g. <input value="&nbsp;X">)
-					val=[NSString _string:(char *)ap withEncoding:encoding length:cp-ap];
-					if(sq || dq)
-						cp++;
-					if(!val)
-						NSLog(@"invalid key=%@ val=%@", arg, val);
-					else
-						[parameters setObject:val forKey:arg];
-				}
-				else	// implicit
-					{ // XML does not allow "singletons" ecxept if *tp == '!'
-					if(!acceptHTML && ![tag hasPrefix:@"!"])
-						{
-						[self _parseError:NSXMLParserAttributeHasNoValueError message:[NSString stringWithFormat:@"<%@> attribute %@ has no value - attributes", tag, arg, parameters]];
-						return;
-						}
-					if(!arg)
-						NSLog(@"invalid key=%@", arg);
-					else
-						[parameters setObject:[NSNull null] forKey:arg];
-					}
-#endif
 				if(cp == ep)
 					{
 					if(done)
@@ -752,7 +676,7 @@ static NSDictionary *entitiesTable;
 		if(*cp == '&')
 			{ // entity starts
 			NSString *entity;
-			cp++;
+			vp=cp++;
 			while(cp < ep && (isalnum(*cp) || *cp == '#'))
 				cp++;
 			if(cp == ep)
@@ -761,7 +685,7 @@ static NSDictionary *entitiesTable;
 					[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ;"];
 				if(done)
 					; // error
-				cp=vp;
+				cp=vp;	// reset
 				return;	// still incomplete - try again on next call
 				}
 			if(*cp != ';')
