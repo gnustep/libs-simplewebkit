@@ -601,7 +601,7 @@ static NSDictionary *entitiesTable;
 					cp=vp;
 					return;	// incomplete
 					}
-				arg=nil;
+				arg=@"";
 				while(ap < cp)
 					{
 						const char *entityp=ap;
@@ -617,7 +617,7 @@ static NSDictionary *entitiesTable;
 									fragment=[fragment stringByAppendingString:[self _translateEntity:entityp length:ee-entityp]];
 									entityp=ee+1;
 								}
-						if(!arg) arg=fragment;
+						if([arg length] == 0) arg=fragment;	// first fragment
 						else arg=[arg stringByAppendingString:fragment];	// append
 						ap=entityp;
 					}
