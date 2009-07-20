@@ -545,9 +545,9 @@
 	
 		shadow = [NSBezierPath bezierPath];
 		[shadow moveToPoint:NSMakePoint(upLeft.x+1, lowRight.y+1)];
-		[shadow lineToPoint:NSMakePoint(lowRight.x+1, lowRight.y+1)];
-		[shadow lineToPoint:NSMakePoint(lowRight.x+1, upLeft.y-1)];
-		[[NSColor redColor] set];
+		[shadow lineToPoint:NSMakePoint(lowRight.x, lowRight.y+1)];
+		[shadow lineToPoint:NSMakePoint(lowRight.x, upLeft.y)];
+		[[NSColor lightGrayColor] set];
 		[shadow stroke];
 	}
 	else
