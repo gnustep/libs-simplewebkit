@@ -129,7 +129,7 @@ GETSET_INT(defaultFixedFontSize, setDefaultFixedFontSize, @"DefaultFixedFontSize
 GETSET_INT(defaultFontSize, setDefaultFontSize, @"DefaultFontSize", 16);
 GETSET_STRING(defaultTextEncodingName, setDefaultTextEncodingName, @"DefaultTextEncodingName", @"UTF-8");
 GETSET_STRING(fantasyFontFamily, setFantasyFontFamily, @"FantasyFontFamily", @"Fantasy");
-GETSET_STRING(fixedFontFamily, setFixedFontFamily, @"FixedFontFamily", @"Courier");
+GETSET_STRING(fixedFontFamily, setFixedFontFamily, @"FixedFontFamily", [[NSFont userFixedPitchFontOfSize:12.0] fontName]);
 GETSET_BOOL(isJavaEnabled, setJavaEnabled, @"JavaEnabled", NO);
 GETSET_BOOL(isJavaScriptEnabled, setJavaScriptEnabled, @"JavaScriptEnabled", YES);
 GETSET_BOOL(javaScriptCanOpenWindowsAutomatically, setJavaScriptCanOpenWindowsAutomatically, @"JavaScriptCanOpenWindowsAutomatically", YES);	// popup blocker...
@@ -137,10 +137,10 @@ GETSET_BOOL(loadsImagesAutomatically, setLoadsImagesAutomatically, @"LoadsImages
 GETSET_INT(minimumFontSize, setMinimumFontSize, @"MinimumFontSize", 1);
 GETSET_INT(minimumLogicalFontSize, setMinimumLogicalFontSize, @"MinimumLogicalFontSize", 9);
 GETSET_BOOL(privateBrowsingEnabled, setPrivateBrowsingEnabled, @"PrivateBrowsingEnabled", NO);
-GETSET_STRING(sansSerifFontFamily, setSansSerifFontFamily, @"SansSerifFontFamily", @"Arial");
+GETSET_STRING(sansSerifFontFamily, setSansSerifFontFamily, @"SansSerifFontFamily", [[NSFont systemFontOfSize:12.0] fontName]);
 GETSET_STRING(serifFontFamily, setSerifFontFamily, @"SerifFontFamily", @"Times");
 GETSET_BOOL(shouldPrintBackgrounds, setShouldPrintBackgrounds, @"ShouldPrintBackgroundsPreferenceKey", YES);
-GETSET_STRING(standardFontFamily, setStandardFontFamily, @"StandardFontFamily", @"Times");
+GETSET_STRING(standardFontFamily, setStandardFontFamily, @"StandardFontFamily", [[NSFont userFontOfSize:12.0] fontName]);
 GETSET_BOOL(tabsToLinks, setTabsToLinks, @"TabsToLinks", NO);
 GETSET_BOOL(userStyleSheetEnabled, setUserStyleSheetEnabled, @"UserStyleSheetEnabledPreferenceKey", NO);
 GETSET_OBJECT(NSURL, userStyleSheetLocation, setUserStyleSheetLocation, @"UserStyleSheetLocation", nil);

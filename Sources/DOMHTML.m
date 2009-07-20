@@ -1171,6 +1171,10 @@ enum
 		WebView *webView=[[self webFrame] webView];
 		NSFont *font=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// determine default font
 		NSMutableParagraphStyle *paragraph=[NSMutableParagraphStyle new];
+                if(!font)
+		  {
+		    font = [NSFont userFontOfSize:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];
+		  }
 		[paragraph setParagraphSpacing:[[webView preferences] defaultFontSize]/2.0];	// default
 		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
 			paragraph, NSParagraphStyleAttributeName,

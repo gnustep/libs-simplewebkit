@@ -1,3 +1,8 @@
+2009-07-21 Riccardo Mottola <rmottola@users.sf.net>
+	* Sources/WebPreferences.m: return system font families
+	* Sources/DOMHTML.m: use system font if font not found
+	* Sources/WebHTMLDocumentView.m: draw HR better
+
 2009-03-31  Nikolaus Schaller <hns@computer.org>
 	* fixed correct translation and display of <frameset> and <frame>
 	* fixed issue with dangling parent pointer in DOMNodes
