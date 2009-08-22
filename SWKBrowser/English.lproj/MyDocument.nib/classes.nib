@@ -42,6 +42,7 @@
                 scriptFromMenuItem = id;
                 showDOMTree = id;
                 showSource = id;
+                showStyleSheets = id;
                 showViewTree = id;
             };
             CLASS = MyDocument;
@@ -63,6 +64,7 @@
                 historyTable = NSTableView;
                 result = NSTextView;
                 status = NSTextField;
+                styleSheets = NSOutlineView;
                 viewAttribs = NSTableView;
                 viewSource = NSTextView;
                 viewTree = NSOutlineView;

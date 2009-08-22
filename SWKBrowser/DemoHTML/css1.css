@@ -1,0 +1,7 @@
+/*
+* CSS to test importing
+*/
+
+@import url("data:text/css,p { color: yellow; }");
+@import url("css2.css");
+/* @import url("css1.css"); /* enable to check what happens for recursive @import */

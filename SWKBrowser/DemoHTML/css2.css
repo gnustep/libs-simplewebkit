@@ -1,0 +1,5 @@
+/*
+* CSS to test being imported indirectly
+*/
+
+center, p { font: 20px sans-serif; font-style: italic; }

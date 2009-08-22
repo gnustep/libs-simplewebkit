@@ -28,6 +28,7 @@
 - (void) didReceiveContentLength:(unsigned) len;
 - (void) didReceiveResponse:(NSURLResponse *) resp;
 - (NSString *) objectValueForKey:(NSString *) ident;
+- (BOOL) isForWebFrame:(WebFrame *) frame;
 
 @end
 
@@ -116,6 +117,11 @@
 		}
 }
 
+- (BOOL) isForWebFrame:(WebFrame *) frame;
+{
+	return [datasrc webFrame] == frame;
+}
+
 @end
 
 @implementation MyApplication
@@ -156,7 +162,7 @@
 		WebHistoryItem *item;
 		while((item=[f nextObject]))
 			{
-			id <NSMenuItem> m;
+			NSMenuItem *m;
 			NSString *title=[item alternateTitle];
 			if(!title)
 				title=[item title];	// no alternate title
@@ -164,7 +170,7 @@
 				title=[item URLString];	// no title
 			if(idx < end)
 				{ // replace existing entries
-				m=(id <NSMenuItem>) [menu itemAtIndex:idx++];
+				m=[menu itemAtIndex:idx++];
 				[m setTitle:title];
 				[m setAction:@selector(loadPageFromHistoryItem:)];
 				}
@@ -288,7 +294,9 @@
 - (id) webView:(WebView *) sender identifierForInitialRequest:(NSURLRequest *) request fromDataSource:(WebDataSource *) src;
 {
 	SubResource *s=[[[SubResource alloc] initWithDataSource:src andRequest:request] autorelease];
+#if 1
 	NSLog(@"%@ identifierForInitialRequest: %@", src, request);
+#endif
 	if(!activities)
 			activities=[[NSMutableArray arrayWithCapacity:10] retain];
 	[activities addObject:s];
@@ -301,34 +309,62 @@
 - (void) webView:(WebView *) sender resource:(id) ident didFailLoadingWithError:(NSError *) error fromDataSource:(WebDataSource *) src;
 {
 	[(SubResource *) ident didFailLoadingWithError:error];
+#if 1
 	NSLog(@"%@ subres %@ didFailLoadingWithError: %@", src, ident, error);
+#endif
 	[self updateActivity];
 }
 
 - (void) webView:(WebView *) sender resource:(id) ident didFinishLoadingFromDataSource:(WebDataSource *) src;
 {
 	[(SubResource *) ident didFinishLoadingFromDataSource];
+#if 1
 	NSLog(@"%@ subres %@ didFinishLoadingFromDataSource", src, ident);
+#endif
 	[self updateActivity];
 }
 
 - (void) webView:(WebView *) sender resource:(id) ident didReceiveContentLength:(unsigned) len fromDataSource:(WebDataSource *) src;
 {
 	[(SubResource *) ident didReceiveContentLength:len];
+#if 1
 	NSLog(@"%@ subres %@ didReceiveContentLength: %u", src, ident, len);
+#endif
 	[self updateActivity];
 }
 
 - (void) webView:(WebView *) sender resource:(id) ident didReceiveResponse:(NSURLResponse *) resp fromDataSource:(WebDataSource *) src;
 {
 	[(SubResource *) ident didReceiveResponse:resp];
+#if 1
 	NSLog(@"%@ subres %@ didReceiveResponse: %@", src, ident, resp);
+#endif
 	[self updateActivity];
+}
+
+// forwarded from MyDocument:
+
+- (void) removeSubresourcesForFrame:(WebFrame *) frame
+{
+	int i=[activities count];
+	while(i-- > 0)
+			{ // delete all subresources that refer to the same frame
+				SubResource *r=[activities objectAtIndex:i];
+				if([r isForWebFrame:frame])
+					[activities removeObjectAtIndex:i];
+			}
 }
 
 // Activity window
 
 // FIXME - handle close of document windows - the outlineview needs to reload data!!!
+//
+// FIXME: we should use a completely different approach!
+// first level are all WebViews (Documents)
+// next level(s) are all WebFrames
+// wnd there we list the webFrame provisionalSource or dataSource
+// and all its subresources (whether loading or not loading)
+// i.e. we simply query the WebKit model
 
 - (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
 {
@@ -340,6 +376,10 @@
 				if(item == nil)
 						{
 							return [[[[[NSDocumentController sharedDocumentController] documents] objectAtIndex:index] webView] mainFrame];
+						}
+				if([item isKindOfClass:[WebDataSource class]])
+						{
+							return [[(WebDataSource *) item subresources] objectAtIndex:index];
 						}
 				if([item isKindOfClass:[WebFrame class]])
 						{
@@ -371,6 +411,10 @@
 						{
 							return [[[NSDocumentController sharedDocumentController] documents] count];
 						}
+				if([item isKindOfClass:[WebDataSource class]])
+						{
+							return [[(WebDataSource *) item subresources] count];
+						}
 				if([item isKindOfClass:[WebFrame class]])
 						{
 							return [[(WebFrame *) item childFrames] count] +									// subframes
@@ -394,6 +438,21 @@
 #endif
 	if(outlineView == activity)
 			{
+				if([item isKindOfClass:[WebDataSource class]])
+						{
+							WebDataSource *src=(WebDataSource *) item;
+							if([ident isEqualToString:@"address"])
+									{
+										if([src response])
+											return [[[src response] URL] absoluteString];
+										return [[[src request] URL] absoluteString];
+									}
+							else
+									{ // status
+										// error status???
+										return [NSString stringWithFormat:@"%@", [[src data] length]];
+									}
+						}
 				if([item isKindOfClass:[WebFrame class]])
 						{
 							WebDataSource *src=[(WebFrame *) item dataSource];
@@ -432,7 +491,7 @@
 	return @"?";
 }
 
-- (void)outlineView:(NSOutlineView *)outlineView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+- (void) outlineView:(NSOutlineView *)outlineView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
 	NSString *ident=[tableColumn identifier];
 	if(outlineView == bookmarksTable)
@@ -460,7 +519,9 @@
 
 - (IBAction) singleClick:(id) sender;
 {
+#if 1
 	NSLog(@"single clicked item=%@", [sender itemAtRow:[sender clickedRow]]);
+#endif
 	if([sender clickedRow] < 0)
 		return;	// outside
 	if(sender == bookmarksTable)
@@ -475,7 +536,9 @@
 - (IBAction) doubleClick:(id) sender;
 {
 	NSString *url=[[[sender itemAtRow:[sender clickedRow]] objectForKey:@"URIDictionary"] objectForKey:@""];
+#if 1
 	NSLog(@"double clicked item=%@", [sender itemAtRow:[sender clickedRow]]);
+#endif
 	if([sender clickedRow] < 0)
 		return;	// outside
 // get clicked item

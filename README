@@ -20,11 +20,27 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-A. INSTALLATION on GNUstep
+A1. INSTALLATION on GNUstep
 
 (./configure)
 ./make
 
+
+A2. INSTALLATION on Mac OS X with Xcode 2.5 or later
+
+1. load file tree
+2. open SimpleWebKit.xcodeproj
+
+There are 3 targets:
+a) SWK Browser with full WebKit
+tests SWK Browser by using Apple WebKit (and AppKit, Foundation)
+
+b) SWK Browser
+replaces Apple WebKit by SimpleWebKit (but still uses Apple AppKit, Foundation)
+and crosscompiles SWK Browser (using mySTEP.make) to run on QuantumSTEP
+
+c) SimpleWebKit
+crosscompiles (using mySTEP.make) SimpleWebKit.framework to run on QuantumSTEP
 
 
 B. Short Description how this all Works Together
@@ -85,6 +101,6 @@ B. Short Description how this all Works Together
 8. CSS
 * is handled similarily to JavaScript and HTML
 * i.e. loading is done automatically
-* creates a DOMCSS tree
+* creates a DOMCSS tree (linked to document.styleSheets)
 * this forms a searchable database for style definitions
 * DOMHTML searches this for every tag when processing the style for the NSAttributedString

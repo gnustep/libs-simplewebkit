@@ -31,5 +31,6 @@
 - (IBAction) prefChanged:(id) sender;
 - (IBAction) singleClick:(id) sender;
 - (void) addBookmark:(NSString *) title forURL:(NSString *) str;
+- (void) removeSubresourcesForFrame:(WebFrame *) frame;	// used in activity window
 
 @end

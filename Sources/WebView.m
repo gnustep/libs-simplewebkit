@@ -95,7 +95,7 @@ static NSArray *_htmlMimeTypes;
 					NSDictionary *mimeTypes;
 					NSString *mime;
 					path=[directory stringByAppendingPathComponent:path];	// full qualified name
-					b=[NSBundle bundleWithPath:path];	// NOTE: the extension .webplugin is recommended ut not required
+					b=[NSBundle bundleWithPath:path];	// NOTE: the extension .webplugin is recommended but not required
 					if(!b)
 						continue;	// is not a bundle
 					if(![[b objectForInfoDictionaryKey:@"CFBundlePackageType"] isEqualToString:@"WBPL"])
@@ -123,6 +123,10 @@ static NSArray *_htmlMimeTypes;
 						 the containerview is created for a matching MIME type
 						 it should then load the bundle
 						 initialize the plugin and instantiate principleClass as its subview
+						 
+						 I.e. plugins are really loaded on demand
+						 
+						 if not: webView:plugInFailedWithError:dataSource:
 						 */
 						
 						[self registerViewClass:[_WebPluginContainerView class];
@@ -464,16 +468,26 @@ static NSArray *_htmlMimeTypes;
 - (DOMCSSStyleDeclaration *) typingStyle; { return _typingStyle; }
 - (void) setTypingStyle:(DOMCSSStyleDeclaration *) style; { ASSIGN(_typingStyle, style); }
 
+// FIXME: see http://www.howtocreate.co.uk/tutorials/javascript/domcss what it should do...
+
 - (DOMCSSStyleDeclaration *) computedStyleForElement:(DOMElement *) element
 									   pseudoElement:(NSString *) pseudoElement;
 {
-	// could also set up a data source and "load" from there (?)
-	return [[[DOMCSSStyleDeclaration alloc] initWithString:pseudoElement forElement:element] autorelease];
+	// here we should compute something...
+	return nil;
+}
+
+// inofficial:
+
+- (DOMCSSStyleDeclaration *) computedPageStyleForPseudoElement:(NSString *) pseudoElement;
+{
+	// here we should compute something...
+	return nil;
 }
 
 - (DOMCSSStyleDeclaration *) styleDeclarationWithText:(NSString *) text;
-{
-	return [self computedStyleForElement:nil pseudoElement:text];
+{ // translate given style declaration
+	return [[[DOMCSSStyleDeclaration alloc] initWithString:text] autorelease];
 }
 
 - (void) startSpeaking:(id) sender; { [(NSTextView *) [[_mainFrame frameView] documentView] startSpeaking:sender]; }

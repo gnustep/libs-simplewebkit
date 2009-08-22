@@ -1,0 +1,24 @@
+<html>
+<link rel="stylesheet" type="text/css" href="css1.css" />
+<!-- what happens with a link to an already imported style? -->
+<link rel="stylesheet" type="text/css" href="css2.css" />
+<!-- how are duplicates handled? -->
+<style>p { color:red }</style>
+<style>p { color:black }</style>
+<style>.blue { color:blue }</style>
+<style>@import url(css2.css) all;</style>
+<head>
+<title>CSS-Robustness</title>
+</head>
+<body>
+
+<p>Should be red</p>
+<!-- what happens with a style tag in the body? -->
+<style>p { color:red }</style>
+<!-- what happens with a link tag in the body? -->
+<link rel="stylesheet" type="text/css" href="css1.css" />
+<p class="blue">Should be blue</p>
+<p style="color:green">Should be green</p>
+
+</body>
+</html>

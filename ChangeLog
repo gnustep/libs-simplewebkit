@@ -1,3 +1,18 @@
+2009-08-12++  Nikolaus Schaller <hns@computer.org>
+	* Sources/NSXMLParser.m: fixed a problem with entities like &#9660;
+	* Sources/WebDataSource.m
+	  - fixed problem with committing when no response arrived (i.e. no network available)
+		- fixed problem with relative and absolute URLs for subresources (did not notice that they are the same)
+		- fixed problem where a completed subresource could call -finishedLoadingWithDataSource: twice (leading to load errors)
+	* Sources/DOMCSS.*: added most CSS functionality
+		- worked on class hierarchy to be more compatible to WebKit
+	  - parse CSS3 documents into DOM CSS tree (incl. correct handling and loading of @import)
+		- parse <style> content and load and parse subresources <link rel="stylesheet">;
+	* SWK Browser
+		- fixed a bug in the DOM Hierarchy inspector (did not retain tree nodes)
+		- fixed deleting resources from the Activity Window if pages are reloaded
+		- added a CSS DOM Hierarchy inspector to the Debug menu
+
 2009-07-21 Riccardo Mottola <rmottola@users.sf.net>
 	* Sources/WebPreferences.m: return system font families
 	* Sources/DOMHTML.m: use system font if font not found
@@ -15,7 +30,7 @@
 	* worked on WebPlugin (so that we can integrate e.g. GNASH in some far future; should be stored as "/Library/Internet Plug-Ins/Flash Player.bundle")
 
 2008-05-13  Nikolaus Schaller <hns@computer.org>
-	* moved handling fof 'javascript:' URL scheme to WebDataSource
+	* moved handling of 'javascript:' URL scheme to WebDataSource
 	* worked on windowScriptObject (is the self/window/global object) - new class DOMWindow
 	* added macro to omit our private -newlineCharacterSet if we compile for OSX 10.5
 	* stringByEvaluatingJavaScriptFromString: fixed to return NSStrings only (even if empty)

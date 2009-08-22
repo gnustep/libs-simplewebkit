@@ -241,7 +241,7 @@ static NSDictionary *entitiesTable;
 	if(vp[1] == '#')
 			{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
 				unsigned int val;
-				if(sscanf((char *)vp+2, "x%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1)
+				if(sscanf((char *)vp+2, "x%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "%u;", &val) == 1)
 					return [NSString stringWithFormat:@"%C", val];	// &#xhhhh; hex value; &ddd; decimal value
 				else
 					return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
@@ -603,19 +603,27 @@ static NSDictionary *entitiesTable;
 					}
 				arg=@"";
 				while(ap < cp)
-					{
+					{ // handle entities embedded in tag arguments (how should we correctly handle JavaScript arguments? e.g. onclick="var=a&b;")
 						const char *entityp=ap;
 						NSString *fragment;
 						while(entityp < cp && *entityp != '&')
-							entityp++;
+							entityp++;	// get non-entity fragment
 						fragment=[NSString _string:(char *)ap withEncoding:encoding length:entityp-ap];	// string up to entity or end of argument
 						if(entityp < cp)
-								{ // append entity
-									const char *ee=entityp;
-									while(ee < cp && *ee != ';')
-										ee++;
-									fragment=[fragment stringByAppendingString:[self _translateEntity:entityp length:ee-entityp]];
-									entityp=ee+1;
+								{ // append entity (if it can be translated)
+									const char *ee=entityp+1;	// start after &
+									while(ee < cp && isalnum(*ee))
+										ee++;	// collect alphanumericals
+									if(ee < cp && *ee == ';')
+											{ // was an entity - try to translate
+												fragment=[fragment stringByAppendingString:[self _translateEntity:entityp length:ee-entityp]];
+												entityp=ee+1;
+											}
+									else
+											{
+												fragment=[fragment stringByAppendingString:@"&"];	// can't translate
+												entityp++;
+											}
 								}
 						if([arg length] == 0) arg=fragment;	// first fragment
 						else arg=[arg stringByAppendingString:fragment];	// append

@@ -8,6 +8,7 @@
 
 #import "MyDocument.h"
 #import "MyApplication.h"
+#import <WebKit/DOMCSS.h>
 
 @implementation MyDocument
 
@@ -32,6 +33,7 @@
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressEstimateChangedNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressFinishedNotification object:nil];
 	[webView setResourceLoadDelegate:[NSApp delegate]];
+	[webView setUIDelegate:self];
 	[webView setGroupName:@"MyDocument"];
 	[webView setMaintainsBackForwardList:YES];
 	[webView setCustomUserAgent:nil];
@@ -60,6 +62,9 @@
 {
 	[self setLocation:url];
 	[webView takeStringURLFrom:currentURL];
+#if 0
+	NSLog(@"1 document=%p", [[webView mainFrame] DOMDocument]);
+#endif
 }
 
 - (void) setLocation:(NSURL *) url;
@@ -103,7 +108,9 @@
 #endif
 	if([[NSApp currentEvent] type] == NSPeriodic)
 		{
+#if 1
 		NSLog(@"periodic event");
+#endif
 #if 0			// FIXME
 		NSMenu *menu=[[[NSMenu alloc] init] autorelease];
 		NSMenuItem *mi;
@@ -125,7 +132,9 @@
 #endif
 	if([[NSApp currentEvent] type] == NSPeriodic)
 		{
+#if 1
 		NSLog(@"periodic event");
+#endif
 		}
 	else
 		[webView goForward:sender];
@@ -150,7 +159,9 @@
 - (void) showStatus:(NSString *) str;
 {
 	[status setStringValue:str];
+#if 1
 	NSLog(@"status: %@", str);
+#endif
 }
 
 - (IBAction) loadPageFromComboBox:(id) sender;
@@ -222,9 +233,13 @@
 - (IBAction) showDOMTree:(id) sender;
 {
 	[[domTree window] makeKeyAndOrderFront:sender];
-	[domNodes release];
-	domNodes=nil;
 	[domTree reloadData];
+}
+
+- (IBAction) showStyleSheets:(id) sender;
+{
+	[[styleSheets window] makeKeyAndOrderFront:sender];
+	[styleSheets reloadData];
 }
 
 - (IBAction) showViewTree:(id) sender;
@@ -389,6 +404,7 @@
 			{
 			[currentURL setStringValue:[url absoluteString]];
 			[self showStatus:[NSString stringWithFormat:@"Loading %@...", [url absoluteString]]];
+			[[NSApp delegate] removeSubresourcesForFrame:frame];
 			}
 		else
 			{
@@ -434,7 +450,7 @@
 	NSLog(@"frame provisionalDataSource=%@", [frame provisionalDataSource]);
 	NSLog(@"frame webView=%@", [frame webView]);
 	NSLog(@"frame webView elementAtPoint:(10,10)=%@", [[frame webView] elementAtPoint:NSMakePoint(10.0, 10.0)]);
-#if 0	// check JavaScript DOM integration
+#if 1	// check JavaScript DOM integration
 	NSLog(@"webView JavaScript=%@", [[frame webView] stringByEvaluatingJavaScriptFromString:@"document.documentElement.offsetWidth"]);
 	NSLog(@"frame DOMDocument WebScript=%@", [[frame DOMDocument] evaluateWebScript:@"document.documentElement.offsetWidth"]);
 	NSLog(@"windowScriptObject=%@", [sender windowScriptObject]);
@@ -443,6 +459,7 @@
 	NSLog(@"windowScriptObject document.documentElement.offsetWidth=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"]);
 	NSLog(@"windowScriptObject frames=%@", [[sender windowScriptObject] evaluateWebScript:@"frames"]);
 	NSLog(@"windowScriptObject frames[0]=%@", [[sender windowScriptObject] evaluateWebScript:@"frames[0]"]);
+	NSLog(@"styleDeclarationWithText :%@", [[frame webView] styleDeclarationWithText:@"color: red"]);
 #endif
 	// and... print subviews hierarchy
 #endif
@@ -455,13 +472,12 @@
 		[backForwardTable reloadData];
 		[self showStatus:@"Main Frame Done."];
 		currentItem=nil;
-		[domNodes release];
-		domNodes=nil;
 		[domTree reloadData];
 		[domAttribs reloadData];
 		currentView=nil;
 		[viewTree reloadData];
 		[viewAttribs reloadData];
+		[styleSheets reloadData];
 		if(!src)
 			src=@"<no document source available>";
 		[docSource setString:src];
@@ -470,6 +486,13 @@
 		{
 		[self showStatus:@"Subframe Done."];
 		}
+}
+
+- (void) webView:(WebView *) sender willCloseFrame:(WebFrame *) frame
+{
+#if 1
+	NSLog(@"webview=%@ willCloseFrame=%@", sender, frame);
+#endif
 }
 
 - (id) comboBoxCell:(NSComboBoxCell *)aComboBoxCell objectValueForItemAtIndex:(int)index
@@ -527,11 +550,43 @@
 	return [destinations count];
 }
 
+- (DOMStyleSheetList *) styleSheet;
+{
+	DOMHTMLDocument *doc=(DOMHTMLDocument *) [[webView mainFrame] DOMDocument];
+	if(![doc respondsToSelector:@selector(styleSheets)])	// FIXME: work around bug in SWK
+		doc=(DOMHTMLDocument *) [doc firstChild];
+	return [doc styleSheets];
+}
+
 - (id) outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
 	NSString *ident=[tableColumn identifier];
+	if(outlineView == styleSheets)
+			{
+#if 0
+				NSLog(@"adding %p", item);
+#endif
+				if([ident isEqual: @"name"])
+					return NSStringFromClass([item class]);
+				if([item isKindOfClass:[NSString class]])
+					return item;
+				if([item respondsToSelector:@selector(cssText)])
+						return [(DOMCSSRule *) item cssText];
+				if([item respondsToSelector:@selector(styleSheet)])
+						return [(DOMCSSImportRule *) item styleSheet];	// @import rule
+				if([item respondsToSelector:@selector(href)])
+					return [(DOMCSSStyleSheet *) item href];
+				return @"";
+			}
 	if(outlineView == domTree)
 			{
+#if 0
+				NSLog(@"2 document=%p", [[webView mainFrame] DOMDocument]);
+				NSLog(@"3 document=%p", [[webView mainFrame] DOMDocument]);
+				NSLog(@"3 refs=%u", [[[webView mainFrame] DOMDocument] retainCount]);
+				NSLog(@"item=%p", item);
+				NSLog(@"4 refs=%u", [item retainCount]);
+#endif
     if([ident isEqual: @"name"])
         return [item nodeName];
     else if([ident isEqual: @"class"])
@@ -566,13 +621,43 @@
 
 - (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
 {
+	if(outlineView == styleSheets)
+			{
+				id oitem=item;
+				if(item == nil)
+						item=[self styleSheet];
+				if([item respondsToSelector:@selector(item:)])
+					item=[(DOMStyleSheetList *) item item:index];
+				else if([item respondsToSelector:@selector(cssRules)])
+					item=[[(DOMCSSStyleSheet *) item cssRules] item:index];	// style sheet or @media rule
+				else if([item respondsToSelector:@selector(styleSheet)])
+						{
+							item=[(DOMCSSImportRule *) item styleSheet];	// @import rule
+							if(!item)
+								item=@"@import with nil styleSheet";
+						}
+				else
+					item=@"unknown";
+#if 0
+				NSLog(@"adding %@ %p", item, item);
+#endif
+				if(item == nil)
+					NSLog(@"oitem %@ %p", oitem, oitem);
+				else
+					[styleNodes addObject:item];
+				return item;
+			}
 	if(outlineView == domTree)
 			{
 				id obj;
+#if 0
+				NSLog(@"4 document=%p", [[webView mainFrame] DOMDocument]);
+#endif
 				if (item == nil)
-					return [[webView mainFrame] DOMDocument];	
-				obj = [[(DOMNode *) item childNodes] item:index];
-				[domNodes addObject:obj];
+					obj=[[webView mainFrame] DOMDocument];
+				else
+					obj = [[(DOMNode *) item childNodes] item:index];
+				[domNodes addObject:obj];	// retain them whatever happens
 				return obj;
 			}
 	else if(outlineView == viewTree)
@@ -593,11 +678,34 @@
 
 - (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
 {
+	if(outlineView == styleSheets)
+			{
+				if(item == nil)
+						{
+							[styleNodes release];
+							styleNodes=[[NSMutableArray alloc] initWithCapacity:30];
+							item=[self styleSheet];
+						}
+				if([item isKindOfClass:[NSString class]])
+					return 0;	// error handling
+				if([item respondsToSelector:@selector(length)])
+					return [(DOMStyleSheetList *) item length];
+				if([item respondsToSelector:@selector(cssRules)])
+					return [[(DOMCSSStyleSheet *) item cssRules] length];	// style sheet or @import rule
+				if([item respondsToSelector:@selector(styleSheet)])
+					return 1;	// @media rule
+				return 0;
+			}
 	if(outlineView == domTree)
 			{
 				if (item == nil)
-					return 1;
-				return [[(DOMNode *) item childNodes] length];
+						{
+							[domNodes release];
+							domNodes=[[NSMutableArray alloc] initWithCapacity:30];
+							return 1;
+						}
+				else
+					return [[(DOMNode *) item childNodes] length];
 			}
 	else if(outlineView == viewTree)
 			{
@@ -663,8 +771,10 @@
 		}
 	if(aTableView == domAttribs)
 		{
-		if([currentItem respondsToSelector:@selector(_attributes)])
-			return [[(DOMElement *) currentItem _attributes] count];
+			// FIXME: how do we get the attributes of a DOMElement on Apple WebKit?
+			if([currentItem respondsToSelector:@selector(_attributes)])
+				return [[(DOMElement *) currentItem _attributes] count];
+			return 1;	// unknown (e.g. Apple WebKit)
 		}
 	if(aTableView == viewAttribs)
 			{
@@ -712,6 +822,8 @@
 		}
 	if(aTableView == domAttribs)
 		{
+		if(![currentItem respondsToSelector:@selector(_attributes)])
+			return @"can't display";
 		if([ident isEqual: @"attribute"])
 			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] name];
 		else if([ident isEqual: @"value"])

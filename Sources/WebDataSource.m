@@ -98,8 +98,10 @@
 - (void) addSubresource:(WebResource *) res;
 {
 	NSAssert(res != nil, @"trying to add nil web resource");
+	NSAssert([res URL]!= nil, @"trying to add web resource with nil URL");
 	if(!_subresources)
 		_subresources=[[NSMutableDictionary alloc] initWithCapacity:20];
+	// FIXME: may have nil URL!!!
 	[_subresources setObject:res forKey:[res URL]];
 }
 
@@ -123,7 +125,7 @@
 #endif
 	NSAssert(url != nil, @"trying to load nil subresource");
 	NSAssert([_subresources objectForKey:url] == nil, @"already loaded!");
-	subsource=[_subdatasources objectForKey:url];
+	subsource=[_subdatasources objectForKey:[url absoluteURL]];
 #if 0
 		NSLog(@"load subresource from %@", url);
 		NSLog(@"_subdatasources=%@", _subdatasources);
@@ -141,7 +143,7 @@
 		[subsource _setRepresentation:rep];
 		if(!_subdatasources)
 			_subdatasources=[[NSMutableDictionary alloc] initWithCapacity:10];
-		[_subdatasources setObject:subsource forKey:url];	// add to list of resources currently loading
+		[_subdatasources setObject:subsource forKey:[url absoluteURL]];	// add to list of resources currently loading
 		[subsource _setWebFrame:_webFrame];	// hm... finally this will set the frameName
 		}
 #if 0
@@ -152,19 +154,29 @@
 
 - (void) _commitSubresource:(WebDataSource *) source;
 { // we are the parent and our subresource is done
-	[[source representation] finishedLoadingWithDataSource:source];		// last chance for postprocessing
-	[self addSubresource:[source mainResource]];	// save as WebResource
-	[source retain];	// keep us for some more time
-	[_subdatasources removeObjectForKey:[[source request] URL]];	// is no longer loading
 #if 0
-	NSLog(@"subresource committed (%d loaded, %d loading): %@", [_subresources count], [_subdatasources count], source);
+	NSLog(@"subresources %d loaded, %d still loading", [_subresources count], [_subdatasources count]);
+	NSLog(@"  still loading: %@", _subdatasources);
+	NSLog(@"  keys: %@", [_subdatasources allKeysForObject:source]);
+#endif
+// OLD!!!	[[source representation] finishedLoadingWithDataSource:source];		// last chance for postprocessing
+	if([source response])
+		[self addSubresource:[source mainResource]];	// save response as WebResource
+	[source retain];	// keep the source while we notify delegates
+	[_subdatasources removeObjectForKey:[[[source request] URL] absoluteURL]];	// is no longer loading
+#if 0
+	NSLog(@"subresource committed (%d loaded, %d still loading): %@", [_subresources count], [_subdatasources count], source);
+	NSLog(@"subresources still loading: %@", _subdatasources);
 #endif
 	if(_finishedLoading && [_subdatasources count] == 0)
 		{ // notification was postponed until subresources have been loaded
+#if 0
+			NSLog(@"send postponed finishedLoadingWithDataSource:%@", self);
+#endif
 		_finishedLoading=NO;	// has been processed
-		[_representation finishedLoadingWithDataSource:self];	// finally send postponed notification after all subresources are loaded (is allowed to trigger load of additional subresources)
+		[_representation finishedLoadingWithDataSource:self];	// finally send postponed notification after all subresources are loaded (note: this delegate is allowed to trigger load of additional subresources!)
 		}
-	[source release];	// may be our final release&dealloc
+	[source release];	// may be the final release&dealloc
 }
 
 - (WebResource *) mainResource;
@@ -396,7 +408,7 @@
 	[[webView resourceLoadDelegate] webView:webView resource:_ident didReceiveContentLength:[data length] fromDataSource:_parent?_parent:self];
 }
 
--(void) connectionDidFinishLoading:(NSURLConnection *) connection;
+- (void) connectionDidFinishLoading:(NSURLConnection *) connection;
 {
 	WebView *webView=[_webFrame webView];
 	[self retain];	// we might indirectly dealloc ourselves in _commitSubresource

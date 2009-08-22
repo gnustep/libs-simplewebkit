@@ -215,7 +215,16 @@ enum
 	return element;
 }
 
+// - (DOMNodeList *) childNodes;
+// - (DOMElement *) cloneNode:(BOOL) deep;
+- (DOMElement *) firstChild; { return [elements objectAtIndex:0]; }
+- (BOOL) hasChildNodes; { return [elements count] > 0; }
+// - (DOMElement *) insertBefore:(DOMElement *) node :(DOMElement *) ref;
 - (DOMElement *) lastChild; { return [elements lastObject]; }
+// - (DOMElement *) nextSibling;
+// - (DOMElement *) previousSibling;
+- (DOMElement *) removeChild:(DOMNode *) node; { [elements removeObject:node]; return (DOMElement *) self; }
+// - (DOMElement *) replaceChild:(DOMNode *) node :(DOMNode *) old;
 
 - (void) _makeObjectsPerformSelector:(SEL) sel withObject:(id) obj
 {
@@ -261,27 +270,28 @@ enum
 {
 	NSURL *url=[self URLWithAttributeString:string];
 	if(url)
-		{
-			WebDataSource *source=[(DOMHTMLDocument *) [self ownerDocument] _webDataSource];
-			WebResource *res=[source subresourceForURL:url];
-			WebDataSource *sub;
-			NSData *data;
-		if(res)
 			{
+				WebDataSource *source=[(DOMHTMLDocument *) [self ownerDocument] _webDataSource];
+				WebResource *res=[source subresourceForURL:url];
+				WebDataSource *sub;
+				NSData *data;
+				if(res)
+						{
 #if 0
-			NSLog(@"sub: already completely loaded: %@ (%u bytes)", url, [[res data] length]);
+							NSLog(@"sub: already completely loaded: %@ (%u bytes)", url, [[res data] length]);
 #endif
-			return [res data];	// already completely loaded
+							// should we call _finishedLoading???
+							return [res data];	// already completely loaded
+						}
+				sub=[source _subresourceWithURL:url delegate:(id <WebDocumentRepresentation>) self];	// triggers loading if not yet and make me receive notification
+#if 0
+				NSLog(@"sub: loading: %@ (%u bytes) delegate=%@", url, [[sub data] length], self);
+#endif
+				data=[sub data];
+				if(!data && stall)	// incomplete
+					[[(_WebHTMLDocumentRepresentation *) [source representation] _parser] _stall:YES];	// make parser stall until we have loaded
+				return data;
 			}
-		sub=[source _subresourceWithURL:url delegate:(id <WebDocumentRepresentation>) self];	// triggers loading if not yet and make me receive notification
-#if 0
-		NSLog(@"sub: loading: %@ (%u bytes) delegate=%@", url, [[sub data] length], self);
-#endif
-		data=[sub data];
-		if(!data && stall)	//incomplete
-			[[(_WebHTMLDocumentRepresentation *) [source representation] _parser] _stall:YES];	// make parser stall until we have loaded
-		return data;
-		}
 	return nil;
 }
 
@@ -467,14 +477,14 @@ enum
 - (NSMutableDictionary *) _style;
 { // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
 	if(!_style)
-		{
-		_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
-//		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
-//		[_style setObject:[self webFrame] forKey:WebElementFrameKey];
-		[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
-		[self _addAttributesToStyle];
-		[self _addCSSToStyle];
-		}
+			{
+				_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
+				//		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
+				//		[_style setObject:[self webFrame] forKey:WebElementFrameKey];
+				[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
+				[self _addAttributesToStyle];
+				[self _addCSSToStyle];
+			}
 	return _style;
 }
 
@@ -488,15 +498,27 @@ enum
 	[[_childNodes _list] makeObjectsPerformSelector:_cmd];	// also flush child nodes
 }
 
-- (DOMCSSStyleDeclaration *) _cssStyle;
-{ // get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-	return nil;
-}
-
 - (void) _addCSSToStyle;				// add CSS to style
 {
+	// FIXME: check a global "disable Style Sheets" flag
 	DOMCSSStyleDeclaration *css;
-	// FIXME
+	NSString *style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
+	// check CSS database
+	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
+	// more than one rule may match!
+	// in that case the last one persists unless there is a !important priority
+	// the order of evaluation is: 1. external sheets, 2. <style> sheets, 3. style=""
+	if(style)
+			{ // locally defined CSS
+				/*
+				 * here we could decode some simple style="xxx" entries
+				 */
+#if 1
+				NSLog(@"add style=\"%@\"", style);
+#endif
+				css=[[[DOMCSSStyleDeclaration alloc] initWithString:style] autorelease];	// parse
+				[css _addToStyle:_style];
+			}
 }
 
 - (void) _addAttributesToStyle;			// add attributes to style
@@ -650,10 +672,12 @@ enum
 {
 	if((self = [super init]))
 			{
+				// we could simply add this as properties/attributes
 				anchors=[DOMHTMLCollection new]; 
 				forms=[DOMHTMLCollection new]; 
 				images=[DOMHTMLCollection new]; 
 				links=[DOMHTMLCollection new]; 
+				styleSheets=[DOMStyleSheetList new];
 			}
 	return self;
 }
@@ -664,6 +688,7 @@ enum
 	[forms release];
 	[images release];
 	[links release];
+	[styleSheets release];
 	[super dealloc];
 }
 
@@ -686,6 +711,7 @@ enum
 - (DOMHTMLCollection *) forms; { return forms; }
 - (DOMHTMLCollection *) images; { return images; }
 - (DOMHTMLCollection *) links; { return links; }
+- (DOMStyleSheetList *) styleSheets; { return styleSheets; }
 
 @end
 
@@ -711,6 +737,7 @@ enum
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	[[rep _parser] _setReadMode:2];	// switch parser mode to read up to </title> and translate entities
+	// FIXME: ignore in <body>
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -728,6 +755,7 @@ enum
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	NSString *cmd=[self valueForKey:@"http-equiv"];
+	// FIXME: ignore in <body>
 	if([cmd caseInsensitiveCompare:@"refresh"] == NSOrderedSame)
 		{ // handle  <meta http-equiv="Refresh" content="4;url=http://www.domain.com/link.html">
 		NSString *content=[self valueForKey:@"content"];
@@ -770,9 +798,27 @@ enum
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 { // e.g. <link rel="stylesheet" type="text/css" href="test.css" />
 	NSString *rel=[[self valueForKey:@"rel"] lowercaseString];
+	// FIXME: ignore in <body>
 	if([rel isEqualToString:@"stylesheet"] && [[self valueForKey:@"type"] isEqualToString:@"text/css"])
 		{ // load stylesheet in background
-		[self _loadSubresourceWithAttributeString:@"href" blocking:NO];
+			NSData *data=[self _loadSubresourceWithAttributeString:@"href" blocking:NO];
+			NSString *media=[self getAttribute:@"media"];
+			sheet=[DOMCSSStyleSheet new];	// create new sheet to store incoming rules
+			[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];	// add to list of known style sheets (before loading others)
+			[sheet setOwnerNode:self];
+			[sheet setHref:[self getAttribute:@"href"]];
+			if(media)
+				[[sheet media] setMediaText:media];
+			[sheet release];
+			if(data)
+					{ // parse directly if already loaded
+						NSString *style=[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+#if 1
+						NSLog(@"parsing <link> directly");
+#endif
+						[sheet _setCssText:style];	// parse the style sheet to add
+						[style release];
+					}
 		}
 	else if([rel isEqualToString:@"home"])
 		{
@@ -800,11 +846,30 @@ enum
 // WebDocumentRepresentation callbacks
 
 - (void) setDataSource:(WebDataSource *) dataSource; { return; }
-- (void) finishedLoadingWithDataSource:(WebDataSource *) source; { return; }
+
+- (void) finishedLoadingWithDataSource:(WebDataSource *) source;
+{
+	NSString *rel=[[self valueForKey:@"rel"] lowercaseString];
+#if 1
+	NSLog(@"<link> finishedLoadingWithDataSource %@", source);
+#endif
+	if([rel isEqualToString:@"stylesheet"] && [[self valueForKey:@"type"] isEqualToString:@"text/css"])
+			{ // did load style sheet
+				NSString *style=[[NSString alloc] initWithData:[source data] encoding:NSUTF8StringEncoding];
+				[sheet setHref:[[[source response] URL] absoluteString]];	// replace
+				[sheet _setCssText:style];	// parse the style sheet to add
+#if 1
+				NSLog(@"CSS <link>: %@", sheet);
+#endif
+				[style release];
+			}
+}
+
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 {
 	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
 }
+
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
 	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
@@ -813,6 +878,8 @@ enum
 @end
 
 @implementation DOMHTMLStyleElement
+
+- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore if in <body> context
 
 // CHECKME: are style definitions "local"?
 
@@ -824,11 +891,35 @@ enum
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </style>
+	// checkme - can we say <style src="..."> or is this only done by <link>?
+	// FIXME: ignore in <body> or set disabled
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-// FIXME: process "@import URL" subresources
-// CHECKME: here or delayed when referenced in CSS?
+- (void) _elementLoaded;
+{ // <style> element has been completely loaded, i.e. we are called from the </style> tag
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
+	NSString *media=[self getAttribute:@"media"];
+	// FIXME: ignore in <body> or set disabled
+	sheet=[DOMCSSStyleSheet new];
+	[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];	// add to list of style sheets
+	[sheet setOwnerNode:self];
+	if(media)
+		[[sheet media] setMediaText:media];
+#if 1	// WebKit does not set the href attribute (although it could/should?) - but we must have this link or a relative url in @import would not be found
+	[sheet setHref:[[[[htmlDocument _webDataSource] response] URL] absoluteString]];	// should be the href of the current document so that @import with relative URL works
+#endif
+#if 1
+	NSLog(@"parsing <style> element");
+#endif
+	[sheet _setCssText:[(DOMCharacterData *) [self firstChild] data]];	// parse the style sheet to add
+#if 1
+	NSLog(@"CSS: %@", sheet);
+#endif
+	[sheet release];
+}
+	
+- (DOMCSSStyleSheet *) sheet; { return sheet; }	// allow to access from JS through var theSheet = document.getElementsByTagName('style')[0].sheet;
 
 @end
 
@@ -842,8 +933,7 @@ enum
 {
 	WebView *webView=[[self webFrame] webView];
 	[[rep _parser] _setReadMode:1];	// switch parser mode to read up to </script>
-	if([self hasAttribute:@"src"])
-	if([[webView preferences] isJavaScriptEnabled])
+	if([self hasAttribute:@"src"] && [[webView preferences] isJavaScriptEnabled])
 		{ // we have an external script to load first
 #if 0
 		NSLog(@"load <script src=%@>", [self valueForKey:@"src"]);
@@ -1171,10 +1261,8 @@ enum
 		WebView *webView=[[self webFrame] webView];
 		NSFont *font=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// determine default font
 		NSMutableParagraphStyle *paragraph=[NSMutableParagraphStyle new];
-                if(!font)
-		  {
-		    font = [NSFont userFontOfSize:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];
-		  }
+    if(!font)
+		    font = [NSFont userFontOfSize:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// default if webPrefs define unknown font
 		[paragraph setParagraphSpacing:[[webView preferences] defaultFontSize]/2.0];	// default
 		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
 			paragraph, NSParagraphStyleAttributeName,
@@ -1448,7 +1536,8 @@ enum
 			break;	// standard
 		}
 	[paragraph setParagraphSpacing:size/2];
-	f=[NSFont fontWithName:[NSString stringWithFormat:@"%@-Bold", [[webView preferences] standardFontFamily]] size:size];
+	f=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:size];
+	f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];	// get Bold variant
 	if(f)
 		[_style setObject:f forKey:NSFontAttributeName];	// set header font
 	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
@@ -2298,12 +2387,12 @@ enum
 	if([type isEqualToString:@"checkbox"])
 			{
 				if(!val) val=@"on";
-				return [cell state] == NSOnState?val:@"";
+				return [cell state] == NSOnState?val:(NSString *) @"";
 			}
 	else if([type isEqualToString:@"radio"])
 			{ // report only the active button
 				if(!val) val=@"on";
-				return [cell state] == NSOnState?val:nil;
+				return [cell state] == NSOnState?val:(NSString *) nil;
 			}
 	else if([type isEqualToString:@"submit"])
 			{

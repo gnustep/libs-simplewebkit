@@ -23,11 +23,14 @@
 	// document source
 	IBOutlet NSTextView *docSource;
 	// DOM Hierarchy
-    NSMutableSet *domNodes;
+	NSMutableSet *domNodes;
 	IBOutlet NSOutlineView *domTree;
 	IBOutlet NSTextView *domSource;
 	id currentItem;
 	IBOutlet NSTableView *domAttribs;
+	// Style Sheets
+	NSMutableSet *styleNodes;
+	IBOutlet NSOutlineView *styleSheets;
 	// View Hierarchy
 	IBOutlet NSOutlineView *viewTree;
 	IBOutlet NSTextView *viewSource;
@@ -61,6 +64,7 @@
 - (IBAction) openJavaScriptConsole:(id) sender;
 - (IBAction) showSource:(id) sender;
 - (IBAction) showDOMTree:(id) sender;
+- (IBAction) showStyleSheets:(id) sender;
 - (IBAction) showViewTree:(id) sender;
 - (IBAction) goBack:(id) sender;
 - (IBAction) goForward:(id) sender;

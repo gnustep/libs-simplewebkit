@@ -23,6 +23,7 @@
 
 #import <WebKit/DOMCore.h>
 
+@class DOMStyleSheetList;
 @class DOMCSSStyleDeclaration;
 @class WebDataSource;
 @class WebFrame;
@@ -139,6 +140,7 @@ typedef enum
 	DOMHTMLCollection *applets;			// all applets
 	DOMHTMLCollection *links;				// all hyperlinks
 	DOMHTMLCollection *anchors;			// all anchors
+	DOMStyleSheetList *styleSheets;	// all style sheets
 }
 
 - (void) _setWebFrame:(WebFrame *) frame;
@@ -156,6 +158,7 @@ typedef enum
 - (DOMHTMLCollection *) forms;
 - (DOMHTMLCollection *) images;
 - (DOMHTMLCollection *) links;
+- (DOMStyleSheetList *) styleSheets;
 
 @end
 
@@ -171,10 +174,19 @@ typedef enum
 @interface DOMHTMLMetaElement : DOMHTMLElement		// <meta>
 @end
 
+@class DOMCSSStyleSheet;
+
 @interface DOMHTMLLinkElement : DOMHTMLElement		// <link>
+{
+	DOMCSSStyleSheet *sheet;
+}
 @end
 
 @interface DOMHTMLStyleElement : DOMHTMLElement		// <style>
+{
+	DOMCSSStyleSheet *sheet;
+}
+- (DOMCSSStyleSheet *) sheet;
 @end
 
 @interface DOMHTMLScriptElement : DOMHTMLElement	// <script>

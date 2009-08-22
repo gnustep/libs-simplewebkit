@@ -5,7 +5,7 @@ SimpleWebKit ToDo
 The code probably needs a lot of reformatting to fit in the GNUstep coding style. ;-)
 
 -----------
-13 May 2008
+20 Aug 2009
 -----------
 
 Completion indicator
@@ -22,9 +22,9 @@ EcmaScript
 	DOM Integration		10%
 CSS
 	Loading				100%
-	Parser				0%
-	Evaluator			0%
-	DOM Integration		1%
+	Parser				90%
+	Evaluator			20%
+	DOM Integration		50%
 WebView, WebFrame, ...
 	Basics				100%
 	Advanced			80%		(Scrolling, Forms, Frames)
@@ -34,10 +34,6 @@ High Prio:
 
 1. <frame> and scrollers should work correctly
 2. <table> elements should really work
-3. make <form> work (buttons and text fields interaction)
-
-HTML Loading:
-- does not use NSURLCache
 
 HTML parsing:
 - NSXMLParser:
@@ -53,7 +49,6 @@ HTML Evaluator:
 - <table> does not handle colspan, rowspan
 - (better) handle <pre> incl. keeping newlines -> <br>
 
-- <textarea>, <select>/<option> not completely implemented
 - link color definition by <body> and if link was visited recently (history)
 - handle different <hr> styles
 - special <input> styles should show a small slider for e.g. <input type="range" min="0" value="100" max="100">
@@ -64,12 +59,6 @@ View:
 - <iframe> should display a WebFrameView as NSTextAttachmentCell
 - <select> should display a NSTableView as NSTextAttachmentCell (i.e. wrap a View's lock/drawRect/unlock into a Cell)
 
-Forms:
-- <input type="radio" name="group"> does not yet have radio behaviour
-- if none is defined as CHECKED, it should select the first one
-- <form> does not yet send anything (should build a "POST" NSURLRequest)
-- <input> does not respond to mouse clicks and become first responder
-
 EcmaScript:
 - finalize parser, evaluator and prototype objects
 - add execution context ("this", global variables, document/event/images/anchors etc.)
@@ -78,8 +67,6 @@ EcmaScript:
 - handle more triggers like <... onmouse="..."> - this needs to define and trap cursorRects
 
 CSS:
-- add DOMCSS elements according to the DOM specs
-- add parser
 - find matching element(s) in DOMCSS tree for a DOMHTML node
 
 General:
@@ -93,9 +80,6 @@ mySTEP's extension requests:
   - cookies
   - cache
   - https (using NSSocket(Input|Output)Stream)
-  - sending of POST&GET methods
-  - header compression
-  - server redirection
   - handle "feed:" scheme (load the feed XML and translate into an ECMAScript/HTML result when done)
 - NSTextTable is not rendered
 - NSTextList is not rendered - NOTE: this is not to be rendered at all (!) just a hint attribute...

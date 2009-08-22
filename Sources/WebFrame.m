@@ -221,6 +221,8 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 #if 0
 		NSLog(@"WebFrame _provisionalDataSource=%@", _provisionalDataSource);
 #endif
+		if(_dataSource && [_dataSource webFrame] != self)
+			[[_webView frameLoadDelegate] webView:_webView willCloseFrame:[_dataSource webFrame]];	// did belong to a different frame
 		[_dataSource autorelease];	// previous - if any
 		_dataSource=_provisionalDataSource;	// become new owner
 		_provisionalDataSource=nil;
@@ -311,7 +313,8 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 - (WebView *) webView; { return _webView; }
 - (NSString *) name; { return _name; }
 - (void) _setFrameName:(NSString *) n; { ASSIGN(_name, n); }
-- (RENAME(DOMDocument) *) DOMDocument; { return _domDocument; }
+- (RENAME(DOMDocument) *) DOMDocument; { return _domDocument; }	// FIXME: this return one additional level!!!
+//- (RENAME(DOMDocument) *) DOMDocument; { return (RENAME(DOMDocument) *) [_domDocument firstChild]; }	// FIXME: can we get rid of this additional level?
 - (DOMHTMLElement *) frameElement; { return _frameElement; }
 - (void) _setFrameElement:(DOMHTMLElement *) e; { ASSIGN(_frameElement, e); }
 
