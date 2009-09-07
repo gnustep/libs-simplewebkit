@@ -4,15 +4,51 @@
 </head>
 
 <body>
+<h2>Empty Table (no rows)</h2>
+<table border=1>
+</table>
 
-Before Table
+<h2>Empty Table with one Row (no cells)</h2>
+<table border=1>
+<tr></tr>
+</table>
+
+<h2>Table with one Cell</h2>
+<table border=1>
+<tr><td>Cell</td></tr>
+</table>
+
+<h2>Table should start a new line</h2>
+Line before Table
 <table border=1>
 <tr><td>First Cell</td><td>Second Cell</td>
 <td>
-Cell<br>with<br>breaks
+Third Cell<br>with<br>embedded<br>line breaks<p>and Paragraphs</p><h4>and headings</h4>
 </td></tr>
-<tr><td>Second row</td></tr>
+<tr><td>Second row</td><td></td></tr>
 </table>
+Line right after table.
+
+<h2>Table with Colspan</h2>
+<table border=1>
+<tr><td bgcolor=#ff0000>Cell1</td><td bgcolor=#00ff00>Cell2</td><td bgcolor=#0000ff>Cell3</td><td bgcolor=yellow>Cell4</td></tr>
+<tr><td bgcolor=magenta>Cell1</td><td colspan=2>Cell2 and 3</td><td>Cell4</td></tr><!-- colspan more than available is limited to the current number of columns, i.e. another <td> increments number of cols. Values <= 1 are ignored. -->
+</table>
+
+<h2>Table with Rowspan</h2>
+<table border=1>
+<tr><td>Cell1</td><td rowspan=2>Cell2</td><td>Cell3</td></tr><!-- colspan more than available is limited to the total number of rows, i.e. another <td> increments number of cols. Values <= 1 are ignored. -->
+<tr><td>Cell1</td><td>Cell3</td></tr>
+<tr><td>Cell1</td><td>Cell2</td><td>Cell3</td></tr>
+</table>
+
+<h2>Table with alignment</h2>
+<table border=1 width=100%>
+<tr valign=top><td><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
+<tr valign=middle><td><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
+<tr valign=bottom><td><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
+</table>
+
 
 </body>
 

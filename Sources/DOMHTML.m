@@ -1864,7 +1864,12 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (void) dealloc; { [table release]; [super dealloc]; }
+- (void) dealloc;
+{
+	[table release];
+	[rows release];
+	[super dealloc];
+}
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
@@ -1905,12 +1910,67 @@ enum
 	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
 	// should reset to default paragraph
 	// should reset font style, color etc. to defaults!
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// is a block element
+	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// a table is a block element, i.e. force a \n before table starts
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
 #if 0
 	NSLog(@"<table> _style=%@", _style);
 #endif
+}
+
+- (NSTextTable *) _getRow:(int *) row andColumn:(int *) col rowSpan:(int *) rowspan colSpan:(int *) colspan forCell:(DOMHTMLTableCellElement *) cell
+{
+	// algorithm could cache the current cell and start over only if it is not called for the next one
+	// since it will most probably be called in correct sequence
+	DOMNodeList *l=[self getElementsByTagName:@"TBODY"];
+	NSCountedSet *rowSpanTracking=[[NSCountedSet new] autorelease];	// counts the (additional) rows to span for each column (of type NSNumber)
+	*row=1;
+	*col=1;
+	*rowspan=0;
+	*colspan=0;
+	if([l length] > 0)
+		{
+			DOMHTMLTBodyElement *body=(DOMHTMLTBodyElement *)[l item:0];
+			NSEnumerator *re;
+			DOMHTMLTableRowElement *r;
+			re=[[[body childNodes] _list] objectEnumerator];
+			while((r=[re nextObject]))
+				{ // check in which <tr> we are child
+					NSEnumerator *ce;
+					DOMHTMLTableCellElement *c;
+					int i;
+					if(![r isKindOfClass:[DOMHTMLTableRowElement class]])
+						continue;
+					ce=[[[r childNodes] _list] objectEnumerator];
+					while((c=[ce nextObject]))
+						{
+							if(![c isKindOfClass:[DOMHTMLTableCellElement class]])
+								continue;
+							while(([rowSpanTracking countForObject:[NSNumber numberWithInt:*col]] > 0))
+								(*col)++;	// skip
+							*rowspan=[[c valueForKey:@"rowspan"] intValue];
+							*colspan=[[c valueForKey:@"colspan"] intValue];
+							if((*colspan) > ([table numberOfColumns]-(*col-1)))
+								*colspan=[table numberOfColumns]-(*col-1);	// limit (default mechanism will add at least one!)
+							if(*colspan < 1) *colspan=1;	// default
+							if(*rowspan < 1) *rowspan=1;	// default
+							if(cell == c)
+								return table;	// found!
+							while(*colspan >= 1)
+								{
+									for(i=0; i<*rowspan; i++)
+										[rowSpanTracking addObject:[NSNumber numberWithInt:*col]];	// extend rowspan set
+									(*col)++;
+									(*colspan)--;
+								}
+						}
+					(*row)++;
+					for(i=1; i<[table numberOfColumns]; i++)
+						[rowSpanTracking removeObject:[NSNumber numberWithInt:i]];	// remove one count per column number
+					*col=1;
+				}
+		}
+	return nil;
 }
 
 @end
@@ -1938,25 +1998,31 @@ enum
 	DOMHTMLElement *n=[rep _lastObject];
 	while([n isKindOfClass:[DOMHTMLElement class]])
 		{
-		if([[n nodeName] isEqualToString:@"TBODY"])
-			return n;	// found
-		if([[n nodeName] isEqualToString:@"TABLE"])
-			{ // find <tbody> and create a new if there isn't one
-			NSEnumerator *list=[[[n childNodes] _list] objectEnumerator];
-			DOMHTMLTBodyElement *tbe;
-			while((tbe=[list nextObject]))
-				{
-				if([[tbe nodeName] isEqualToString:@"TBODY"])
-					return tbe;	// found!
+			if([[n nodeName] isEqualToString:@"TBODY"])
+				return n;	// found
+			if([[n nodeName] isEqualToString:@"TABLE"])
+				{ // find <tbody> and create a new if there isn't one
+					NSEnumerator *list=[[[n childNodes] _list] objectEnumerator];
+					DOMHTMLTBodyElement *tbe;
+					while((tbe=[list nextObject]))
+						{
+							if([[tbe nodeName] isEqualToString:@"TBODY"])
+								return tbe;	// found!
+						}
+					tbe=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil];	// create new <tbody>
+					[n appendChild:tbe];	// insert a fresh <tbody> element
+					[tbe release];
+					return tbe;
 				}
-			tbe=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil];	// create new <tbody>
-			[n appendChild:tbe];	// insert a fresh <tbody> element
-				[tbe release];
-			return tbe;
-			}
-		n=(DOMHTMLElement *)[n parentNode];	// go one level up
+			n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tr" namespaceURI:nil] autorelease];	// return dummy
+}
+
+- (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
+{
+	// add to rows collection of table so that we can handle row numbers correctly
+	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
 - (void) _addAttributesToStyle;
@@ -1975,8 +2041,8 @@ enum
 		[paragraph setAlignment:NSRightTextAlignment];
 	if([align isEqualToString:@"justify"])
 		[paragraph setAlignment:NSJustifiedTextAlignment];
-	//			 if([align isEqualToString:@"char"])
-	//				 [paragraph setAlignment:NSNaturalTextAlignment];
+	// if([align isEqualToString:@"char"])
+	//	 [paragraph setAlignment:NSNaturalTextAlignment];
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
 }
@@ -1984,6 +2050,8 @@ enum
 @end
 
 @implementation DOMHTMLTableCellElement
+
+- (NSString *) _string;		{ return @"\n"; }	// each cell creates a line
 
 - (void) _addAttributesToStyle;
 { // add attributes to style
@@ -1993,15 +2061,25 @@ enum
 	NSString *valign=[[self valueForKey:@"valign"] lowercaseString];
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
+	NSColor *bg=[[self valueForKey:@"bgcolor"] _htmlColor];
 	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
 	NSTextTableBlock *cell;
 	DOMHTMLTableElement *tableElement;
 	NSTextTable *table;	// the table we belong to
-	int row=1;	// where do we get this from??? we either have to ask our parent node or we need a special layout algorithm here
-	int rowspan=[[self valueForKey:@"rowspan"] intValue];
-	int col=1;
-	int colspan=[[self valueForKey:@"colspan"] intValue];
+	int row, col;
+	int rowspan, colspan;
 	NSString *width=[self valueForKey:@"width"];	// in pixels or % of <table>
+	tableElement=(DOMHTMLTableElement *) self;
+	while(tableElement && ![tableElement isKindOfClass:[DOMHTMLTableElement class]])
+		tableElement=(DOMHTMLTableElement *)[tableElement parentNode];	// go one level up
+	table=[tableElement _getRow:&row andColumn:&col rowSpan:&rowspan colSpan:&colspan forCell:self];	// ask tableElement for our position
+	if(!table)
+		{ // we are not within a table
+			[blocks release];
+			return;	// error...
+		}
+	if(col+colspan-1 > [table numberOfColumns])
+		[table setNumberOfColumns:col+colspan-1];			// adjust number of columns of our enclosing table
 	if([[self nodeName] isEqualToString:@"TH"])
 		{ // make centered and bold paragraph for header cells
 		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
@@ -2011,48 +2089,48 @@ enum
 		}
 	if([align isEqualToString:@"left"])
 		[paragraph setAlignment:NSLeftTextAlignment];
-	if([align isEqualToString:@"center"])
+	else if([align isEqualToString:@"center"])
 		[paragraph setAlignment:NSCenterTextAlignment];
-	if([align isEqualToString:@"right"])
+	else if([align isEqualToString:@"right"])
 		[paragraph setAlignment:NSRightTextAlignment];
-	if([align isEqualToString:@"justify"])
+	else if([align isEqualToString:@"justify"])
 		[paragraph setAlignment:NSJustifiedTextAlignment];
-	//			 if([align isEqualToString:@"char"])
-	//				 [paragraph setAlignment:NSNaturalTextAlignment];
-	tableElement=(DOMHTMLTableElement *) self;
-	while(tableElement && ![tableElement isKindOfClass:[DOMHTMLTableElement class]])
-		tableElement=(DOMHTMLTableElement *)[tableElement parentNode];	// go one level up
-	if(!tableElement)
-			{
-				[blocks release];
-				[paragraph release];
-				return;	// error...
-			}
-	table=[tableElement valueForKey:@"table"];
+	// if([align isEqualToString:@"char"])
+	//	[paragraph setAlignment:NSNaturalTextAlignment];	// NO! this is something different
 	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
 														   startingRow:row
 															   rowSpan:rowspan
 														startingColumn:col
 															columnSpan:colspan];
-	// get from attributes or inherit from parent/table
-	[cell setBackgroundColor:[NSColor lightGrayColor]];
+	// get from attributes or inherit from <tr> or <tbody> or <table>
+	[cell setBackgroundColor:bg];
 	[cell setBorderColor:[NSColor blackColor]];
 	[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
 	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
+	[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
 	if([valign isEqualToString:@"top"])
-			{
-				// [block setVerticalAlignment:...]
-				;
-			}
-	if(col+colspan > [table numberOfColumns])
-		[table setNumberOfColumns:col+colspan];			// adjust number of columns of our enclosing table
+		[cell setVerticalAlignment:NSTextBlockTopAlignment];
+	else if([valign isEqualToString:@"middle"])
+		[cell setVerticalAlignment:NSTextBlockMiddleAlignment];
+	else if([valign isEqualToString:@"bottom"])
+		[cell setVerticalAlignment:NSTextBlockBottomAlignment];
+	else if([valign isEqualToString:@"baseline"])
+		[cell setVerticalAlignment:NSTextBlockBaselineAlignment];
+	else
+		[cell setVerticalAlignment:NSTextBlockMiddleAlignment];	// default
+	if(width)
+		{
+			NSScanner *sc=[NSScanner scannerWithString:width];
+			double val;
+			if([sc scanDouble:&val])
+				[cell setWidth:val type:[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];
+		}
 	if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
 		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
 	[blocks addObject:cell];	// add to list of text blocks
 	[cell release];
 	[paragraph setTextBlocks:blocks];	// add to paragraph style
-	[blocks release];
+	[blocks release];	// was either mutableCopy or alloc/initWithCapacity
 #if 0
 	NSLog(@"<td> _style=%@", _style);
 #endif

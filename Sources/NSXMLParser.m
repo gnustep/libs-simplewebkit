@@ -275,7 +275,7 @@ static NSDictionary *entitiesTable;
 #endif
 							d = [s propertyListFromStringsFileFormat];
 							entitiesTable = [d mutableCopy];
-							NSAssert(entitiesTable, ([NSString stringWithFormat:@"could not load and parse file %@", path]));
+							NSAssert1(entitiesTable, @"could not load and parse file %@", path);
 #if 0
 							NSLog(@"bundle=%@", b);
 							NSLog(@"path=%@", path);
@@ -532,7 +532,7 @@ static NSDictionary *entitiesTable;
 						}
 					if(*cp != '>')
 						{
-						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found / but no >", arg]];
+						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found / but no >", tag]];
 						return;
 						}
 					cp++;
@@ -555,7 +555,7 @@ static NSDictionary *entitiesTable;
 						}
 					if(*cp != '>')
 						{
-						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found ? but no >", arg]];
+						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found ? but no >", tag]];
 						return;
 						}
 					cp++;	// eat ?>

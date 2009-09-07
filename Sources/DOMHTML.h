@@ -86,11 +86,6 @@ typedef enum
 - (NSData *) _loadSubresourceWithAttributeString:(NSString *) string blocking:(BOOL) flag;
 - (void) _triggerEvent:(NSString *) event;
 
-// generic rendering support
-
-
-- (NSAttributedString *) _tableCellsForTable:(NSTextTable *) table row:(unsigned *) row col:(unsigned *) col;
-
 @end
 
 @interface DOMCharacterData (DOMHTMLElement)	// is not a subclass of DOMElement!

@@ -335,7 +335,19 @@
 - (DOMAttr *) getAttributeNodeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
 - (NSString *) getAttributeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
 
-- (DOMNodeList *) getElementsByTagName:(NSString *) name; { return NIMP; } // filter by tag name
+- (DOMNodeList *) getElementsByTagName:(NSString *) name;
+{ // filter children by tag name
+	DOMNodeList *l=[[DOMNodeList alloc] init];
+	NSEnumerator *e=[[[self childNodes] _list] objectEnumerator];
+	DOMElement *ele;
+	while((ele=[e nextObject]))
+		{
+			if([ele respondsToSelector:@selector(tagName)] && [[ele tagName] isEqualToString:name])
+				[[l _list] addObject:ele];	// matches
+		}
+	return [l autorelease];
+}
+
 - (DOMNodeList *) getElementsByTagNameNS:(NSString *) uri :(NSString *) name; { return NIMP; }
 
 - (BOOL) hasAttribute:(NSString *) name; { return [_attributes objectForKey:name] != nil; }

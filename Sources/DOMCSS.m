@@ -115,6 +115,8 @@
 - (DOMMediaList *) media; { return media; }
 - (DOMNode *) ownerNode; { return ownerNode; }
 - (NSString *) title; { return title; }
+- (BOOL) disabled; { return disabled; }
+- (DOMStyleSheet *) parentStyleSheet; { return parentStyleSheet; }
 
 // FIXME: which of these setters should really be public??
 // probably none!
