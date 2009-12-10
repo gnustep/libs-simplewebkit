@@ -353,6 +353,7 @@
 				if([r isForWebFrame:frame])
 					[activities removeObjectAtIndex:i];
 			}
+	[self updateActivity];
 }
 
 // Activity window

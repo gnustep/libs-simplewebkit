@@ -43,8 +43,11 @@
 - (void) webView:(WebView *) sender didFailLoadWithError:(NSError *) error forFrame:(WebFrame *) frame;
 - (void) webView:(WebView *) sender didFailProvisionalLoadWithError:(NSError *) error forFrame:(WebFrame *) frame;
 - (void) webView:(WebView *) sender didReceiveIcon:(NSImage *) image forFrame:(WebFrame *) frame;
-- (void) webView:(WebView *) sender serverRedirectedForDataSource:(WebFrame *) frame;
-- (void) webView:(WebView *) sender windowScriptObjectAvailable:(WebScriptObject *) script;
+- (void) webView:(WebView *) sender serverRedirectedForDataSource:(WebFrame *) frame;	// deprecated
+- (void) webView:(WebView *) sender didReceiveServerRedirectForProvisionalLoadForFrame:(WebFrame *) frame;	// new
+- (void) webView:(WebView *) sender windowScriptObjectAvailable:(WebScriptObject *) script;	// deprecated in 10.4.11
+- (void) webView:(WebView *) sender didClearWindowObject:(WebScriptObject *) script forFrame:(WebFrame *) frame;	// introduced in 10.4.11
+
 
 @end
 

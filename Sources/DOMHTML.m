@@ -41,28 +41,41 @@ NSString *DOMHTMLBlockInlineLevel=@"display";
 #if defined(__APPLE__)
 #if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
 
-// Tiger (10.4) - includes (trhrough WebKit/WebView.h and Cocoa/Cocoa.h) and implements tables
+// Tiger (10.4) and later - include (through WebKit/WebView.h and Cocoa/Cocoa.h) and implements Tables
 
 #else
 
 // declarations for headers of classes introduced in OSX 10.4 (#import <NSTextTable.h>) on systems that don't have it
 
-@interface NSTextBlock : NSObject
+@interface NSTextBlock : NSObject <NSCoding, NSCopying>
 - (void) setBackgroundColor:(NSColor *) color;
 - (void) setBorderColor:(NSColor *) color;
 - (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
 
-// FIXME: values must match implementation in Apple AppKit!
+// NOTE: values must match implementation in Apple AppKit!
 
 #define NSTextBlockBorder 0
-#define NSTextBlockPadding 1
-#define NSTextBlockMargin 2
+#define NSTextBlockPadding -1
+#define NSTextBlockMargin 1
+
 #define NSTextBlockAbsoluteValueType 0
 #define NSTextBlockPercentageValueType 1
+
 #define NSTextBlockTopAlignment	0
 #define NSTextBlockMiddleAlignment 1
 #define NSTextBlockBottomAlignment 2
 #define NSTextBlockBaselineAlignment 3
+
+#define NSTextBlockWidth	0
+#define NSTextBlockMinimumWidth	1
+#define NSTextBlockMaximumWidth	2
+#define NSTextBlockHeight	4
+#define NSTextBlockMinimumHeight	5
+#define NSTextBlockMaximumHeight	6
+
+#define NSTextTableAutomaticLayoutAlgorithm	0
+#define NSTextTableFixedLayoutAlgorithm	1
+
 @end
 
 @interface NSTextTable : NSTextBlock
@@ -92,6 +105,12 @@ enum
 - (NSArray *) textLists;
 @end
 
+@interface SWKTextTableCell : NSTextAttachmentCell
+{
+	NSAttributedString *table;
+}
+@end
+
 @implementation NSParagraphStyle (NSTextBlock)
 - (NSArray *) textBlocks; { return nil; }
 - (NSArray *) textLists; { return nil; }
@@ -105,6 +124,12 @@ enum
 @implementation NSMutableParagraphStyle (NSTextBlock)
 - (void) setTextBlocks:(NSArray *) array; { return; }	// ignore
 - (void) setTextLists:(NSArray *) array; { return; }	// ignore
+@end
+
+@implementation SWKTextTableCell
+
+// when asked to draw, analyse the table blocks and draw a table
+
 @end
 
 #endif
@@ -1852,10 +1877,56 @@ enum
         
 	[cell setShaded:![self hasAttribute:@"noshade"]];
 	size = [[self valueForKey:@"size"] intValue];
-    
+#if 1  
 	NSLog(@"<hr> size: %@", [self valueForKey:@"size"]);
     NSLog(@"<hr> width: %@", [self valueForKey:@"width"]);
+#endif
     return att;
+}
+
+@end
+
+@implementation NSTextBlock (Attributes)
+
+- (void) _setTextBlockAttributes:(DOMHTMLElement *) element	// FIXME: should also handle paragraph style attributes (align) i.e. we should pass NSParagraphStyle
+{ // apply style attributes to NSTextBlock or NSTextTable
+	NSString *background=[element valueForKey:@"background"];
+	NSColor *bg=[[element valueForKey:@"bgcolor"] _htmlColor];
+	unsigned border=[[element valueForKey:@"border"] intValue];
+	unsigned spacing=[[element valueForKey:@"selfspacing"] intValue];
+	unsigned padding=[[element valueForKey:@"selfpadding"] intValue];
+	NSString *valign=[[element valueForKey:@"valign"] lowercaseString];
+	NSString *width=[element valueForKey:@"width"];	// in pixels or % of <table>
+	BOOL isTable=[element isKindOfClass:[DOMHTMLTableElement class]];	// handle defaults
+	if(!isTable && [element parentNode])
+		[self _setTextBlockAttributes:[element parentNode]];	// inherit from parent node(s)
+	if(bg)
+		[self setBackgroundColor:bg];
+	[self setBorderColor:[NSColor blackColor]];
+	if(border < 1) border=1;
+	if(spacing < 1) spacing=1;
+	if(padding < 1) padding=1;
+	if([element valueForKey:@"border"])
+		[self setWidth:border type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+	[self setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between selfs
+	[self setWidth:padding type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+	if([valign isEqualToString:@"top"])
+		[self setVerticalAlignment:NSTextBlockTopAlignment];
+	else if([valign isEqualToString:@"middle"])
+		[self setVerticalAlignment:NSTextBlockMiddleAlignment];
+	else if([valign isEqualToString:@"bottom"])
+		[self setVerticalAlignment:NSTextBlockBottomAlignment];
+	else if([valign isEqualToString:@"baseline"])
+		[self setVerticalAlignment:NSTextBlockBaselineAlignment];
+	else
+		[self setVerticalAlignment:NSTextBlockMiddleAlignment];	// default
+	if(width)
+		{
+			NSScanner *sc=[NSScanner scannerWithString:width];
+			double val;
+			if([sc scanDouble:&val])
+				[self setWidth:val type:[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];
+		}
 }
 
 @end
@@ -1877,12 +1948,6 @@ enum
 	NSString *align=[[self valueForKey:@"align"] lowercaseString];
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
-	NSString *width=[self valueForKey:@"width"];
-	NSString *valign=[self valueForKey:@"valign"];
-	NSString *background=[self valueForKey:@"background"];
-	unsigned border=[[self valueForKey:@"border"] intValue];
-	unsigned spacing=[[self valueForKey:@"cellspacing"] intValue];
-	unsigned padding=[[self valueForKey:@"cellpadding"] intValue];
 	unsigned cols=[[self valueForKey:@"cols"] intValue];
 #if 0
 	NSLog(@"<table>: %@", [self _attributes]);
@@ -1901,12 +1966,7 @@ enum
 	[table setHidesEmptyCells:YES];
 	if(cols)
 		[table setNumberOfColumns:cols];	// will be increased automatically as needed!
-	[table setBackgroundColor:[NSColor whiteColor]];
-	[table setBorderColor:[NSColor blackColor]];
-	; // get from attributes...
-	[table setWidth:border type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-	[table setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-	; // NSTextBlockVerticalAlignment
+	[table _setTextBlockAttributes:self];
 	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
 	// should reset to default paragraph
 	// should reset font style, color etc. to defaults!
@@ -2058,17 +2118,14 @@ enum
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *axis=[self valueForKey:@"axis"];
 	NSString *align=[[self valueForKey:@"align"] lowercaseString];
-	NSString *valign=[[self valueForKey:@"valign"] lowercaseString];
 	NSString *alignchar=[self valueForKey:@"char"];
 	NSString *offset=[self valueForKey:@"charoff"];
-	NSColor *bg=[[self valueForKey:@"bgcolor"] _htmlColor];
 	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
 	NSTextTableBlock *cell;
 	DOMHTMLTableElement *tableElement;
 	NSTextTable *table;	// the table we belong to
 	int row, col;
 	int rowspan, colspan;
-	NSString *width=[self valueForKey:@"width"];	// in pixels or % of <table>
 	tableElement=(DOMHTMLTableElement *) self;
 	while(tableElement && ![tableElement isKindOfClass:[DOMHTMLTableElement class]])
 		tableElement=(DOMHTMLTableElement *)[tableElement parentNode];	// go one level up
@@ -2102,29 +2159,7 @@ enum
 															   rowSpan:rowspan
 														startingColumn:col
 															columnSpan:colspan];
-	// get from attributes or inherit from <tr> or <tbody> or <table>
-	[cell setBackgroundColor:bg];
-	[cell setBorderColor:[NSColor blackColor]];
-	[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-	[cell setWidth:2.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
-	[cell setWidth:1.0 type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between cells
-	if([valign isEqualToString:@"top"])
-		[cell setVerticalAlignment:NSTextBlockTopAlignment];
-	else if([valign isEqualToString:@"middle"])
-		[cell setVerticalAlignment:NSTextBlockMiddleAlignment];
-	else if([valign isEqualToString:@"bottom"])
-		[cell setVerticalAlignment:NSTextBlockBottomAlignment];
-	else if([valign isEqualToString:@"baseline"])
-		[cell setVerticalAlignment:NSTextBlockBaselineAlignment];
-	else
-		[cell setVerticalAlignment:NSTextBlockMiddleAlignment];	// default
-	if(width)
-		{
-			NSScanner *sc=[NSScanner scannerWithString:width];
-			double val;
-			if([sc scanDouble:&val])
-				[cell setWidth:val type:[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];
-		}
+	[cell _setTextBlockAttributes:self];
 	if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
 		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
 	[blocks addObject:cell];	// add to list of text blocks

@@ -339,6 +339,7 @@
 
 - (void) webViewClose:(WebView *) sender;
 {
+	[[sender window] close];	// close the window where the WebView is embedded in
 }
 
 // - (NSRect) webViewContentRect:(WebView *) sender;
@@ -493,6 +494,7 @@
 #if 1
 	NSLog(@"webview=%@ willCloseFrame=%@", sender, frame);
 #endif
+// no! should be called in some didCloseFrame:	[[NSApp delegate] removeSubresourcesForFrame:frame];
 }
 
 - (id) comboBoxCell:(NSComboBoxCell *)aComboBoxCell objectValueForItemAtIndex:(int)index
@@ -508,11 +510,12 @@
 		NSString *f;
 		NSEnumerator *e;
 		destinations=[[NSMutableArray alloc] init];
-		[destinations addObject:@"-- rendering tests --"];
+		[destinations addObject:@"-- rendering and browser tests --"];
 		[destinations addObject:@"http://www.mired.org/home/mwm/bugs.html"];
 		[destinations addObject:@"http://dillo.rti-zone.org/Html.testsuite/"];
 		[destinations addObject:@"http://www.webstandards.org/files/acid2/test.html"];
 		[destinations addObject:@"http://acid3.acidtests.org/"];
+		[destinations addObject:@"http://whatsmyuseragent.com/"];
 		[destinations addObject:@"-- JavaScript speed --"];
 		[destinations addObject:@"http://celtickane.com/webdesign/jsspeed2007.php"];
 		[destinations addObject:@"http://pentestmonkey.net/jsbm/index.html"];
