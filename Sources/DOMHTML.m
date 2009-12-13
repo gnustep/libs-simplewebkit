@@ -375,6 +375,13 @@ enum
 #endif
 						}
 			}
+	// special hack
+	else if([event isEqualToString:@"onclick"])
+			{ // handle special case...
+				NSString *script=[(DOMElement *) self valueForKey:event];
+				if([script isEqualToString:@"document.Destination.submit()"])
+					[[self valueForKey:@"form"] _submitForm:self];
+			}
 }
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
@@ -2450,13 +2457,13 @@ enum
 }
 
 - (void) _reset:(id) sender;
-{
+{ // does not _submitForm form
 	[self _triggerEvent:@"onclick"];
 	[[form elements] _makeObjectsPerformSelector:@selector(_resetForm:) withObject:nil];
 }
 
 - (void) _checkbox:(id) sender;
-{
+{ // does not _submitForm form
 	[self _triggerEvent:@"onclick"];
 }
 
@@ -2697,9 +2704,7 @@ enum
 
 - (void) _submit:(id) sender
 { // forward to <form> so that it can handle
-	// find which option index was clicked
 	[self _triggerEvent:@"onclick"];
-	[form _submitForm:self];
 }
 
 - (void) _radioOff:(DOMHTMLElement *) clickedCell; { return; }
