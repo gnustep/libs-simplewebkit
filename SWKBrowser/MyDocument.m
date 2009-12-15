@@ -548,7 +548,7 @@
 		e=[[[NSFileManager defaultManager] directoryContentsAtPath:dir] objectEnumerator];
 		while((f=[e nextObject]))
 			[destinations addObject:[NSString stringWithFormat:@"test:%@", f]];
-		[destinations addObject:@""];
+		// [destinations addObject:@""];
 		}
 	return [destinations count];
 }

@@ -18,6 +18,11 @@
 <tr><td>Cell</td></tr>
 </table>
 
+<h2>Table with defined width</h2>
+<table border=1 width=500>
+<tr><td width=300>Cell</td></tr>
+</table>
+
 <h2>Table should start a new line</h2>
 Line before Table
 <table border=1>
@@ -42,11 +47,29 @@ Line right after table.
 <tr><td>Cell1</td><td>Cell2</td><td>Cell3</td></tr>
 </table>
 
-<h2>Table with alignment</h2>
+<h2>Table with alignment and different width in first column</h2>
 <table border=1 width=100%>
-<tr valign=top><td><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
+<tr valign=top><td width=50><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
 <tr valign=middle><td><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
-<tr valign=bottom><td><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
+<tr valign=bottom><td width=30><br><br><br></td><td align=left>Cell</td><td align=middle>Cell</td><td align=right>Cell</td></tr>
+</table>
+
+<h2>Nested Tables</h2>
+<table border=10 width=100%>
+<tr><td bgcolor=#ff0000>
+
+Line before Table
+<table border=1>
+<tr><td  bgcolor=#ffff00>First Cell</td><td  bgcolor=#00ff00>Second Cell</td>
+<td>
+Third Cell<br>with<br>embedded<br>line breaks<p>and Paragraphs</p><h4>and headings</h4>
+</td></tr>
+<tr><td>Second row</td><td></td></tr>
+</table>
+Line right after table.
+
+</td>
+</tr>
 </table>
 
 

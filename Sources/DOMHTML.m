@@ -1895,28 +1895,54 @@ enum
 
 @implementation NSTextBlock (Attributes)
 
-- (void) _setTextBlockAttributes:(DOMHTMLElement *) element	// FIXME: should also handle paragraph style attributes (align) i.e. we should pass NSParagraphStyle
-{ // apply style attributes to NSTextBlock or NSTextTable
+- (void) _setTextBlockAttributes:(DOMHTMLElement *) element	paragraph:(NSMutableParagraphStyle *) paragraph
+{ // apply style attributes to NSTextBlock or NSTextTable and the paragraph
 	NSString *background=[element valueForKey:@"background"];
-	NSColor *bg=[[element valueForKey:@"bgcolor"] _htmlColor];
+	NSString *bg=[element valueForKey:@"bgcolor"];
 	unsigned border=[[element valueForKey:@"border"] intValue];
 	unsigned spacing=[[element valueForKey:@"selfspacing"] intValue];
 	unsigned padding=[[element valueForKey:@"selfpadding"] intValue];
 	NSString *valign=[[element valueForKey:@"valign"] lowercaseString];
-	NSString *width=[element valueForKey:@"width"];	// in pixels or % of <table>
+	NSString *width=[element valueForKey:@"width"];	// cell width in pixels or % of <table>
+	NSString *align=[[element valueForKey:@"align"] lowercaseString];
+	NSString *alignchar=[element valueForKey:@"char"];
+	NSString *offset=[element valueForKey:@"charoff"];
+	NSString *axis=[element valueForKey:@"axis"];
 	BOOL isTable=[element isKindOfClass:[DOMHTMLTableElement class]];	// handle defaults
 	if(!isTable && [element parentNode])
-		[self _setTextBlockAttributes:[element parentNode]];	// inherit from parent node(s)
+		[self _setTextBlockAttributes:(DOMHTMLElement *) [element parentNode] paragraph:paragraph];	// inherit from parent node(s)
+	if([align isEqualToString:@"left"])
+		[paragraph setAlignment:NSLeftTextAlignment];
+	else if([align isEqualToString:@"center"])
+		[paragraph setAlignment:NSCenterTextAlignment];
+	else if([align isEqualToString:@"right"])
+		[paragraph setAlignment:NSRightTextAlignment];
+	else if([align isEqualToString:@"justify"])
+		[paragraph setAlignment:NSJustifiedTextAlignment];
+	//			 if([align isEqualToString:@"char"])
+	//				 [paragraph setAlignment:NSNaturalTextAlignment];
+	if(background)
+		{
+		}
 	if(bg)
-		[self setBackgroundColor:bg];
+		[self setBackgroundColor:[bg _htmlColor]];
 	[self setBorderColor:[NSColor blackColor]];
-	if(border < 1) border=1;
-	if(spacing < 1) spacing=1;
-	if(padding < 1) padding=1;
+	// here we could use black and grey color for different borders
 	if([element valueForKey:@"border"])
-		[self setWidth:border type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
-	[self setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between selfs
-	[self setWidth:padding type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+		{ // not inherited
+			if(border < 1) border=1;
+			[self setWidth:border type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder];	// border width
+		}
+	if(isTable || [element valueForKey:@"selfspacing"])
+		{ // root or overwritten
+			if(spacing < 1) spacing=1;
+			[self setWidth:spacing type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockMargin];	// margin between selfs
+		}
+	if(isTable || [element valueForKey:@"selfpadding"])
+		{ // root or overwritten
+			if(padding < 1) padding=1;
+			[self setWidth:padding type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];	// space between border and text
+		}
 	if([valign isEqualToString:@"top"])
 		[self setVerticalAlignment:NSTextBlockTopAlignment];
 	else if([valign isEqualToString:@"middle"])
@@ -1925,14 +1951,19 @@ enum
 		[self setVerticalAlignment:NSTextBlockBottomAlignment];
 	else if([valign isEqualToString:@"baseline"])
 		[self setVerticalAlignment:NSTextBlockBaselineAlignment];
-	else
+	else if(isTable)
 		[self setVerticalAlignment:NSTextBlockMiddleAlignment];	// default
 	if(width)
 		{
 			NSScanner *sc=[NSScanner scannerWithString:width];
 			double val;
 			if([sc scanDouble:&val])
-				[self setWidth:val type:[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding];
+				{
+					NSTextBlockValueType type=[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType;
+					[self setValue:20 type:NSTextBlockAbsoluteValueType forDimension:NSTextBlockMinimumWidth];
+					[self setValue:val type:type forDimension:NSTextBlockWidth];
+					[self setValue:50 type:NSTextBlockAbsoluteValueType forDimension:NSTextBlockMaximumWidth];
+				}
 		}
 }
 
@@ -1952,28 +1983,14 @@ enum
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[[self valueForKey:@"align"] lowercaseString];
-	NSString *alignchar=[self valueForKey:@"char"];
-	NSString *offset=[self valueForKey:@"charoff"];
 	unsigned cols=[[self valueForKey:@"cols"] intValue];
 #if 0
 	NSLog(@"<table>: %@", [self _attributes]);
 #endif
-	if([align isEqualToString:@"left"])
-		[paragraph setAlignment:NSLeftTextAlignment];
-	if([align isEqualToString:@"center"])
-		[paragraph setAlignment:NSCenterTextAlignment];
-	if([align isEqualToString:@"right"])
-		[paragraph setAlignment:NSRightTextAlignment];
-	if([align isEqualToString:@"justify"])
-		[paragraph setAlignment:NSJustifiedTextAlignment];
-	//			 if([align isEqualToString:@"char"])
-	//				 [paragraph setAlignment:NSNaturalTextAlignment];
 	table=[[NSClassFromString(@"NSTextTable") alloc] init];
 	[table setHidesEmptyCells:YES];
-	if(cols)
-		[table setNumberOfColumns:cols];	// will be increased automatically as needed!
-	[table _setTextBlockAttributes:self];
+	[table setNumberOfColumns:cols];	// will be increased automatically as needed!
+	[table _setTextBlockAttributes:self paragraph:paragraph];
 	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
 	// should reset to default paragraph
 	// should reset font style, color etc. to defaults!
@@ -2092,28 +2109,6 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (void) _addAttributesToStyle;
-{ // add attributes to row style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[[self valueForKey:@"align"] lowercaseString];
-	NSString *alignchar=[self valueForKey:@"char"];
-	NSString *offset=[self valueForKey:@"charoff"];
-	NSString *valign=[self valueForKey:@"valign"];
-	NSArray *blocks=[paragraph textBlocks];
-	if([align isEqualToString:@"left"])
-		[paragraph setAlignment:NSLeftTextAlignment];
-	if([align isEqualToString:@"center"])
-		[paragraph setAlignment:NSCenterTextAlignment];
-	if([align isEqualToString:@"right"])
-		[paragraph setAlignment:NSRightTextAlignment];
-	if([align isEqualToString:@"justify"])
-		[paragraph setAlignment:NSJustifiedTextAlignment];
-	// if([align isEqualToString:@"char"])
-	//	 [paragraph setAlignment:NSNaturalTextAlignment];
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-
 @end
 
 @implementation DOMHTMLTableCellElement
@@ -2123,11 +2118,7 @@ enum
 - (void) _addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *axis=[self valueForKey:@"axis"];
-	NSString *align=[[self valueForKey:@"align"] lowercaseString];
-	NSString *alignchar=[self valueForKey:@"char"];
-	NSString *offset=[self valueForKey:@"charoff"];
-	NSMutableArray *blocks=[[paragraph textBlocks] mutableCopy];	// the text blocks
+	NSMutableArray *blocks;
 	NSTextTableBlock *cell;
 	DOMHTMLTableElement *tableElement;
 	NSTextTable *table;	// the table we belong to
@@ -2139,39 +2130,31 @@ enum
 	table=[tableElement _getRow:&row andColumn:&col rowSpan:&rowspan colSpan:&colspan forCell:self];	// ask tableElement for our position
 	if(!table)
 		{ // we are not within a table
-			[blocks release];
 			return;	// error...
 		}
 	if(col+colspan-1 > [table numberOfColumns])
 		[table setNumberOfColumns:col+colspan-1];			// adjust number of columns of our enclosing table
-	if([[self nodeName] isEqualToString:@"TH"])
-		{ // make centered and bold paragraph for header cells
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
-		}
-	if([align isEqualToString:@"left"])
-		[paragraph setAlignment:NSLeftTextAlignment];
-	else if([align isEqualToString:@"center"])
-		[paragraph setAlignment:NSCenterTextAlignment];
-	else if([align isEqualToString:@"right"])
-		[paragraph setAlignment:NSRightTextAlignment];
-	else if([align isEqualToString:@"justify"])
-		[paragraph setAlignment:NSJustifiedTextAlignment];
-	// if([align isEqualToString:@"char"])
-	//	[paragraph setAlignment:NSNaturalTextAlignment];	// NO! this is something different
 	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
 														   startingRow:row
 															   rowSpan:rowspan
 														startingColumn:col
 															columnSpan:colspan];
-	[cell _setTextBlockAttributes:self];
+	[(NSTextBlock *) cell _setTextBlockAttributes:self paragraph:paragraph];
+	if([[self nodeName] isEqualToString:@"TH"])
+		{ // make centered and bold paragraph for header cells
+			NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+			f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
+			if(f) [_style setObject:f forKey:NSFontAttributeName];
+			[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
+		}
+	blocks=[paragraph textBlocks];	// the text blocks
 	if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
 		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
+	else
+		blocks=[blocks mutableCopy];
 	[blocks addObject:cell];	// add to list of text blocks
-	[cell release];
 	[paragraph setTextBlocks:blocks];	// add to paragraph style
+	[cell release];
 	[blocks release];	// was either mutableCopy or alloc/initWithCapacity
 #if 0
 	NSLog(@"<td> _style=%@", _style);
