@@ -1,3 +1,13 @@
+2010-05-20 00:07-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Palette/GNUmakefile:
+	* Palette/GNUmakefile.preamble: Makefiles.
+	* Palette/palette.table: Defines the classes to be imported.
+	* Palette/SWKPalette.gorm: Interface file.
+	* Palette/SWKPalette.[hm]: Implentation of the palette.
+	* Palette/SWKPalette.tiff: Image.
+	* Sources/WebView.m: Added an implementation of initWithCoder:.
+
 2009-08-12++  Nikolaus Schaller <hns@computer.org>
 	* Sources/NSXMLParser.m: fixed a problem with entities like &#9660;
 	* Sources/WebDataSource.m

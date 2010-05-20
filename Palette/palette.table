@@ -1,0 +1,6 @@
+{
+  NibFile = "SWKPalette";
+  Class = "SWKPalette";
+  Icon = "SWKPalette";
+  ExportClasses = ("WebView");
+}

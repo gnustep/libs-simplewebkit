@@ -1,0 +1,39 @@
+{
+    "## Comment" = "Do NOT change this file, Gorm maintains it";
+    GSHbox = {
+	Actions = (
+	);
+	Outlets = (
+	);
+	Super = GSTable;
+    };
+    GSTable = {
+	Actions = (
+	);
+	Outlets = (
+	);
+	Super = NSView;
+    };
+    GSVbox = {
+	Actions = (
+	);
+	Outlets = (
+	);
+	Super = GSTable;
+    };
+    SWKPalette = {
+	Actions = (
+	);
+	Outlets = (
+	    image
+	);
+	Super = IBPalette;
+    };
+    TestView = {
+	Actions = (
+	);
+	Outlets = (
+	);
+	Super = NSBox;
+    };
+}

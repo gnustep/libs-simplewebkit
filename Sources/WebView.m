@@ -224,6 +224,20 @@ static NSArray *_htmlMimeTypes;
 	return cls;
 }
 
+- (void) encodeWithCoder: (NSCoder *)aCoder
+{
+  [super encodeWithCoder: aCoder];
+}
+
+- (id) initWithCoder: (NSCoder *)aCoder
+{
+  if((self = [super initWithCoder: aCoder]) != nil)
+    {
+      return [self initWithFrame: [self frame]];
+    }
+  
+}
+
 - (id) initWithFrame:(NSRect) rect;
 {
 	return [self initWithFrame:rect frameName:nil groupName:nil];
