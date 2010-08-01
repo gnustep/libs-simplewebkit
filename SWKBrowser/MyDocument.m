@@ -538,6 +538,7 @@
 		[destinations addObject:@"http://www.yahoo.de"];
 		[destinations addObject:@"http://carduus.chanet.de/"];
 		[destinations addObject:@"http://gutenberg.chanet.de/eindex.html"];
+		[destinations addObject:@"http://mobile.bahn.de/bin/mobil/"];
 		[destinations addObject:@"-- non-HTTP/HTML --"];
 		[destinations addObject:@"ftp://ftp.gnu.org/pub/gnu"];
 		[destinations addObject:@"http://www.w3schools.com/xml/plant_catalog.xml"];

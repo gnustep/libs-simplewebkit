@@ -19,7 +19,7 @@
 	<key>base</key>
 	<string>DOMHTMLElement</string>
 	<key>bdo</key>
-	<string>?</string>
+	<string>DOMHTMLElement</string>
 	<key>big</key>
 	<string>DOMHTMLElement</string>
 	<key>blockquote</key>
@@ -33,7 +33,7 @@
 	<key>canvas</key>
 	<string>DOMHTMLCanvasElement</string>
 	<key>caption</key>
-	<string>?</string>
+	<string>DOMHTMLElement</string>
 	<key>center</key>
 	<string>DOMHTMLCenterElement</string>
 	<key>cite</key>
@@ -41,11 +41,15 @@
 	<key>code</key>
 	<string>DOMHTMLElement</string>
 	<key>col</key>
-	<string>?</string>
+	<string>DOMHTMLElement</string>
 	<key>colgroup</key>
-	<string>?</string>
+	<string>DOMHTMLElement</string>
 	<key>dd</key>
 	<string>DOMHTMLLIElement</string>
+	<key>del</key>
+	<string>DOMHTMLElement</string>
+	<key>dfn</key>
+	<string>DOMHTMLElement</string>
 	<key>div</key>
 	<string>DOMHTMLDivElement</string>
 	<key>dl</key>
@@ -53,6 +57,8 @@
 	<key>dt</key>
 	<string>DOMHTMLLIElement</string>
 	<key>em</key>
+	<string>DOMHTMLElement</string>
+	<key>fieldset</key>
 	<string>DOMHTMLElement</string>
 	<key>font</key>
 	<string>DOMHTMLFontElement</string>
@@ -88,6 +94,8 @@
 	<string>DOMHTMLImageElement</string>
 	<key>input</key>
 	<string>DOMHTMLInputElement</string>
+	<key>ins</key>
+	<string>DOMHTMLElement</string>
 	<key>kbd</key>
 	<string>DOMHTMLElement</string>
 	<key>label</key>
@@ -122,6 +130,8 @@
 	<string>DOMHTMLParamElement</string>
 	<key>pre</key>
 	<string>DOMHTMLPreElement</string>
+	<key>q</key>
+	<string>DOMHTMLElement</string>
 	<key>s</key>
 	<string>DOMHTMLElement</string>
 	<key>samp</key>

@@ -226,16 +226,31 @@ static NSArray *_htmlMimeTypes;
 
 - (void) encodeWithCoder: (NSCoder *)aCoder
 {
-  [super encodeWithCoder: aCoder];
+	// we could temporarily remove all subviews to save archive space
+	[super encodeWithCoder: aCoder];
+	[aCoder encodeObject:[_mainFrame name] forKey:@"FrameName"];
+	[aCoder encodeObject:[self groupName] forKey:@"GroupName"];
+	[aCoder encodeBool:[self backForwardList] != nil forKey:@"UseBackForwardList"];
+	[aCoder encodeObject:[self preferencesIdentifier] forKey:@"Preferences"];
 }
 
 - (id) initWithCoder: (NSCoder *)aCoder
 {
-  if((self = [super initWithCoder: aCoder]) != nil)
+  if((self = [super initWithCoder: aCoder]) != nil)	// already defines our frame
     {
-      return [self initWithFrame: [self frame]];
+		WebFrameView *frameView=[[WebFrameView alloc] initWithFrame:(NSRect){ NSZeroPoint, [self frame].size}];	// view for the main frame
+		_mainFrame=[[WebFrame alloc] initWithName:[aCoder decodeObjectForKey:@"FrameName"] webFrameView:frameView webView:self];	// assign a WebFrame
+		[[self subviews] makeObjectsPerformSelector:@selector(removeFromSuperviewWithoutNeedingDisplay)];	// remove all subviews that may have been archived
+		[self addSubview:frameView];		// make it our subview with same size
+		[frameView setAllowsScrolling:YES];	// main view can always scroll (if needed)
+		[frameView release];
+		_groupName=[[aCoder decodeObjectForKey:@"GroupName"] retain];
+		_drawsBackground=YES;
+		_textSizeMultiplier=1.0;	// set default size multiplier (should load from defaults)
+		[self setMaintainsBackForwardList:[aCoder decodeBoolForKey:@"UseBackForwardList"]];
+		[self setPreferencesIdentifier:[aCoder decodeObjectForKey:@"Preferences"]];
     }
-  
+	return self;
 }
 
 - (id) initWithFrame:(NSRect) rect;
@@ -556,8 +571,10 @@ static NSArray *_htmlMimeTypes;
       [_hostWindow setContentView:self];	// make us the content view of the host view
 	  // notify the WebDocumentView(s)
     }
+#if defined(GNUSTEP)
 	// FIXME:
   [super viewWillMoveToWindow: win];	// this is a FIX for GNUstep only
+#endif
 }
 
 - (void) viewWillMoveToSuperview:(NSView *) view
@@ -567,8 +584,10 @@ static NSArray *_htmlMimeTypes;
       [_hostWindow setContentView:self];	// make us the content view of the host view
 											// notify the WebDocumentView(s)
     }
+#if defined(GNUSTEP)
 	// FIXME:
   [super viewWillMoveToSuperview: view];	// this is a FIX for GNUstep only
+#endif
 }
 
 - (NSString *) userAgentForURL:(NSURL *) url
