@@ -53,6 +53,7 @@
 
 - (void) dealloc;
 {
+	[[_dataSource webFrame] _setDOMDocument:nil];
 	[_dataSource release];
 	[super dealloc];
 }

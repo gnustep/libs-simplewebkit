@@ -476,7 +476,11 @@
 	return r;
 }
 
-- (DOMDocumentType *) doctype; {return  NIMP; }
+- (DOMDocumentType *) doctype; {
+	// FIXME: locate a DOMDocumentType child
+	// which should represent the <!DOCTYPE>
+	return  NIMP;
+}
 
 - (DOMElement *) documentElement; { return (DOMElement *) self; }
 

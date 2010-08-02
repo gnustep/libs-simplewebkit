@@ -76,7 +76,7 @@
 
 - (void) layout;
 { // do the layout of subviews - NOTE: this is called from within drawRect!
-	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
+	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[_dataSource webFrame] DOMDocument] firstChild];
 	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or could be a <frameset>
 #if 0
 	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));

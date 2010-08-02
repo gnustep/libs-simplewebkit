@@ -81,14 +81,14 @@ static NSDictionary *tagtable;
 #if 0
 	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
 #endif
-	[_doc _setVisualRepresentation:nil];
+	[_root _setVisualRepresentation:nil];
 	[_elementStack release];
 	[super dealloc];
 }
 
 - (NSString *) description;
 {
-	return [NSString stringWithFormat:@"%@\n%@", [super description], _doc];
+	return [NSString stringWithFormat:@"%@\n%@", [super description], _root];
 }
 
 - (void) _abortParsing;
@@ -109,13 +109,11 @@ static NSDictionary *tagtable;
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
 	[view release];
-	_doc=[frame DOMDocument];
-	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
-	[_doc removeChild:[_doc firstChild]];	// if there is one from the last load
 	_root=[[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
+	[_root _setVisualRepresentation:view];	// make the view receive change notifications
+	[frame _setDOMDocument:_root];
 	[(DOMHTMLDocument *) _root _setWebFrame:frame];
 	[(DOMHTMLDocument *) _root _setWebDataSource:dataSource];
-	[_doc appendChild:_root];
 	_html=[[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil] autorelease];	// build a minimal tree
 	[_root appendChild:_html];
 	_body=[[[DOMHTMLBodyElement alloc] _initWithName:@"BODY" namespaceURI:nil] autorelease];
@@ -291,6 +289,13 @@ static NSDictionary *tagtable;
 	[r release];
 	[string release];
 }
+
+/* FIXME:
+
+ - ... foundDOCTYPE:
+ 
+ add DOMDocumentType child to DOMDocument so that -[DOMDocument doctype] can return it
+ */
 
 - (void) parser:(NSXMLParser *) parser foundIgnorableWhitespace:(NSString *) whitespaceString;
 {

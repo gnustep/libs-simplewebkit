@@ -76,6 +76,7 @@
 - (void) _setFrameName:(NSString *) name;
 - (void) _addChildFrame:(WebFrame *) child;
 - (void) _setFrameElement:(DOMHTMLElement *) element;
+- (void) _setDOMDocument:(RENAME(DOMDocument) *) doc;
 - (void) _addToHistory;
 - (void) _didStartLoad;
 - (void) _didReceiveData;

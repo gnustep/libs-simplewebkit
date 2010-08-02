@@ -33,7 +33,6 @@
 @interface _WebXMLDocumentRepresentation : _WebDocumentRepresentation
 {
 	id _parser;
-	RENAME(DOMDocument) *_doc;		// XML document root
 	RENAME(DOMDocument) *_root;		// XML document root
 	DOMElement *_current;	// current XML element
 }

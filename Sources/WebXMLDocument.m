@@ -50,7 +50,7 @@
 - (void) dealloc
 {
 	[_parser release];
-	[_doc _setVisualRepresentation:nil];
+	[_root _setVisualRepresentation:nil];
 	[super dealloc];
 }
 
@@ -67,11 +67,9 @@
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
 	[view release];
-	_doc=[frame DOMDocument];
-	[_doc _setVisualRepresentation:view];	// make the view receive change notifications
-	[_doc removeChild:[_doc firstChild]];	// if there is one from the last load
 	_root=[[[RENAME(DOMDocument) alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
-	[_doc appendChild:_root];
+	[_root _setVisualRepresentation:view];	// make the view receive change notifications
+	[frame _setDOMDocument:_root];
 	_current=(DOMElement *) _root;		// append all to this root
 	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
 	[_parser setDelegate:self];
@@ -302,7 +300,7 @@
 
 - (void) layout;
 { // go through tree and collect all text values into a single string
-	DOMNode *root=[[[_dataSource webFrame] DOMDocument] firstChild];
+	DOMNode *root=[[_dataSource webFrame] DOMDocument];
 	NSTextStorage *ts=[self textStorage];
 #if 0
 	NSLog(@"layout %@", root);

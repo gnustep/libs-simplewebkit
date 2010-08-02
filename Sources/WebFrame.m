@@ -42,7 +42,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		_frameView=[frameView retain];
 		_webView=[webView retain];
 		[frameView _setWebFrame:self];
-		_domDocument=[[RENAME(DOMDocument) alloc] _initWithName:@"#DOM" namespaceURI:nil];	// attach empty DOMDocument
+		_domDocument=[[RENAME(DOMDocument) alloc] _initWithName:@"#document" namespaceURI:nil];	// attach empty default DOMDocument
 		}
    return self;
 }
@@ -313,8 +313,8 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 - (WebView *) webView; { return _webView; }
 - (NSString *) name; { return _name; }
 - (void) _setFrameName:(NSString *) n; { ASSIGN(_name, n); }
-- (RENAME(DOMDocument) *) DOMDocument; { return _domDocument; }	// FIXME: this return one additional level!!!
-//- (RENAME(DOMDocument) *) DOMDocument; { return (RENAME(DOMDocument) *) [_domDocument firstChild]; }	// FIXME: can we get rid of this additional level?
+- (RENAME(DOMDocument) *) DOMDocument; { return _domDocument; }
+- (void) _setDOMDocument:(RENAME(DOMDocument) *) doc; { ASSIGN(_domDocument, doc); }
 - (DOMHTMLElement *) frameElement; { return _frameElement; }
 - (void) _setFrameElement:(DOMHTMLElement *) e; { ASSIGN(_frameElement, e); }
 

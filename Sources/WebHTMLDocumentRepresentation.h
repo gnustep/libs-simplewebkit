@@ -28,7 +28,6 @@
 
 @interface _WebHTMLDocumentRepresentation : _WebDocumentRepresentation
 {
-	RENAME(DOMDocument) *_doc;		// current document - just a pointer to the object created by WebFrame
 	DOMHTMLElement *_root;			// current root - just a cached pointer
 	DOMHTMLHeadElement *_html;		// current html - just a cached pointer
 	DOMHTMLHeadElement *_head;		// current head - just a cached pointer

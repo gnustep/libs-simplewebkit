@@ -80,7 +80,7 @@ If not, write to the Free Software Foundation,
 #if 0	// handle partial image data
 	[_image release];
 	_image=[[NSImage alloc] initWithData:[source data]]; // try to load again
-														 //	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
+	//	[[[[source webFrame] DOMDocument] _visualRepresentation] setNeedsLayout:YES];
 #endif
 }
 

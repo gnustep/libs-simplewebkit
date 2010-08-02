@@ -2388,6 +2388,7 @@ enum
 					[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
 			}
 	else if([type isEqualToString:@"file"])
+		// FIXME
 		;
 	else if([type isEqualToString:@"image"])
 			{

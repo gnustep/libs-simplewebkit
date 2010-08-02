@@ -284,6 +284,7 @@ enum DOMCSSPrimitiveValueType
 	unsigned short primitiveType;
 	float floatValue;
 	NSString *stringValue;
+	// id value;	// NSString, NSValue, NSURL, NSColor, ...
 }
 
 - (unsigned short) primitiveType;

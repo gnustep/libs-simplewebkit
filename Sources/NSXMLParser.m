@@ -190,6 +190,7 @@ static NSDictionary *entitiesTable;
 #if 0
 				NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
 #endif
+				// [delegate parser:self foundDocType:data];
 				return;
 				}
 			if([tag isEqualToString:@"!ENTITY"])
