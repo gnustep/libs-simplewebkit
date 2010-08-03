@@ -28,11 +28,10 @@
 
 @interface WebFrameView : NSView
 {
-	NSScrollView *_scrollView;	// the scroll view
 	WebFrame *_webFrame;		// the frame we are asked to display
 }
 
-// The first level below this WebFrameView is a NSScrollView (if we allow scrolling).
+// The only subview of this WebFrameView is a NSScrollView (if we allow scrolling).
 // The elements to be displayed are laid out properly in the subviews of that scroll view.
 // They can be e.g. NSTextView, NSPopUpButton, NSTextField, NSButton, or another WebFrameView depending
 // on the tags found in the HTML source

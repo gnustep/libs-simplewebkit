@@ -37,16 +37,16 @@
 {
 	if((self=[super initWithFrame:rect]))
 		{
+		NSScrollView *scrollView=[[[NSScrollView alloc] initWithFrame:[self bounds]] autorelease];
 		[self setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize
-		_scrollView=[[[NSScrollView alloc] initWithFrame:[self bounds]] autorelease];
-		[_scrollView setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize
-		[_scrollView setBorderType:NSNoBorder];
-		[_scrollView setHasHorizontalScroller:YES];
-		[_scrollView setHasVerticalScroller:YES];
+		[scrollView setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];	// autoresize
+		[scrollView setBorderType:NSNoBorder];
+		[scrollView setHasHorizontalScroller:YES];
+		[scrollView setHasVerticalScroller:YES];
 #if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
-		[_scrollView setAutohidesScrollers:YES];	// default
+		[scrollView setAutohidesScrollers:YES];	// default
 #endif
-		[self addSubview:_scrollView];
+		[self addSubview:scrollView];
 		}
 	return self;
 }
@@ -54,7 +54,7 @@
 - (void) _setDocumentView:(NSView *) view;
 {
 	// FIXME: due to some strange settings, this toggles visibility of the horizontal scroller
-	[_scrollView setDocumentView:view];
+	[[[self subviews] lastObject] setDocumentView:view];
 }
 
 - (void) _setWebFrame:(WebFrame *) wframe;
@@ -65,7 +65,6 @@
 - (void) dealloc;
 {
 	[_webFrame release];
-	[_scrollView release];
 	// FIXME: when do we do [[_webFrame parentFrame] _removeChild:_webFrame];	// ???
 	[super dealloc];
 }
