@@ -43,7 +43,7 @@
 		[scrollView setBorderType:NSNoBorder];
 		[scrollView setHasHorizontalScroller:YES];
 		[scrollView setHasVerticalScroller:YES];
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+#if defined(__mySTEP__) || defined(GNUSTEP) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 		[scrollView setAutohidesScrollers:YES];	// default
 #endif
 		[self addSubview:scrollView];

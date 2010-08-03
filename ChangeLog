@@ -1,3 +1,8 @@
+2010-08-03 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Sources/WebFrameView.m:
+	Enable autohiding for GNUstep.
+	
 2010-05-20 00:07-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Palette/GNUmakefile:
