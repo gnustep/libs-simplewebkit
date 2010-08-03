@@ -32,18 +32,18 @@ static NSMutableDictionary *knownPrefs;
 {
 	if((self=[super init]))
 		{
-			if([knownPrefs objectForKey:ident])
-					{ // already known
-						[self release];
-						return [[knownPrefs objectForKey:ident] retain];
-					}
-			_identifier=[ident retain];
-			if(ident)
-					{
-				if(!knownPrefs)
-					knownPrefs=[[NSMutableDictionary alloc] initWithCapacity:3];
-				[knownPrefs setObject:self forKey:ident];	// FIXME: this prevents that we ever receive a dealloc!
-					}
+		if([knownPrefs objectForKey:ident])
+			{ // already known
+				[self release];
+				return [[knownPrefs objectForKey:ident] retain];
+			}
+		_identifier=[ident retain];
+		if(ident)
+			{
+			if(!knownPrefs)
+				knownPrefs=[[NSMutableDictionary alloc] initWithCapacity:3];
+			[knownPrefs setObject:self forKey:ident];	// FIXME: this prevents that we ever receive a dealloc!
+			}
 		}
 	return self;
 }
@@ -75,15 +75,15 @@ static NSMutableDictionary *knownPrefs;
 { // set value
 	NSUserDefaults *ud;
 	if(!_autosaves)
-			{
-				if(!_dict)
-					_dict=[[NSMutableDictionary alloc] initWithCapacity:10];
-				if(val)
-					[_dict setObject:val forKey:key];	// stored local
-				else
-					[_dict removeObjectForKey:key];
-				return;
-			}
+		{
+		if(!_dict)
+			_dict=[[NSMutableDictionary alloc] initWithCapacity:10];
+		if(val)
+			[_dict setObject:val forKey:key];	// stored local
+		else
+			[_dict removeObjectForKey:key];
+		return;
+		}
 	if(_identifier)
 		key=[NSString stringWithFormat:@"%@WebKit%@", _identifier, key];	// specific
 	else
@@ -145,6 +145,11 @@ GETSET_BOOL(tabsToLinks, setTabsToLinks, @"TabsToLinks", NO);
 GETSET_BOOL(userStyleSheetEnabled, setUserStyleSheetEnabled, @"UserStyleSheetEnabledPreferenceKey", NO);
 GETSET_OBJECT(NSURL, userStyleSheetLocation, setUserStyleSheetLocation, @"UserStyleSheetLocation", nil);
 GETSET_BOOL(usesPageCache, setUsesPageCache, @"UsesPageCache", NO);
+
+// private
+
+GETSET_BOOL(authorAndUserStylesEnabled, setAuthorAndUserStylesEnabled, @"WebKitAuthorAndUserStylesEnabledPreferenceKey", YES);
+GETSET_BOOL(developerExtrasEnabled, setDeveloperExtrasEnabled, @"WebKitDeveloperExtrasEnabledPreferenceKey", NO);
 
 - (void) encodeWithCoder:(NSCoder *) coder;
 {

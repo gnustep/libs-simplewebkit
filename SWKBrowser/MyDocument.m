@@ -516,13 +516,15 @@
 		[destinations addObject:@"http://www.webstandards.org/files/acid2/test.html"];
 		[destinations addObject:@"http://acid3.acidtests.org/"];
 		[destinations addObject:@"http://whatsmyuseragent.com/"];
-		[destinations addObject:@"-- JavaScript speed --"];
+		[destinations addObject:@"-- JavaScript (speed) --"];
 		[destinations addObject:@"http://celtickane.com/webdesign/jsspeed2007.php"];
 		[destinations addObject:@"http://pentestmonkey.net/jsbm/index.html"];
 		[destinations addObject:@"http://www.hixie.ch/tests/adhoc/perf/dom/artificial/core/001.html"];
 		[destinations addObject:@"http://andrewdupont.net/test/double-dollar/"];
 		[destinations addObject:@"http://maps.google.com/maps?z=16&ll=48.137583,11.57444&spn=0.009465,0.029998&t=k&om=1"];
 		[destinations addObject:@"javascript:alert(\"hello world.\")"];	// special URL
+		[destinations addObject:@"-- CSS --"];
+		[destinations addObject:@"http://www.compucraft.com.au/dev/DisableStyles.htm"];		
 		[destinations addObject:@"-- important public pages --"];
 		[destinations addObject:@"http://www.quantum-step.com"];
 		[destinations addObject:@"http://www.gnustep.org"];

@@ -34,6 +34,8 @@
 // our document view is a NSTextView which (re)loads HTML as an NSAttributedString
 // corresponds to the <body> tag
 
+// FIXME: refactor to WebHTMLView
+
 @interface _WebHTMLDocumentView : NSTextView <WebDocumentView, WebDocumentText>
 {
 	WebDataSource *_dataSource;

@@ -880,6 +880,9 @@
 }
 
 - (DOMCSSStyleDeclaration *) style; { return style; }
+
+// FIXME: should we parse the style here??
+
 - (void) setStyle:(DOMCSSStyleDeclaration *) s; { ASSIGN(style, s); }
 
 - (NSString *) cssText; { return [NSString stringWithFormat:@"%@ { %@ }", [self selectorText], style]; }

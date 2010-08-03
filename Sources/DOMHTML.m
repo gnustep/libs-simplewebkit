@@ -530,27 +530,26 @@ enum
 	[[_childNodes _list] makeObjectsPerformSelector:_cmd];	// also flush child nodes
 }
 
-- (void) _addCSSToStyle;				// add CSS to style
-{
-	// FIXME: check a global "disable Style Sheets" flag
-	DOMCSSStyleDeclaration *css;
-	NSString *style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
-	// check CSS database
-	// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-	// more than one rule may match!
-	// in that case the last one persists unless there is a !important priority
-	// the order of evaluation is: 1. external sheets, 2. <style> sheets, 3. style=""
-	if(style)
-			{ // locally defined CSS
-				/*
-				 * here we could decode some simple style="xxx" entries
-				 */
+- (void) _addCSSToStyle;
+{ // add CSS to style
+	if([[[[self webFrame] webView] preferences] authorAndUserStylesEnabled])
+		{
+		DOMCSSStyleDeclaration *css;
+		NSString *style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
+		if(style)
+			{ // arse locally defined CSS
 #if 1
 				NSLog(@"add style=\"%@\"", style);
 #endif
 				css=[[[DOMCSSStyleDeclaration alloc] initWithString:style] autorelease];	// parse
 				[css _addToStyle:_style];
 			}
+		// check CSS database
+		// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
+		// more than one rule may match!
+		// in that case the last one persists unless there is a !important priority
+		// the order of evaluation is: 1. external sheets, 2. <style> sheets, 3. style=""
+		}
 }
 
 - (void) _addAttributesToStyle;			// add attributes to style

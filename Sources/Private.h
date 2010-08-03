@@ -113,3 +113,11 @@
 
 @end
 
+@interface WebPreferences (Private)
+
+- (BOOL) authorAndUserStylesEnabled;
+- (void) setAuthorAndUserStylesEnabled:(BOOL) flag;
+- (BOOL) developerExtrasEnabled;
+- (void) setDeveloperExtrasEnabled:(BOOL) flag;
+
+@end

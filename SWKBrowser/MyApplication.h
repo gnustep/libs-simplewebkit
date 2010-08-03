@@ -23,6 +23,7 @@
 	IBOutlet NSButtonCell *enableJavaScriptPref;
 	IBOutlet NSButtonCell *popupBlockerPref;
 	IBOutlet NSButtonCell *privateBrowsingPref;
+	IBOutlet NSButtonCell *enableCSSPref;
 }
 
 - (IBAction) openLocation:(id) sender;

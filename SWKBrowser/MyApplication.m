@@ -624,6 +624,7 @@
 	[enableJavaScriptPref setState:[pref isJavaScriptEnabled]?NSOnState:NSOffState];
 	[popupBlockerPref setState:![pref javaScriptCanOpenWindowsAutomatically]?NSOnState:NSOffState];
 	[privateBrowsingPref setState:[pref privateBrowsingEnabled]?NSOnState:NSOffState];
+	[enableCSSPref setState:[pref authorAndUserStylesEnabled]?NSOnState:NSOffState];
 	[prefsWindow makeKeyAndOrderFront:sender];
 }
 
@@ -643,6 +644,7 @@
 				[pref setJavaScriptEnabled:[enableJavaScriptPref state] == NSOnState];
 				[pref setJavaScriptCanOpenWindowsAutomatically:[popupBlockerPref state] != NSOnState];
 				[pref setPrivateBrowsingEnabled:[privateBrowsingPref state] == NSOnState];
+				[pref setAuthorAndUserStylesEnabled:[enableCSSPref state] == NSOnState];
 			}
 }
 
