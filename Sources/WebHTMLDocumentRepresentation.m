@@ -105,13 +105,13 @@ static NSDictionary *tagtable;
 	WebFrameView *frameView=[frame frameView];
 	NSView <WebDocumentView> *view;
 	viewclass=[WebView _viewClassForMIMEType:[[dataSource response] MIMEType]];	// well, we should know that...
-	view=[[viewclass alloc] initWithFrame:(NSRect) { NSZeroPoint, [[[[frameView subviews] lastObject] contentView] bounds].size }];
+	view=[[viewclass alloc] initWithFrame:[frameView _recommendedDocumentFrame]];
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
 	[view release];
 	_root=[[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
 	[_root _setVisualRepresentation:view];	// make the view receive change notifications
-	[frame _setDOMDocument:_root];
+	[frame _setDOMDocument:(RENAME(DOMDocument) *) _root];
 	[(DOMHTMLDocument *) _root _setWebFrame:frame];
 	[(DOMHTMLDocument *) _root _setWebDataSource:dataSource];
 	_html=[[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil] autorelease];	// build a minimal tree

@@ -93,6 +93,7 @@
 		EE60FCB60BA69A8D00503BB4 /* DOMRange.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FCB40BA69A8D00503BB4 /* DOMRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE60FCB70BA69A8D00503BB4 /* DOMRange.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FCB50BA69A8D00503BB4 /* DOMRange.m */; };
 		EE60FCDD0BA69BFC00503BB4 /* WebArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */; };
+		EE6635661219BA8B00761982 /* DOMHTMLColors.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE6635651219BA8B00761982 /* DOMHTMLColors.plist */; };
 		EE6FBB130C21D9E50095EEA6 /* WebImageDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */; };
 		EE6FBB140C21D9E50095EEA6 /* WebImageDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB120C21D9E50095EEA6 /* WebImageDocument.m */; };
 		EE6FBB1B0C21D9F80095EEA6 /* WebPDFDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */; };
@@ -243,6 +244,7 @@
 		EE60FCB40BA69A8D00503BB4 /* DOMRange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMRange.h; sourceTree = "<group>"; };
 		EE60FCB50BA69A8D00503BB4 /* DOMRange.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOMRange.m; sourceTree = "<group>"; };
 		EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebArchive.m; sourceTree = "<group>"; };
+		EE6635651219BA8B00761982 /* DOMHTMLColors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = DOMHTMLColors.plist; sourceTree = "<group>"; };
 		EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebImageDocument.h; sourceTree = "<group>"; };
 		EE6FBB120C21D9E50095EEA6 /* WebImageDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebImageDocument.m; sourceTree = "<group>"; };
 		EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPDFDocument.h; sourceTree = "<group>"; };
@@ -481,6 +483,7 @@
 				EEBA300D0F2F50F200FA7110 /* DOMSVG.h */,
 				EEBA300C0F2F50F200FA7110 /* DOMSVG.m */,
 				EE24FD190C209B37001947BB /* DOMHTML.plist */,
+				EE6635651219BA8B00761982 /* DOMHTMLColors.plist */,
 			);
 			name = DOM;
 			path = Sources;
@@ -757,6 +760,7 @@
 				EECCF39A0BA037EF0001C219 /* WebKitIMG.png in Resources */,
 				EE443FBE0BDBE6B80031F556 /* HTMLEntities.strings in Resources */,
 				EE24FD1A0C209B37001947BB /* DOMHTML.plist in Resources */,
+				EE6635661219BA8B00761982 /* DOMHTMLColors.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

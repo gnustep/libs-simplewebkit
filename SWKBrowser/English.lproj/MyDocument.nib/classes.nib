@@ -1,77 +1,77 @@
 {
     IBClasses =     (
-                {
-            ACTIONS =             {
-                back = id;
-                flip = id;
-                forward = id;
-                home = id;
-                load = id;
-                searchGoogle = id;
-                stopLoading = id;
-            };
-            CLASS = FirstResponder;
-            LANGUAGE = ObjC;
-            SUPERCLASS = NSObject;
-        },
-                {
-            CLASS = MyApplication;
-            LANGUAGE = ObjC;
-            OUTLETS =             {
-                activity = NSOutlineView;
-            };
-            SUPERCLASS = NSObject;
-        },
-                {
-            CLASS = MyComboBoxCell;
-            LANGUAGE = ObjC;
-            SUPERCLASS = NSComboBoxCell;
-        },
-                {
-            ACTIONS =             {
-                addBookmark = id;
-                cancelBookmark = id;
-                goBack = id;
-                goForward = id;
-                home = id;
-                loadPageFromComboBox = id;
-                loadPageFromMenuItem = id;
-                openJavaScriptConsole = id;
-                saveBookmark = id;
-                script = id;
-                scriptFromMenuItem = id;
-                showDOMTree = id;
-                showSource = id;
-                showStyleSheets = id;
-                showViewTree = id;
-            };
-            CLASS = MyDocument;
-            LANGUAGE = ObjC;
-            OUTLETS =             {
-                addBookmarkWindow = NSPanel;
-                backButton = NSButton;
-                backForwardTable = NSTableView;
-                bookmarkTitle = NSFormCell;
-                bookmarkURL = NSFormCell;
-                command = NSTextField;
-                currentItem = id;
-                currentURL = NSComboBoxCell;
-                docSource = NSTextView;
-                domAttribs = NSTableView;
-                domSource = NSTextView;
-                domTree = NSOutlineView;
-                forwardButton = NSButton;
-                historyTable = NSTableView;
-                result = NSTextView;
-                status = NSTextField;
-                styleSheets = NSOutlineView;
-                viewAttribs = NSTableView;
-                viewSource = NSTextView;
-                viewTree = NSOutlineView;
-                webView = WebView;
-            };
-            SUPERCLASS = NSDocument;
-        }
+        {
+    ACTIONS =     {
+        back = id;
+        flip = id;
+        forward = id;
+        home = id;
+        load = id;
+        searchGoogle = id;
+        stopLoading = id;
+    };
+    CLASS = FirstResponder;
+    LANGUAGE = ObjC;
+    SUPERCLASS = NSObject;
+},
+        {
+    CLASS = MyApplication;
+    LANGUAGE = ObjC;
+    OUTLETS =     {
+        activity = NSOutlineView;
+    };
+    SUPERCLASS = NSObject;
+},
+        {
+    CLASS = MyComboBoxCell;
+    LANGUAGE = ObjC;
+    SUPERCLASS = NSComboBoxCell;
+},
+        {
+    ACTIONS =     {
+        addBookmark = id;
+        cancelBookmark = id;
+        goBack = id;
+        goForward = id;
+        home = id;
+        loadPageFromComboBox = id;
+        loadPageFromMenuItem = id;
+        openJavaScriptConsole = id;
+        saveBookmark = id;
+        script = id;
+        scriptFromMenuItem = id;
+        showDOMTree = id;
+        showSource = id;
+        showStyleSheets = id;
+        showViewTree = id;
+    };
+    CLASS = MyDocument;
+    LANGUAGE = ObjC;
+    OUTLETS =     {
+        addBookmarkWindow = NSPanel;
+        backButton = NSButton;
+        backForwardTable = NSTableView;
+        bookmarkTitle = NSFormCell;
+        bookmarkURL = NSFormCell;
+        command = NSTextField;
+        currentItem = id;
+        currentURL = NSComboBoxCell;
+        docSource = NSTextView;
+        domAttribs = NSTableView;
+        domSource = NSTextView;
+        domTree = NSOutlineView;
+        forwardButton = NSButton;
+        historyTable = NSTableView;
+        result = NSTextView;
+        status = NSTextField;
+        styleSheets = NSOutlineView;
+        viewAttribs = NSTableView;
+        viewSource = NSTextView;
+        viewTree = NSOutlineView;
+        webView = WebView;
+    };
+    SUPERCLASS = NSDocument;
+}
     );
     IBVersion = 1;
 }

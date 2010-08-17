@@ -1,3 +1,10 @@
+2010-08-03++  Nikolaus Schaller <hns@computer.org>
+	* fixed some of the Issues reported on http://projects.goldelico.com/p/swk/issues/ (see commit messages)
+	* worked on CSS parsing to be more complete for correct CSS files
+	* worked on CSS stylesheet database search (match rules with nodes)
+	* apply color: style
+	* apply display: none
+
 2010-08-03 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Sources/WebFrameView.m:
@@ -9,7 +16,7 @@
 	* Palette/GNUmakefile.preamble: Makefiles.
 	* Palette/palette.table: Defines the classes to be imported.
 	* Palette/SWKPalette.gorm: Interface file.
-	* Palette/SWKPalette.[hm]: Implentation of the palette.
+	* Palette/SWKPalette.[hm]: Implementation of the palette.
 	* Palette/SWKPalette.tiff: Image.
 	* Sources/WebView.m: Added an implementation of initWithCoder:.
 
@@ -21,7 +28,7 @@
 		- fixed problem where a completed subresource could call -finishedLoadingWithDataSource: twice (leading to load errors)
 	* Sources/DOMCSS.*: added most CSS functionality
 		- worked on class hierarchy to be more compatible to WebKit
-	  - parse CSS3 documents into DOM CSS tree (incl. correct handling and loading of @import)
+		- parse CSS3 documents into DOM CSS tree (incl. correct handling and loading of @import)
 		- parse <style> content and load and parse subresources <link rel="stylesheet">;
 	* SWK Browser
 		- fixed a bug in the DOM Hierarchy inspector (did not retain tree nodes)

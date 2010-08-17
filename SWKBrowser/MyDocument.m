@@ -22,13 +22,14 @@
 #if 1
 	NSLog(@"windowControllerDidLoadNib");
 #endif
-#if 1
+#if 0
 	NSLog(@"isflipped=%d %@", [[domTree superview] isFlipped], [domTree superview]);	// is a split view flipped?
 	NSLog(@"isflipped=%d %@", [[[domTree superview] superview] isFlipped], [[domTree superview] superview]);	// is a split view flipped?
 	NSLog(@"isflipped=%d %@", [[[[domTree superview] superview] superview] isFlipped], [[[domTree superview] superview] superview]);	// is a split view flipped?
 #endif
     [super windowControllerDidLoadNib:aController];
     // Add any code here that needs to be executed once the windowController has loaded the document's window.
+	[domTree setDoubleAction:@selector(doubleClick:)];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressStartedNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressEstimateChangedNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateProgress:) name:WebViewProgressFinishedNotification object:nil];
@@ -41,8 +42,8 @@
 	[self showStatus:@""];
 	if(!openfile)
 		{ // make dependent on preferences what happens on launch
-		[self home:self];	// default to Home
-		return;
+			[self home:self];	// default to Home
+			return;
 		}
 	[self setLocationAndLoad:openfile];
 	[openfile release];
@@ -171,16 +172,16 @@
 	str=[sender stringValue];
 	if([str hasPrefix:@"test:"])
 		{ // test file -> relative to our demo resources
-		NSString *path=[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"DemoHTML"];
-		path=[path stringByAppendingPathComponent:[str substringFromIndex:5]];
-		u=[NSURL fileURLWithPath:path];
+			NSString *path=[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"DemoHTML"];
+			path=[path stringByAppendingPathComponent:[str substringFromIndex:5]];
+			u=[NSURL fileURLWithPath:path];
 		}
 	else
 		u=[NSURL URLWithString:str];
 	if([[u scheme] length] == 0)
 		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
 #if 1
-		NSLog(@"loadPageFromComboBox %@ -> %@", str, u);
+	NSLog(@"loadPageFromComboBox %@ -> %@", str, u);
 #endif
 	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
 	[sender becomeFirstResponder];	// keep first responder state
@@ -195,7 +196,7 @@
 	if([[u scheme] length] == 0)
 		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
 #if 1
-		NSLog(@"loadPageFromMenuItem %@ -> %@", str, u);
+	NSLog(@"loadPageFromMenuItem %@ -> %@", str, u);
 #endif
 	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:u]];
 }
@@ -261,7 +262,7 @@
 	[[result textStorage] appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n"] autorelease]];
 	[result scrollRangeToVisible:NSMakeRange([[result textStorage] length], 0)];
 	[sender setStringValue:@""];	// clear
-//	r=[[webView stringByEvaluatingJavaScriptFromString:cmd] description];	<- this one returns NSString only (or substitutes @"")
+	//	r=[[webView stringByEvaluatingJavaScriptFromString:cmd] description];	<- this one returns NSString only (or substitutes @"")
 	r=[[webView windowScriptObject] evaluateWebScript:cmd];
 	if(!r)
 		r=@"<nil>";
@@ -372,10 +373,10 @@
 {
 	// FIXME: here you can substitute any nicely formatted error message using embedded CSS and JavaScript
 	NSString *message=[NSString stringWithFormat:
-		@"<title>Page load failed</title>"
-		@"<h2>Error while trying to load URL %@</h2>"
-		@"The error message is: %@",
-		/* FIXME: htmlentities() if path contains & or ; */[[[frame provisionalDataSource] request] URL], error];
+					   @"<title>Page load failed</title>"
+					   @"<h2>Error while trying to load URL %@</h2>"
+					   @"The error message is: %@",
+					   /* FIXME: htmlentities() if path contains & or ; */[[[frame provisionalDataSource] request] URL], error];
 	[frame loadAlternateHTMLString:message baseURL:nil forUnreachableURL:[[[frame provisionalDataSource] request] URL]];
 	[self showStatus:@"Server error."];
 }
@@ -384,10 +385,10 @@
 {
 	// FIXME: here you can substitute any nicely formatted error message using embedded CSS and JavaScript
 	NSString *message=[NSString stringWithFormat:
-		@"<title>Page load failed</title>"
-		@"<h2>Error while trying to load URL %@</h2>"
-						  @"The error message is: %@",
-										/* FIXME: htmlentities() if path contains & or ; */[[[frame dataSource] request] URL], error];
+					   @"<title>Page load failed</title>"
+					   @"<h2>Error while trying to load URL %@</h2>"
+					   @"The error message is: %@",
+					   /* FIXME: htmlentities() if path contains & or ; */[[[frame dataSource] request] URL], error];
 	[frame loadAlternateHTMLString:message baseURL:nil forUnreachableURL:[[[frame dataSource] request] URL]];
 	[self showStatus:@"Load error."];
 }
@@ -460,7 +461,7 @@
 	NSLog(@"windowScriptObject document.documentElement.offsetWidth=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"]);
 	NSLog(@"windowScriptObject frames=%@", [[sender windowScriptObject] evaluateWebScript:@"frames"]);
 	NSLog(@"windowScriptObject frames[0]=%@", [[sender windowScriptObject] evaluateWebScript:@"frames[0]"]);
-	NSLog(@"styleDeclarationWithText :%@", [[frame webView] styleDeclarationWithText:@"color: red"]);
+	NSLog(@"styleDeclarationWithText=%@", [[frame webView] styleDeclarationWithText:@"color: red"]);
 #endif
 	// and... print subviews hierarchy
 #endif
@@ -494,7 +495,7 @@
 #if 1
 	NSLog(@"webview=%@ willCloseFrame=%@", sender, frame);
 #endif
-// no! should be called in some didCloseFrame:	[[NSApp delegate] removeSubresourcesForFrame:frame];
+	// no! should be called in some didCloseFrame:	[[NSApp delegate] removeSubresourcesForFrame:frame];
 }
 
 - (id) comboBoxCell:(NSComboBoxCell *)aComboBoxCell objectValueForItemAtIndex:(int)index
@@ -568,159 +569,163 @@
 {
 	NSString *ident=[tableColumn identifier];
 	if(outlineView == styleSheets)
-			{
+		{
 #if 0
-				NSLog(@"adding %p", item);
+		NSLog(@"adding %p", item);
 #endif
-				if([ident isEqual: @"name"])
-					return NSStringFromClass([item class]);
-				if([item isKindOfClass:[NSString class]])
-					return item;
-				if([item respondsToSelector:@selector(cssText)])
-						return [(DOMCSSRule *) item cssText];
-				if([item respondsToSelector:@selector(styleSheet)])
-						return [(DOMCSSImportRule *) item styleSheet];	// @import rule
-				if([item respondsToSelector:@selector(href)])
-					return [(DOMCSSStyleSheet *) item href];
-				return @"";
-			}
+#if 0
+		if([item respondsToSelector:@selector(cssText)])
+			NSLog(@"%@", [(DOMCSSRule *) item cssText]);
+#endif
+		if([ident isEqual: @"name"])
+			return NSStringFromClass([item class]);
+		if([item isKindOfClass:[NSString class]])
+			return item;
+		if([item respondsToSelector:@selector(cssText)])
+			return [(DOMCSSRule *) item cssText];
+		if([item respondsToSelector:@selector(styleSheet)])
+			return [(DOMCSSImportRule *) item styleSheet];	// @import rule
+		if([item respondsToSelector:@selector(href)])
+			return [(DOMCSSStyleSheet *) item href];
+		return @"";
+		}
 	if(outlineView == domTree)
-			{
+		{
 #if 0
-				NSLog(@"2 document=%p", [[webView mainFrame] DOMDocument]);
-				NSLog(@"3 document=%p", [[webView mainFrame] DOMDocument]);
-				NSLog(@"3 refs=%u", [[[webView mainFrame] DOMDocument] retainCount]);
-				NSLog(@"item=%p", item);
-				NSLog(@"4 refs=%u", [item retainCount]);
+		NSLog(@"2 document=%p", [[webView mainFrame] DOMDocument]);
+		NSLog(@"3 document=%p", [[webView mainFrame] DOMDocument]);
+		NSLog(@"3 refs=%u", [[[webView mainFrame] DOMDocument] retainCount]);
+		NSLog(@"item=%p", item);
+		NSLog(@"4 refs=%u", [item retainCount]);
 #endif
-    if([ident isEqual: @"name"])
-        return [item nodeName];
-    else if([ident isEqual: @"class"])
-        return NSStringFromClass([item class]);
-    else if([ident isEqual: @"value"])
-        return [item nodeValue];
-			}
+		if([ident isEqual: @"name"])
+			return [item nodeName];
+		else if([ident isEqual: @"class"])
+			return NSStringFromClass([item class]);
+		else if([ident isEqual: @"value"])
+			return [item nodeValue];
+		}
 	else if(outlineView == viewTree)
+		{
+		if([ident isEqual: @"class"])
+			return NSStringFromClass([item class]);
+		else if([ident isEqual: @"frame"])
 			{
-				if([ident isEqual: @"class"])
-					return NSStringFromClass([item class]);
-				else if([ident isEqual: @"frame"])
-						{
-							NSRect frame=[item frame];
-							return [NSString stringWithFormat:@"[(%.1f, %.1f), (%.1f, %.1f)]", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height];
-						}
-				else if([ident isEqual: @"flags"])
-						{ // show some standard attributes
-							NSMutableString *s;
-							s=[NSMutableString stringWithFormat:@"autores=%08x", [item autoresizingMask]];
-							if([item autoresizesSubviews])
-								[s appendFormat:@", autoSubviews"];
-							if([item isFlipped])
-								[s appendFormat:@", isFlipped"];
-							if([item isOpaque])
-								[s appendFormat:@", isOpaque"];
-							return s;
-						}
+			NSRect frame=[item frame];
+			return [NSString stringWithFormat:@"[(%.1f, %.1f), (%.1f, %.1f)]", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height];
 			}
+		else if([ident isEqual: @"flags"])
+			{ // show some standard attributes
+				NSMutableString *s;
+				s=[NSMutableString stringWithFormat:@"autores=%08x", [item autoresizingMask]];
+				if([item autoresizesSubviews])
+					[s appendFormat:@", autoSubviews"];
+				if([item isFlipped])
+					[s appendFormat:@", isFlipped"];
+				if([item isOpaque])
+					[s appendFormat:@", isOpaque"];
+				return s;
+			}
+		}
 	return ident;
 }
 
 - (id) outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
 {
 	if(outlineView == styleSheets)
+		{
+		id oitem=item;
+		if(item == nil)
+			item=[self styleSheet];
+		if([item respondsToSelector:@selector(item:)])
+			item=[(DOMStyleSheetList *) item item:index];
+		else if([item respondsToSelector:@selector(cssRules)])
+			item=[[(DOMCSSStyleSheet *) item cssRules] item:index];	// style sheet or @media rule
+		else if([item respondsToSelector:@selector(styleSheet)])
 			{
-				id oitem=item;
-				if(item == nil)
-						item=[self styleSheet];
-				if([item respondsToSelector:@selector(item:)])
-					item=[(DOMStyleSheetList *) item item:index];
-				else if([item respondsToSelector:@selector(cssRules)])
-					item=[[(DOMCSSStyleSheet *) item cssRules] item:index];	// style sheet or @media rule
-				else if([item respondsToSelector:@selector(styleSheet)])
-						{
-							item=[(DOMCSSImportRule *) item styleSheet];	// @import rule
-							if(!item)
-								item=@"@import with nil styleSheet";
-						}
-				else
-					item=@"unknown";
-#if 0
-				NSLog(@"adding %@ %p", item, item);
-#endif
-				if(item == nil)
-					NSLog(@"oitem %@ %p", oitem, oitem);
-				else
-					[styleNodes addObject:item];
-				return item;
+			item=[(DOMCSSImportRule *) item styleSheet];	// @import rule
+			if(!item)
+				item=@"@import with nil styleSheet";
 			}
+		else
+			item=@"unknown";
+#if 0
+		NSLog(@"adding %@ %p", item, item);
+#endif
+		if(item == nil)
+			NSLog(@"oitem %@ %p", oitem, oitem);
+		else
+			[styleNodes addObject:item];
+		return item;
+		}
 	if(outlineView == domTree)
-			{
-				id obj;
+		{
+		id obj;
 #if 0
-				NSLog(@"4 document=%p", [[webView mainFrame] DOMDocument]);
+		NSLog(@"4 document=%p", [[webView mainFrame] DOMDocument]);
 #endif
-				if (item == nil)
-					obj=[[webView mainFrame] DOMDocument];
-				else
-					obj = [[(DOMNode *) item childNodes] item:index];
-				[domNodes addObject:obj];	// retain them whatever happens
-				return obj;
-			}
+		if (item == nil)
+			obj=[[webView mainFrame] DOMDocument];
+		else
+			obj = [[(DOMNode *) item childNodes] item:index];
+		[domNodes addObject:obj];	// retain them whatever happens
+		return obj;
+		}
 	else if(outlineView == viewTree)
-			{
-				if (item == nil)
-					item=[[[webView window] contentView] superview];
-				if (item == nil)
-					item=[[webView window] contentView];	// system has no private superview
-				return [[item subviews] objectAtIndex:index];
-			}
+		{
+		if (item == nil)
+			item=[[[webView window] contentView] superview];
+		if (item == nil)
+			item=[[webView window] contentView];	// system has no private superview
+		return [[item subviews] objectAtIndex:index];
+		}
 	return nil;
 }
 
 - (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
 {
- 		[self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
+	[self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
 }
 
 - (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
 {
 	if(outlineView == styleSheets)
+		{
+		if(item == nil)
 			{
-				if(item == nil)
-						{
-							[styleNodes release];
-							styleNodes=[[NSMutableArray alloc] initWithCapacity:30];
-							item=[self styleSheet];
-						}
-				if([item isKindOfClass:[NSString class]])
-					return 0;	// error handling
-				if([item respondsToSelector:@selector(length)])
-					return [(DOMStyleSheetList *) item length];
-				if([item respondsToSelector:@selector(cssRules)])
-					return [[(DOMCSSStyleSheet *) item cssRules] length];	// style sheet or @import rule
-				if([item respondsToSelector:@selector(styleSheet)])
-					return 1;	// @media rule
-				return 0;
+			[styleNodes release];
+			styleNodes=[[NSMutableArray alloc] initWithCapacity:30];
+			item=[self styleSheet];
 			}
+		if([item isKindOfClass:[NSString class]])
+			return 0;	// error handling
+		if([item respondsToSelector:@selector(length)])
+			return [(DOMStyleSheetList *) item length];
+		if([item respondsToSelector:@selector(cssRules)])
+			return [[(DOMCSSStyleSheet *) item cssRules] length];	// style sheet or @import rule
+		if([item respondsToSelector:@selector(styleSheet)])
+			return 1;	// @media rule
+		return 0;
+		}
 	if(outlineView == domTree)
+		{
+		if (item == nil)
 			{
-				if (item == nil)
-						{
-							[domNodes release];
-							domNodes=[[NSMutableArray alloc] initWithCapacity:30];
-							return 1;
-						}
-				else
-					return [[(DOMNode *) item childNodes] length];
+			[domNodes release];
+			domNodes=[[NSMutableArray alloc] initWithCapacity:30];
+			return 1;
 			}
+		else
+			return [[(DOMNode *) item childNodes] length];
+		}
 	else if(outlineView == viewTree)
-			{
-				if (item == nil)
-					item=[[[webView window] contentView] superview];
-				if (item == nil)
-					item=[[webView window] contentView];	// system has no private superview
-				return [[item subviews] count];
-			}
+		{
+		if (item == nil)
+			item=[[[webView window] contentView] superview];
+		if (item == nil)
+			item=[[webView window] contentView];	// system has no private superview
+		return [[item subviews] count];
+		}
 	return 0;
 }
 
@@ -730,32 +735,32 @@
 	int selectedRow = [outlineView selectedRow];
 	id selectedItem = [outlineView itemAtRow:selectedRow];
 	if(outlineView == domTree)
+		{
+		if([selectedItem isKindOfClass:[DOMText class]])
 			{
-				if([selectedItem isKindOfClass:[DOMText class]])
-						{
-							[domSource setString:[selectedItem nodeValue]];
-							currentItem=nil;
-						}
-				else 
-						{
-							if([selectedItem respondsToSelector:@selector(outerHTML)])
-									{
-										[domSource setString:[selectedItem outerHTML]];
-										currentItem=selectedItem;
-									}
-							else if([selectedItem respondsToSelector:@selector(innerHTML)])
-									{
-										[domSource setString:[selectedItem innerHTML]];
-										currentItem=selectedItem;
-									}
-						}
-				[domAttribs reloadData];
+			[domSource setString:[selectedItem nodeValue]];
+			currentItem=nil;
 			}
+		else 
+			{
+			if([selectedItem respondsToSelector:@selector(outerHTML)])
+				{
+				[domSource setString:[selectedItem outerHTML]];
+				currentItem=selectedItem;
+				}
+			else if([selectedItem respondsToSelector:@selector(innerHTML)])
+				{
+				[domSource setString:[selectedItem innerHTML]];
+				currentItem=selectedItem;
+				}
+			}
+		[domAttribs reloadData];
+		}
 	else if(outlineView == viewTree)
-			{
-				currentView=selectedItem;
-				[viewAttribs reloadData];
-			}
+		{
+		currentView=selectedItem;
+		[viewAttribs reloadData];
+		}
 }
 
 - (int) numberOfRowsInTableView:(NSTableView *)aTableView
@@ -777,28 +782,36 @@
 		}
 	if(aTableView == domAttribs)
 		{
-			// FIXME: how do we get the attributes of a DOMElement on Apple WebKit?
-			if([currentItem respondsToSelector:@selector(_attributes)])
-				return [[(DOMElement *) currentItem _attributes] count];
-			return 1;	// unknown (e.g. Apple WebKit)
+		// FIXME: how do we get the attributes of a DOMElement on Apple WebKit?
+		if([currentItem respondsToSelector:@selector(_attributes)])
+			return [[(DOMElement *) currentItem _attributes] count];
+		return 1;	// unknown (e.g. Apple WebKit)
 		}
 	if(aTableView == viewAttribs)
+		{
+		if(!currentView)
+			return;
+		if(!viewAttribNames)
 			{
-				if(!currentView)
-					return;
-				if(!viewAttribNames)
-						{
-							[currentView class];
-							// check currentView for attributes and convert into two arrays
-							// this either needs a table for each class or a generic walk through all available getters!
-						}
-				return [viewAttribNames	count];
+			[currentView class];
+			// check currentView for attributes and convert into two arrays
+			// this either needs a table for each class or a generic walk through all available getters!
 			}
+		return [viewAttribNames	count];
+		}
 	return 0;
 }
 
 - (IBAction) singleClick:(id) sender;
 {
+}
+
+- (IBAction) doubleClick:(id) sender;
+{ // open URL if double click into CSS url
+	if(sender == domTree)
+		{
+		
+		}
 }
 
 - (id) tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
@@ -836,10 +849,10 @@
 			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
 		}
 	if(aTableView == viewAttribs)
-			{
-				//				NSMutableArray *viewAttribNames;
-				//			NSMutableArray *viewAttribValues;				
-			}
+		{
+		//				NSMutableArray *viewAttribNames;
+		//			NSMutableArray *viewAttribValues;				
+		}
 	return @"";
 }
 
@@ -862,7 +875,7 @@
 	if(title)
 		[bookmarkTitle setStringValue:title]; 
 	if([NSApp runModalForWindow:addBookmarkWindow] == NSOKButton)
-		 [[NSApp delegate] addBookmark:[bookmarkTitle stringValue] forURL:[bookmarkURL stringValue]];
+		[[NSApp delegate] addBookmark:[bookmarkTitle stringValue] forURL:[bookmarkURL stringValue]];
 }
 
 @end

@@ -146,15 +146,36 @@ enum
 	return NO;
 }
 
+- (NSColor *) _htmlNamedColor;
+{ // look up in catalog
+	static NSMutableDictionary *list;
+	if(!list)
+		{ // load color list (based on table 4.3 in http://www.w3.org/TR/css3-color/) from resource file
+			NSDictionary *dict=[NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass:[DOMHTMLElement class]] pathForResource:@"DOMHTMLColors" ofType:@"plist"]];
+			NSEnumerator *e=[dict keyEnumerator];
+			NSString *color;
+			list=[[NSMutableDictionary alloc] initWithCapacity:[dict count]];
+			while((color=[e nextObject]))
+				{
+				NSColor *c=[[dict objectForKey:color] _htmlColor];	 // try to translate (may be recursive!)
+				if(c)
+					[list setObject:c forKey:color];
+				}
+		}
+	return [list objectForKey:[self lowercaseString]];
+}
+
 - (NSColor *) _htmlColor;
 {
 	unsigned hex;
 	NSScanner *sc=[NSScanner scannerWithString:self];
 	if([sc scanString:@"#" intoString:NULL] && [sc scanHexInt:&hex])
-		{ // should check for 6 hex digits...
-		return [NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
+		{ // hex string
+			if([self length] <= 4)	// short hex - convert into full value
+				return [NSColor colorWithCalibratedRed:((hex>>8)&0xf)/15.0 green:((hex>>4)&0xf)/15.0 blue:(hex&0xf)/15.0 alpha:1.0];
+			return [NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
 		}
-	return [NSColor colorWithCatalogName:@"SystemColor" colorName:[self lowercaseString]];
+	return [self _htmlNamedColor];
 }
 
 - (NSTextAlignment) _htmlAlignment;
@@ -273,6 +294,8 @@ enum
 
 - (DOMCSSRuleList *) getMatchedCSSRules:(DOMElement *) elt :(NSString *) pseudoElt;
 {
+	// call -[DOMCSSStyleRule _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement]
+	// and collect all matching rules
 	return nil;
 }
 
@@ -423,7 +446,7 @@ enum
 			}
 		}
 	[str appendFormat:@">%@", [self innerHTML]];
-	if([isa _nesting] != DOMHTMLNoNesting)
+	if([[self class] _nesting] != DOMHTMLNoNesting)
 		[str appendFormat:@"</%@>\n", [self nodeName]];	// close
 	return str;
 }
@@ -470,10 +493,15 @@ enum
 { // recursively splice this node and any subnodes, taking end of last fragment into account
 	unsigned i;
 	NSDictionary *style=[self _style];
+	NSString *display=[style objectForKey:DOMHTMLBlockInlineLevel];
+	// FIXME: check for display: none here (and avoid all other processing)
 	NSTextAttachment *attachment=[self _attachment];	// may be nil
 	NSString *string=[self _string];	// may be nil
-	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
-	BOOL isInline=[[style objectForKey:DOMHTMLBlockInlineLevel] isEqualToString:@"inline"];
+	NSString *lastDisplay=[str length]>0 ? [str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL]:nil;
+	BOOL lastIsInline=[lastDisplay isEqualToString:@"inline"];
+	BOOL isInline=[display isEqualToString:@"inline"];
+	if([display isEqualToString:@"none"])
+		return;	// display: none style
 	if(lastIsInline && !isInline)
 		{ // we need to close the last inline segment and prefix new block mode segment
 		if([[str string] hasSuffix:@" "])
@@ -530,25 +558,100 @@ enum
 	[[_childNodes _list] makeObjectsPerformSelector:_cmd];	// also flush child nodes
 }
 
+// FIXME: make this a category that collects all code for DOMHTML/DOMCSS -> NSAttributedString translation
+
+- (void) _addCSSToStyle:(DOMCSSStyleDeclaration *) style;
+{
+	NSDictionary *dict=[style _items];	// get dictionary
+	NSString *key;
+	NSEnumerator *e=[dict keyEnumerator];
+#if 1
+	NSLog(@"merge %@ into %@", style, _style);
+#endif
+	while((key=[e nextObject]))
+		{
+		DOMCSSValue *val=[dict objectForKey:key];
+		if([val cssValueType] == DOM_CSS_INHERIT)
+			continue;	// skip (because parent node defines value)
+		if([key isEqualToString:@"color"])
+			{
+			NSColor *color;
+			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE)
+				{
+				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_RGBCOLOR)
+					{
+					unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
+					color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
+					}
+				else
+					color=[[(DOMCSSPrimitiveValue *) val getStringValue] _htmlNamedColor];	// look up by color name
+				if(color)
+					[_style setObject:color forKey:NSForegroundColorAttributeName];
+				}
+			}
+		// handle other attributes directly
+		else
+			{
+			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE)
+				{ // store string values as NSString
+				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_STRING || [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_IDENT)
+					val=(DOMCSSValue *) [(DOMCSSPrimitiveValue *) val getStringValue];
+				}
+			[_style setObject:val forKey:key];	// copy value			
+			}
+		}
+	// margin-left: etc.
+	// text-align:
+	// padding-left: etc.
+	// border-left-style: etc.
+	// display:
+	// color: 
+	// font:
+	
+}
+
 - (void) _addCSSToStyle;
 { // add CSS to style
 	if([[[[self webFrame] webView] preferences] authorAndUserStylesEnabled])
 		{
+		DOMStyleSheetList *list;
 		DOMCSSStyleDeclaration *css;
-		NSString *style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
+		int i, cnt;
+		NSString *style;
+		// FIXME: how to handle different media?
+		list=[(DOMHTMLDocument *) [self ownerDocument] styleSheets];
+		cnt=[list length];
+		for(i=0; i<cnt; i++)
+			{
+			DOMCSSRuleList *rules=[(DOMCSSStyleSheet *) [list item:i] cssRules];
+			int r, rcnt=[rules length];
+			for(r=0; r<rcnt; r++)
+				{
+				DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
+				// FIXME: how to handle pseudoElement here?
+#if 0
+				NSLog(@"match %@ with %@", self, rule);
+#endif
+				if([rule _ruleMatchesElement:self pseudoElement:@""])
+					{
+					// FIXME: handle specificity and !important priority
+#if 0
+					NSLog(@"MATCH!");
+#endif
+					[self _addCSSToStyle:[(DOMCSSStyleRule *) rule style]];						
+					}
+				}
+			}
+		style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
 		if(style)
-			{ // arse locally defined CSS
+			{ // parse locally defined CSS
 #if 1
 				NSLog(@"add style=\"%@\"", style);
 #endif
-				css=[[[DOMCSSStyleDeclaration alloc] initWithString:style] autorelease];	// parse
-				[css _addToStyle:_style];
+				css=[[DOMCSSStyleDeclaration alloc] initWithString:style];	// parse
+				[self _addCSSToStyle:css];	// apply
+				[css release];
 			}
-		// check CSS database
-		// get relevant CSS definition by tag, tag level, id, class, etc. recursively going upwards
-		// more than one rule may match!
-		// in that case the last one persists unless there is a !important priority
-		// the order of evaluation is: 1. external sheets, 2. <style> sheets, 3. style=""
 		}
 }
 
@@ -1776,7 +1879,7 @@ enum
 			}
 	if(!image)
 			{ // could not convert
-				image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
+				image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
 				[image setScalesWhenResized:NO];	// hm... does not really work
 			}
 	if(width || height) // resize image
@@ -2412,7 +2515,7 @@ enum
 						}
 				if(!image)
 						{ // could not convert
-							image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:isa] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
+							image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
 							[image setScalesWhenResized:NO];	// hm... does not really work
 						}
 				if(width || height) // resize image

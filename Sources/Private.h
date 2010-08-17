@@ -42,6 +42,7 @@
 @interface WebFrameView (Private)
 - (void) _setDocumentView:(NSView *) view;
 - (void) _setWebFrame:(WebFrame *) wframe;
+- (NSRect) _recommendedDocumentFrame;
 @end
 
 @interface WebDataSource (Private)

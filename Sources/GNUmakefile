@@ -76,6 +76,7 @@ WebXMLDocument.m
 SimpleWebKit_RESOURCE_FILES = \
 	WebKitIMG.png \
 	HTMLEntities.strings \
+	DOMHTMLColors.plist \
 	DOMHTML.plist
 
 -include Makefile.preamble

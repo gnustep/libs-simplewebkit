@@ -120,7 +120,8 @@ typedef enum
 - (NSString *) _string;							// get string to be spliced
 - (NSTextAttachment *) _attachment;				// get attachment to be spliced
 
-- (void) _addCSSToStyle;						// add CSS to style
+- (void) _addCSSToStyle:(DOMCSSStyleDeclaration *) style;	// add CSS to style
+- (void) _addCSSToStyle;						// search CSS database for matching rules
 - (void) _addAttributesToStyle;					// add attributes to style
 
 @end

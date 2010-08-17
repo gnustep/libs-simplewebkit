@@ -125,6 +125,7 @@ enum DOMCSSRuleType
 	DOMCSSRule *parentRule;
 }
 
+- (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement;
 - (unsigned short) type;
 - (NSString *) cssText;
 - (DOMCSSStyleSheet *) parentStyleSheet;
@@ -226,7 +227,7 @@ enum DOMCSSRuleType
 - (NSString *) getPropertyShorthand:(NSString *) propertyName;
 - (BOOL) isPropertyImplicit:(NSString *) propertyName;
 
-- (void) _addToStyle:(NSMutableDictionary *) style;
+- (NSDictionary *) _items;
 
 @end
 
@@ -247,6 +248,14 @@ enum DOMCSSValueType
 - (NSString *) cssText;
 - (unsigned short) cssValueType;
 
+@end
+
+@interface DOMCSSValueList : DOMCSSValue
+{
+	NSMutableArray *values;
+}
+- (unsigned) length;
+- (DOMCSSValue *) item:(unsigned) index;
 @end
 
 enum DOMCSSPrimitiveValueType

@@ -10,14 +10,11 @@
 	<integer>2</integer>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>463</integer>
-		<integer>775</integer>
-		<integer>624</integer>
-		<integer>583</integer>
-		<integer>683</integer>
 		<integer>726</integer>
+		<integer>583</integer>
+		<integer>463</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>9L30</string>
+	<string>10F569</string>
 </dict>
 </plist>

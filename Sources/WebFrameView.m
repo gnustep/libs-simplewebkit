@@ -78,6 +78,11 @@
 - (WebFrame *) webFrame; { return _webFrame; }
 - (NSView *) documentView; { return [[[self subviews] lastObject] documentView]; }
 
+- (NSRect) _recommendedDocumentFrame;
+{
+	return (NSRect) { NSZeroPoint, [[[[self subviews] lastObject] contentView] bounds].size };
+}
+
 - (void) setAllowsScrolling:(BOOL) flag;
 {
 	NSScrollView *sv=[[self subviews] lastObject];
