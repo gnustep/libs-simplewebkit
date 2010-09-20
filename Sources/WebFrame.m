@@ -336,7 +336,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		NSLog(@"url=%@", url);
 		NSLog(@"scheme=%@", scheme);
 #endif
-		if([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"])
+		if([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"] || [scheme isEqualToString:@"file"])
 			{ // open in (new) window
 			NSString *target=[[tv textStorage] attribute:DOMHTMLAnchorElementTargetWindow atIndex:charIndex effectiveRange:NULL];
 			NSURLRequest *request=[NSURLRequest requestWithURL:url];
