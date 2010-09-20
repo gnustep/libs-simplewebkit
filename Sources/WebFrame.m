@@ -1,9 +1,10 @@
 /* simplewebkit
    WebFrame.m
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007-2010 Free Software Foundation, Inc.
 
-   Author: Dr. H. Nikolaus Schaller
+   Authors: Dr. H. Nikolaus Schaller
+            Ing. Riccardo Mottola
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
