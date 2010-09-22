@@ -49,7 +49,7 @@
 @end
 
 @interface DOMCSSMediaRule (Private)
-- (id) initWithMedia:(NSString *) m;
+- (id) initWithMedia:(NSString *) mediaList;
 @end
 
 @interface DOMCSSImportRule (Private)
@@ -62,6 +62,11 @@
 
 @interface DOMMediaList (Private)
 - (BOOL) _matchMedia:(NSString *) media;
+@end
+
+@interface DOMCSSValueList (Private)
+- (id) _initWithFirstElement:(DOMCSSValue *) first;
+- (void) _addItem:(DOMCSSValue *) item;
 @end
 
 @implementation DOMStyleSheetList
@@ -412,6 +417,8 @@
 		sc=[NSScanner scannerWithString:text];
 	// [sc setCaseSensitve
 	// characters to be ignored
+	
+	// FIXME: DOMCSSValue can already return a , separated list!!!
 	while(YES)
 		{
 		DOMCSSPrimitiveValue *val=[[[DOMCSSPrimitiveValue alloc] initWithString:(NSString *) sc] autorelease];
@@ -512,26 +519,12 @@
 			return self;
 		}
 	if([sc scanString:@"@media" intoString:NULL])
-		{ // @media screen { rule { style } rule { style } @media { subblock } ... }
-			DOMCSSPrimitiveValue *val=[[[DOMCSSPrimitiveValue alloc] initWithString:(NSString *) sc] autorelease];
-			if([val primitiveType] != DOM_CSS_IDENT && [val primitiveType] != DOM_CSS_STRING)
-				return nil;
-			/*
-			 all
-			 aural
-			 braille
-			 embossed
-			 handheld
-			 print
-			 projection
-			 screen
-			 tty
-			 tv			
-			 */ 
+		{ // @media screen, ... { rule { style } rule { style } @media { subblock } ... }
+			DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
 			[DOMCSSRule _skip:sc];
+			self=[[DOMCSSMediaRule alloc] initWithMedia:(NSString *) sc];
 			if(![sc scanString:@"{" intoString:NULL])
 				return nil;
-			self=[[DOMCSSMediaRule alloc] initWithMedia:[val getStringValue]];
 			while(![sc isAtEnd])
 				if([(DOMCSSMediaRule *) self insertRule:(NSString *) sc index:[[(DOMCSSMediaRule *) self cssRules] length]] == (unsigned) -1)	// parse and scan rules
 					break;
@@ -711,7 +704,8 @@
 - (DOMCSSStyleSheet *) styleSheet; { return styleSheet; }
 
 - (BOOL) ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
-{ // search in loaded style sheet 
+{ // search in loaded style sheet
+	// check if we match medium
 	return [styleSheet ruleMatchesElement:element pseudoElement:pseudoElement];
 }
 
@@ -748,11 +742,47 @@
 
 - (unsigned short) type; { return DOM_MEDIA_RULE; }
 
+- (BOOL) ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
+{ // search in loaded style sheet
+	// check if we match any medium
+	// check subrules
+	/* FIXME --- this does not work!!!
+	NSEnumerator *e=[selector objectEnumerator];	// sequence of elements, i.e. >element.class1.class2#id1:pseudo
+	NSArray *sequence;
+	while((sequence=[e nextObject]))
+		{
+		NSEnumerator *f=[sequence objectEnumerator];
+		DOMCSSStyleRuleSelector *sel;
+		while((sel=[f nextObject]))
+			{
+			if(![sel ruleMatchesElement:element pseudoElement:pseudoElement])
+				break;	// no match
+			}
+		if(!sel)
+			return YES;	// all selectors did match
+		}
+	 */
+	return NO;	// no alternative did match
+}
+
 - (id) initWithMedia:(NSString *) m;
 {
 	if((self=[super init]))
 		{
-		media=[m retain];
+		/* should check for:
+		 all
+		 aural
+		 braille
+		 embossed
+		 handheld
+		 print
+		 projection
+		 screen
+		 tty
+		 tv			
+		 */ 
+		media=[DOMMediaList new];
+		[media setMediaText:m];	// scan media list
 		cssRules=[DOMCSSRuleList new];
 		}
 	return self;
@@ -786,7 +816,14 @@
 
 - (NSString *) cssText;
 {
-	return [NSString stringWithFormat:@"@media %@ {", [media mediaText]];
+	NSMutableString *s=[NSMutableString stringWithCapacity:50];
+	NSEnumerator *e=[[cssRules items] objectEnumerator];
+	DOMCSSRule *rule;
+	[s appendFormat:@"@media %@ {\n", [media mediaText]];
+	while((rule=[e nextObject]))
+		[s appendFormat:@"  %@\n", rule];
+	[s appendString:@"}\n"];
+	return s; 
 }
 
 @end
@@ -1375,7 +1412,7 @@
 				{ // short hex - convert into full value
 					unsigned fullValue=0;
 					int i;
-#if 1
+#if 0
 					NSLog(@"translate %x", intValue);
 #endif
 					for(i=0; i<4; i++)
@@ -1383,7 +1420,7 @@
 						fullValue=(fullValue<<8)+0x11*((intValue>>12)&0xf);
 						intValue <<= 4;
 						}
-#if 1
+#if 0
 					NSLog(@"   --> %x", fullValue);
 #endif
 					floatValue=fullValue;

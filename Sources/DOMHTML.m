@@ -623,10 +623,18 @@ enum
 		cnt=[list length];
 		for(i=0; i<cnt; i++)
 			{
+			// FIXME: make this a method of DOMCSSRuleList
+			// but in a way that multiple rules may match (and have different priorities!)
+			// i.e. we should have a method that returns all matching rules
+			// then sort by precedence
+			// the rules are described here:
+			// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
+			
 			DOMCSSRuleList *rules=[(DOMCSSStyleSheet *) [list item:i] cssRules];
 			int r, rcnt=[rules length];
 			for(r=0; r<rcnt; r++)
 				{
+				
 				DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
 				// FIXME: how to handle pseudoElement here?
 #if 0
@@ -2715,10 +2723,10 @@ enum
 - (id) init
 {
 	if((self = [super init]))
-			{
-				options=[DOMHTMLCollection new]; 
-				[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_willPopUp:) name:NSPopUpButtonCellWillPopUpNotification object:nil];
-			}
+		{
+		options=[DOMHTMLCollection new]; 
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_willPopUp:) name:NSPopUpButtonCellWillPopUpNotification object:nil];
+		}
 	return self;
 }
 

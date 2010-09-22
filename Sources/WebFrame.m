@@ -333,6 +333,11 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		// FIXME: check if [[_dataSource response] URL] exists!
 		NSURL *url=[[NSURL URLWithString:link relativeToURL:[[_dataSource response] URL]] absoluteURL];	// normalize
 		NSString *scheme=[url scheme];
+		if(!url)
+			{
+			NSLog(@"NO URL for link %@", link);
+			return NO;
+			}
 #if 0
 		NSLog(@"url=%@", url);
 		NSLog(@"scheme=%@", scheme);
