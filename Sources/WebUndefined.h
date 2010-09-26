@@ -22,7 +22,7 @@
 */
 
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #import <WebKit/DOM.h>
 
 @interface WebUndefined : NSObject

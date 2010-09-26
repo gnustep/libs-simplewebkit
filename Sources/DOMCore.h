@@ -1,7 +1,7 @@
 /* simplewebkit
    DOMCore.h
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007-2010 Free Software Foundation, Inc.
 
    Author: Dr. H. Nikolaus Schaller
 
@@ -21,9 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#ifdef __mySTEP__
 #define MUST_RENAME_CLASSES 1
-#endif
 
 #if MUST_RENAME_CLASSES
 // gcc 2.95.3 does not allow methods with the same name as a class, i.e.
@@ -35,7 +33,7 @@
 #define RENAME(X) X
 #endif
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 // #import <WebKit/DOMCore.h>
 

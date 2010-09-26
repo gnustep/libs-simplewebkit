@@ -1,7 +1,7 @@
 /* simplewebkit
    WebUIDelegate.h
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007-2010 Free Software Foundation, Inc.
 
    Author: Dr. H. Nikolaus Schaller
 
@@ -22,7 +22,7 @@
 */
 
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 @class WebView;
 @class WebFrame;

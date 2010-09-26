@@ -21,8 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#import <Cocoa/Cocoa.h>
-#import <Foundation/NSURLRequest.h>
+#import <Foundation/Foundation.h>
 #import <WebKit/WebFrameLoadDelegate.h>
 #import <WebKit/WebResourceLoadDelegate.h>
 #import <WebKit/WebDownload.h>

@@ -1,7 +1,7 @@
 /* simplewebkit
    WebFrame.h
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007-2010 Free Software Foundation, Inc.
 
    Author: Dr. H. Nikolaus Schaller
 
@@ -21,8 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#import <Cocoa/Cocoa.h>
-#import <Foundation/NSURLRequest.h>
+#import <Foundation/Foundation.h>
 #import <WebKit/WebDataSource.h>
 #import <WebKit/WebDOMOperations.h>
 
