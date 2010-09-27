@@ -520,7 +520,6 @@
 		}
 	if([sc scanString:@"@media" intoString:NULL])
 		{ // @media screen, ... { rule { style } rule { style } @media { subblock } ... }
-			DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
 			[DOMCSSRule _skip:sc];
 			self=[[DOMCSSMediaRule alloc] initWithMedia:(NSString *) sc];
 			if(![sc scanString:@"{" intoString:NULL])
