@@ -21,7 +21,9 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+#if __GNUC__ == 2
 #define MUST_RENAME_CLASSES 1
+#endif
 
 #if MUST_RENAME_CLASSES
 // gcc 2.95.3 does not allow methods with the same name as a class, i.e.

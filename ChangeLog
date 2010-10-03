@@ -1,3 +1,8 @@
+2010-10-03 Riccardo Mottola <rmottola@users.sf.net>
+
+	*  Sources/DOMCore.h
+	Enable renaming only if GCC has major version = 2
+
 2010-08-03++  Nikolaus Schaller <hns@computer.org>
 	* fixed some of the Issues reported on http://projects.goldelico.com/p/swk/issues/ (see commit messages)
 	* worked on CSS parsing to be more complete for correct CSS files
