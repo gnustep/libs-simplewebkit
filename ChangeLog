@@ -3,6 +3,10 @@
 	*  Sources/DOMCore.h
 	Enable renaming only if GCC has major version = 2
 
+	* Sources/WebPlugin.h
+	* Sources/WebPluginContainer.h
+	Do not include Cocoa.h but directly Foundation and the necessary headers.
+
 2010-08-03++  Nikolaus Schaller <hns@computer.org>
 	* fixed some of the Issues reported on http://projects.goldelico.com/p/swk/issues/ (see commit messages)
 	* worked on CSS parsing to be more complete for correct CSS files
