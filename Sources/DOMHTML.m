@@ -38,7 +38,7 @@ NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
 NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 NSString *DOMHTMLBlockInlineLevel=@"display";
 
-#if defined(__APPLE__)
+#if !defined (GNUSTEP) && !defined (__mySTEP__)
 #if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
 
 // Tiger (10.4) and later - include (through WebKit/WebView.h and Cocoa/Cocoa.h) and implements Tables

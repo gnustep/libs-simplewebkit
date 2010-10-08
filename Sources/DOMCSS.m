@@ -705,7 +705,7 @@
 - (BOOL) ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 { // search in loaded style sheet
 	// check if we match medium
-	return [styleSheet ruleMatchesElement:element pseudoElement:pseudoElement];
+	return [styleSheet _ruleMatchesElement:element pseudoElement:pseudoElement];
 }
 
 // WebDocumentRepresentation callbacks
