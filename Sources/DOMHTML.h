@@ -28,6 +28,7 @@
 @class WebDataSource;
 @class WebFrame;
 @class NSTextTable, NSTextTableBlock, NSTextList;	// we don't explicitly import since we can't rely on their existence
+@class NSTextAttachment;
 @class DOMHTMLElement;
 
 @class _WebHTMLDocumentRepresentation;
@@ -200,13 +201,13 @@ typedef enum
 @interface DOMHTMLFrameElement : DOMHTMLElement		// <frame>
 @end
 
-@interface DOMHTMLNoFramesElement : DOMHTMLFrameElement		// <noframes>
+@interface DOMHTMLNoFramesElement : DOMHTMLElement		// <noframes>
 @end
 
-@interface DOMHTMLIFrameElement : DOMHTMLFrameElement	// <iframe>
+@interface DOMHTMLIFrameElement : DOMHTMLElement	// <iframe>
 @end
 
-@interface DOMHTMLObjectFrameElement : DOMHTMLFrameElement	// <applet> or <object>
+@interface DOMHTMLObjectFrameElement : DOMHTMLElement	// <applet> or <object>
 @end
 
 @interface DOMHTMLBodyElement : DOMHTMLElement	// <body>
