@@ -67,10 +67,12 @@
 @interface DOMCSSValueList (Private)
 - (id) _initWithFirstElement:(DOMCSSValue *) first;
 - (void) _addItem:(DOMCSSValue *) item;
+- (NSArray *) _toStringArray;
 @end
 
 @interface DOMCSSValue (Private)
 - (NSString *) _toString;	// value as string (independent of type)
+- (NSArray *) _toStringArray;
 @end
 
 @implementation DOMStyleSheetList
@@ -413,26 +415,20 @@
 }
 
 - (void) setMediaText:(NSString *) text;
-{ // parse a comma separated list of values
+{ // parse a comma separated list of media names
 	NSScanner *sc;
+	NSEnumerator *e;
+	DOMCSSValue *val;
 	if([text isKindOfClass:[NSScanner class]])
 		sc=(NSScanner *) text;	// we already got a NSScanner
 	else
 		sc=[NSScanner scannerWithString:text];
-	// [sc setCaseSensitve
+	// [sc setCaseSensitve]
 	// characters to be ignored
-	
-	// FIXME: DOMCSSValue can already return a , separated list!!!
-	while(YES)
-		{
-		DOMCSSPrimitiveValue *val=[[[DOMCSSPrimitiveValue alloc] initWithString:(NSString *) sc] autorelease];
-		if([val primitiveType] != DOM_CSS_IDENT && [val primitiveType] != DOM_CSS_STRING)
-			return;	// done
-		[self appendMedium:[val getStringValue]];
-		[DOMCSSRule _skip:sc];
-		if(![sc scanString:@"," intoString:NULL])
-			break;
-		}
+	val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
+	e=[[val _toStringArray] objectEnumerator];
+	while((val=[e nextObject]))
+		[self appendMedium:val];
 }
 
 - (unsigned) length; { return [items count]; }
@@ -513,10 +509,8 @@
 		}
 	if([sc scanString:@"@import" intoString:NULL])
 		{ // @import url("path/file.css") media;
-			DOMCSSPrimitiveValue *val=[[[DOMCSSPrimitiveValue alloc] initWithString:(NSString *) sc] autorelease];
-			if([val primitiveType] != DOM_CSS_URI && [val primitiveType] != DOM_CSS_STRING)
-				return nil;
-			self=[[DOMCSSImportRule alloc] initWithHref:[val getStringValue]];
+			DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
+			self=[[DOMCSSImportRule alloc] initWithHref:[val _toString]];
 			[[(DOMCSSImportRule *) self media] setMediaText:(NSString *) sc];	// parse media list (if present)
 			[DOMCSSRule _skip:sc];
 			[sc scanString:@";" intoString:NULL];	// skip if present
@@ -540,10 +534,8 @@
 		}
 	if([sc scanString:@"@charset" intoString:NULL])
 		{ // @charset "UTF-8";
-			DOMCSSPrimitiveValue *val=[[[DOMCSSPrimitiveValue alloc] initWithString:(NSString *) sc] autorelease];
-			if([val primitiveType] != DOM_CSS_IDENT && [val primitiveType] != DOM_CSS_STRING)
-				return nil;
-			return [[DOMCSSCharsetRule alloc] initWithEncoding:[val getStringValue]];
+			DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
+			return [[DOMCSSCharsetRule alloc] initWithEncoding:[val _toString]];
 		}
 	if([sc scanString:@"font-face" intoString:NULL])
 		{ // @font-face
@@ -1294,6 +1286,11 @@
 
 @implementation DOMCSSValueList
 
+- (unsigned short) primitiveType; 
+{
+	return 0;
+}
+
 - (id) _initWithFirstElement:(DOMCSSValue *) first
 {
 	if(self=[super init])
@@ -1325,15 +1322,13 @@
 	return css;
 }
 
-- (NSString *) _toArray;
+- (NSArray *) _toStringArray;
 {
 	NSEnumerator *e=[values objectEnumerator];
 	DOMCSSValue *val;
 	NSMutableArray *a=[NSMutableArray arrayWithCapacity:[values count]];
 	while((val=[e nextObject]))
-		{
 		[a addObject:[val _toString]];
-		}
 	return a;	
 }
 
@@ -1344,6 +1339,10 @@
 @end
 
 @implementation DOMCSSPrimitiveValue
+
+- (id) initWithString:(NSString *) str; {
+	return NIMP;
+}
 
 - (unsigned short) cssValueType { return DOM_CSS_PRIMITIVE_VALUE; }
 
@@ -1435,6 +1434,8 @@
 	}
 	return [NSString stringWithFormat:@"%f%@", [self getFloatValue:primitiveType], suffix];
 }
+
+- (NSArray *) _toStringArray; {	return [NSArray arrayWithObject:[self _toString]]; }
 
 - (void) setCssText:(NSString *) str
 { // set from CSS string
@@ -1552,24 +1553,22 @@
 						}
 					else if([stringValue isEqualToString:@"url"])
 						{ // url(location) or url("location")
-							DOMCSSPrimitiveValue *val=[DOMCSSPrimitiveValue new];
-							[val setCssText:(NSString *) sc];	// parse parameter
-							if([val primitiveType] == DOM_CSS_IDENT || [val primitiveType] == DOM_CSS_STRING)
-								stringValue=[val getStringValue];	// get unquoted or quoted value
-							else
-								stringValue=@"?";
+							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+							stringValue=[val _toString];	// get unquoted or quoted value
 							[val release];
 							primitiveType=DOM_CSS_URI;
 						}
 					else if([stringValue isEqualToString:@"attr"])
 						{ // attr(name)
-							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:sc];	// parse argument(s)
+							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
+							// handle value
 							[val release];
 							primitiveType=DOM_CSS_ATTR;
 						}
 					else if([stringValue isEqualToString:@"counter"])
 						{ // counter(ident) or counter(ident, list-style-type)
-							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:sc];	// parse argument(s)
+							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
+							// handle value
 							[val release];
 							primitiveType=DOM_CSS_COUNTER;
 						}
