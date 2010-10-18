@@ -5,13 +5,22 @@
     Authors = (
 	"Nikolaus Schaller"
     );
-    Copyright = "Copyright (C) 2007";
+    Copyright = "Copyright (C) 2007-2010";
     CopyrightDescription = "Released under GPL v2";
     FullVersionID = 0.1;
     NSExecutable = SWKBrowser;
     NSMainNibFile = MainMenu.nib;
     NSPrincipalClass = NSApplication;
     NSRole = Application;
+    CFBundleURLTypes = (
+	{
+	    CFBundleURLName = "Web site URL";
+	    CFBundleURLSchemes = (
+		http,
+		https
+	    );
+	}
+    );
     NSTypes = (
 	{
 	    NSDocumentClass = MyDocument;
