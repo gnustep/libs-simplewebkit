@@ -576,27 +576,20 @@ enum
 		if([key isEqualToString:@"color"])
 			{
 			NSColor *color;
-			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE)
-				{
-				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_RGBCOLOR)
-					{
-					unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
-					color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
-					}
-				else
-					color=[[(DOMCSSPrimitiveValue *) val getStringValue] _htmlNamedColor];	// look up by color name
-				if(color)
-					[_style setObject:color forKey:NSForegroundColorAttributeName];
+			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_RGBCOLOR)
+				{ // special optimization
+				unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
+				color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
 				}
+			else
+				color=[[val _toString] _htmlNamedColor];	// look up by color name
+			if(color)
+				[_style setObject:color forKey:NSForegroundColorAttributeName];
 			}
 		// handle other attributes directly
 		else
-			{
-			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE)
-				{ // store string values as NSString
-				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_STRING || [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_IDENT)
-					val=(DOMCSSValue *) [(DOMCSSPrimitiveValue *) val getStringValue];
-				}
+			{ // convert to string value
+			val=(DOMCSSValue *) [val _toString];
 			[_style setObject:val forKey:key];	// copy value			
 			}
 		}
@@ -1209,6 +1202,9 @@ enum
 	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
 			{
 				DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
+#if 1
+			NSLog(@"child=%@", child);
+#endif
 				if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
 						{ // real content
 							subviewIndex++;	// one more
@@ -1240,6 +1236,8 @@ enum
 							NSLog(@" child = %@ - %@", childView, NSStringFromRect([childView frame]));
 #endif
 							split=[e nextObject];	// get next splitting info
+							if(!split)
+								break;	// mismatch in count
 							frame=[childView frame];
 #if 0
 							NSLog(@"  was = %@", NSStringFromRect([childView frame]));

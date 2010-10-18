@@ -196,7 +196,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "SWKBrowser-Info.plist"; sourceTree = "<group>"; };
+		EE01D4670B7786570089A538 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SWKBrowser-Info.plist"; sourceTree = "<group>"; };
 		EE01D46C0B7786930089A538 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		EE01D56B0B77A1A30089A538 /* NSXMLParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NSXMLParser.h; sourceTree = "<group>"; };
 		EE01D56C0B77A1A30089A538 /* NSXMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParser.m; sourceTree = "<group>"; };
@@ -204,9 +204,9 @@
 		EE044A910CF0A0040003D697 /* WebPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPreferences.m; sourceTree = "<group>"; };
 		EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebDocumentRepresentation.h; sourceTree = "<group>"; };
 		EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebDocumentRepresentation.m; sourceTree = "<group>"; };
-		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		EE24FD190C209B37001947BB /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = DOMHTML.plist; sourceTree = "<group>"; };
+		EE24FD190C209B37001947BB /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = DOMHTML.plist; sourceTree = "<group>"; };
 		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
 		EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDOMOperations.m; sourceTree = "<group>"; };
 		EE291C080AD78194004A1CA6 /* WebScriptObject.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebScriptObject.m; sourceTree = "<group>"; };
@@ -228,7 +228,7 @@
 		EE5EBB5B0A188F970045B88D /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		EE5EBB5C0A188F970045B88D /* MyApplication.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MyApplication.h; sourceTree = "<group>"; };
 		EE5EBB5D0A188F970045B88D /* MyApplication.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MyApplication.m; sourceTree = "<group>"; };
-		EE5EBB5E0A188F970045B88D /* FullWebKitTest-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = "FullWebKitTest-Info.plist"; sourceTree = "<group>"; };
+		EE5EBB5E0A188F970045B88D /* FullWebKitTest-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; path = "FullWebKitTest-Info.plist"; sourceTree = "<group>"; };
 		EE5EBC7F0A1926F00045B88D /* Private.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Private.h; sourceTree = "<group>"; };
 		EE5EBCDE0A1A4CB70045B88D /* WebDOMOperations.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebDOMOperations.h; sourceTree = "<group>"; };
 		EE5EBCDF0A1A4CB70045B88D /* WebScriptObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebScriptObject.h; sourceTree = "<group>"; };
@@ -268,7 +268,7 @@
 		EE9BE91F0AF9321400D445DA /* WebHTMLDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebHTMLDocumentRepresentation.m; sourceTree = "<group>"; };
 		EE9BE9BB0AFA534600D445DA /* WebHTMLDocumentRepresentation.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebHTMLDocumentRepresentation.h; sourceTree = "<group>"; };
 		EE9BEB460AFA868500D445DA /* DOM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOM.h; sourceTree = "<group>"; };
-		EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = "SimpleWebKit-Info.plist"; sourceTree = "<group>"; };
+		EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; path = "SimpleWebKit-Info.plist"; sourceTree = "<group>"; };
 		EEA3D393095468BA001244CF /* WebDataSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebDataSource.h; sourceTree = "<group>"; };
 		EEA3D394095468BA001244CF /* WebDataSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDataSource.m; sourceTree = "<group>"; };
 		EEA3D395095468BA001244CF /* WebDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebDocument.h; sourceTree = "<group>"; };
@@ -705,10 +705,19 @@
 				BuildIndependentTargetsInParallel = NO;
 			};
 			buildConfigurationList = EEEB9D6B09A7586C00626AB7 /* Build configuration list for PBXProject "SimpleWebKit" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* BrowserTester */;
 			productRefGroup = EE29D8D8058A38830035639B /* Products */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
 				EE147E830A16668700E60AF8 /* SWK Browser */,
@@ -802,7 +811,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# project settings\nexport SOURCES=\"SWKBrowser/*.m\"  \t   \t\t # all source codes\nexport LIBS=  \t\t\t\t\t# add any additional libraries like -ltiff etc.\nexport FRAMEWORKS=WebKit\t\t\t\t# add any additional Frameworks etc.\nexport INSTALL_PATH=/Applications/Test   # override INSTALL_PATH for MacOS X machine Zaurus\n\n# global/compile settings\n#export STRIP_Framework=true        # set to true if you want to strip headers etc.\n#export STRIP_MacOS=true            # set to true if you want a Linux-ARM only bundle\n#export INSTALL=true                # true (or empty) will install locally to $ROOT/$INSTALL_PATH\nexport SEND2ZAURUS=true\t\t\t\t# true (or empty) will try to install on the Zaurus at /$INSTALL_PATH (using ssh)\nexport RUN=false                    # true (or empty) will finally try to run on the Zaurus (using X11 on host)\nexport ROOT=/usr/share/QuantumSTEP\t# project root\n[ -r $ROOT/System/Sources/Frameworks/mySTEP.make ] && /usr/bin/make -f $ROOT/System/Sources/Frameworks/mySTEP.make $ACTION\n";
+			shellScript = "# project settings\nexport SOURCES=\"SWKBrowser/*.m\"  \t   \t\t # all source codes\nexport LIBS=  \t\t\t\t\t# add any additional libraries like -ltiff etc.\nexport FRAMEWORKS=WebKit\t\t\t\t# add any additional Frameworks etc.\nexport INSTALL_PATH=/Applications/Test   # override INSTALL_PATH for MacOS X machine Zaurus\n\n# global/compile settings\n#export STRIP_Framework=true        # set to true if you want to strip headers etc.\n#export STRIP_MacOS=true            # set to true if you want a Linux-ARM only bundle\n#export INSTALL=true                # true (or empty) will install locally to $ROOT/$INSTALL_PATH\nexport SEND2ZAURUS=true\t\t\t\t# true (or empty) will try to install on the Zaurus at /$INSTALL_PATH (using ssh)\nexport RUN=false                    # true (or empty) will finally try to run on the Zaurus (using X11 on host)\nexport DEPENDS=\"quantumstep-webkit-framework\"\nexport ROOT=/usr/share/QuantumSTEP\t# project root\n[ -r $ROOT/System/Sources/Frameworks/mySTEP.make ] && /usr/bin/make -f $ROOT/System/Sources/Frameworks/mySTEP.make $ACTION\n";
 		};
 		EE6FE354076F05C9009CC969 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -953,6 +962,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -984,6 +995,8 @@
 		EE01D4630B7786570089A538 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -1009,10 +1022,8 @@
 		EE147E890A1666A700E60AF8 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -1041,10 +1052,8 @@
 		EE147E8A0A1666A700E60AF8 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -1070,10 +1079,8 @@
 		EE1AB3A50C20544A005F3F98 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -1093,7 +1100,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = SWKBrowser;
-				SDKROOT = /Developer/SDKs/MacOSX10.2.8.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				SYMROOT = "$(HOME)/build";
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
@@ -1103,10 +1110,8 @@
 		EE1AB3A60C20544A005F3F98 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -1124,6 +1129,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = SimpleBrowser;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
@@ -1175,10 +1181,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = NO;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1215,10 +1219,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
 				COPY_PHASE_STRIP = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1250,6 +1252,7 @@
 		EEEB9D6C09A7586C00626AB7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
@@ -1258,6 +1261,7 @@
 		EEEB9D6D09A7586C00626AB7 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Deployment;

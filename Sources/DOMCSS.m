@@ -69,6 +69,10 @@
 - (void) _addItem:(DOMCSSValue *) item;
 @end
 
+@interface DOMCSSValue (Private)
+- (NSString *) _toString;	// value as string (independent of type)
+@end
+
 @implementation DOMStyleSheetList
 
 - (void) dealloc
@@ -1273,6 +1277,19 @@
 
 - (NSString *) description; { return [self cssText]; }
 
+- (NSString *) _toString;
+{ // value as string (independent of type)
+	switch(cssValueType)
+	{
+		case DOM_CSS_INHERIT: return @"inherit";
+		case DOM_CSS_PRIMITIVE_VALUE: return @"subclass";
+		case DOM_CSS_VALUE_LIST: return @"value list";
+		case DOM_CSS_CUSTOM:
+			return @"todo";
+	}
+	return @"?";
+}
+
 @end
 
 @implementation DOMCSSValueList
@@ -1308,9 +1325,22 @@
 	return css;
 }
 
+- (NSString *) _toArray;
+{
+	NSEnumerator *e=[values objectEnumerator];
+	DOMCSSValue *val;
+	NSMutableArray *a=[NSMutableArray arrayWithCapacity:[values count]];
+	while((val=[e nextObject]))
+		{
+		[a addObject:[val _toString]];
+		}
+	return a;	
+}
+
 - (unsigned) length; { return [values count]; }
 - (DOMCSSValue *) item:(unsigned) index; { return [values objectAtIndex:index]; }
-- (void) _addItem:(id) item { [values addObject:item]; }
+- (void) _addItem:(DOMCSSValue *) item { [values addObject:item]; }
+
 @end
 
 @implementation DOMCSSPrimitiveValue
@@ -1365,6 +1395,43 @@
 		case DOM_CSS_COUNTER:
 		case DOM_CSS_RECT:
 		return @"TODO";
+	}
+	return [NSString stringWithFormat:@"%f%@", [self getFloatValue:primitiveType], suffix];
+}
+
+- (NSString *) _toString;
+{
+	NSString *suffix;
+	switch(primitiveType)
+	{
+		default:
+		case DOM_CSS_UNKNOWN:	return @"unknown";
+		case DOM_CSS_NUMBER: suffix=@""; break;
+		case DOM_CSS_PERCENTAGE: suffix=@"%"; break;
+		case DOM_CSS_EMS: suffix=@"em"; break;
+		case DOM_CSS_EXS: suffix=@"ex"; break;
+		case DOM_CSS_PX: suffix=@"px"; break;
+		case DOM_CSS_CM: suffix=@"cm"; break;
+		case DOM_CSS_MM: suffix=@"mm"; break;
+		case DOM_CSS_IN: suffix=@"in"; break;
+		case DOM_CSS_PT: suffix=@"pt"; break;
+		case DOM_CSS_PC: suffix=@"pc"; break;
+		case DOM_CSS_DEG: suffix=@"deg"; break;
+		case DOM_CSS_RAD: suffix=@"rad"; break;
+		case DOM_CSS_GRAD: suffix=@"grad"; break;
+		case DOM_CSS_MS: suffix=@"ms"; break;
+		case DOM_CSS_S: suffix=@"s"; break;
+		case DOM_CSS_HZ: suffix=@"hz"; break;
+		case DOM_CSS_KHZ: suffix=@"khz"; break;
+		case DOM_CSS_STRING: return stringValue;
+		case DOM_CSS_URI:	return stringValue;
+		case DOM_CSS_IDENT: return stringValue;
+		case DOM_CSS_ATTR: return stringValue;
+		case DOM_CSS_RGBCOLOR:	return [NSString stringWithFormat:@"#%02x%02x%02x", (int) floatValue/65536, ((int) floatValue/256)%256, ((int) floatValue)%256];
+		case DOM_CSS_DIMENSION:
+		case DOM_CSS_COUNTER:
+		case DOM_CSS_RECT:
+			return @"TODO";
 	}
 	return [NSString stringWithFormat:@"%f%@", [self getFloatValue:primitiveType], suffix];
 }

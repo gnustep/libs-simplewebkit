@@ -22,8 +22,8 @@
 */
 
 #import <Foundation/Foundation.h>
-#import <AppKit/NSColor.h>
 
+@class NSColor;
 @class WebFrame;
 
 @interface NSObject (WebPlugInContainer)
