@@ -135,6 +135,28 @@ enum
 #endif
 #endif
 
+@interface DOMHTMLFormElement (Private)
+- (void) _submitForm:(DOMHTMLElement *) clickedElement;
+@end
+
+@interface DOMCSSValue (Private)
+- (NSString *) _toString;
+@end
+
+@interface NSTextBlock (Attributes)
+- (void) _setTextBlockAttributes:(DOMHTMLElement *) element	paragraph:(NSMutableParagraphStyle *) paragraph;
+@end
+
+@interface DOMHTMLInputElement (Forms)
+- (void) _submit:(id) sender;
+- (void) _reset:(id) sender;
+- (void) _checkbox:(id) sender;
+- (void) _resetForm:(DOMHTMLElement *) ignored;
+- (void) _radio:(id) sender;
+- (void) _radioOff:(DOMHTMLElement *) clickedCell;
+- (NSString *) _formValue;	// return nil if not successful according to http://www.w3.org/TR/html401/interact/forms.html#h-17.3 17.13.2 Successful controls
+@end
+
 @implementation NSString (HTMLAttributes)
 
 - (BOOL) _htmlBoolValue;
@@ -403,7 +425,7 @@ enum
 			{ // handle special case...
 				NSString *script=[(DOMElement *) self valueForKey:event];
 				if([script isEqualToString:@"document.Destination.submit()"])
-					[[self valueForKey:@"form"] _submitForm:self];
+					[[self valueForKey:@"form"] _submitForm:(DOMHTMLElement *) self];
 			}
 }
 
@@ -615,7 +637,7 @@ enum
 		list=[(DOMHTMLDocument *) [self ownerDocument] styleSheets];
 		cnt=[list length];
 		for(i=0; i<cnt; i++)
-			{
+			{ // go through all style sheets
 			// FIXME: make this a method of DOMCSSRuleList
 			// but in a way that multiple rules may match (and have different priorities!)
 			// i.e. we should have a method that returns all matching rules
@@ -2255,7 +2277,7 @@ enum
 			if(f) [_style setObject:f forKey:NSFontAttributeName];
 			[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
 		}
-	blocks=[paragraph textBlocks];	// the text blocks
+	blocks=(NSMutableArray *) [paragraph textBlocks];	// the text blocks
 	if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
 		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
 	else
@@ -2305,7 +2327,7 @@ enum
 
 - (DOMHTMLCollection *) elements { return elements; }
 
-- (IBAction) _submitForm:(DOMHTMLElement *) clickedElement;
+- (void) _submitForm:(DOMHTMLElement *) clickedElement;
 { // post current request
 	NSMutableURLRequest *request;
 	DOMHTMLDocument *htmlDocument;

@@ -419,6 +419,7 @@
 	NSScanner *sc;
 	NSEnumerator *e;
 	DOMCSSValue *val;
+	NSString *medium;
 	if([text isKindOfClass:[NSScanner class]])
 		sc=(NSScanner *) text;	// we already got a NSScanner
 	else
@@ -427,8 +428,8 @@
 	// characters to be ignored
 	val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
 	e=[[val _toStringArray] objectEnumerator];
-	while((val=[e nextObject]))
-		[self appendMedium:val];
+	while((medium=[e nextObject]))
+		[self appendMedium:medium];
 }
 
 - (unsigned) length; { return [items count]; }
@@ -698,10 +699,23 @@
 
 - (DOMCSSStyleSheet *) styleSheet; { return styleSheet; }
 
-- (BOOL) ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
+- (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 { // search in loaded style sheet
 	// check if we match medium
-	return [styleSheet _ruleMatchesElement:element pseudoElement:pseudoElement];
+	// FIXME: go through all rules!
+	DOMCSSRuleList *rules=[styleSheet cssRules];
+	int r, rcnt=[rules length];
+	for(r=0; r<rcnt; r++)
+		{		
+		DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
+		// FIXME: how to handle pseudoElement here?
+#if 0
+		NSLog(@"match %@ with %@", self, rule);
+#endif
+		if([rule _ruleMatchesElement:element pseudoElement:pseudoElement])
+			return YES;
+		}
+	return NO;
 }
 
 // WebDocumentRepresentation callbacks
@@ -737,7 +751,7 @@
 
 - (unsigned short) type; { return DOM_MEDIA_RULE; }
 
-- (BOOL) ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
+- (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 { // search in loaded style sheet
 	// check if we match any medium
 	// check subrules
@@ -750,7 +764,7 @@
 		DOMCSSStyleRuleSelector *sel;
 		while((sel=[f nextObject]))
 			{
-			if(![sel ruleMatchesElement:element pseudoElement:pseudoElement])
+			if(![sel _ruleMatchesElement:element pseudoElement:pseudoElement])
 				break;	// no match
 			}
 		if(!sel)
@@ -903,7 +917,7 @@
 	[super dealloc];
 }
 
-- (BOOL) ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
+- (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 {
 	switch(type)
 	{
@@ -978,7 +992,7 @@
 		DOMCSSStyleRuleSelector *sel;
 		while((sel=[f nextObject]))
 			{
-			if(![sel ruleMatchesElement:element pseudoElement:pseudoElement])
+			if(![sel _ruleMatchesElement:element pseudoElement:pseudoElement])
 				break;	// no match
 			}
 		if(!sel)
@@ -1532,22 +1546,18 @@
 					if([stringValue isEqualToString:@"rgb"])
 						{ // rgb(r, g, b)
 							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
-							if([val cssValueType] == DOM_CSS_VALUE_LIST)
+							NSArray *args=[val _toStringArray];
+							unsigned rgb=0;
+							int i;
+							for(i=0; i<=2 && i < [args count]; i++)
 								{
-								unsigned rgb=0;
-								int i;
-								for(i=0; i<=2 && i < [(DOMCSSValueList *) val length]; i++)
-									{
-									DOMCSSPrimitiveValue *component=[(DOMCSSValueList *) val item:i];
-									int c;
-									if([component primitiveType] == DOM_CSS_PERCENTAGE)
-										c=255.0*[component getFloatValue:DOM_CSS_PERCENTAGE];
-									else
-										c=[component getFloatValue:DOM_CSS_NUMBER];	// absolute
-									rgb=(rgb << 8) + (c % 256);
-									}
-								floatValue=rgb;
+								NSString *component=[args objectAtIndex:i];
+								float c=[component floatValue];
+								if([component hasSuffix:@"%"])
+									c=(255.0*c)/100.0;
+								rgb=(rgb << 8) + (((unsigned) c) % 256);
 								}
+							floatValue=rgb;
 							[val release];
 							primitiveType=DOM_CSS_RGBCOLOR;
 						}

@@ -837,7 +837,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# shell script goes here\n# http://clang.llvm.org/StaticAnalysisUsage.html\n# project must be in Debug build mode\n\nPATH=../checker-0.146:$PATH\n\nxcodebuild -target SimpleWebKit clean\nscan-build -V xcodebuild -target SimpleWebKit -configuration Development\n\nexit 0";
+			shellScript = "# shell script goes here\n# http://clang.llvm.org/StaticAnalysisUsage.html\n# project must be in Debug (Development) build mode\n\nPATH=../checker-0.146:$PATH\n\nxcodebuild -project SimpleWebKit.xcodeproj -target SimpleWebKit clean\nscan-build -V xcodebuild -project SimpleWebKit.xcodeproj -target SimpleWebKit -configuration Development\n\nexit 0";
 		};
 		EEAA53860DDB4F6E00D42522 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
