@@ -1823,6 +1823,7 @@ enum
 		{ // add a hyperlink
 		NSCursor *cursor=[NSCursor pointingHandCursor];
 		[_style setObject:urlString forKey:NSLinkAttributeName];	// set the link
+		[_style setObject:urlString forKey:NSToolTipAttributeName];	// set the ToolTip 
 		[_style setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
 		if(target)
 			[_style setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
