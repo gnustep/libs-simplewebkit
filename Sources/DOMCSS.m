@@ -702,6 +702,9 @@
 - (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 { // search in loaded style sheet
 	
+	DOMCSSRuleList *rules;
+	int r, rcnt;
+
 	// FIXME: we can't simply check if a @import rule matches
 	// because we finally want to add the matching styles...
 	// so this approach is fundamentally broken.
@@ -711,8 +714,8 @@
 	
 	// check if we match medium
 	// FIXME: go through all rules!
-	DOMCSSRuleList *rules=[styleSheet cssRules];
-	int r, rcnt=[rules length];
+	rules=[styleSheet cssRules];
+	rcnt=[rules length];
 	for(r=0; r<rcnt; r++)
 		{		
 		DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
