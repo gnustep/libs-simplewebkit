@@ -129,7 +129,7 @@ NSString *WebScriptException=@"WebScriptException";
 
 - (id) valueForUndefinedKey:(NSString *)key
 {
-	return nil;
+//	return nil;
 	// should be...
 	return [WebUndefined undefined];
 }

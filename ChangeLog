@@ -1,3 +1,7 @@
+2011-04-14  Nikolaus Schaller <hns@computer.org>
+	* fixed bug in DOMCSSValueList which resulted in delayed segfault in NSArrayEnumerator
+	* minor cosmetics
+
 2010-10-24 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Sources/DOMCSS.m

@@ -355,13 +355,7 @@
 				EE4440B30BDBEA980031F556 /* ChangeLog */,
 				EEFA7D870E29FFEF00B86693 /* README */,
 				EECC1E600BA14EA20001C219 /* ToDo */,
-				EE9BE9BF0AFA53B800D445DA /* Private */,
-				EED0DD400BAED3CB005B0381 /* ECMA Script */,
-				EECAD4600B9D788200F37A98 /* XHTML Parser */,
-				EE9BEB430AFA865800D445DA /* DOM */,
-				EE05B6C40C3A8105004BDF3F /* CSS */,
-				EEA3309A09537E58001244CF /* WebView */,
-				EEA3309609537E48001244CF /* Resources */,
+				EE2AED7E1356C44D002C0687 /* WebKit */,
 				EE5EBB580A188F970045B88D /* SWKBrowser */,
 				EE4535590A166D4400C660D5 /* Mac Frameworks */,
 				EE29D8D8058A38830035639B /* Products */,
@@ -369,13 +363,13 @@
 			name = BrowserTester;
 			sourceTree = "<group>";
 		};
-		EE05B6C40C3A8105004BDF3F /* CSS */ = {
+		EE05B6C40C3A8105004BDF3F /* CSS DOM Engine */ = {
 			isa = PBXGroup;
 			children = (
 				EE60FC830BA6993E00503BB4 /* DOMCSS.h */,
 				EE60FC840BA6993E00503BB4 /* DOMCSS.m */,
 			);
-			name = CSS;
+			name = "CSS DOM Engine";
 			sourceTree = "<group>";
 		};
 		EE29D8D8058A38830035639B /* Products */ = {
@@ -387,6 +381,20 @@
 				EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		EE2AED7E1356C44D002C0687 /* WebKit */ = {
+			isa = PBXGroup;
+			children = (
+				EECAD4600B9D788200F37A98 /* XHTML Parser */,
+				EE9BEB430AFA865800D445DA /* DOM */,
+				EE05B6C40C3A8105004BDF3F /* CSS DOM Engine */,
+				EED0DD400BAED3CB005B0381 /* ECMA Script Engine */,
+				EEA3309A09537E58001244CF /* WebView API */,
+				EE9BE9BF0AFA53B800D445DA /* Private */,
+				EEA3309609537E48001244CF /* Resources */,
+			);
+			name = WebKit;
 			sourceTree = "<group>";
 		};
 		EE4535590A166D4400C660D5 /* Mac Frameworks */ = {
@@ -484,6 +492,7 @@
 				EEBA300C0F2F50F200FA7110 /* DOMSVG.m */,
 				EE24FD190C209B37001947BB /* DOMHTML.plist */,
 				EE6635651219BA8B00761982 /* DOMHTMLColors.plist */,
+				EECCF3990BA037EF0001C219 /* WebKitIMG.png */,
 			);
 			name = DOM;
 			path = Sources;
@@ -493,13 +502,12 @@
 			isa = PBXGroup;
 			children = (
 				EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */,
-				EECCF3990BA037EF0001C219 /* WebKitIMG.png */,
 			);
 			name = Resources;
 			path = Sources;
 			sourceTree = "<group>";
 		};
-		EEA3309A09537E58001244CF /* WebView */ = {
+		EEA3309A09537E58001244CF /* WebView API */ = {
 			isa = PBXGroup;
 			children = (
 				EE60FA780BA6928400503BB4 /* WebArchive.h */,
@@ -530,14 +538,12 @@
 				EE428B340A4819A2003437D2 /* WebResource.h */,
 				EE428B350A4819A2003437D2 /* WebResource.m */,
 				EEE9AE680BC6D85100757F02 /* WebResourceLoadDelegate.h */,
-				EE5EBCDF0A1A4CB70045B88D /* WebScriptObject.h */,
-				EE291C080AD78194004A1CA6 /* WebScriptObject.m */,
 				EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */,
 				EE60FA7C0BA6943F00503BB4 /* WebUndefined.h */,
 				EEA3D39B095468BA001244CF /* WebView.h */,
 				EEA3D39C095468BA001244CF /* WebView.m */,
 			);
-			name = WebView;
+			name = "WebView API";
 			path = Sources;
 			sourceTree = "<group>";
 		};
@@ -552,7 +558,7 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
-		EED0DD400BAED3CB005B0381 /* ECMA Script */ = {
+		EED0DD400BAED3CB005B0381 /* ECMA Script Engine */ = {
 			isa = PBXGroup;
 			children = (
 				EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */,
@@ -561,8 +567,10 @@
 				EED0DD390BAED3C4005B0381 /* ECMAScriptParser.m */,
 				EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */,
 				EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */,
+				EE5EBCDF0A1A4CB70045B88D /* WebScriptObject.h */,
+				EE291C080AD78194004A1CA6 /* WebScriptObject.m */,
 			);
-			name = "ECMA Script";
+			name = "ECMA Script Engine";
 			path = Sources;
 			sourceTree = "<group>";
 		};

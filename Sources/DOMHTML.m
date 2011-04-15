@@ -400,33 +400,36 @@ enum
 - (void) _triggerEvent:(NSString *) event;
 {
 	WebView *webView=[[self webFrame] webView];
+#if 1
+	NSLog(@"trigger %@", event);
+#endif
 	if([[webView preferences] isJavaScriptEnabled])
+		{
+		NSString *script=[(DOMElement *) self valueForKey:event];	// try to read script
+		if(script)
 			{
-				NSString *script=[(DOMElement *) self valueForKey:event];
-				if(script)
-						{
 #if 0
-							NSLog(@"trigger %@=%@", event, script);
+			NSLog(@"  script=%@", event, script);
 #endif
 #if 0
-								{
-									id r;
-									NSLog(@"trigger <script>%@</script>", script);
-									r=[self evaluateWebScript:script];	// try to parse and directly execute script in current document context
-									NSLog(@"result=%@", r);
-								}
+				{
+				id r;
+				NSLog(@"trigger <script>%@</script>", script);
+				r=[self evaluateWebScript:script];	// try to parse and directly execute script in current document context
+				NSLog(@"result=%@", r);
+				}
 #else
-							[self evaluateWebScript:script];	// evaluate code defined by event attribute (protected against exceptions)
+			[self evaluateWebScript:script];	// evaluate code defined by event attribute (protected against exceptions)
 #endif
-						}
 			}
+		}
 	// special hack
 	else if([event isEqualToString:@"onclick"])
-			{ // handle special case...
-				NSString *script=[(DOMElement *) self valueForKey:event];
-				if([script isEqualToString:@"document.Destination.submit()"])
-					[[self valueForKey:@"form"] _submitForm:(DOMHTMLElement *) self];
-			}
+		{ // handle special case...
+			NSString *script=[(DOMElement *) self valueForKey:event];
+			if([script isEqualToString:@"document.Destination.submit()"])
+				[[self valueForKey:@"form"] _submitForm:(DOMHTMLElement *) self];
+		}
 }
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
@@ -960,12 +963,13 @@ enum
 		{ // load stylesheet in background
 			NSData *data=[self _loadSubresourceWithAttributeString:@"href" blocking:NO];
 			NSString *media=[self getAttribute:@"media"];
-			sheet=[DOMCSSStyleSheet new];	// create new sheet to store incoming rules
-			[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];	// add to list of known style sheets (before loading others)
+			sheet=[DOMCSSStyleSheet new];	// create new (empty) sheet to store incoming rules
 			[sheet setOwnerNode:self];
 			[sheet setHref:[self getAttribute:@"href"]];
 			if(media)
 				[[sheet media] setMediaText:media];
+			NSLog(@"sheet=%@", sheet);
+			[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];	// add to list of known style sheets (before loading others)
 			[sheet release];
 			if(data)
 					{ // parse directly if already loaded

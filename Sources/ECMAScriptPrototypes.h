@@ -24,7 +24,7 @@
 #import <Foundation/Foundation.h>
 #import <WebKit/WebScriptObject.h>
 
-// FIXME - all these objects sould implement the WebScriptObject methods and KVC (representing _get, _put, _call etc.)
+// FIXME - all these objects should implement the WebScriptObject methods and KVC (representing _get, _put, _call etc.)
 
 @interface _ConcreteWebScriptObject : WebScriptObject
 {

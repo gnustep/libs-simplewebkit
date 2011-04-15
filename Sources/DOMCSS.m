@@ -1328,7 +1328,7 @@
 
 - (void) dealloc
 {
-	[values dealloc];
+	[values release];
 	[super dealloc];
 }
 
