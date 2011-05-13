@@ -129,8 +129,9 @@ NSString *WebScriptException=@"WebScriptException";
 
 - (id) valueForUndefinedKey:(NSString *)key
 {
-//	return nil;
+	return nil;
 	// should be...
+	// but this raises many problems since we sometimes assume in _layout that nil is returned if a property does not exist
 	return [WebUndefined undefined];
 }
 
