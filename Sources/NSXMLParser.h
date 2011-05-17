@@ -134,8 +134,8 @@ typedef enum _NSXMLParserError
 typedef enum _NSXMLParserReadMode
 {
 	_NSXMLParserStandardReadMode,	// decode embedded tags
-	_NSXMLParserPlainReadMode,		// get charcters (even entities) as they are until we find a matching closing tag: e.g. <script>
-	_NSXMLParserEntityOnlyReadMode,	// get charcters until we find a matching closing tag but still translate entities: e.g. <pre>
+	_NSXMLParserPlainReadMode,		// read characters (even entities) as they are until we find a closing tag: e.g. <script>...</script>
+	_NSXMLParserEntityOnlyReadMode,	// read characters until we find a matching closing tag but still translate entities: e.g. <pre>...</pre>
 } _NSXMLParserReadMode;
 
 @interface NSXMLParser : NSObject

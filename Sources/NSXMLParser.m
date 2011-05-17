@@ -345,37 +345,20 @@ static NSDictionary *entitiesTable;
 			if(*cp == '&' && readMode != _NSXMLParserPlainReadMode)
 				break;	// take entity
 			if(*cp == '<')
-				{
+				{ // check for </[a-zA-Z] according to http://www.w3.org/TR/html401/appendix/notes.html#notes-specifying-data
 				if(readMode == _NSXMLParserStandardReadMode)
 					break;	// we are not scanning for end of current tag
-				if(cp+1 == ep)
+				if(cp+2 >= ep)
 					{
 					if(done)
 						;
 					cp=vp;
 					return;	// we can't decide yet
 					}
-				if(cp[1] == '/')
-					{ // candidate for ending _NSXMLParserPlainReadMode
-					NSString *tag;
-					const char *currentTag;
-					int len;
-					tag=[tagPath lastObject];
-					currentTag=[tag UTF8String];
-					len=strlen(currentTag);
-					if(cp+len+3 >= ep)
-						{
-						if(done)
-							; // error
-						cp=vp;
-						return;	// we can't decide yet
-						}
-					// NOTE: this is a C hack: it firstly selects between two function addresses by the ?: operator and then indirectly calls (*fnp)(args...)
-					if((*(acceptHTML?strncasecmp:strncmp))((char *)cp+2, (char *)currentTag, len) == 0 && cp[len+2] == '>')
-						{ // yes, this will be parsed as the matching closing tag
-						readMode=_NSXMLParserStandardReadMode;	// switch back to standard read mode
-						break;	// and process
-						}
+				if(cp[1] == '/' && isalpha(cp[2]))
+					{ // end _NSXMLParserPlainReadMode
+					readMode=_NSXMLParserStandardReadMode;	// switch back to standard read mode
+					break;	// and process the closing tag
 					} // else this is a < to be passed verbatim to the delegate
 				}
 			if(*cp == '\r')
