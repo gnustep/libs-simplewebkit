@@ -361,9 +361,12 @@
 		[DOMCSSRule _skip:sc];
 		if(![sc scanString:@";" intoString:NULL])
 			{ // invalid - try to recover
-			[sc scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@";}"] intoString:NULL];
-			[sc scanString:@";" intoString:NULL];
-			break;
+				static NSCharacterSet *recover;	// cache once
+				if(!recover)
+					recover=[[NSCharacterSet characterSetWithCharactersInString:@";}"] retain];
+				[sc scanUpToCharactersFromSet:recover intoString:NULL];
+				[sc scanString:@";" intoString:NULL];
+				break;
 			}
 		}
 	// trigger re-layout of ownerDocumentView
@@ -385,6 +388,10 @@
 
 - (NSString *) getPropertyShorthand:(NSString *) propertyName;
 { // convert property-name into camelCase propertyName to allow JS access by dotted notation
+	// FIXME:
+	// componentsSeparatedByString:@"-"
+	// 2..n: first character to Uppercase
+	// componentsJoinedByString:@""
 	return propertyName;
 }
 
@@ -522,7 +529,10 @@
 			[DOMCSSRule _skip:sc];
 			self=[[DOMCSSMediaRule alloc] initWithMedia:(NSString *) sc];
 			if(![sc scanString:@"{" intoString:NULL])
+				{
+				[self release];
 				return nil;
+				}
 			while(![sc isAtEnd])
 				if([(DOMCSSMediaRule *) self insertRule:(NSString *) sc index:[[(DOMCSSMediaRule *) self cssRules] length]] == (unsigned) -1)	// parse and scan rules
 					break;
@@ -552,7 +562,8 @@
 			// check for name definition
 		}	// although we cast to DOMCSSStyleRule below, the DOMCSSPageRule provides the same methods
 	if([sc scanString:@"@" intoString:NULL])
-		{ // unknon @
+		{ // unknown @ operator
+			NSLog(@"DOMCSSRule: unknown @ operator");
 			// FIXME: ignore up to ; or including block - must match { and }
 			// see http://www.w3.org/TR/1998/REC-CSS2-19980512/syndata.html#block section 4.2
 			return nil;
@@ -1195,8 +1206,10 @@
 	NSLog(@"_setCssText <style>%@</style>", sheet);
 #endif
 	while(![scanner isAtEnd])
+		{
 		if([self insertRule:(NSString *) scanner index:[cssRules length]] == (unsigned) -1)	// parse and scan rules
-			break;
+			break;		
+		}
 }
 
 - (BOOL) _refersToHref:(NSString *) ref;
@@ -1564,12 +1577,14 @@
 								{
 								NSString *component=[args objectAtIndex:i];
 								float c=[component floatValue];
-								if([component hasSuffix:@"%"])
-									c=(255.0*c)/100.0;
+								if([component hasSuffix:@"%"])	c=(255.0/100.0)*c;	// convert %
+								if(c > 255.0)		c=255.0;	// clamp to range
+								else if(c < 0.0)	c=0.0;
 								rgb=(rgb << 8) + (((unsigned) c) % 256);
 								}
 							floatValue=rgb;
 							[val release];
+							stringValue=nil;	// don't store
 							primitiveType=DOM_CSS_RGBCOLOR;
 						}
 					else if([stringValue isEqualToString:@"url"])
@@ -1578,6 +1593,7 @@
 							stringValue=[val _toString];	// get unquoted or quoted value
 							[val release];
 							primitiveType=DOM_CSS_URI;
+							stringValue=nil;	// don't store
 						}
 					else if([stringValue isEqualToString:@"attr"])
 						{ // attr(name)
@@ -1585,6 +1601,7 @@
 							// handle value
 							[val release];
 							primitiveType=DOM_CSS_ATTR;
+							stringValue=nil;	// don't store
 						}
 					else if([stringValue isEqualToString:@"counter"])
 						{ // counter(ident) or counter(ident, list-style-type)
@@ -1592,13 +1609,16 @@
 							// handle value
 							[val release];
 							primitiveType=DOM_CSS_COUNTER;
+							stringValue=nil;	// don't store
 						}
-					else 	primitiveType=DOM_CSS_UNKNOWN;
+					else
+						primitiveType=DOM_CSS_UNKNOWN;
 					[sc scanString:@")" intoString:NULL];					
 				}
 			[stringValue retain];
 			return;
 		}
+	stringValue=nil;	// just be safe
 	primitiveType=DOM_CSS_UNKNOWN;
 }
 

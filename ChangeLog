@@ -1,3 +1,9 @@
+2011-05-16  Nikolaus Schaller <hns@computer.org>
+	* fixed issue in scanning <script>...</script>
+	* fixed signature of - (NSView <WebDocumentView> *) documentView;
+	* checked with Clang for potential issues and fixed two potential leaks
+	* optimized CSS parser a little
+
 2011-04-14  Nikolaus Schaller <hns@computer.org>
 	* fixed bug in DOMCSSValueList which resulted in delayed segfault in NSArrayEnumerator
 	* minor cosmetics
