@@ -1135,7 +1135,31 @@ enum
 		if([script hasSuffix:@"-->"])
 			script=[script substringWithRange:NSMakeRange(0, [script length]-3)];	// remove
 		// checkme: is it permitted to write <script><!CDATA[....? and how is that represented
-#if 0
+			// YES: http://www.w3schools.com/xmL/xml_cdata.asp
+			/*
+			 Some text, like JavaScript code, contains a lot of "<" or "&" characters. To avoid errors script code can be defined as CDATA.
+			 
+			 Everything inside a CDATA section is ignored by the XML parser.
+			 
+			 A CDATA section starts with "<![CDATA[" and ends with "]]>":
+			 
+			 <script>
+			 <![CDATA[
+			 function matchwo(a,b)
+			 {
+			 if (a < b && a < 0) then
+			 {
+			 return 1;
+			 }
+			 else
+			 {
+			 return 0;
+			 }
+			 }
+			 ]]>
+			 </script>
+			 */
+#if 1
 		{
 		id r;
 		NSLog(@"evaluate inlined <script>%@</script>", script);
@@ -2265,6 +2289,7 @@ enum
 	table=[tableElement _getRow:&row andColumn:&col rowSpan:&rowspan colSpan:&colspan forCell:self];	// ask tableElement for our position
 	if(!table)
 		{ // we are not within a table
+			[paragraph release];
 			return;	// error...
 		}
 	if(col+colspan-1 > [table numberOfColumns])

@@ -239,27 +239,27 @@
 + (void) _skipComments:(NSScanner *) sc;
 { // 7.4
 	static NSString *cComment=@"/*";
-	 static NSString *cCommentEnd=@"*/";
-	 static NSString *cPlusPlusComment=@"//";
-										 // switch scanner to skip whitespace
-		 while(YES)
-			 {
-			 [sc setCharactersToBeSkipped:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// initially eat all whitespace (but no new lines)
-			 if([sc scanString:cPlusPlusComment intoString:NULL])
-				 { // until end of line
-				 [sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
-				 [sc scanUpToCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL];
-				 }
-			 else if([sc scanString:cComment intoString:NULL])
-				 {
-				 [sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
-				 [sc scanUpToString:cCommentEnd intoString:NULL];
-				 [sc scanString:cCommentEnd intoString:NULL];	// and eat stop string
-																// how to handle the multiline comment rule that inserts a virtual \n?
-				 }
-			 else
-				 return;	// neither
-			 }
+	static NSString *cCommentEnd=@"*/";
+	static NSString *cPlusPlusComment=@"//";
+	// switch scanner to skip whitespace
+	while(YES)
+		{
+		[sc setCharactersToBeSkipped:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// initially eat all whitespace (but no new lines)
+		if([sc scanString:cPlusPlusComment intoString:NULL])
+			{ // until end of line
+				[sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
+				[sc scanUpToCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL];
+			}
+		else if([sc scanString:cComment intoString:NULL])
+			{
+			[sc setCharactersToBeSkipped:nil];	// don't end at first whitespace
+			[sc scanUpToString:cCommentEnd intoString:NULL];
+			[sc scanString:cCommentEnd intoString:NULL];	// and eat stop string
+			// how to handle the multiline comment rule that inserts a virtual \n?
+			}
+		else
+			return;	// neither
+		}
 }
 
 /* expressions 11. */
@@ -1319,12 +1319,21 @@
 		if(![sc _scanToken:@"{"])
 			[sc _scanError:@"missing { in function (parameters) { body }"];
 		}
-	while(YES)
+#if 1
+	NSLog(@"_programWithScanner");
+#endif
+	  while(YES)
 		{
 		id s;
 		[self _skipComments:sc];
+#if 1
+		fprintf(stderr, "did _skipComments\n");
+#endif
 		if([sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			continue;	// empty statement
+#if 1
+		fprintf(stderr, "after scanCharactersFromSet\n");
+#endif
 		if(flag && [sc _scanToken:@"}"])
 			break;
 		if([sc isAtEnd])
@@ -1351,7 +1360,7 @@
 /* *** */
 
 + (id) node:(id) l :(id) r;
-{ // create a new node (not released!)
+{ // create a new node (not released and initialized!)
 	_WebScriptTreeNode *n=[self alloc];
 	n->left=[l retain];
 	n->right=[r retain];

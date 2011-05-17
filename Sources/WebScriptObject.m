@@ -68,8 +68,13 @@ NSString *WebScriptException=@"WebScriptException";
 		{
 			WebScriptContext context;
 			NSScanner *sc=[NSScanner scannerWithString:script];
+#if 1
+		NSLog(@"parsing script");
+#endif
 			r=[_WebScriptTreeNode _programWithScanner:sc block:NO];
-			// NSLog(@"script=%@", r);
+#if 1
+			NSLog(@"script=%@", r);
+#endif
 #if 1	// can be disabled to test if the parser is working well
 			context.global=self;
 			context.this=self;
@@ -81,6 +86,7 @@ NSString *WebScriptException=@"WebScriptException";
 	NS_HANDLER
 		r=[NSString stringWithFormat:@"<WebScript Exception: %@>", [localException reason]];
 #if 1
+		NSLog(@"web script exception %@", r);
 		NSRunCriticalAlertPanel(@"WebScript", @"%@", @"Continue", nil, nil, r);	// show a popup
 #endif
 	NS_ENDHANDLER
