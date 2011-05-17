@@ -76,11 +76,11 @@
 }
 
 - (WebFrame *) webFrame; { return _webFrame; }
-- (NSView *) documentView; { return [[[self subviews] lastObject] documentView]; }
+- (NSView <WebDocumentView> *) documentView; { return [(WebFrameView *) [[self subviews] lastObject] documentView]; }
 
 - (NSRect) _recommendedDocumentFrame;
 {
-	return (NSRect) { NSZeroPoint, [[[[self subviews] lastObject] contentView] bounds].size };
+	return (NSRect) { NSZeroPoint, [[(WebFrameView *) [[self subviews] lastObject] contentView] bounds].size };
 }
 
 - (void) setAllowsScrolling:(BOOL) flag;
