@@ -15,7 +15,6 @@
 		850F8EA010D5162B00F4E3C8 /* DemoHTML in Resources */ = {isa = PBXBuildFile; fileRef = 853AB7DF0E29159700B8A749 /* DemoHTML */; };
 		850F8EA110D5162B00F4E3C8 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 853AB7D90E29157A00B8A749 /* MainMenu.nib */; };
 		850F8EA210D5162B00F4E3C8 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 853AB7DB0E29157A00B8A749 /* MyDocument.nib */; };
-		850F8EB410D516C300F4E3C8 /* SWKBrowser-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 850F8EB310D516C300F4E3C8 /* SWKBrowser-Info.plist */; };
 		856A50000E2BF009007A0793 /* DOM.h in Headers */ = {isa = PBXBuildFile; fileRef = F51E75718B9F4A2701A8012E /* DOM.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		856A50010E2BF009007A0793 /* DOMCore.h in Headers */ = {isa = PBXBuildFile; fileRef = F51E75728B9F4A2701A8012E /* DOMCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		856A50020E2BF009007A0793 /* DOMHTML.h in Headers */ = {isa = PBXBuildFile; fileRef = F51E75738B9F4A2701A8012E /* DOMHTML.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -94,8 +93,8 @@
 		0867D6A5FE840307C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		850F8E7E10D5156E00F4E3C8 /* SWKBrowser.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		850F8EB310D516C300F4E3C8 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = "SWKBrowser-Info.plist"; path = "SWKBrowser/SWKBrowser-Info.plist"; sourceTree = "<group>"; };
+		850F8E7E10D5156E00F4E3C8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		850F8EB310D516C300F4E3C8 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "SWKBrowser-Info.plist"; path = "SWKBrowser/SWKBrowser-Info.plist"; sourceTree = "<group>"; };
 		853AB73D0E2909B000B8A749 /* DOMCSS.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DOMCSS.h; path = Sources/DOMCSS.h; sourceTree = "<group>"; };
 		853AB73E0E2909B000B8A749 /* DOMCSS.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = DOMCSS.m; path = Sources/DOMCSS.m; sourceTree = "<group>"; };
 		853AB73F0E2909B000B8A749 /* DOMRange.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DOMRange.h; path = Sources/DOMRange.h; sourceTree = "<group>"; };
@@ -134,7 +133,7 @@
 		853AB7DA0E29157A00B8A749 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = SWKBrowser/English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		853AB7DC0E29157A00B8A749 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = SWKBrowser/English.lproj/MyDocument.nib; sourceTree = "<group>"; };
 		853AB7DF0E29159700B8A749 /* DemoHTML */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DemoHTML; path = SWKBrowser/DemoHTML; sourceTree = "<group>"; };
-		853AB8460E2917AD00B8A749 /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = DOMHTML.plist; path = Sources/DOMHTML.plist; sourceTree = "<group>"; };
+		853AB8460E2917AD00B8A749 /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = DOMHTML.plist; path = Sources/DOMHTML.plist; sourceTree = "<group>"; };
 		853AB8470E2917AD00B8A749 /* HTMLEntities.strings */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = HTMLEntities.strings; path = Sources/HTMLEntities.strings; sourceTree = "<group>"; };
 		8563F1170F2BCC8C001A1F08 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		856A504C0E2BF009007A0793 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -443,10 +442,19 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 85A7680310C6525E0086E0D3 /* Build configuration list for PBXProject "SimpleWebKitTiger" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 0867D691FE84028FC02AAC07 /* SimpleWebKit */;
 			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				856A4FFE0E2BF009007A0793 /* SimpleWebKit */,
 				850F8E7D10D5156E00F4E3C8 /* SWKBrowser */,
@@ -462,7 +470,6 @@
 				850F8EA010D5162B00F4E3C8 /* DemoHTML in Resources */,
 				850F8EA110D5162B00F4E3C8 /* MainMenu.nib in Resources */,
 				850F8EA210D5162B00F4E3C8 /* MyDocument.nib in Resources */,
-				850F8EB410D516C300F4E3C8 /* SWKBrowser-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -572,11 +579,11 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
 				INSTALL_PATH = "$(USER_APPS_DIR)";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -602,11 +609,11 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
 				INSTALL_PATH = "$(USER_APPS_DIR)";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -631,11 +638,11 @@
 			buildSettings = {
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
 				INSTALL_PATH = "$(USER_APPS_DIR)";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -677,7 +684,6 @@
 				INFOPLIST_FILE = "";
 				INSTALL_PATH = "$(HOME)/Library/Frameworks";
 				LIBRARY_SEARCH_PATHS = "";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = WebKit;
 				SECTORDER_FLAGS = "";
