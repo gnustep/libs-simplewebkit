@@ -615,7 +615,10 @@ enum
 		else
 			{ // convert to string value
 			val=(DOMCSSValue *) [val _toString];
-			[_style setObject:val forKey:key];	// copy value			
+			if(val)
+				[_style setObject:val forKey:key];	// copy value
+			else
+				; // was not able to convert into string!
 			}
 		}
 	// margin-left: etc.
