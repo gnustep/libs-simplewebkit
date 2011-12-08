@@ -2368,10 +2368,10 @@ enum
 	NSString *action;
 	NSString *method;
 	NSString *target;
-	NSMutableData *postBody=nil;
-	NSMutableString *getURL=nil;
+	NSMutableString *r;
 	NSEnumerator *e;
 	DOMHTMLElement *element;
+	BOOL post;
 	[self _triggerEvent:@"onsubmit"];
 	// can the trigger abort sending the form? Through an exception?
 	htmlDocument=(DOMHTMLDocument *) [self ownerDocument];	// may have been changed by the onsubmit script
@@ -2383,71 +2383,65 @@ enum
 #if 1
 	NSLog(@"method = %@", method);
 #endif
-	if(method && [method caseInsensitiveCompare:@"post"] == NSOrderedSame)
-		postBody=[NSMutableData new];
-	else
-		getURL=[NSMutableString stringWithCapacity:100];
+	post=(method && [method caseInsensitiveCompare:@"post"] == NSOrderedSame);
+	r=[NSMutableString stringWithCapacity:100];
 	e=[[elements valueForKey:@"elements"] objectEnumerator];
 	while((element=[e nextObject]))
-			{
-				NSString *name;
-				NSString *val=[(DOMHTMLInputElement *) element _formValue];	// should be [element valueForKey:@"value"]; but then we need to handle active elements here
-				// but we may need anyway since a <input type="file"> defines more than one variable!
-				NSMutableArray *a;
-				NSEnumerator *e;
-				NSMutableString *s;
-				if(!val)
-					continue;
-				name=[element valueForKey:@"name"];
-				if(!name)
-					continue;
-				a=[[NSMutableArray alloc] initWithCapacity:10];
-				e=[[val componentsSeparatedByString:@"+"] objectEnumerator];
-				while((s=[e nextObject]))
-						{ // URL-Encode components
+		{
+		NSString *name;
+		NSString *val=[(DOMHTMLInputElement *) element _formValue];	// should be [element valueForKey:@"value"]; but then we need to handle active elements here
+		// but we may need anyway since a <input type="file"> defines more than one variable!
+		NSMutableArray *a;
+		NSEnumerator *e;
+		NSMutableString *s;
+		if(!val)
+			continue;
+		name=[element valueForKey:@"name"];
+		if(!name)
+			continue;
+		a=[[NSMutableArray alloc] initWithCapacity:10];
+		e=[[val componentsSeparatedByString:@"+"] objectEnumerator];
+		while((s=[e nextObject]))
+			{ // URL-Encode components
 #if 1
-							NSLog(@"percent-escaping: %@ -> %@", s, [s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding]);
+				NSLog(@"percent-escaping: %@ -> %@", s, [s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding]);
 #endif
-							s=[[s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding] mutableCopy];
-							[s replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [s length])];
-							// CHECKME: which of these are already converted by stringByAddingPercentEscapesUsingEncoding?
-							[s replaceOccurrencesOfString:@"&" withString:@"%26" options:0 range:NSMakeRange(0, [s length])];
-							[s replaceOccurrencesOfString:@"?" withString:@"%3F" options:0 range:NSMakeRange(0, [s length])];
-							[s replaceOccurrencesOfString:@"-" withString:@"%3D" options:0 range:NSMakeRange(0, [s length])];
-							[s replaceOccurrencesOfString:@";" withString:@"%3B" options:0 range:NSMakeRange(0, [s length])];
-							[s replaceOccurrencesOfString:@"," withString:@"%2C" options:0 range:NSMakeRange(0, [s length])];
-							[a addObject:s];
-							[s release];										
-						}
-				val=[a componentsJoinedByString:@"%2B"];
-				[a release];
-				if(postBody)
-						[postBody appendData:[[NSString stringWithFormat:@"%@=%@\r\n", name, val] dataUsingEncoding:NSUTF8StringEncoding]];
-				else
-						[getURL appendFormat:@"&%@=%@", name, val];
+				s=[[s stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding] mutableCopy];
+				[s replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [s length])];
+				// CHECKME: which of these are already converted by stringByAddingPercentEscapesUsingEncoding?
+				[s replaceOccurrencesOfString:@"&" withString:@"%26" options:0 range:NSMakeRange(0, [s length])];
+				[s replaceOccurrencesOfString:@"?" withString:@"%3F" options:0 range:NSMakeRange(0, [s length])];
+				[s replaceOccurrencesOfString:@"-" withString:@"%3D" options:0 range:NSMakeRange(0, [s length])];
+				[s replaceOccurrencesOfString:@";" withString:@"%3B" options:0 range:NSMakeRange(0, [s length])];
+				[s replaceOccurrencesOfString:@"," withString:@"%2C" options:0 range:NSMakeRange(0, [s length])];
+				[a addObject:s];
+				[s release];										
 			}
-	if([getURL length] > 0)
-			{
+		val=[a componentsJoinedByString:@"%2B"];
+		[a release];
+		[r appendFormat:[r length] > 0?@"&%@=%@":@"%@=%@", name, val];	// separate by &
+		}
+	if(!post && [r length] > 0)
+		{
 #if 1
-				NSLog(@"getURL = %@", getURL);
+		NSLog(@"getURL = %@", r);
 #endif
-				action=[action stringByAppendingFormat:@"?%@", [getURL substringFromIndex:1]];	// change first & to ?
+		action=[action stringByAppendingFormat:@"?%@", r];
 #if 1
-				NSLog(@"action = %@", action);
+		NSLog(@"action = %@", action);
 #endif
-				// FIXME: remove any existing ?query part and replace
-			}
+		// FIXME: remove any existing ?query part and replace
+		}
 	request=(NSMutableURLRequest *)[NSMutableURLRequest requestWithURL:[NSURL URLWithString:action relativeToURL:[[[htmlDocument _webDataSource] response] URL]]];
 	if(method)
 		[request setHTTPMethod:[method uppercaseString]];	// will default to "GET" if missing
-	if(postBody)
-			{
+	if(post)
+		{
 #if 1
-				NSLog(@"post = %@", postBody);
+		NSLog(@"post = %@", [r dataUsingEncoding:NSUTF8StringEncoding]);
 #endif
-				[request setHTTPBody:postBody];
-				[postBody release];
-			}
+		[request setHTTPBody:[r dataUsingEncoding:NSUTF8StringEncoding]];
+		}
 #if 1
 	NSLog(@"submit <form> to %@ using method %@", [request URL], [request HTTPMethod]);
 #endif
