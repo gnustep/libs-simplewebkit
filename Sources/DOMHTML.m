@@ -2878,7 +2878,7 @@ enum
 - (NSString *) _formValue;
 {
 	int idx=[cell indexOfSelectedItem];
-	if(cell < 0)
+	if(idx < 0)
 		return nil;	// nothing selected
 	return [[[options valueForKey:@"elements"] objectAtIndex:idx] valueForKey:@"value"];
 }
