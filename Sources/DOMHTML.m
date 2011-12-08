@@ -944,6 +944,7 @@ enum
 			// else raise some error...
 			}
 		}
+	// decode other meta
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
