@@ -1,3 +1,8 @@
+2012-01-18 Riccardo Mottola <rm@gnu.org>
+
+	* Sources/DOMHTML.m
+	Really copy value to cell.
+
 2011-05-16  Nikolaus Schaller <hns@computer.org>
 	* fixed issue in scanning <script>...</script>
 	* fixed signature of - (NSView <WebDocumentView> *) documentView;

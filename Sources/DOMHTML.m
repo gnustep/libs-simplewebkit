@@ -2674,7 +2674,7 @@ enum
 - (void) textDidEndEditing:(NSNotification *)aNotification
 {
 	NSNumber *code = [[aNotification userInfo] objectForKey:@"NSTextMovement"];
-	[cell setStringValue:[[aNotification object] string]];	// copy value to cell
+	[cell setStringValue:[NSString stringWithString: [[aNotification object] string]]];	// copy value to cell
 	[cell endEditing:[aNotification object]];	
 	switch([code intValue])
 		{
@@ -2958,7 +2958,7 @@ enum
 
 - (void) textDidEndEditing:(NSNotification *)aNotification
 {
-	[cell setStringValue:[[aNotification object] string]];	// copy value to cell
+  [cell setStringValue:[NSString stringWithString:[[aNotification object] string]]];	// copy value to cell
 	[cell endEditing:[aNotification object]];	
 }
 
