@@ -1,3 +1,8 @@
+2012-01-19 Riccardo Mottola <rm@gnu.org>
+
+	* Sources/DOMHTML.m
+	Revert.
+
 2012-01-18 Riccardo Mottola <rm@gnu.org>
 
 	* Sources/DOMHTML.m
