@@ -50,13 +50,6 @@ NSString *WebHistorySavedNotification=@"WebHistorySavedNotification";
 
 @implementation WebHistory
 
-{
-	NSMutableDictionary *_itemsByURL;		// all items indexed by URL
-	NSMutableDictionary *_itemGroupsByDates;	// all items grouped (&ordered?) on a single day, indexed by date 
-	int _historyAgeInDaysLimit;
-	int _historyItemLimit;
-}
-
 static WebHistory *_optionalSharedHistory;
 
 + (WebHistory *) optionalSharedHistory; { return _optionalSharedHistory; }

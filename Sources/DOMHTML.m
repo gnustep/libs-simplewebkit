@@ -2578,10 +2578,12 @@ enum
 					[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
 				[cell setImage:image];	// set image
 				[image release];
-#if 0
+#if 1
 				NSLog(@"attachmentCell=%@", [attachment attachmentCell]);
 				NSLog(@"[attachmentCell attachment]=%@", [[attachment attachmentCell] attachment]);
 				NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
+			NSLog(@"[attachmentCell target]=%@", [[attachment attachmentCell] target]);
+			NSLog(@"[attachmentCell controlView]=%@", [[attachment attachmentCell] controlView]);
 #endif
 			}
 #if 1
@@ -2675,7 +2677,12 @@ enum
 {
 	NSNumber *code = [[aNotification userInfo] objectForKey:@"NSTextMovement"];
 	[cell setStringValue:[[aNotification object] string]];	// copy value to cell
-	[cell endEditing:[aNotification object]];	
+	[cell endEditing:[aNotification object]];
+#if 1
+	NSLog(@"Field Editor=%@", [aNotification object]);	// the field editor
+	NSLog(@"[attachmentCell target]=%@", [cell target]);	// this DOMHTMLInputElement
+	NSLog(@"[attachmentCell controlView]=%@", [cell controlView]);	// nil!
+#endif
 	switch([code intValue])
 		{
 			case NSReturnTextMovement:
