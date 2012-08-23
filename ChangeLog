@@ -1,3 +1,11 @@
+2012-08-**  Nikolaus Schaller <hns@computer.org>
+	* reworked CSS processing to provide computedStyleForElement:pseudoElement:
+	* reworked spliceTo: to translate CSS to NSAttributedString attributes
+	* added default.css to define HTML4 -> CSS translation
+	* removed (almost) all direct translation of attributes to style (attributes remain used for forms and table layout)
+	* fixed parsing of tag[attribute=value] style
+	* fixed white-space merging rules so that normal, pre and nowrap are working
+
 2012-01-19 Riccardo Mottola <rm@gnu.org>
 
 	* Sources/DOMHTML.m

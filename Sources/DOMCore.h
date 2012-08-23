@@ -123,12 +123,28 @@
 - (unsigned long) length;
 @end
 
-@interface DOMElement : DOMNode
+@interface DOMNamedNodeMap : DOMObject
 {
-	NSMutableDictionary *_attributes;	// name -> DOMAttr
+	NSMutableDictionary *_attributes;
 }
 
-- (NSArray *) _attributes;
+- (unsigned) length;
+- (DOMNode *) getNamedItem:(NSString *) name;
+- (DOMNode *) setNamedItem:(DOMNode *) node;
+- (DOMNode *) removeNamedItem:(NSString *) name;
+- (DOMNode *) item:(unsigned) index;
+- (DOMNode *) getNamedItemNS:(NSString *) uri localName:(NSString *) name;
+- (DOMNode *) setNamedItemNS:(DOMNode *) node;
+- (DOMNode *) removeNamedItemNS:(NSString *) uri localName:(NSString *) name;
+
+@end
+
+@interface DOMElement : DOMNode
+{
+	DOMNamedNodeMap *_attributes;
+}
+
+- (DOMNamedNodeMap *) attributes;
 - (NSString *) getAttribute:(NSString *) name;
 - (DOMAttr *) getAttributeNode:(NSString *) name;
 - (DOMAttr *) getAttributeNodeNS:(NSString *) uri :(NSString *) name;
@@ -172,7 +188,6 @@
 
 @interface DOMAttr : DOMNode
 {
-	NSString *_name;
 	NSString *_value;	// value can be nil
 	DOMElement *_ownerElement;
 }

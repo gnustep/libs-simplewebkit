@@ -1,0 +1,110 @@
+/*
+ * default CSS for handling HTML4 tags and attributes
+ * see http://www.w3.org/TR/CSS21/sample.html
+ */
+
+/* define defaults */
+
+*				{ white-space: normal; display: inline; }
+body			{ padding: 8px; line-height: 1.33; font-family: serif; font-size: medium; }
+
+/* define specific display style */
+
+html, address,
+blockquote, 
+body, dd, div, 
+dl, dt, 
+form,
+frame, frameset,
+h1, h2, h3, h4, 
+h5, h6, iframe, 
+/* noframes, */
+object, ol, p, 
+ul, applet, 
+center, dir, 
+hr, menu, pre	{ display: block }
+head, title,
+meta, link,
+base,
+style, script	{ display: none }
+noframes		{ display: none }	/* we support frames */
+table			{ display: table }
+tr				{ display: table-row }
+thead			{ display: table-header-group }
+tbody			{ display: table-row-group }
+tfoot			{ display: table-footer-group }
+col				{ display: table-column }
+colgroup		{ display: table-column-group }
+td, th			{ display: table-cell }
+caption			{ display: table-caption; text-align: center  }
+li				{ display: list-item }
+fieldset		{ display: inline-block }	/* define border/box */
+
+ol				{ list-style-type: decimal }
+ul				{ list-style-type: disc }
+ol ul, ul ul	{ list-style-type: circle }	/* second level */
+ol ol ul, ul ol ul,
+ol ul ul, ul ul ul	{ list-style-type: square }	/* third level */
+dl				{ list-style-type: disc }
+dt				{ }
+dd				{ }
+center			{ text-align: center }
+th				{ font-weight: bolder; text-align: center }
+pre				{ white-space: pre; font-family: monospace }
+b, strong		{ font-weight: bold }
+i, em, var		{ font-style: italic }
+tt, code, kbd	{ font-family: monospace }
+u				{ text-decoration: underline }
+strike			{ text-decoration: line-through }
+blink			{ text-decoration: blink }
+sub				{ vertical-align: sub; font-size: smaller; }
+sup				{ vertical-align: super; font-size: smaller; }
+big				{ font-size: larger; }
+small			{ font-size: smaller; }
+h1				{ x-header-level: 1; font-size: xx-large; font-weight: bold; }
+h2				{ x-header-level: 2; font-size: x-large; font-weight: bold; }
+h3				{ x-header-level: 3; font-size: large; font-weight: bold; }
+h4				{ x-header-level: 4; font-weight: bold; }
+h5				{ x-header-level: 5; font-weight: bold; }
+h6				{ x-header-level: 6; font-weight: bold; }
+a				{ cursor: pointer; }
+q:before		{ content: open-quote; }
+q:after			{ content: close-quote; }
+q				{ x-before: open-quote; }
+q				{ x-after: close-quote; }
+
+/* HTML tag to style attribute translation */
+
+p[align]		{ text-align: attr(align); }
+body[text]		{ color: attr(text); }
+body[bgcolor]	{ background-color: attr(bgcolor); }
+body[background]	{ background-color: url(attr(background)); }
+body[link]		{ visited-color: attr(link); }
+h1[align],
+h2[align],
+h3[align],
+h4[align],
+h5[align],
+h6[align],
+div[align],
+center[align],
+p[align]		{ text-align: attr(align); }
+font[face]		{ font-family: attr(face); }
+font[size]		{ font-size: attr(size); }	/* needs calculations - handle +/- */
+font[color]		{ color: attr(color); }
+a[href]			{ x-link: url(attr(href)); x-tooltip: attr(href); }
+a[target]		{ x-target-window: attr(target); }
+a[id]			{ x-anchor: attr(id); }
+a[name]			{ x-anchor: attr(name); }
+img[src]		{ cursor: pointer; x-link: url(attr(src)); content: url(attr(src)); }
+img[alt]		{ x-tooltip: attr(alt); }
+img[width]		{ width: attr(width); }
+img[heigh]		{ height: attr(height); }
+
+br:before		{ content: "\n"; }	/* pseudo elements not implemented */
+br				{ x-before: "\n"; }
+nobr			{ white-space: nowrap; }
+
+input[type="hidden"]	{ display: none; }
+input[type="password"]	{ text-transform: password; }
+button					{ display: inline-block }	/* define button style */

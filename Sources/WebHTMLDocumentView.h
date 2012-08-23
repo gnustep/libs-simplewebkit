@@ -90,3 +90,8 @@
 
 @end
 
+@interface WebView (NSAttributedString)
+
+- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent;
+
+@end

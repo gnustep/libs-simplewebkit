@@ -91,7 +91,82 @@
 		EE6FBB200C21D9F80095EEA6 /* WebXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB1A0C21D9F80095EEA6 /* WebXMLDocument.m */; };
 		EE6FBBC50C21DBD00095EEA6 /* WebTextDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBBC30C21DBD00095EEA6 /* WebTextDocument.h */; };
 		EE6FBBC60C21DBD00095EEA6 /* WebTextDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBBC40C21DBD00095EEA6 /* WebTextDocument.m */; };
+		EE77A01215DE317C00B07FCE /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = EE77A01115DE317C00B07FCE /* default.css */; };
+		EE77A01315DE317C00B07FCE /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = EE77A01115DE317C00B07FCE /* default.css */; };
 		EE7A7D3A0BB68A9100A5C0FC /* WebPluginContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C197A15D0339C004127D0 /* DOM.h in Headers */ = {isa = PBXBuildFile; fileRef = EE9BEB460AFA868500D445DA /* DOM.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C197B15D0339C004127D0 /* DOMCore.h in Headers */ = {isa = PBXBuildFile; fileRef = EE4729240B99D8F700559020 /* DOMCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C197C15D0339C004127D0 /* DOMCSS.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FC830BA6993E00503BB4 /* DOMCSS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C197D15D0339C004127D0 /* DOMHTML.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AFF880B6C8F9200346917 /* DOMHTML.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C197E15D0339C004127D0 /* DOMRange.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FCB40BA69A8D00503BB4 /* DOMRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C197F15D0339C004127D0 /* ECMAScriptEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */; };
+		EE7C198015D0339C004127D0 /* ECMAScriptParser.h in Headers */ = {isa = PBXBuildFile; fileRef = EED0DD380BAED3C4005B0381 /* ECMAScriptParser.h */; };
+		EE7C198115D0339C004127D0 /* ECMAScriptPrototypes.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */; };
+		EE7C198215D0339C004127D0 /* Private.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBC7F0A1926F00045B88D /* Private.h */; };
+		EE7C198315D0339C004127D0 /* WebArchive.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FA780BA6928400503BB4 /* WebArchive.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198415D0339C004127D0 /* WebBackForwardList.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCE00A1A4CB70045B88D /* WebBackForwardList.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198515D0339C004127D0 /* WebDataSource.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D393095468BA001244CF /* WebDataSource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198615D0339C004127D0 /* WebDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D395095468BA001244CF /* WebDocument.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198715D0339C004127D0 /* WebDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */; };
+		EE7C198815D0339C004127D0 /* WebDOMOperations.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCDE0A1A4CB70045B88D /* WebDOMOperations.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198915D0339C004127D0 /* WebDownload.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FA790BA6928400503BB4 /* WebDownload.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198A15D0339C004127D0 /* WebFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D396095468BA001244CF /* WebFrame.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198B15D0339C004127D0 /* WebFrameLoadDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AC8B50B6BA09900346917 /* WebFrameLoadDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198C15D0339C004127D0 /* WebFrameView.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D398095468BA001244CF /* WebFrameView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198D15D0339C004127D0 /* WebHistory.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCE30A1A4CB70045B88D /* WebHistory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198E15D0339C004127D0 /* WebHistoryItem.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCE10A1A4CB70045B88D /* WebHistoryItem.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C198F15D0339C004127D0 /* WebHTMLDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE9BE9BB0AFA534600D445DA /* WebHTMLDocumentRepresentation.h */; };
+		EE7C199015D0339C004127D0 /* WebHTMLDocumentView.h in Headers */ = {isa = PBXBuildFile; fileRef = EE475F3E0B9AF3B600559020 /* WebHTMLDocumentView.h */; };
+		EE7C199115D0339C004127D0 /* WebImageDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */; };
+		EE7C199215D0339C004127D0 /* WebKit.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D39A095468BA001244CF /* WebKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199315D0339C004127D0 /* WebPDFDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */; };
+		EE7C199415D0339C004127D0 /* WebPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCF00A1A4E270045B88D /* WebPlugin.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199515D0339C004127D0 /* WebPluginContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199615D0339C004127D0 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199715D0339C004127D0 /* WebResourceLoadDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EEE9AE680BC6D85100757F02 /* WebResourceLoadDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199815D0339C004127D0 /* WebScriptObject.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCDF0A1A4CB70045B88D /* WebScriptObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199915D0339C004127D0 /* WebTextDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBBC30C21DBD00095EEA6 /* WebTextDocument.h */; };
+		EE7C199A15D0339C004127D0 /* WebXMLDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB190C21D9F80095EEA6 /* WebXMLDocument.h */; };
+		EE7C199B15D0339C004127D0 /* WebView.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D39B095468BA001244CF /* WebView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199C15D0339C004127D0 /* WebUIDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199D15D0339C004127D0 /* WebUndefined.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FA7C0BA6943F00503BB4 /* WebUndefined.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199E15D0339C004127D0 /* WebPreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = EE044A900CF0A0040003D697 /* WebPreferences.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EE7C199F15D0339C004127D0 /* DOMSVG.h in Headers */ = {isa = PBXBuildFile; fileRef = EEBA300D0F2F50F200FA7110 /* DOMSVG.h */; };
+		EE7C19A115D0339C004127D0 /* WebKitIMG.png in Resources */ = {isa = PBXBuildFile; fileRef = EECCF3990BA037EF0001C219 /* WebKitIMG.png */; };
+		EE7C19A215D0339C004127D0 /* HTMLEntities.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */; };
+		EE7C19A315D0339C004127D0 /* DOMHTML.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE24FD190C209B37001947BB /* DOMHTML.plist */; };
+		EE7C19A415D0339C004127D0 /* DOMHTMLColors.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE6635651219BA8B00761982 /* DOMHTMLColors.plist */; };
+		EE7C19A615D0339C004127D0 /* WebDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D394095468BA001244CF /* WebDataSource.m */; };
+		EE7C19A715D0339C004127D0 /* WebFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D397095468BA001244CF /* WebFrame.m */; };
+		EE7C19A815D0339C004127D0 /* WebFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D399095468BA001244CF /* WebFrameView.m */; };
+		EE7C19A915D0339C004127D0 /* WebView.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D39C095468BA001244CF /* WebView.m */; };
+		EE7C19AA15D0339C004127D0 /* WebBackForwardList.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5D27D60A1A677A000E507B /* WebBackForwardList.m */; };
+		EE7C19AB15D0339C004127D0 /* WebHistoryItem.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5D27DD0A1A69BE000E507B /* WebHistoryItem.m */; };
+		EE7C19AC15D0339C004127D0 /* WebHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5D27E40A1B0708000E507B /* WebHistory.m */; };
+		EE7C19AD15D0339C004127D0 /* WebResource.m in Sources */ = {isa = PBXBuildFile; fileRef = EE428B350A4819A2003437D2 /* WebResource.m */; };
+		EE7C19AE15D0339C004127D0 /* WebDOMOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */; };
+		EE7C19AF15D0339C004127D0 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
+		EE7C19B015D0339C004127D0 /* WebHTMLDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE9BE91F0AF9321400D445DA /* WebHTMLDocumentRepresentation.m */; };
+		EE7C19B115D0339C004127D0 /* DOMHTML.m in Sources */ = {isa = PBXBuildFile; fileRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */; };
+		EE7C19B215D0339C004127D0 /* DOMCore.m in Sources */ = {isa = PBXBuildFile; fileRef = EE4727070B99AC6500559020 /* DOMCore.m */; };
+		EE7C19B315D0339C004127D0 /* WebHTMLDocumentView.m in Sources */ = {isa = PBXBuildFile; fileRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */; };
+		EE7C19B415D0339C004127D0 /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
+		EE7C19B515D0339C004127D0 /* DOMCSS.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FC840BA6993E00503BB4 /* DOMCSS.m */; };
+		EE7C19B615D0339C004127D0 /* DOMRange.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FCB50BA69A8D00503BB4 /* DOMRange.m */; };
+		EE7C19B715D0339C004127D0 /* WebArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */; };
+		EE7C19B815D0339C004127D0 /* ECMAScriptEvaluator.m in Sources */ = {isa = PBXBuildFile; fileRef = EED0DD370BAED3C4005B0381 /* ECMAScriptEvaluator.m */; };
+		EE7C19B915D0339C004127D0 /* ECMAScriptParser.m in Sources */ = {isa = PBXBuildFile; fileRef = EED0DD390BAED3C4005B0381 /* ECMAScriptParser.m */; };
+		EE7C19BA15D0339C004127D0 /* ECMAScriptPrototypes.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */; };
+		EE7C19BB15D0339C004127D0 /* WebImageDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB120C21D9E50095EEA6 /* WebImageDocument.m */; };
+		EE7C19BC15D0339C004127D0 /* WebPDFDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB160C21D9F80095EEA6 /* WebPDFDocument.m */; };
+		EE7C19BD15D0339C004127D0 /* WebXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB1A0C21D9F80095EEA6 /* WebXMLDocument.m */; };
+		EE7C19BE15D0339C004127D0 /* WebTextDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBBC40C21DBD00095EEA6 /* WebTextDocument.m */; };
+		EE7C19BF15D0339C004127D0 /* WebPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = EE044A910CF0A0040003D697 /* WebPreferences.m */; };
+		EE7C19C015D0339C004127D0 /* WebPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = EEFA5A840E288A2500B86693 /* WebPlugin.m */; };
+		EE7C19C115D0339C004127D0 /* DOMSVG.m in Sources */ = {isa = PBXBuildFile; fileRef = EEBA300C0F2F50F200FA7110 /* DOMSVG.m */; };
+		EE7C19C315D0339C004127D0 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
+		EE7C19C415D0339C004127D0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4536030A166D7F00C660D5 /* Foundation.framework */; };
+		EE7C19C515D0339C004127D0 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4537030A166D9A00C660D5 /* Cocoa.framework */; };
 		EE8A01C60B6CD7F800346917 /* WebUIDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE8AC8B60B6BA09900346917 /* WebFrameLoadDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AC8B50B6BA09900346917 /* WebFrameLoadDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE8AFF8A0B6C8F9200346917 /* DOMHTML.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AFF880B6C8F9200346917 /* DOMHTML.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -150,12 +225,12 @@
 			remoteGlobalIDString = EE6FE351076F05AF009CC969;
 			remoteInfo = SimpleWebKit;
 		};
-		EEAF72EB0C1B158C00C12F99 /* PBXContainerItemProxy */ = {
+		EE7C19D315D033B9004127D0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = EE6FE351076F05AF009CC969;
-			remoteInfo = SimpleWebKit;
+			remoteGlobalIDString = EE7C197815D0339C004127D0;
+			remoteInfo = "SimpleWebKit for SWKBrowser";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -243,7 +318,10 @@
 		EE6FBBC30C21DBD00095EEA6 /* WebTextDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTextDocument.h; sourceTree = "<group>"; };
 		EE6FBBC40C21DBD00095EEA6 /* WebTextDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebTextDocument.m; sourceTree = "<group>"; };
 		EE6FE352076F05AF009CC969 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE77A01115DE317C00B07FCE /* default.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = default.css; path = Sources/default.css; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.css; };
 		EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPluginContainer.h; sourceTree = "<group>"; };
+		EE7C19CA15D0339C004127D0 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE7C19D015D0339C004127D0 /* SimpleWebKit-Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SimpleWebKit-Info copy.plist"; sourceTree = "<group>"; };
 		EE8721C10D0214F600B2037D /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile; path = SWKBrowser/GNUmakefile; sourceTree = "<group>"; };
 		EE8721C20D0214F600B2037D /* GNUmakefile.postamble */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile.postamble; path = SWKBrowser/GNUmakefile.postamble; sourceTree = "<group>"; };
 		EE8721D00D02152600B2037D /* Info-gnustep.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = "Info-gnustep.plist"; path = "SWKBrowser/Info-gnustep.plist"; sourceTree = "<group>"; };
@@ -333,6 +411,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE7C19C215D0339C004127D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE7C19C315D0339C004127D0 /* AppKit.framework in Frameworks */,
+				EE7C19C415D0339C004127D0 /* Foundation.framework in Frameworks */,
+				EE7C19C515D0339C004127D0 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -357,6 +445,7 @@
 			children = (
 				EE60FC830BA6993E00503BB4 /* DOMCSS.h */,
 				EE60FC840BA6993E00503BB4 /* DOMCSS.m */,
+				EE77A01115DE317C00B07FCE /* default.css */,
 			);
 			name = "CSS DOM Engine";
 			sourceTree = "<group>";
@@ -368,6 +457,7 @@
 				EE147E840A16668700E60AF8 /* SWKBrowser.app */,
 				EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */,
 				EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */,
+				EE7C19CA15D0339C004127D0 /* WebKit.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -454,6 +544,7 @@
 				EE9BE91F0AF9321400D445DA /* WebHTMLDocumentRepresentation.m */,
 				EE475F3E0B9AF3B600559020 /* WebHTMLDocumentView.h */,
 				EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */,
+				EECCF3990BA037EF0001C219 /* WebKitIMG.png */,
 				EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */,
 				EE6FBB120C21D9E50095EEA6 /* WebImageDocument.m */,
 				EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */,
@@ -481,7 +572,6 @@
 				EEBA300C0F2F50F200FA7110 /* DOMSVG.m */,
 				EE24FD190C209B37001947BB /* DOMHTML.plist */,
 				EE6635651219BA8B00761982 /* DOMHTMLColors.plist */,
-				EECCF3990BA037EF0001C219 /* WebKitIMG.png */,
 			);
 			name = DOM;
 			path = Sources;
@@ -491,6 +581,7 @@
 			isa = PBXGroup;
 			children = (
 				EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */,
+				EE7C19D015D0339C004127D0 /* SimpleWebKit-Info copy.plist */,
 			);
 			name = Resources;
 			path = Sources;
@@ -611,12 +702,57 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE7C197915D0339C004127D0 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE7C197A15D0339C004127D0 /* DOM.h in Headers */,
+				EE7C197B15D0339C004127D0 /* DOMCore.h in Headers */,
+				EE7C197C15D0339C004127D0 /* DOMCSS.h in Headers */,
+				EE7C197D15D0339C004127D0 /* DOMHTML.h in Headers */,
+				EE7C197E15D0339C004127D0 /* DOMRange.h in Headers */,
+				EE7C197F15D0339C004127D0 /* ECMAScriptEvaluator.h in Headers */,
+				EE7C198015D0339C004127D0 /* ECMAScriptParser.h in Headers */,
+				EE7C198115D0339C004127D0 /* ECMAScriptPrototypes.h in Headers */,
+				EE7C198215D0339C004127D0 /* Private.h in Headers */,
+				EE7C198315D0339C004127D0 /* WebArchive.h in Headers */,
+				EE7C198415D0339C004127D0 /* WebBackForwardList.h in Headers */,
+				EE7C198515D0339C004127D0 /* WebDataSource.h in Headers */,
+				EE7C198615D0339C004127D0 /* WebDocument.h in Headers */,
+				EE7C198715D0339C004127D0 /* WebDocumentRepresentation.h in Headers */,
+				EE7C198815D0339C004127D0 /* WebDOMOperations.h in Headers */,
+				EE7C198915D0339C004127D0 /* WebDownload.h in Headers */,
+				EE7C198A15D0339C004127D0 /* WebFrame.h in Headers */,
+				EE7C198B15D0339C004127D0 /* WebFrameLoadDelegate.h in Headers */,
+				EE7C198C15D0339C004127D0 /* WebFrameView.h in Headers */,
+				EE7C198D15D0339C004127D0 /* WebHistory.h in Headers */,
+				EE7C198E15D0339C004127D0 /* WebHistoryItem.h in Headers */,
+				EE7C198F15D0339C004127D0 /* WebHTMLDocumentRepresentation.h in Headers */,
+				EE7C199015D0339C004127D0 /* WebHTMLDocumentView.h in Headers */,
+				EE7C199115D0339C004127D0 /* WebImageDocument.h in Headers */,
+				EE7C199215D0339C004127D0 /* WebKit.h in Headers */,
+				EE7C199315D0339C004127D0 /* WebPDFDocument.h in Headers */,
+				EE7C199415D0339C004127D0 /* WebPlugin.h in Headers */,
+				EE7C199515D0339C004127D0 /* WebPluginContainer.h in Headers */,
+				EE7C199615D0339C004127D0 /* WebResource.h in Headers */,
+				EE7C199715D0339C004127D0 /* WebResourceLoadDelegate.h in Headers */,
+				EE7C199815D0339C004127D0 /* WebScriptObject.h in Headers */,
+				EE7C199915D0339C004127D0 /* WebTextDocument.h in Headers */,
+				EE7C199A15D0339C004127D0 /* WebXMLDocument.h in Headers */,
+				EE7C199B15D0339C004127D0 /* WebView.h in Headers */,
+				EE7C199C15D0339C004127D0 /* WebUIDelegate.h in Headers */,
+				EE7C199D15D0339C004127D0 /* WebUndefined.h in Headers */,
+				EE7C199E15D0339C004127D0 /* WebPreferences.h in Headers */,
+				EE7C199F15D0339C004127D0 /* DOMSVG.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		EE01D4520B7786570089A538 /* SWK Browser with full WebKit */ = {
+		EE01D4520B7786570089A538 /* SWK Browser with System WebKit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with full WebKit" */;
+			buildConfigurationList = EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with System WebKit" */;
 			buildPhases = (
 				EEAA53860DDB4F6E00D42522 /* ShellScript */,
 				EE01D4550B7786570089A538 /* Resources */,
@@ -627,7 +763,7 @@
 			);
 			dependencies = (
 			);
-			name = "SWK Browser with full WebKit";
+			name = "SWK Browser with System WebKit";
 			productName = WebKitTest;
 			productReference = EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */;
 			productType = "com.apple.product-type.application";
@@ -645,7 +781,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				EEAF72EC0C1B158C00C12F99 /* PBXTargetDependency */,
+				EE7C19D415D033B9004127D0 /* PBXTargetDependency */,
 			);
 			name = "SWK Browser";
 			productName = WebKitTest;
@@ -693,6 +829,25 @@
 			productReference = EE6FE352076F05AF009CC969 /* WebKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		EE7C197815D0339C004127D0 /* SimpleWebKit for Debug */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit for Debug" */;
+			buildPhases = (
+				EE7C197915D0339C004127D0 /* Headers */,
+				EE7C19A015D0339C004127D0 /* Resources */,
+				EE7C19A515D0339C004127D0 /* Sources */,
+				EE7C19C215D0339C004127D0 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			comments = "Todo:\n\nDistribute System-Info.plist to AB-Framework and AppKit-Framework\n";
+			dependencies = (
+			);
+			name = "SimpleWebKit for Debug";
+			productName = Calendar;
+			productReference = EE7C19CA15D0339C004127D0 /* WebKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -717,8 +872,9 @@
 			projectRoot = "";
 			targets = (
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
+				EE7C197815D0339C004127D0 /* SimpleWebKit for Debug */,
 				EE147E830A16668700E60AF8 /* SWK Browser */,
-				EE01D4520B7786570089A538 /* SWK Browser with full WebKit */,
+				EE01D4520B7786570089A538 /* SWK Browser with System WebKit */,
 				EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */,
 				EE29B0681205617B00B8C7CA /* Commit CVS */,
 			);
@@ -764,6 +920,19 @@
 				EE443FBE0BDBE6B80031F556 /* HTMLEntities.strings in Resources */,
 				EE24FD1A0C209B37001947BB /* DOMHTML.plist in Resources */,
 				EE6635661219BA8B00761982 /* DOMHTMLColors.plist in Resources */,
+				EE77A01215DE317C00B07FCE /* default.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE7C19A015D0339C004127D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE7C19A115D0339C004127D0 /* WebKitIMG.png in Resources */,
+				EE7C19A215D0339C004127D0 /* HTMLEntities.strings in Resources */,
+				EE7C19A315D0339C004127D0 /* DOMHTML.plist in Resources */,
+				EE7C19A415D0339C004127D0 /* DOMHTMLColors.plist in Resources */,
+				EE77A01315DE317C00B07FCE /* default.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -906,6 +1075,41 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE7C19A515D0339C004127D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE7C19A615D0339C004127D0 /* WebDataSource.m in Sources */,
+				EE7C19A715D0339C004127D0 /* WebFrame.m in Sources */,
+				EE7C19A815D0339C004127D0 /* WebFrameView.m in Sources */,
+				EE7C19A915D0339C004127D0 /* WebView.m in Sources */,
+				EE7C19AA15D0339C004127D0 /* WebBackForwardList.m in Sources */,
+				EE7C19AB15D0339C004127D0 /* WebHistoryItem.m in Sources */,
+				EE7C19AC15D0339C004127D0 /* WebHistory.m in Sources */,
+				EE7C19AD15D0339C004127D0 /* WebResource.m in Sources */,
+				EE7C19AE15D0339C004127D0 /* WebDOMOperations.m in Sources */,
+				EE7C19AF15D0339C004127D0 /* WebScriptObject.m in Sources */,
+				EE7C19B015D0339C004127D0 /* WebHTMLDocumentRepresentation.m in Sources */,
+				EE7C19B115D0339C004127D0 /* DOMHTML.m in Sources */,
+				EE7C19B215D0339C004127D0 /* DOMCore.m in Sources */,
+				EE7C19B315D0339C004127D0 /* WebHTMLDocumentView.m in Sources */,
+				EE7C19B415D0339C004127D0 /* WebDocumentRepresentation.m in Sources */,
+				EE7C19B515D0339C004127D0 /* DOMCSS.m in Sources */,
+				EE7C19B615D0339C004127D0 /* DOMRange.m in Sources */,
+				EE7C19B715D0339C004127D0 /* WebArchive.m in Sources */,
+				EE7C19B815D0339C004127D0 /* ECMAScriptEvaluator.m in Sources */,
+				EE7C19B915D0339C004127D0 /* ECMAScriptParser.m in Sources */,
+				EE7C19BA15D0339C004127D0 /* ECMAScriptPrototypes.m in Sources */,
+				EE7C19BB15D0339C004127D0 /* WebImageDocument.m in Sources */,
+				EE7C19BC15D0339C004127D0 /* WebPDFDocument.m in Sources */,
+				EE7C19BD15D0339C004127D0 /* WebXMLDocument.m in Sources */,
+				EE7C19BE15D0339C004127D0 /* WebTextDocument.m in Sources */,
+				EE7C19BF15D0339C004127D0 /* WebPreferences.m in Sources */,
+				EE7C19C015D0339C004127D0 /* WebPlugin.m in Sources */,
+				EE7C19C115D0339C004127D0 /* DOMSVG.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -914,10 +1118,10 @@
 			target = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
 			targetProxy = EE1AB3910C20544A005F3F98 /* PBXContainerItemProxy */;
 		};
-		EEAF72EC0C1B158C00C12F99 /* PBXTargetDependency */ = {
+		EE7C19D415D033B9004127D0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
-			targetProxy = EEAF72EB0C1B158C00C12F99 /* PBXContainerItemProxy */;
+			target = EE7C197815D0339C004127D0 /* SimpleWebKit for Debug */;
+			targetProxy = EE7C19D315D033B9004127D0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1139,6 +1343,78 @@
 			};
 			name = Deployment;
 		};
+		EE7C19C815D0339C004127D0 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				COPY_PHASE_STRIP = NO;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_VERSION = A;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "";
+				GCC_VERSION = 4.0;
+				INFOPLIST_FILE = "Sources/SimpleWebKit-Info.plist";
+				INSTALL_PATH = "@executable_path/../Frameworks";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-seg1addr",
+					0x20200000,
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = WebKit;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "$(HOME)/build";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				ZERO_LINK = NO;
+			};
+			name = Development;
+		};
+		EE7C19C915D0339C004127D0 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				COPY_PHASE_STRIP = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_VERSION = A;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "";
+				GCC_VERSION = 4.0;
+				INFOPLIST_FILE = "SimpleWebKit-Info copy.plist";
+				INSTALL_PATH = /Library/Frameworks;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-seg1addr",
+					0x20200000,
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = WebKit;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
 		EEEB9D6809A7586C00626AB7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1231,7 +1507,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with full WebKit" */ = {
+		EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with System WebKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EE01D4620B7786570089A538 /* Development */,
@@ -1263,6 +1539,15 @@
 			buildConfigurations = (
 				EE29B0691205617B00B8C7CA /* Development */,
 				EE29B06A1205617B00B8C7CA /* Deployment */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Development;
+		};
+		EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit for Debug" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE7C19C815D0339C004127D0 /* Development */,
+				EE7C19C915D0339C004127D0 /* Deployment */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;

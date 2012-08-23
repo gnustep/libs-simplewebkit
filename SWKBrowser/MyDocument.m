@@ -473,9 +473,13 @@
 		[historyTable reloadData];
 		[backForwardTable reloadData];
 		[self showStatus:@"Main Frame Done."];
+		[currentItem release];
 		currentItem=nil;
 		[domTree reloadData];
 		[domAttribs reloadData];
+		[currentCSS release];
+		currentCSS=nil;
+		[domCSS reloadData];
 		currentView=nil;
 		[viewTree reloadData];
 		[viewAttribs reloadData];
@@ -738,25 +742,35 @@
 	id selectedItem = [outlineView itemAtRow:selectedRow];
 	if(outlineView == domTree)
 		{
+		DOMCSSStyleDeclaration *css;
 		if([selectedItem isKindOfClass:[DOMText class]])
 			{
 			[domSource setString:[selectedItem nodeValue]];
+			[currentItem release];
 			currentItem=nil;
+			[currentCSS release];
+			currentCSS=nil;
 			}
 		else 
 			{
 			if([selectedItem respondsToSelector:@selector(outerHTML)])
 				{
 				[domSource setString:[selectedItem outerHTML]];
-				currentItem=selectedItem;
+				[currentItem release];
+				currentItem=[selectedItem retain];
 				}
 			else if([selectedItem respondsToSelector:@selector(innerHTML)])
 				{
 				[domSource setString:[selectedItem innerHTML]];
-				currentItem=selectedItem;
+				[currentItem release];
+				currentItem=[selectedItem retain];
 				}
+			[currentCSS release];
+			currentCSS=[webView computedStyleForElement:currentItem pseudoElement:@""];
+			[currentCSS retain];
 			}
 		[domAttribs reloadData];
+		[domCSS reloadData];
 		}
 	else if(outlineView == viewTree)
 		{
@@ -784,10 +798,13 @@
 		}
 	if(aTableView == domAttribs)
 		{
-		// FIXME: how do we get the attributes of a DOMElement on Apple WebKit?
-		if([currentItem respondsToSelector:@selector(_attributes)])
-			return [[(DOMElement *) currentItem _attributes] count];
-		return 1;	// unknown (e.g. Apple WebKit)
+		if([currentItem respondsToSelector:@selector(attributes)])
+			return [[(DOMElement *) currentItem attributes] length];
+		return 1;
+		}
+	if(aTableView == domCSS)
+		{
+		return [currentCSS length];
 		}
 	if(aTableView == viewAttribs)
 		{
@@ -843,12 +860,23 @@
 		}
 	if(aTableView == domAttribs)
 		{
-		if(![currentItem respondsToSelector:@selector(_attributes)])
-			return @"can't display";
-		if([ident isEqual: @"attribute"])
-			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] name];
+		if([currentItem respondsToSelector:@selector(attributes)])
+			{
+			if([ident isEqual: @"attribute"])
+				return [(DOMAttr *) [[(DOMElement *) currentItem attributes] item:rowIndex] name];
+			else if([ident isEqual: @"value"])
+				return [(DOMAttr *) [[(DOMElement *) currentItem attributes] item:rowIndex] value];			
+			}
+		return @"can't display";
+		}
+	if(aTableView == domCSS)
+		{
+		NSString *prop=[(DOMCSSStyleDeclaration *) currentCSS item:rowIndex];
+		if([ident isEqual: @"property"])
+			return prop;
 		else if([ident isEqual: @"value"])
-			return [(DOMAttr *) [[(DOMElement *) currentItem _attributes] objectAtIndex:rowIndex] value];
+			return [(DOMCSSStyleDeclaration *) currentCSS getPropertyValue:prop];
+		return @"can't display";
 		}
 	if(aTableView == viewAttribs)
 		{

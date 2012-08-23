@@ -28,6 +28,7 @@
 
 #import <WebKit/WebView.h>
 #import "Private.h"
+#import "DOMHTML.h"
 
 @interface DOMStyleSheetList (Private)
 - (void) _addStyleSheet:(DOMStyleSheet *) sheet;
@@ -136,14 +137,20 @@
 
 @implementation DOMCSSStyleDeclaration
 
-- (id) initWithString:(NSString *) style;
-{ // scan a style declaration
+- (id) init;
+{
 	if((self=[super init]))
 		{
 		items=[[NSMutableDictionary alloc] initWithCapacity:10];
 		priorities=[[NSMutableDictionary alloc] initWithCapacity:10];
-		[self setCssText:style];
 		}
+	return self;
+}
+
+- (id) initWithString:(NSString *) style;
+{ // scan a style declaration
+	if((self=[self init]))
+		[self setCssText:style];
 	return self;
 }
 
@@ -209,7 +216,7 @@
  Conclusions:
  * shorthand properties are translated directly
  * some missing values are set to 'initial' (!)
- * duplicates remain duplicate (!)
+ * duplicates remain duplicate (!), i.e. the priority/cascading rules choose between duplicates
  
 */
 
@@ -372,19 +379,37 @@
 	// trigger re-layout of ownerDocumentView
 }
 
-- (NSString *) getPropertyValue:(NSString *) propertyName; { return [[items objectForKey:propertyName] getStringValue]; }
+- (NSString *) getPropertyValue:(NSString *) propertyName; { return [[items objectForKey:propertyName] cssText]; }
 - (DOMCSSValue *) getPropertyCSSValue:(NSString *) propertyName; { return [items objectForKey:propertyName]; }
 - (NSString *) removeProperty:(NSString *) propertyName; { [items removeObjectForKey:propertyName]; return propertyName; }
 - (NSString *) getPropertyPriority:(NSString *) propertyName; { return [priorities objectForKey:propertyName]; }
 
+// FXIME: didn't the analysis show that we can store duplicates?
+
 - (void) setProperty:(NSString *) propertyName value:(NSString *) value priority:(NSString *) priority;
 {
+	if(!priority) priority=@"";
 	[items setObject:[[[DOMCSSValue alloc] initWithString:value] autorelease] forKey:propertyName]; 
 	[priorities setObject:priority forKey:propertyName]; 
 }
 
+- (void) setProperty:(NSString *) propertyName CSSvalue:(DOMCSSValue *) value priority:(NSString *) priority;
+{
+	if(!priority) priority=@"";
+	[items setObject:value forKey:propertyName]; 
+	[priorities setObject:priority forKey:propertyName]; 
+}
+
+- (void) _append:(DOMCSSStyleDeclaration *) other
+{ // append property values
+	NSEnumerator *e=[[[other _items] allKeys] objectEnumerator];
+	NSString *property;
+	while((property=[e nextObject]))
+		[self setProperty:property CSSvalue:[other getPropertyCSSValue:property] priority:[other getPropertyPriority:property]];
+}
+
 - (unsigned) length; { return [items count]; }
-- (NSString *) item:(unsigned) index; { return [[items allValues] objectAtIndex:index]; }
+- (NSString *) item:(unsigned) index; { return [[items allKeys] objectAtIndex:index]; }
 
 - (NSString *) getPropertyShorthand:(NSString *) propertyName;
 { // convert property-name into camelCase propertyName to allow JS access by dotted notation
@@ -548,7 +573,7 @@
 			DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
 			return [[DOMCSSCharsetRule alloc] initWithEncoding:[val _toString]];
 		}
-	if([sc scanString:@"font-face" intoString:NULL])
+	if([sc scanString:@"@font-face" intoString:NULL])
 		{ // @font-face
 			return [DOMCSSFontFaceRule new];
 		}
@@ -642,12 +667,20 @@
 
 - (unsigned short) type; { return DOM_IMPORT_RULE; }
 
-- (id) initWithHref:(NSString *) uri;
+- (id) init;
 {
 	if((self=[super init]))
 		{
-		href=[uri retain];
 		media=[DOMMediaList new];
+		}
+	return self;
+}
+
+- (id) initWithHref:(NSString *) uri;
+{
+	if((self=[self init]))
+		{
+		href=[uri retain];
 		}
 	return self;
 }
@@ -674,8 +707,10 @@
 - (void) _setParentStyleSheet:(DOMCSSStyleSheet *) sheet
 { // start loading when being added to a style sheet
 	[super _setParentStyleSheet:sheet];
-	if(!styleSheet)
-		{ // not yet loaded
+	if(styleSheet)
+		return;	// already loaded
+	if(href)
+		{
 			// FIXME: if there is no href, we could check [sheet ownerNode] to find the base URL
 			NSURL *url=[NSURL URLWithString:href relativeToURL:[NSURL URLWithString:[sheet href]]];	// relative to the URL of the sheet we are added to
 			NSString *abs=[url absoluteString];
@@ -705,6 +740,10 @@
 				}
 			else
 				NSLog(@"invalid URL %@ -- %@", href, [sheet href]);
+		}
+	else
+		{
+		NSLog(@"@import: nil href!");
 		}
 }
 
@@ -796,9 +835,19 @@
 	return NO;	// no alternative did match
 }
 
-- (id) initWithMedia:(NSString *) m;
+- (id) init;
 {
 	if((self=[super init]))
+		{
+		media=[DOMMediaList new];
+		cssRules=[DOMCSSRuleList new];
+		}
+	return self;
+}
+
+- (id) initWithMedia:(NSString *) m;
+{
+	if((self=[self init]))
 		{
 		/* should check for:
 		 all
@@ -812,9 +861,7 @@
 		 tty
 		 tv			
 		 */ 
-		media=[DOMMediaList new];
 		[media setMediaText:m];	// scan media list
-		cssRules=[DOMCSSRuleList new];
 		}
 	return self;
 }
@@ -915,7 +962,13 @@
 	TAG_SELECTOR,			// specific tag
 	CLASS_SELECTOR,			// .class
 	ID_SELECTOR,			// #id
-	ATTRIBUTE_SELECTOR,		// [attr=value]	--- NOTE: there are several variants of this, e.g. [attr] checks for existence
+	ATTRIBUTE_SELECTOR,		// [attr]
+	ATTRIBUTE_LIST_SELECTOR,	// [attr~=val]
+	ATTRIBUTE_DASHED_SELECTOR,	// [attr|=val]
+	ATTRIBUTE_PREFIX_SELECTOR,	// [attr^=val]
+	ATTRIBUTE_SUFFIX_SELECTOR,	// [attr$=val]
+	ATTRIBUTE_CONTAINS_SELECTOR,	// [attr*=val]
+	ATTRIBUTE_MATCH_SELECTOR,		// [attr=val]
 	PSEUDO_SELECTOR,		// :component
 	// tree elements (combinators) - the right side may itself be a full rule as in tag > *[attr] (i.e. we must build a tree)
 	DESCENDANT_SELECTOR,	// element1 element2
@@ -961,16 +1014,34 @@
 			// FIXME: what about nesting of clases? Is it sufficient that any parent element defines the class???
 			return val && [selector isEqualToString:val];
 			}
-		case ATTRIBUTE_SELECTOR:
-			{
-			if(value)
-				{ // check value
-				NSString *val=[element getAttribute:selector];
-				return val && [val isEqualToString:value];
-				}
-			else
+		case ATTRIBUTE_SELECTOR: { // existence of attribute
 				return [element hasAttribute:selector];
 			}
+		case ATTRIBUTE_MATCH_SELECTOR: { // check value of attribute
+				NSString *val=[element getAttribute:selector];
+				return val && [val isEqualToString:[value _toString]];
+			}
+		case ATTRIBUTE_PREFIX_SELECTOR: {
+			NSString *val=[element getAttribute:selector];
+			return val && [val hasPrefix:[value _toString]];
+		}
+		case ATTRIBUTE_SUFFIX_SELECTOR: {
+			NSString *val=[element getAttribute:selector];
+			return val && [val hasSuffix:[value _toString]];
+		}
+		case ATTRIBUTE_CONTAINS_SELECTOR: { // attrubutes contains substring
+			NSString *val=[element getAttribute:selector];
+			return val && [val rangeOfString:[value _toString]].location != NSNotFound;
+		}
+		case ATTRIBUTE_LIST_SELECTOR: {	// attribute is a list and contains value
+			NSString *val=[element getAttribute:selector];
+			if(!val) return NO;
+			return [[val componentsSeparatedByString:@" "] containsObject:[value _toString]];	// contains string
+		}
+		case ATTRIBUTE_DASHED_SELECTOR: { // exactly the same or begins with "value-"
+			NSString *val=[element getAttribute:selector];
+			return val && ([val isEqualToString:[value _toString]] || [val hasPrefix:[[value _toString] stringByAppendingString:@"-"]]);
+		}
 		case PSEUDO_SELECTOR:
 			return [selector isEqualToString:pseudoElement];
 		case DESCENDANT_SELECTOR:
@@ -990,8 +1061,14 @@
 		case TAG_SELECTOR:			return selector;
 		case CLASS_SELECTOR:		return [NSString stringWithFormat:@".%@", selector];
 		case ID_SELECTOR:			return [NSString stringWithFormat:@"#%@", selector];
-		case ATTRIBUTE_SELECTOR:	return [NSString stringWithFormat:@"[%@=%@]", selector, value];
-		case PSEUDO_SELECTOR:		return [NSString stringWithFormat:@":%@", selector, value];	// may have a paramter!
+		case ATTRIBUTE_SELECTOR:	return [NSString stringWithFormat:@"[%@]", selector];
+		case ATTRIBUTE_MATCH_SELECTOR:	return [NSString stringWithFormat:@"[%@=%@]", selector, [(DOMCSSValue *) value cssText]];
+		case ATTRIBUTE_PREFIX_SELECTOR:	return [NSString stringWithFormat:@"[%@^=%@]", selector, [(DOMCSSValue *) value cssText]];
+		case ATTRIBUTE_SUFFIX_SELECTOR:	return [NSString stringWithFormat:@"[%@$=%@]", selector, [(DOMCSSValue *) value cssText]];
+		case ATTRIBUTE_CONTAINS_SELECTOR:	return [NSString stringWithFormat:@"[%@*=%@]", selector, [(DOMCSSValue *) value cssText]];
+		case ATTRIBUTE_LIST_SELECTOR:	return [NSString stringWithFormat:@"[%@~=%@]", selector, [(DOMCSSValue *) value cssText]];
+		case ATTRIBUTE_DASHED_SELECTOR:	return [NSString stringWithFormat:@"[%@|=%@]", selector, [(DOMCSSValue *) value cssText]];
+		case PSEUDO_SELECTOR:		return [NSString stringWithFormat:@":%@(%@)", selector, [(DOMCSSValue *) value cssText]];	// may have a paramter!
 		case DESCENDANT_SELECTOR:	return [NSString stringWithFormat:@"%@ %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
 		case CHILD_SELECTOR:		return [NSString stringWithFormat:@"%@ > %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
 		case PRECEDING_SELECTOR:	return [NSString stringWithFormat:@"%@ + %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
@@ -1105,6 +1182,7 @@
 				selObj->type=type;
 				selObj->value=[sel retain];	// save element1
 				sel=[NSMutableArray arrayWithCapacity:5];	// start to collect element2
+				// ...
 				continue;
 			}
 		else
@@ -1135,20 +1213,39 @@
 					break;	// no element name follows where required
 					}
 				selObj=[DOMCSSStyleRuleSelector new];
-				selObj->type=type;
 				selObj->selector=[entry retain];
 				if(type == ATTRIBUTE_SELECTOR)
 					{ // handle tag[attrib=value]
-						// attrib^=value
-						// attrib$=value
-						// attrib*=value
-						// get condition and value
-						// value must be CSS identifier or string
-						// selObj->value=
+#if 1
+						NSLog(@"attribute selector");
+#endif
+						if([sc scanString:@"~=" intoString:NULL])
+							type=ATTRIBUTE_LIST_SELECTOR;
+						else if([sc scanString:@"|=" intoString:NULL])
+							type=ATTRIBUTE_DASHED_SELECTOR;
+						else if([sc scanString:@"^=" intoString:NULL])
+							type=ATTRIBUTE_PREFIX_SELECTOR;
+						else if([sc scanString:@"$=" intoString:NULL])
+							type=ATTRIBUTE_SUFFIX_SELECTOR;
+						else if([sc scanString:@"*=" intoString:NULL])
+							type=ATTRIBUTE_CONTAINS_SELECTOR;
+						else if([sc scanString:@"=" intoString:NULL])
+							type=ATTRIBUTE_MATCH_SELECTOR;
+						if(![sc scanString:@"]" intoString:NULL])
+							{
+							selObj->value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+							[sc scanString:@"]" intoString:NULL];							
+							}
 					}
 				else if(type == PSEUDO_SELECTOR)
 					{ // handle :pseudo(n)
+						if([sc scanString:@"(" intoString:NULL])
+							{
+							selObj->value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+							[sc scanString:@")" intoString:NULL];							
+							}
 					}
+				selObj->type=type;
 			}
 		[sel addObject:selObj];
 		[selObj release];
@@ -1156,6 +1253,7 @@
 			{ // alternative rule set
 				[(NSMutableArray *) selector addObject:sel];
 				sel=[NSMutableArray arrayWithCapacity:5];
+				[DOMCSSRule _skip:sc];	// skip comments
 			}
 		}
 	if([sel count] > 0)
@@ -1203,12 +1301,12 @@
 {
 	NSScanner *scanner=[NSScanner scannerWithString:sheet];
 #if 1
-	NSLog(@"_setCssText <style>%@</style>", sheet);
+	NSLog(@"_setCssText:\n%@", sheet);
 #endif
 	while(![scanner isAtEnd])
 		{
 		if([self insertRule:(NSString *) scanner index:[cssRules length]] == (unsigned) -1)	// parse and scan rules
-			break;		
+			break;	// parse error
 		}
 }
 
@@ -1225,11 +1323,11 @@
 - (unsigned) insertRule:(NSString *) string index:(unsigned) index;
 { // parse rule and insert in cssRules
 	DOMCSSRule *rule=[[DOMCSSRule alloc] initWithString:string];
-	if(!rule)
-		return -1;	// raise exception?
 #if 1
 	NSLog(@"insert rule: %@", rule);
 #endif
+	if(!rule)
+		return -1;	// raise exception?
 	[(NSMutableArray *) [cssRules items] insertObject:rule atIndex:index];
 	[rule _setParentStyleSheet:self];
 	[rule release];
@@ -1252,6 +1350,28 @@
 	return s; 
 }
 
+- (void) _applyRulesMatchingElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement toStyle:(DOMCSSStyleDeclaration *) style;
+{ // apply rules of this sheet
+	DOMCSSRuleList *rules=[self cssRules];
+	int r, rcnt=[rules length];
+	for(r=0; r<rcnt; r++)
+		{
+		DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
+#if 0
+		NSLog(@"match %@ with %@", element, rule);
+#endif
+		if([rule _ruleMatchesElement:element pseudoElement:pseudoElement])
+			{
+			// FIXME: handle specificity and !important priority
+#if 0
+			NSLog(@"MATCH!");
+#endif
+			// FIXME: should we expand attr() and uri() here?
+			[style _append:[(DOMCSSStyleRule *) rule style]];	// append/overwrite
+			}
+		}
+}
+
 @end
 
 @implementation DOMCSSValue : DOMObject
@@ -1263,8 +1383,8 @@
 	switch(cssValueType)
 	{
 		case DOM_CSS_INHERIT: return @"inherit";
-		case DOM_CSS_PRIMITIVE_VALUE: return @"subclass";
-		case DOM_CSS_VALUE_LIST: return @"value list";
+		case DOM_CSS_PRIMITIVE_VALUE: return @"$$primitive value$$";	// should be handled by subclass
+		case DOM_CSS_VALUE_LIST: return @"$$value list$$";		// should be handled by subclass
 		case DOM_CSS_CUSTOM:
 		return @"todo";
 	}
@@ -1273,8 +1393,17 @@
 
 - (void) setCssText:(NSString *) str 
 {
+	// how can we set the value without replacing us with our own subclass for primitive values?
 	NIMP; 
 }
+
+#if 0	// NIMP
+- (id) init
+{
+	self=[super init];
+	return self;
+}
+#endif
 
 - (id) initWithString:(NSString *) str;
 {
@@ -1388,12 +1517,13 @@
 
 - (void) dealloc
 {
-	[stringValue release];
+	[value release];
 	[super dealloc];
 }
 
 - (NSString *) cssText;
 {
+	float val;
 	NSString *suffix;
 	switch(primitiveType)
 	{
@@ -1427,13 +1557,18 @@
 		case DOM_CSS_URI:	return [NSString stringWithFormat:@"url(%@)", [self getStringValue]];
 		case DOM_CSS_IDENT: return [self getStringValue];
 		case DOM_CSS_ATTR: return [NSString stringWithFormat:@"attr(%@)", [self getStringValue]];
-		case DOM_CSS_RGBCOLOR:	return [NSString stringWithFormat:@"rgb(%d, %d, %d)", (int) floatValue/65536, ((int) floatValue/256)%256, ((int) floatValue)%256];
+		case DOM_CSS_RGBCOLOR: {
+			int val=[value intValue];
+			return [NSString stringWithFormat:@"#%02x%02x%02x", val/65536, (val/256)%256, val%256];
+			}
 		case DOM_CSS_DIMENSION:
 		case DOM_CSS_COUNTER:
 		case DOM_CSS_RECT:
 		return @"TODO";
 	}
-	return [NSString stringWithFormat:@"%f%@", [self getFloatValue:primitiveType], suffix];
+	val=[self getFloatValue:primitiveType];
+	if(val == 0.0) suffix=@"";	// hide suffix
+	return [NSString stringWithFormat:@"%g%@", val, suffix];
 }
 
 - (NSString *) _toString;
@@ -1460,11 +1595,11 @@
 		case DOM_CSS_S: suffix=@"s"; break;
 		case DOM_CSS_HZ: suffix=@"hz"; break;
 		case DOM_CSS_KHZ: suffix=@"khz"; break;
-		case DOM_CSS_STRING: return stringValue;
-		case DOM_CSS_URI:	return stringValue;
-		case DOM_CSS_IDENT: return stringValue;
-		case DOM_CSS_ATTR: return stringValue;
-		case DOM_CSS_RGBCOLOR:	return [NSString stringWithFormat:@"#%02x%02x%02x", (int) floatValue/65536, ((int) floatValue/256)%256, ((int) floatValue)%256];
+		case DOM_CSS_STRING: return value;
+		case DOM_CSS_URI:	return [value _toString];
+		case DOM_CSS_IDENT: return value;
+		case DOM_CSS_ATTR:	return [value _toString];
+		case DOM_CSS_RGBCOLOR:	return [value _toString];
 		case DOM_CSS_DIMENSION:
 		case DOM_CSS_COUNTER:
 		case DOM_CSS_RECT:
@@ -1479,6 +1614,7 @@
 { // set from CSS string
 	NSScanner *sc;
 	static NSCharacterSet *identChars;
+	float floatValue;
 	if(!identChars)
 		identChars=[[NSCharacterSet characterSetWithCharactersInString:@"-abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
 	if([str isKindOfClass:[NSScanner class]])
@@ -1488,22 +1624,32 @@
 	[DOMCSSRule _skip:sc];
 	if([sc scanString:@"\"" intoString:NULL])
 		{ // double-quoted
-			// FIXME: handle escape sequences
-			if([sc scanUpToString:@"\"" intoString:&stringValue])
-				[stringValue retain];
+			// FIXME: handle \"
+			if([sc scanUpToString:@"\"" intoString:&value])
+				{
+				value=[value mutableCopy];
+				[value replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:NSMakeRange(0, [value length])];
+				[value replaceOccurrencesOfString:@"\\r" withString:@"\r" options:0 range:NSMakeRange(0, [value length])];
+				[value replaceOccurrencesOfString:@"\\\\" withString:@"\\" options:0 range:NSMakeRange(0, [value length])];				
+				}
 			else
-				stringValue=@"";
+				value=@"";
 			[sc scanString:@"\"" intoString:NULL];
 			primitiveType=DOM_CSS_STRING;
 			return;
 		}
 	if([sc scanString:@"\'" intoString:NULL])
 		{ // single-quoted
-			// FIXME: handle escape sequences
-			if([sc scanUpToString:@"\'" intoString:&stringValue])
-				[stringValue retain];
+			// FIXME: handle \'
+			if([sc scanUpToString:@"\'" intoString:&value])
+				{
+				value=[value mutableCopy];
+				[value replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:NSMakeRange(0, [value length])];
+				[value replaceOccurrencesOfString:@"\\r" withString:@"\r" options:0 range:NSMakeRange(0, [value length])];
+				[value replaceOccurrencesOfString:@"\\\\" withString:@"\\" options:0 range:NSMakeRange(0, [value length])];				
+				}
 			else
-				stringValue=@"";
+				value=@"";
 			[sc scanString:@"\'" intoString:NULL];
 			primitiveType=DOM_CSS_STRING;
 			return;
@@ -1513,6 +1659,7 @@
 			unsigned intValue=0;
 			unsigned int sl=[sc scanLocation];	// to determine length
 			[sc scanHexInt:&intValue];
+			// FIXME: is this correct or just for #rgb hex values???
 			if([sc scanLocation] - sl <= 4)
 				{ // short hex - convert into full value
 					unsigned fullValue=0;
@@ -1528,36 +1675,36 @@
 #if 0
 					NSLog(@"   --> %x", fullValue);
 #endif
-					floatValue=fullValue;
+					intValue=fullValue;
 				}
-			else
-				floatValue=intValue;
+			value=[[NSNumber alloc] initWithInt:intValue];
 			primitiveType=DOM_CSS_RGBCOLOR;
 			return;
 		}
 	if([sc scanFloat:&floatValue])
-		{ // double value
+		{ // float value
 //			[DOMCSSRule _skip:sc];
 			if([sc scanString:@"%" intoString:NULL]) primitiveType=DOM_CSS_PERCENTAGE;
 			else if([sc scanString:@"em" intoString:NULL]) primitiveType=DOM_CSS_EMS;
 			else if([sc scanString:@"ex" intoString:NULL]) primitiveType=DOM_CSS_EXS;
 			else if([sc scanString:@"px" intoString:NULL]) primitiveType=DOM_CSS_PX;
-			else if([sc scanString:@"cm" intoString:NULL]) primitiveType=DOM_CSS_CM, floatValue*=0.01;	// convert to meters
-			else if([sc scanString:@"mm" intoString:NULL]) primitiveType=DOM_CSS_MM, floatValue*=0.001;
-			else if([sc scanString:@"in" intoString:NULL]) primitiveType=DOM_CSS_IN, floatValue*=0.0254;
-			else if([sc scanString:@"pt" intoString:NULL]) primitiveType=DOM_CSS_PT, floatValue*=0.0254/72;
+			else if([sc scanString:@"cm" intoString:NULL]) primitiveType=DOM_CSS_CM;
+			else if([sc scanString:@"mm" intoString:NULL]) primitiveType=DOM_CSS_MM;
+			else if([sc scanString:@"in" intoString:NULL]) primitiveType=DOM_CSS_IN;
+			else if([sc scanString:@"pt" intoString:NULL]) primitiveType=DOM_CSS_PT;
 			else if([sc scanString:@"pc" intoString:NULL]) primitiveType=DOM_CSS_PC;
-			else if([sc scanString:@"deg" intoString:NULL]) primitiveType=DOM_CSS_DEG;	// convert to ?
+			else if([sc scanString:@"deg" intoString:NULL]) primitiveType=DOM_CSS_DEG;
 			else if([sc scanString:@"rad" intoString:NULL]) primitiveType=DOM_CSS_RAD;
 			else if([sc scanString:@"grad" intoString:NULL]) primitiveType=DOM_CSS_GRAD;
-			else if([sc scanString:@"ms" intoString:NULL]) primitiveType=DOM_CSS_MS, floatValue*=0.001;	// convert to seconds
+			else if([sc scanString:@"ms" intoString:NULL]) primitiveType=DOM_CSS_MS;
 			else if([sc scanString:@"s" intoString:NULL]) primitiveType=DOM_CSS_S;
 			else if([sc scanString:@"hz" intoString:NULL]) primitiveType=DOM_CSS_HZ;
-			else if([sc scanString:@"khz" intoString:NULL]) primitiveType=DOM_CSS_KHZ, floatValue*=1000.0;	// convert to hz
+			else if([sc scanString:@"khz" intoString:NULL]) primitiveType=DOM_CSS_KHZ;
 			else primitiveType=DOM_CSS_NUMBER;	// number without units
+			[self setFloatValue:primitiveType floatValue:floatValue];
 			return;
 		}
-	if([sc scanCharactersFromSet:identChars intoString:&stringValue])
+	if([sc scanCharactersFromSet:identChars intoString:&value])
 		{ // appears to be a valid token
 			primitiveType=DOM_CSS_IDENT;
 			[DOMCSSRule _skip:sc];
@@ -1567,7 +1714,8 @@
 			 */				
 			if([sc scanString:@"(" intoString:NULL])
 				{ // "functional" token
-					if([stringValue isEqualToString:@"rgb"])
+					// FIXME: WebKit understands rgba()
+					if([value isEqualToString:@"rgb"])
 						{ // rgb(r, g, b)
 							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 							NSArray *args=[val _toStringArray];
@@ -1582,92 +1730,263 @@
 								else if(c < 0.0)	c=0.0;
 								rgb=(rgb << 8) + (((unsigned) c) % 256);
 								}
-							floatValue=rgb;
+							value=[[NSNumber alloc] initWithInt:rgb];
 							[val release];
-							stringValue=nil;	// don't store
 							primitiveType=DOM_CSS_RGBCOLOR;
 						}
-					else if([stringValue isEqualToString:@"url"])
+					else if([value isEqualToString:@"url"])
 						{ // url(location) or url("location")
-							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
-							stringValue=[val _toString];	// get unquoted or quoted value
-							[val release];
+							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
 							primitiveType=DOM_CSS_URI;
-							stringValue=nil;	// don't store
 						}
-					else if([stringValue isEqualToString:@"attr"])
+					else if([value isEqualToString:@"attr"])
 						{ // attr(name)
-							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
-							// handle value
-							[val release];
+							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 							primitiveType=DOM_CSS_ATTR;
-							stringValue=nil;	// don't store
 						}
-					else if([stringValue isEqualToString:@"counter"])
+					else if([value isEqualToString:@"counter"])
 						{ // counter(ident) or counter(ident, list-style-type)
-							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
-							// handle value
-							[val release];
+							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 							primitiveType=DOM_CSS_COUNTER;
-							stringValue=nil;	// don't store
 						}
+					// rect()
 					else
 						primitiveType=DOM_CSS_UNKNOWN;
 					[sc scanString:@")" intoString:NULL];					
 				}
-			[stringValue retain];
+			else
+				[value retain];	// identifier
 			return;
 		}
-	stringValue=nil;	// just be safe
+	value=nil;	// just be safe
 	primitiveType=DOM_CSS_UNKNOWN;
 }
 
 - (void) setFloatValue:(unsigned short) unitType floatValue:(float) floatValue;
 {
-	// check if unitType is valid for floats
+	switch(primitiveType)
+	{ // convert to internal inits (meters, seconds, rad, Hz)
+		case DOM_CSS_CM: floatValue *= 0.01; break;		// store in meters
+		case DOM_CSS_MM: floatValue *= 0.001; break;	// store in meters
+		case DOM_CSS_IN: floatValue *= 0.0254; break;	// store in meters
+		case DOM_CSS_PT: floatValue *= 0.0254/72; break;	// store in meters
+		case DOM_CSS_PC: floatValue *= 0.0254/6; break;	// store in meters
+//		case DOM_CSS_DEG: break;
+//		case DOM_CSS_RAD: break;
+//		case DOM_CSS_GRAD: break;
+		case DOM_CSS_MS: floatValue *= 0.001; break;	// store in seconds
+		case DOM_CSS_KHZ: floatValue *= 1000.0; break;	// store in Hz
+	}
+	[value release];
+	value=[[NSNumber alloc] initWithFloat:floatValue];
+	primitiveType=unitType;
 }
 
 - (float) getFloatValue:(unsigned short) unitType;
 { // convert to unitType if requested
 	if(unitType != primitiveType)
+		// check if compatible
 		;
 	switch(primitiveType)
-	{
-		case DOM_CSS_NUMBER: return floatValue;
-		case DOM_CSS_PERCENTAGE: return 100.0*floatValue;
-		case DOM_CSS_EMS: return floatValue;
-		case DOM_CSS_EXS: return floatValue;
-		case DOM_CSS_PX: return floatValue;
-		case DOM_CSS_CM: return 100.0*floatValue;
-		case DOM_CSS_MM: return 1000.0*floatValue;
-		case DOM_CSS_IN: return floatValue;
-		case DOM_CSS_PT: return floatValue;
-		case DOM_CSS_PC: return floatValue;
-		case DOM_CSS_DEG: return floatValue;
-		case DOM_CSS_RAD: return floatValue;
-		case DOM_CSS_GRAD: return floatValue;
-		case DOM_CSS_MS: return floatValue;
-		case DOM_CSS_S: return floatValue;
-		case DOM_CSS_HZ: return floatValue;
-		case DOM_CSS_KHZ: return floatValue;
+	{ // since we store absolute lengths in meters, time in seconds and frequencies in Hz, conversion from e.g. cm to pt is not difficult
+		case DOM_CSS_CM: return 100.0*[value floatValue];
+		case DOM_CSS_MM: return 1000.0*[value floatValue];
+		case DOM_CSS_IN: return [value floatValue] / 0.0254;
+		case DOM_CSS_PT: return [value floatValue] / (0.0254/72);
+		case DOM_CSS_PC: return [value floatValue] / (0.0254/6);
+//		case DOM_CSS_DEG: return [value floatValue];
+//		case DOM_CSS_RAD: return [value floatValue];
+//		case DOM_CSS_GRAD: return [value floatValue];
+		case DOM_CSS_MS: return 1000.0*[value floatValue];
+		case DOM_CSS_KHZ: return 0.001*[value floatValue];
+		default: return [value floatValue];
 	}
+	// raise exception?
 	return 0.0;
+}
+
+- (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
+{ // convert to unitType if requested
+	switch(primitiveType) {
+		case DOM_CSS_PERCENTAGE: return 0.01*[value floatValue]*base;
+		case DOM_CSS_EMS: return [value floatValue]*([font ascender]+[font descender]);
+		case DOM_CSS_EXS: return [value floatValue]*[font xHeight];
+		case DOM_CSS_PX: return [value floatValue] / (0.0254/72);	// assume px = pt
+	}
+	return [self getFloatValue:unitType];	// absolute
 }
 
 - (void) setStringValue:(unsigned short) stringType stringValue:(NSString *) stringValue;
 {
 	// only for ident, attr, string?
 	// or should we run the parser here?
+	[value release];
+	value=[stringValue retain];
+	primitiveType=stringType;
 }
 
 - (NSString *) getStringValue;
 {
-	return stringValue;
+	return [value _toString];
 }
 
 //- (DOMCounter *) getCounterValue;
 //- (DOMRect *) getRectValue;
 //- (DOMRGBColor *) getRGBColorValue;
 //- (NSColor *) getRGBAColorValue;
+
+@end
+
+@implementation WebView (CSS)
+
+- (DOMCSSStyleDeclaration *) _styleForElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement;
+{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc. but neither handles inheritance nor expands defaults
+	int i, cnt;
+	WebPreferences *preferences=[self preferences];
+	DOMCSSStyleDeclaration *style;
+	static DOMCSSStyleSheet *defaultSheet;
+	if(![element isKindOfClass:[DOMElement class]])
+		return nil;	// element has no CSS capabilities
+	style=[[DOMCSSStyleDeclaration new] autorelease];
+	if(!defaultSheet)
+		{ // read default.css from bundle
+			NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"default" ofType:@"css"];
+			NSString *sheet=[NSString stringWithContentsOfFile:path];
+			if(sheet)
+				{
+				defaultSheet=[DOMCSSStyleSheet new];
+				[defaultSheet _setCssText:sheet];	// parse the style sheet to add
+				}
+#if 1
+			NSLog(@"parsed default.css: %@", defaultSheet);
+#endif
+		}
+	[defaultSheet _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
+
+	// FIXME: get rid of this (handle completely through default.css)
+
+	[element _addAttributesToStyle:style];	// get attributes (pre)defined by tag name and explicit attributes
+	
+	if([preferences authorAndUserStylesEnabled])
+		{ // loaded style is not disabled
+			NSString *styleString;
+			DOMStyleSheetList *list;
+			DOMCSSStyleDeclaration *css;
+			// FIXME: how to handle different media?
+			list=[(DOMHTMLDocument *) [element ownerDocument] styleSheets];
+			cnt=[list length];
+			for(i=0; i<cnt; i++)
+				{ // go through all style sheets
+					// FIXME:
+					// multiple rules may match (and have different priorities!)
+					// i.e. we should have a method that returns all matching rules
+					// then sort by precedence/priority/specificity/importance
+					// the rules are described here:
+					// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
+					
+					[(DOMCSSStyleSheet *) [list item:i] _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
+				}
+			// what comes first? browser or author defined and how is the style={} attribute taken?
+			styleString=[element getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) style!)
+			if(styleString)
+				{ // parse style attribute
+#if 1
+					NSLog(@"add style=\"%@\"", styleString);
+#endif
+					css=[[DOMCSSStyleDeclaration alloc] initWithString:styleString];	// parse
+					[style _append:css];	// append/overwrite
+					[css release];
+				}
+		}
+	cnt=[style length];
+	for(i=0; i<cnt; i++)
+		{ // expand attr(name)
+			NSString *property=[style item:i];
+			DOMCSSValue *val=[style getPropertyCSSValue:property];
+			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_ATTR)
+				{ // expand attr(name)
+					NSString *property=[val _toString];
+					NSString *attr=[element getAttribute:property];
+					// FIXME: this allows e.g. <font face="attr(something)">
+					[style setProperty:property CSSvalue:[[[DOMCSSValue alloc] initWithString:attr] autorelease] priority:nil];
+				}
+		}	
+	return style;
+}
+
+- (DOMCSSStyleDeclaration *) computedStyleForElement:(DOMElement *) element
+									   pseudoElement:(NSString *) pseudoElement;
+{ // this provides a complete list of attributes where inheritance and default values are expanded
+	DOMCSSStyleDeclaration *style=[self _styleForElement:element pseudoElement:pseudoElement];
+	DOMCSSStyleDeclaration *parent=nil;
+	unsigned int i, cnt=[style length];
+	static DOMCSSValue *inherit;
+	if(!inherit)
+		inherit=[[DOMCSSValue alloc] initWithString:@"inherit"];
+	/* add missing default values */
+	if(![style getPropertyCSSValue:@"color"]) [style setProperty:@"color" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"cursor"]) [style setProperty:@"cursor" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"direction"]) [style setProperty:@"direction" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"font-family"]) [style setProperty:@"font-family" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"font-size"]) [style setProperty:@"font-size" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"font-style"]) [style setProperty:@"font-style" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"font-variant"]) [style setProperty:@"font-variant" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"font-weight"]) [style setProperty:@"font-weight" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"letter-spacing"]) [style setProperty:@"letter-spacing" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"line-height"]) [style setProperty:@"line-height" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"list-style"]) [style setProperty:@"list-style" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"list-style-image"]) [style setProperty:@"list-style-image" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"list-style-position"]) [style setProperty:@"list-style-position" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"list-style-type"]) [style setProperty:@"list-style-type" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"quotes"]) [style setProperty:@"quotes" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"text-align"]) [style setProperty:@"text-align" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"text-indent"]) [style setProperty:@"text-indent" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"text-transform"]) [style setProperty:@"text-transform" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"visibility"]) [style setProperty:@"visibility" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"word-spacing"]) [style setProperty:@"word-spacing" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"border-collapse"]) [style setProperty:@"border-collapse" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"border-spacing"]) [style setProperty:@"border-spacing" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"empty-cells"]) [style setProperty:@"empty-cells" CSSvalue:inherit priority:nil];
+	if(![style getPropertyCSSValue:@"table-layout"]) [style setProperty:@"table-layout" CSSvalue:inherit priority:nil];
+#if OLD
+	/* default values */
+	if(![style getPropertyCSSValue:@"display"]) [style setProperty:@"display" value:@"inline" priority:nil];
+	if(![style getPropertyCSSValue:@"whitespace"]) [style setProperty:@"whitespace" value:@"normal" priority:nil];
+#endif
+	/* expand inheritance - recursively go upwards only if needed */
+	for(i=0; i<cnt; i++)
+		{ // replace (recursively) inherited values
+			NSString *property=[style item:i];
+			DOMCSSValue *val=[style getPropertyCSSValue:property];
+			
+			// or should we expand attr() and uri() here?
+			
+			if([val cssValueType] == DOM_CSS_INHERIT)
+				{
+				if(![element parentNode])
+					{
+					; // substitute system default					
+					}
+				else
+					{
+					if(!parent)
+						parent=[self computedStyleForElement:(DOMElement *) [element parentNode] pseudoElement:pseudoElement];	// recursively expand
+					if(parent)
+						[style setProperty:property CSSvalue:[parent getPropertyCSSValue:property] priority:[parent getPropertyPriority:property]];	// inherit
+					else
+						; // substitute system default					
+					}
+				}
+		}
+	/* handle special case where the default value is a copy of some other property */
+	if(![style getPropertyCSSValue:@"border-top-color"]) [style setProperty:@"border-top-color" CSSvalue:[style getPropertyCSSValue:@"color"] priority:nil];
+	return style;
+}
+
+- (DOMCSSStyleDeclaration *) computedPageStyleForPseudoElement:(NSString *) pseudoElement;
+{
+	// here we should compute something...
+	return nil;
+}
 
 @end

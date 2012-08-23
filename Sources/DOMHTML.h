@@ -37,7 +37,6 @@
 
 extern NSString *DOMHTMLAnchorElementTargetWindow;
 extern NSString *DOMHTMLAnchorElementAnchorName;
-extern NSString *DOMHTMLBlockInlineLevel;
 
 @interface DOMHTMLCollection : WebScriptObject
 {
@@ -94,17 +93,13 @@ typedef enum
 - (NSString *) outerHTML;
 - (NSString *) innerHTML;
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;	// uses _style and _string to get content to splice - handles block/inline splicing rules 
-- (void) _flushStyles;
-
 - (void) _layout:(NSView *) parent;
 
 @end
 
 @interface DOMHTMLElement : DOMElement	// add private methods that need to work for HTML nodes only
 {
-	NSMutableDictionary *_style;	// cached attribute&CSS style (only temporarily valid until we _flushStyles!)
-	NSRange _range;		// range within the NSAttributedString
+	NSRange _range;		// range within the NSAttributedString (to aid searching elements by position)
 }
 
 - (NSAttributedString *) attributedString;
@@ -114,16 +109,10 @@ typedef enum
 - (NSString *) innerHTML;
 - (void) setInnerHTML:(NSString *) str;	// this should parse HTML and replace the contents
 
-- (void) _layout:(NSView *) view;		// layout view according to the DOM node (may swap the view within its superview!)
-- (void) _spliceTo:(NSMutableAttributedString *) str;	// uses _style and _string to get content to splice - handles block/inline splicing rules 
-- (NSMutableDictionary *) _style;				// get attributes (merging explicit attributes and CSS from this and parent levels)
-- (void) _flushStyles;							// flush style cache
+- (void) _layout:(NSView *) view;				// layout view according to the DOM node (may swap the view within its superview!)
+
 - (NSString *) _string;							// get string to be spliced
 - (NSTextAttachment *) _attachment;				// get attachment to be spliced
-
-- (void) _addCSSToStyle:(DOMCSSStyleDeclaration *) style;	// add CSS to style
-- (void) _addCSSToStyle;						// search CSS database for matching rules
-- (void) _addAttributesToStyle;					// add attributes to style
 
 @end
 

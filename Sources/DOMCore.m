@@ -184,7 +184,7 @@
     (DOMNode *)[_childNodes item:[_childNodes length]-1]: (DOMNode *)nil; 
 }
 
-- (NSString *) localName; { return @"local name"; }
+- (NSString *) localName; { return [NSString stringWithFormat:@"%@::%@", _namespaceURI, _nodeName]; }
 
 - (NSString *) namespaceURI; { return _namespaceURI; }
 
@@ -298,16 +298,16 @@
 { // value can be nil
 	if((self=[super init]))
 		{
-		_name=[str retain];
+		_nodeName=[str retain];
 		_value=[val retain];
 		}
 	return self;
 }
 
-- (void) dealloc; { [_name release]; [_value release]; [super dealloc]; }
-- (NSString *) description; { return [NSString stringWithFormat:_value?@"%@=%@":@"%@", _name, _value]; }
+- (void) dealloc; { [_value release]; [super dealloc]; }
+- (NSString *) description; { return [NSString stringWithFormat:_value?@"%@=%@":@"%@", _nodeName, _value]; }
 
-- (NSString *) name; { return _name; }
+- (NSString *) name; { return _nodeName; }
 - (DOMElement *) ownerElement; { return (DOMElement *) _parentNode; }
 
 - (void) setValue:(NSString *) val;
@@ -323,17 +323,63 @@
 
 @end
 
+@implementation DOMNamedNodeMap
+
+- (void) dealloc;
+{
+	[[_attributes allValues] makeObjectsPerformSelector:@selector(_orphanize)];
+	[_attributes release];
+	[super dealloc];
+}
+
+- (unsigned) length; { return [_attributes count]; }
+
+- (DOMNode *) getNamedItem:(NSString *) name; { return [_attributes objectForKey:name]; }
+- (DOMNode *) setNamedItem:(DOMNode *) node;
+{
+	if(!_attributes)
+		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
+	[_attributes setObject:node forKey:[node nodeName]];
+	return node;
+}
+- (DOMNode *) removeNamedItem:(NSString *) name;
+{
+	DOMNode *node=[_attributes objectForKey:name];
+	[node _orphanize];
+	[_attributes removeObjectForKey:name];
+	return node;
+}
+- (DOMNode *) item:(unsigned) index; { return [[_attributes allValues] objectAtIndex:index]; }
+- (DOMNode *) getNamedItemNS:(NSString *) uri localName:(NSString *) name; { return [_attributes objectForKey:name]; }
+- (DOMNode *) setNamedItemNS:(DOMNode *) node;
+{
+	if(!_attributes)
+		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
+	// orphanize fŸr vorherigen Wert
+	[_attributes setObject:node forKey:[node localName]];
+	// _setParent
+	return node;
+}
+- (DOMNode *) removeNamedItemNS:(NSString *) uri localName:(NSString *) name;
+{
+	DOMNode *node=[_attributes objectForKey:name];
+	[node _orphanize];
+	[_attributes removeObjectForKey:name];
+	return node;
+}
+
+@end
+
 @implementation DOMElement
 
-- (void) dealloc; { [[_attributes allValues] makeObjectsPerformSelector:@selector(_orphanize)]; [_attributes release]; [super dealloc]; }
-- (NSArray *) _attributes; { return [_attributes allValues]; }
+- (void) dealloc; { [_attributes release]; [super dealloc]; }
+- (DOMNamedNodeMap *) attributes; { return _attributes; }
 
-- (NSString *) getAttribute:(NSString *) name; { return [[_attributes objectForKey:name] value]; }
+- (NSString *) getAttribute:(NSString *) name; { return [[self getAttributeNode:name] value]; }
+- (DOMAttr *) getAttributeNode:(NSString *) name; { return (DOMAttr *) [_attributes getNamedItem:name]; }
 
-- (DOMAttr *) getAttributeNode:(NSString *) name; { return [_attributes objectForKey:name]; }
-
-- (DOMAttr *) getAttributeNodeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
-- (NSString *) getAttributeNS:(NSString *) uri :(NSString *) name; { return NIMP; }
+- (DOMAttr *) getAttributeNodeNS:(NSString *) uri :(NSString *) name; { return (DOMAttr *) [_attributes getNamedItemNS:uri localName:name]; }
+- (NSString *) getAttributeNS:(NSString *) uri :(NSString *) name; { return [[self getAttributeNodeNS:uri :name] value]; }
 
 - (DOMNodeList *) getElementsByTagName:(NSString *) name;
 { // filter children by tag name
@@ -350,16 +396,17 @@
 
 - (DOMNodeList *) getElementsByTagNameNS:(NSString *) uri :(NSString *) name; { return NIMP; }
 
-- (BOOL) hasAttribute:(NSString *) name; { return [_attributes objectForKey:name] != nil; }
-- (BOOL) hasAttributeNS:(NSString *) uri :(NSString *) name; { NIMP; return NO; }
+- (BOOL) hasAttribute:(NSString *) name; { return [_attributes getNamedItem:name] != nil; }
+- (BOOL) hasAttributeNS:(NSString *) uri :(NSString *) name; { return [_attributes getNamedItemNS:uri localName:name] != nil; }
 
-- (BOOL) hasAttributes; { return YES; }
+- (BOOL) hasAttributes; { return [_attributes length] > 0; }
 
-- (void) removeAttribute:(NSString *) name; { [_attributes removeObjectForKey:name]; }
+- (void) removeAttribute:(NSString *) name; { [_attributes removeNamedItem:name]; }
 - (DOMAttr *) removeAttributeNode:(DOMAttr *) attr;
 {
-	[_attributes removeObjectForKey:[attr name]];
+	NIMP;
 	[attr _orphanize];
+// FIXME: 	[_attributes removeObjectForKey:[attr name]];
 	[[self _visualRepresentation] setNeedsLayout:YES];
 	return attr;
 }
@@ -368,7 +415,7 @@
 
 - (void) setAttribute:(NSString *) name :(NSString *) val;
 {
-	DOMAttr *attr=[_attributes objectForKey:name];
+	DOMAttr *attr=(DOMAttr *)[_attributes getNamedItem:name];
 	if(attr)
 		[attr setValue:val];	// already exists
 	else
@@ -378,9 +425,8 @@
 - (DOMAttr *) setAttributeNode:(DOMAttr *) attr;
 {
 	if(!_attributes)
-		_attributes=[[NSMutableDictionary alloc] initWithCapacity:5];
-	[_attributes setObject:attr forKey:[attr name]];
-	[attr _setParent:self];
+		_attributes=[DOMNamedNodeMap new];
+	[_attributes setNamedItem:attr];
 	return attr;
 }
 
@@ -392,15 +438,15 @@
 
 - (NSString *) valueForKey:(NSString *) name;
 {
-	id attr=[_attributes objectForKey:name];
+	id attr=[self getAttribute:name];
 	if(attr)
-		return [attr value];
+		return attr;
 	return [super valueForKey:name];	// standard KVC (either iVar or getter)
 }
 
 - (void) setValue:(id) val forKey:(NSString *) name;
 {
-	DOMAttr *attr=[_attributes objectForKey:name];
+	DOMAttr *attr=(DOMAttr *) [self getAttribute:name];
 	if(attr)
 		[attr setValue:val];	// already exists
 	// FIXME: can we call setters?
@@ -412,13 +458,13 @@
 
 // FIXME: check if we have iVar or setter
 
-- (BOOL) _hasProperty:(NSString *) property;  { return [_attributes objectForKey:property] != nil; }
+- (BOOL) _hasProperty:(NSString *) property;  { return [self hasAttribute:property]; }
 
 - (void) removeWebScriptKey:(NSString *) property;
 {
-	if(![_attributes objectForKey:property])
+	if(![self hasAttribute:property])
 		return;	// or raise exception?
-	[_attributes removeObjectForKey:property];
+	[self removeAttribute:property];
 }
 
 @end

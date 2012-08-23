@@ -1,25 +1,25 @@
 /* simplewebkit
-NSXMLParser.m
-
-Copyright (C) 2007 Free Software Foundation, Inc.
-
-Author: Dr. H. Nikolaus Schaller
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
-
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.
-If not, write to the Free Software Foundation,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+ NSXMLParser.m
+ 
+ Copyright (C) 2007 Free Software Foundation, Inc.
+ 
+ Author: Dr. H. Nikolaus Schaller
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+ 
+ You should have received a copy of the GNU Library General Public
+ License along with this library; see the file COPYING.LIB.
+ If not, write to the Free Software Foundation,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
 #ifndef __WebKit__	// allows us to disable parts when we #include into WebKit
 
@@ -38,6 +38,8 @@ NSString *const NSXMLParserErrorDomain=@"NSXMLParserErrorDomain";
 
 @implementation NSString (NSXMLParser)
 
+#if 1	// currently used only by NSPropertyListSerialization - maybe NSXMLNode?
+
 - (NSString *) _stringByExpandingXMLEntities;
 {
 	NSMutableString *t=[NSMutableString stringWithString:self];
@@ -48,6 +50,7 @@ NSString *const NSXMLParserErrorDomain=@"NSXMLParserErrorDomain";
 	[t replaceOccurrencesOfString:@"'" withString:@"&apos;" options:0 range:NSMakeRange(0, [t length])];
 	return t;
 }
+#endif
 
 + (NSString *) _string:(void *) bytes withEncoding:(NSStringEncoding) encoding length:(int) len;
 { // used to convert tags, values, etc.
@@ -145,7 +148,7 @@ static NSDictionary *entitiesTable;
 - (void) setDelegate:(id) del; { delegate=del; }	// not retained!
 - (NSError *) parserError; { return error; }
 
-- (void) _processTag:(NSString *) tag isEnd:(BOOL) flag withAttributes:(NSDictionary *) attributes;
+- (void) _processTag:(NSString *) tag isEnd:(BOOL) endFlag withAttributes:(NSDictionary *) attributes;
 {
 #if 0
 	NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
@@ -154,28 +157,8 @@ static NSDictionary *entitiesTable;
 		return;		// emtpy tag, e.g. from <! -- comment -- >
 	if(acceptHTML)
 		tag=[tag lowercaseString];	// HTML is not case sensitive
-	if(!flag)
+	if(!endFlag)
 		{
-		if([tag isEqualToString:@"?xml"])
-			{ // parse, i.e. check for UTF8 encoding and other attributes
-			  // FIXME: check encoding
-			  // check that it is the first tag of all
-			acceptHTML=NO;	// enforce strict syntax
-#if 0
-			NSLog(@"parserDidStartDocument:");
-#endif
-			if([delegate respondsToSelector:@selector(parserDidStartDocument:)])
-				[delegate parserDidStartDocument:self];
-			return;
-			}
-		if([tag hasPrefix:@"?"])
-			{
-#if 0
-			NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
-#endif
-			// parser:foundProcessingInstructionWithTarget:data:
-			return;
-			}
 		if([tag hasPrefix:@"!"])
 			{
 			if([tag isEqualToString:@"!DOCTYPE"])
@@ -183,8 +166,8 @@ static NSDictionary *entitiesTable;
 #if 1	// we could even be strict if document pretends to be X(HT)ML
 				if([attributes objectForKey:@"html"])
 					{ // <!DOCTYPE html ...>
-					acceptHTML=YES;	// switch back to HTML lazy mode because people don't really comply to XHTML...
-					return;
+						acceptHTML=YES;	// switch back to HTML lazy mode because people don't really comply to XHTML...
+						return;
 					}
 #endif
 #if 0
@@ -196,57 +179,57 @@ static NSDictionary *entitiesTable;
 			if([tag isEqualToString:@"!ENTITY"])
 				{ // parse
 #if 0
-				NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
+					NSLog(@"_processTag <%@%@ %@>", flag?@"/":@"", tag, attributes);
 #endif
-				// [delegate parser:self foundEntity:data];
-				return;
+					// [delegate parser:self foundEntity:data];
+					return;
 				}
 			return;	// don't push
 			}
 		[tagPath addObject:tag];	// push on stack
-									// FIXME: optimize speed by getting IMP when setting the delegate
+		// FIXME: optimize speed by getting IMP when setting the delegate
 		if([delegate respondsToSelector:@selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
 			[delegate parser:self didStartElement:tag namespaceURI:nil qualifiedName:nil attributes:attributes];
 		}
 	else
 		{ // closing tag
-		if(acceptHTML)
-			{ // lazily close any missing intermediate tags on stack, i.e. <table><tr><td>Data</tr></tbl> -> insert </td>, ignore </tbl>
-			if(![tagPath containsObject:tag])
-				return;	// ignore closing tag without any matching open...
-			while([tagPath count] > 0 && ![[tagPath lastObject] isEqualToString:tag])	// must be literally equal!
-				{ // close all in between
-				if([delegate respondsToSelector:@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
-					[delegate parser:self didEndElement:[tagPath lastObject] namespaceURI:nil qualifiedName:nil];
-				// FIXME: we don't stall here in between!!!
-				[tagPath removeLastObject];	// pop from stack
+			if(acceptHTML)
+				{ // lazily close any missing intermediate tags on stack, i.e. <table><tr><td>Data</tr></tbl> -> insert </td>, ignore </tbl>
+					if(![tagPath containsObject:tag])
+						return;	// ignore closing tag without any matching open...
+					while([tagPath count] > 0 && ![[tagPath lastObject] isEqualToString:tag])	// must be literally equal!
+						{ // close all in between
+							if([delegate respondsToSelector:@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+								[delegate parser:self didEndElement:[tagPath lastObject] namespaceURI:nil qualifiedName:nil];
+							// FIXME: we don't stall here in between!!!
+							[tagPath removeLastObject];	// pop from stack
+						}
 				}
-			}
-		else if(![[tagPath lastObject] isEqualToString:tag])	// must be literally equal!
-			{
-			[self _parseError:NSXMLParserNotWellBalancedError message:[NSString stringWithFormat:@"tag nesting error (</%@> expected, </%@> found)", [tagPath lastObject], tag]];
-			return;
-			}
-		if([delegate respondsToSelector:@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
-			[delegate parser:self didEndElement:tag namespaceURI:nil qualifiedName:nil];
-		[tagPath removeLastObject];	// pop from stack
+			else if(![[tagPath lastObject] isEqualToString:tag])	// must be literally equal!
+				{
+				[self _parseError:NSXMLParserNotWellBalancedError message:[NSString stringWithFormat:@"tag nesting error (</%@> expected, </%@> found)", [tagPath lastObject], tag]];
+				return;
+				}
+			if([delegate respondsToSelector:@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+				[delegate parser:self didEndElement:tag namespaceURI:nil qualifiedName:nil];
+			[tagPath removeLastObject];	// pop from stack
 		}
 }
 
 #define eat(C) { }
 #define eatstr(STR) { }
 
-- (NSString *) _translateEntity:(const char *) vp length:(int) len		// vp is position of & and length gives position of ;
+- (NSString *) _stringFromXMLEntity:(const char *) vp length:(int) len		// vp is position of & and length gives position of ;
 {
 	NSString *entity;
 	if(vp[1] == '#')
-			{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
-				unsigned int val;
-				if(sscanf((char *)vp+2, "x%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "%u;", &val) == 1)
-					return [NSString stringWithFormat:@"%C", val];	// &#xhhhh; hex value; &ddd; decimal value
-				else
-					return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
-			}
+		{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
+			unsigned int val;
+			if(sscanf((char *)vp+2, "x%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "%u;", &val) == 1)
+				return [NSString stringWithFormat:@"%C", val];	// &#xhhhh; hex value; &ddd; decimal value
+			else
+				return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
+		}
 	// check the five predefined entities
 	if(strncmp((char *)vp+1, "amp;", 4) == 0)
 		return @"&";
@@ -260,35 +243,35 @@ static NSDictionary *entitiesTable;
 		return @"'";
 	entity=[NSString _string:(char *)vp+1 withEncoding:encoding length:len-1];	// start with entity name and ask table and/or delegate to translate
 	if(acceptHTML)
-			{
-				NSString *e;
-				if(!entitiesTable)
-						{ // dynamically load entity translation table on first use
-							NSAutoreleasePool *arp=[NSAutoreleasePool new];
-							NSBundle *b=[NSBundle bundleForClass:[self class]];
-							NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
-							NSString *s;
-							NSDictionary *d;
-							NSAssert(path, @"could not locate file HTMLEntities.strings");
-							s = [NSString stringWithContentsOfFile: path];
+		{
+		NSString *e;
+		if(!entitiesTable)
+			{ // dynamically load entity translation table on first use
+				NSAutoreleasePool *arp=[NSAutoreleasePool new];
+				NSBundle *b=[NSBundle bundleForClass:[self class]];
+				NSString *path=[b pathForResource:@"HTMLEntities" ofType:@"strings"];
+				NSString *s;
+				NSDictionary *d;
+				NSAssert(path, @"could not locate file HTMLEntities.strings");
+				s = [NSString stringWithContentsOfFile: path];
 #if 0
-							NSLog(@"HTMLEntities: %@", s);
+				NSLog(@"HTMLEntities: %@", s);
 #endif
-							d = [s propertyListFromStringsFileFormat];
-							entitiesTable = [d mutableCopy];
-							NSAssert1(entitiesTable, @"could not load and parse file %@", path);
+				d = [s propertyListFromStringsFileFormat];
+				entitiesTable = [d mutableCopy];
+				NSAssert1(entitiesTable, @"could not load and parse file %@", path);
 #if 0
-							NSLog(@"bundle=%@", b);
-							NSLog(@"path=%@", path);
-							NSLog(@"entitiesTable=%@", entitiesTable);
+				NSLog(@"bundle=%@", b);
+				NSLog(@"path=%@", path);
+				NSLog(@"entitiesTable=%@", entitiesTable);
 #endif
-							[arp release];
-						}
-				e=[entitiesTable objectForKey:entity];	// look up string in entity translation table
-				if(e)
-					return e;	// found
+				[arp release];
 			}
-	// should also try [delegate parser:self resolveExternalEntityName:entity systemID:(NSString *)systemID]
+		e=[entitiesTable objectForKey:entity];	// look up string in entity translation table
+		if(e)
+			return e;	// found
+		}
+	// should we also try [delegate parser:self resolveExternalEntityName:entity systemID:(NSString *)systemID]
 	return entity;
 }
 
@@ -302,25 +285,25 @@ static NSDictionary *entitiesTable;
 		return;	// ignore this chunk of input data if there was already a parse error
 	if(!d)
 		{ // notifies end of data
-		done=YES;
+			done=YES;
 		}
 	if(!buffer || cp == (const char *) [buffer bytes]+[buffer length])
 		{ // first fragment or we have processed the current buffer completely (that should happen regularily when we end up between tags)
-		[buffer release];	// for the second condition...
-		buffer=[d copy];	// should make a copy only if really needed!
-		cp=[buffer bytes];
+			[buffer release];	// for the second condition...
+			buffer=[d copy];	// should make a copy only if really needed!
+			cp=[buffer bytes];
 		}
 	else if([d length] > 0)
 		{ // append to new buffer
-		unsigned cpoff=cp-(char *)[buffer bytes];	// get current offset
-		if(![buffer isKindOfClass:[NSMutableData class]])
-			{ // make a mutable copy
-			NSData *b=buffer;				// remember
-			buffer=[buffer mutableCopy];	// replace previous buffer by a mutable copy
-			[b release];					// release previous (immutable) buffer
-			}
-		[(NSMutableData *) buffer appendData:d];	// append new fragment
-		cp=(const char *) [buffer bytes]+cpoff;		// advance by offset into new buffer
+			unsigned cpoff=cp-(char *)[buffer bytes];	// get current offset
+			if(![buffer isKindOfClass:[NSMutableData class]])
+				{ // make a mutable copy
+					NSData *b=buffer;				// remember
+					buffer=[buffer mutableCopy];	// replace previous buffer by a mutable copy
+					[b release];					// release previous (immutable) buffer
+				}
+			[(NSMutableData *) buffer appendData:d];	// append new fragment
+			cp=(const char *) [buffer bytes]+cpoff;		// advance by offset into new buffer
 		}
 	else if(d)
 		{
@@ -339,377 +322,386 @@ static NSDictionary *entitiesTable;
 	//
 	while(!isStalled && cp < ep)
 		{ // process as much as we can until isStalled is called or we have to wait for completion of the next segment
-		const char *vp=cp;	// where we start to analyse in this iteration so that we can backup
-		while(cp < ep)
-			{ // get plain text
-			if(*cp == '&' && readMode != _NSXMLParserPlainReadMode)
-				break;	// take entity
-			if(*cp == '<')
-				{ // check for </[a-zA-Z] according to http://www.w3.org/TR/html401/appendix/notes.html#notes-specifying-data
-				if(readMode == _NSXMLParserStandardReadMode)
-					break;	// we are not scanning for end of current tag
-				if(cp+2 >= ep)
-					{
-					if(done)
-						;
-					cp=vp;
-					return;	// we can't decide yet
-					}
-				if(cp[1] == '/' && isalpha(cp[2]))
-					{ // end _NSXMLParserPlainReadMode
-					readMode=_NSXMLParserStandardReadMode;	// switch back to standard read mode
-					break;	// and process the closing tag
-					} // else this is a < to be passed verbatim to the delegate
-				}
-			if(*cp == '\r')
-				column=0;
-			else if(*cp == '\n')
-				line++;
-			cp++;
-			}
-		if(cp != vp)
-			{ // notify plain characters to delegate
-			if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
-				[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];
-			// FIXME: when can we notify parser:foundIgnorableWhitespace:?
-			continue;
-			}
-		if(cp == ep)
-			break;	// no (more) data in this loop
-		if(*cp == '<')
-			{ // tag starts
-			NSString *tag;
-			NSMutableDictionary *parameters;
-			NSString *key=nil;		// for arguments
-			const char *tp=++cp;	// remember where tag started
-			BOOL bang;
-			if(cp == ep)
-				{
-				if(done)
-					; // error
-				cp=vp;
-				return;	// incomplete
-				}
-			if((bang=(*cp == '!')))
-				cp++;
-			else if(*cp == '/')
-				cp++; // closing tag </tag begins
-			else if(*cp == '?')
-				{ // special tag <?tag begins
-				cp++;	// include ? in tag string
-						//	NSLog(@"special tag <? found");
-						// FIXME: should process this tag also in a special way so that e.g. <?php any PHP script ?> is read as a single tag!
-						// to do this properly, we need probably a notion of comments and quoted string constants...
-				}
-			if(bang)
-				{ // handle comment, DOCTYPE, [CDATA[
-				while(cp < ep)
-					{ // simply eat comments and [CDATA[ here
-					if(cp < ep-2 && strncmp(cp, "--", 2) == 0)
-						{ // comment starts - see: http://htmlhelp.com/reference/wilbur/misc/comment.html
-						tp=cp+=2;	// beginning of comment
-						// FIME: if someone has speed concerns, we could do a strchr for all - and check for a second one to follow
-						while(cp < ep-2 && (cp[0] != '-' || cp[1] != '-'))
-							cp++;	// search for end of this comment
-						if(cp >= ep-2)
-							{ // not found - badly formed comment; search again for simple -->
-							if(!done)
-								{
-								cp=vp;
-								return;	// still incomplete
-								}
-							if(!acceptHTML)
-								; // XML malformed comment
-							cp=tp;
-							while(cp < ep-3 && strncmp(cp, "-->", 3) != 0)
-								cp++;	// search again for "simple" end of this comment
-							}
-						if([delegate respondsToSelector:@selector(parser:foundComment:)])
-							[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
-						cp+=2;	// skip -- of comment
-						if(isStalled)
-							break;	// delegate wants to stall after comment
-						continue;
-						}
-					// FIXME: should we accept spaces between [ CDATA [
-					else if(cp < ep-7 && strncmp((char *) cp, "[CDATA[", 7) == 0)
-						{ // start of CDATA
-						tp=cp+=7;
-						// FIXME: should we accept spaces ] ]
-						while(cp < ep-2 && (*cp != ']' || strncmp((char *)cp, "]]", 2) != 0))
-							cp++; // scan up to ]]> without processing entities and other tags
-						if(cp >= ep-2)
-							{
-							if(done)
-								; // error
-							cp=vp;
-							return;	// still incomplete
-							}
-#if 0
-						NSLog(@"found CDATA");
-#endif
-						if([delegate respondsToSelector:@selector(parser:foundCDATA:)])
-							[delegate parser:self foundCDATA:[NSData dataWithBytes:tp length:cp-tp]];
-						cp+=2;	// eat
-						if(isStalled)
-							break;	// delegate wants to stall after comment
-						continue;
-						}
-					else
-						break;	// no special treatment (e.g. > or <!DOCTYPE>)
-					}
-				if(isStalled)
-					break;
-				tp=cp;
-				}
-			while(cp < ep && !isspace(*cp) && *cp != '>' && (*cp != '/')  && (*cp != '?'))
-				{ // read tag
-				if(*cp == '\n')
-					line++, column=0;
-				cp++;	
-				}
-			if(cp == ep)
-				{
-				if(done)
-					; // error
-				cp=vp;
-				return;	// still incomplete
-				}
-			if(bang && cp != tp)
-				tag=[@"!" stringByAppendingString:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];				
-			else if(*tp == '/')
-				tag=[NSString _string:(char *)tp+1 withEncoding:encoding length:cp-tp-1];	// don't include opening /
-			else
-				tag=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
-#if 0
-			NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c:' ');
-#endif
-			parameters=[NSMutableDictionary dictionaryWithCapacity:5];
+			const char *vp=cp;	// where we start to analyse in this iteration so that we can backup
 			while(cp < ep)
-				{ // collect arguments
-				BOOL sq, dq;
-				NSString *arg;
-				const char *ap;
-				while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
-					{
-					if(*cp == '\n')
-						line++, column=0;
-					cp++;	
-					}
-				if(cp == ep)
-					{
-					if(done)
-						; // error
-					cp=vp;
-					return;	// incomplete
-					}
-				if(*cp == '/' && *tp != '/')
-					{ // strict XML: appears to be a /> (not valid in HTML: <a href=file:///somewhere/>)
-					  // FIXME: can there be a space between the / and >?
+				{ // get plain text
+					if(*cp == '&' && readMode != _NSXMLParserPlainReadMode)
+						break;	// take entity
+					if(*cp == '<')
+						{ // check for </[a-zA-Z] according to http://www.w3.org/TR/html401/appendix/notes.html#notes-specifying-data
+							if(readMode == _NSXMLParserStandardReadMode)
+								break;	// we are not scanning for end of current tag
+							if(cp+2 >= ep)
+								{
+								if(done)
+									;
+								cp=vp;
+								return;	// we can't decide yet
+								}
+							if(cp[1] == '/' && isalpha(cp[2]))
+								{ // end _NSXMLParserPlainReadMode
+									readMode=_NSXMLParserStandardReadMode;	// switch back to standard read mode
+									break;	// and process the closing tag
+								} // else this is a < to be passed verbatim to the delegate
+						}
+					if(*cp == '\r')
+						column=0;
+					else if(*cp == '\n')
+						line++;
 					cp++;
+				}
+			if(cp != vp)
+				{ // notify plain characters to delegate
+					if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
+						[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];
+					// FIXME: when can we notify parser:foundIgnorableWhitespace:?
+					continue;
+				}
+			if(cp == ep)
+				break;	// no (more) data in this loop
+			if(*cp == '<')
+				{ // tag starts
+					NSString *tag;
+					NSMutableDictionary *parameters;
+					NSString *key=nil;		// for arguments
+					const char *tp=++cp;	// remember where tag started
+					BOOL bang;
 					if(cp == ep)
 						{
 						if(done)
 							; // error
 						cp=vp;
-						return;	// we don't know yet
+						return;	// incomplete
 						}
-					if(*cp != '>')
-						{
-						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found / but no >", tag]];
-						return;
+					if((bang=(*cp == '!')))
+						cp++;
+					else if(*cp == '/')
+						cp++; // closing tag </tag begins
+					else if(*cp == '?')
+						{ // special tag <?tag begins
+							cp++;	// include ? in tag string
 						}
-					cp++;
-					[self _processTag:tag isEnd:NO withAttributes:parameters];	// notify a virtual opening tag
-					if(isStalled)
-						NSLog(@"unexpected stall!");
-					[self _processTag:tag isEnd:YES withAttributes:nil];		// and a real closing tag
-					readMode=_NSXMLParserStandardReadMode;						// force switch back to standard read mode (e.g. <script/>)
-					break;	// done with this tag
-					}
-				if(*cp == '?' && *tp == '?')
-					{ // appears to be a ?>
-					cp++;
-					if(cp >= ep)
+					if(bang)
+						{ // handle comment, DOCTYPE, [CDATA[
+							while(cp < ep)
+								{ // simply eat comments and [CDATA[ here
+									if(cp < ep-2 && strncmp(cp, "--", 2) == 0)
+										{ // comment starts - see: http://htmlhelp.com/reference/wilbur/misc/comment.html
+											tp=cp+=2;	// beginning of comment
+											// FIME: if someone has speed concerns, we could do a strchr for all - and check for a second one to follow
+											while(cp < ep-2 && (cp[0] != '-' || cp[1] != '-'))
+												cp++;	// search for end of this comment
+											if(cp >= ep-2)
+												{ // not found - badly formed comment; search again for simple -->
+													if(!done)
+														{
+														cp=vp;
+														return;	// still incomplete
+														}
+													if(!acceptHTML)
+														; // XML malformed comment
+													cp=tp;
+													while(cp < ep-3 && strncmp(cp, "-->", 3) != 0)
+														cp++;	// search again for "simple" end of this comment
+												}
+											if([delegate respondsToSelector:@selector(parser:foundComment:)])
+												[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
+											cp+=2;	// skip -- of comment
+											if(isStalled)
+												break;	// delegate wants to stall after comment
+											continue;
+										}
+									// FIXME: should we accept spaces between [ CDATA [
+									else if(cp < ep-7 && strncmp((char *) cp, "[CDATA[", 7) == 0)
+										{ // start of CDATA
+											tp=cp+=7;
+											// FIXME: should we accept spaces ] ]
+											while(cp < ep-2 && (*cp != ']' || strncmp((char *)cp, "]]", 2) != 0))
+												cp++; // scan up to ]]> without processing entities and other tags
+											if(cp >= ep-2)
+												{
+												if(done)
+													; // error
+												cp=vp;
+												return;	// still incomplete
+												}
+#if 0
+											NSLog(@"found CDATA");
+#endif
+											if([delegate respondsToSelector:@selector(parser:foundCDATA:)])
+												[delegate parser:self foundCDATA:[NSData dataWithBytes:tp length:cp-tp]];
+											cp+=2;	// eat
+											if(isStalled)
+												break;	// delegate wants to stall after comment
+											continue;
+										}
+									else
+										break;	// no special treatment (e.g. > or <!DOCTYPE>)
+								}
+							if(isStalled)
+								break;
+							tp=cp;
+						}
+					while(cp < ep && !isspace(*cp) && *cp != '>' && (*cp != '/')  && (*cp != '?'))
+						{ // read tag
+							if(*cp == '\n')
+								line++, column=0;
+							cp++;	
+						}
+					if(cp == ep)
 						{
 						if(done)
 							; // error
 						cp=vp;
-						return;	// we don't know yet
+						return;	// still incomplete
 						}
-					if(*cp != '>')
-						{
-						[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found ? but no >", tag]];
-						return;
-						}
-					cp++;	// eat ?>
-					[self _processTag:tag isEnd:NO withAttributes:parameters];	// single <?tag ...?>
-					break; // done
-					}
-				if(*cp == '>')
-					{
-					cp++;	// eat >
-					[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
-					break;
-					}
-				sq=(*cp == '\'');	// single quoted argument
-				dq=(*cp == '"');	// quoted argument
-				if(sq || dq)
-					cp++;	// skip quote
-				ap=cp;
-				while(cp < ep)
-					{
-					if(dq)
-						{
-						if(*cp == '"')
-							break;
-						}
-					else if(sq)
-						{
-						if(*cp == '\'')
-							break;
-						}
+					if(bang && cp != tp)
+						tag=[@"!" stringByAppendingString:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];				
+					else if(*tp == '/')
+						tag=[NSString _string:(char *)tp+1 withEncoding:encoding length:cp-tp-1];	// don't include opening /
 					else
-						{
-							if(*cp == '>' || isspace(*cp) || (!key && *cp == '='))
-								break;	// delimited
-							// if(acceptHTML && (*cp == '/' || *cp == '?'))	// <?tag arg?> or <?tag arg/> i.e. not properly quoted or separated by space
-							//	break;
-						}
-					cp++;	// collect argument
-					}
-				if(cp == ep)
-					{
-					if(done)
-						; // error
-					cp=vp;
-					return;	// incomplete
-					}
-				arg=@"";
-				while(ap < cp)
-					{ // handle entities embedded in tag arguments (how should we correctly handle JavaScript arguments? e.g. onclick="var=a&b;")
-						const char *entityp=ap;
-						NSString *fragment;
-						while(entityp < cp && *entityp != '&')
-							entityp++;	// get non-entity fragment
-						fragment=[NSString _string:(char *)ap withEncoding:encoding length:entityp-ap];	// string up to entity or end of argument
-						if(entityp < cp)
-								{ // append entity (if it can be translated)
-									const char *ee=entityp+1;	// start after &
-									while(ee < cp && isalnum(*ee))
-										ee++;	// collect alphanumericals
-									if(ee < cp && *ee == ';')
-											{ // was an entity - try to translate
-												fragment=[fragment stringByAppendingString:[self _translateEntity:entityp length:ee-entityp]];
-												entityp=ee+1;
-											}
-									else
-											{
-												fragment=[fragment stringByAppendingString:@"&"];	// can't translate
-												entityp++;
-											}
-								}
-						if([arg length] == 0) arg=fragment;	// first fragment
-						else arg=[arg stringByAppendingString:fragment];	// append
-						ap=entityp;
-					}
-				if(sq || dq)
-					cp++;
-				else if(!key && acceptHTML)
-					arg=[arg lowercaseString];	// unquoted keys are case insensitive by default in HTML
+						tag=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
 #if 0
-				NSLog(@"arg=%@", arg);
+					NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c:' ');
 #endif
-					if(!key && [arg length] == 0)
-							{ // missing or invalid key (values may be empty though)
-								if(!acceptHTML)
-										{
-											[self _parseError:NSXMLParserAttributeNotStartedError message:[NSString stringWithFormat:@"<%@> attribute name is empty - attributes=%@", tag, parameters]];
-											return;
-										}
-								[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// ignore invalid argument and handle HTML tag
-								break;
-							}
-					while(cp < ep && isspace(*cp))	// also allows for line break and tabs which are ignored...
-							{
+					parameters=[NSMutableDictionary dictionaryWithCapacity:5];
+					while(cp < ep)
+						{ // collect arguments
+							BOOL sq, dq;
+							NSString *arg;
+							const char *ap;
+							while(cp < ep && isspace(*cp))	// also allows for line break and tabs...
+								{
 								if(*cp == '\n')
 									line++, column=0;
 								cp++;	
-							}
-					if(!key && *cp == '=')
-							{ // explicit assignment follows
-								key=arg;	// save as the key
-								cp++;
-							}
-					else if(key)
-							{ // was explicit assignment
-								[parameters setObject:arg forKey:key];
-								key=nil;	// no longer needed
-							}
-					else	// implicit
-							{ // XML does not allow "singletons" ecxept if *tp == '!'
-								if(!acceptHTML && ![tag hasPrefix:@"!"])
+								}
+							if(cp == ep)
+								{
+								if(done)
+									; // error
+								cp=vp;
+								return;	// incomplete
+								}
+							if(*cp == '/' && *tp != '/')
+								{ // strict XML: appears to be a /> (not valid in HTML: <a href=file:///somewhere/>)
+									// FIXME: can there be a space between the / and >?
+									cp++;
+									if(cp == ep)
 										{
-											[self _parseError:NSXMLParserAttributeHasNoValueError message:[NSString stringWithFormat:@"<%@> attribute %@ has no value - attributes", tag, arg, parameters]];
-											return;
+										if(done)
+											; // error
+										cp=vp;
+										return;	// we don't know yet
 										}
-								[parameters setObject:[NSNull null] forKey:arg];
-							}
-				if(cp == ep)
-					{
-					if(done)
-						; // error
-					cp=vp;
-					return;	// incomplete
-					}
+									if(*cp != '>')
+										{
+										[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found / but no >", tag]];
+										return;
+										}
+									cp++;
+									[self _processTag:tag isEnd:NO withAttributes:parameters];	// notify a virtual opening tag
+									if(isStalled)
+										NSLog(@"unexpected stall!");
+									[self _processTag:tag isEnd:YES withAttributes:nil];		// and a real closing tag
+									readMode=_NSXMLParserStandardReadMode;						// force switch back to standard read mode (e.g. <script/>)
+									break;	// done with this tag
+								}
+							if(*cp == '?' && *tp == '?')
+								{ // appears to be a ?>
+									cp++;
+									if(cp >= ep)
+										{
+										if(done)
+											; // error
+										cp=vp;
+										return;	// we don't know yet
+										}
+									if(*cp != '>')
+										{
+										[self _parseError:NSXMLParserLTRequiredError message:[NSString stringWithFormat:@"<%@: found ? but no >", tag]];
+										return;
+										}
+									cp++;	// eat ?>
+									if([tag isEqualToString:@"?xml"])
+										{ // parse, i.e. check for UTF8 encoding and other attributes
+											// FIXME: check encoding
+											// check that it is the first tag of all
+											acceptHTML=NO;	// enforce strict syntax
+										}
+									if([delegate respondsToSelector:@selector(parser:foundProcessingInstructionWithTarget:data:)])
+										{
+										// FXIME:
+										NSString *data=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
+										[delegate parser:self foundProcessingInstructionWithTarget:[tag substringFromIndex:1] data:data];						
+										}
+									break; // done
+								}
+							if(*cp == '>')
+								{
+								cp++;	// eat >
+								[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
+								break;
+								}
+							sq=(*cp == '\'');	// single quoted argument
+							dq=(*cp == '"');	// quoted argument
+							if(sq || dq)
+								cp++;	// skip quote
+							ap=cp;
+							while(cp < ep)
+								{
+								if(dq)
+									{
+									if(*cp == '"')
+										break;
+									}
+								else if(sq)
+									{
+									if(*cp == '\'')
+										break;
+									}
+								else
+									{
+									if(*cp == '>' || isspace(*cp) || (!key && *cp == '='))
+										break;	// delimited
+									// if(acceptHTML && (*cp == '/' || *cp == '?'))	// <?tag arg?> or <?tag arg/> i.e. not properly quoted or separated by space
+									//	break;
+									}
+								cp++;	// collect argument
+								}
+							if(cp == ep)
+								{
+								if(done)
+									; // error
+								cp=vp;
+								return;	// incomplete
+								}
+							arg=@"";
+							while(ap < cp)
+								{ // handle entities embedded in tag arguments (how should we correctly handle JavaScript arguments? e.g. onclick="var=a&b;")
+									const char *entityp=ap;
+									NSString *fragment;
+									while(entityp < cp && *entityp != '&')
+										entityp++;	// get non-entity fragment
+									fragment=[NSString _string:(char *)ap withEncoding:encoding length:entityp-ap];	// string up to entity or end of argument
+									if(entityp < cp)
+										{ // append entity (if it can be translated)
+											const char *ee=entityp+1;	// start after &
+											while(ee < cp && isalnum(*ee))
+												ee++;	// collect alphanumericals
+											if(ee < cp && *ee == ';')
+												{ // was an entity - try to translate
+													fragment=[fragment stringByAppendingString:[self _stringFromXMLEntity:entityp length:ee-entityp]];
+													entityp=ee+1;
+												}
+											else
+												{
+												fragment=[fragment stringByAppendingString:@"&"];	// can't translate
+												entityp++;
+												}
+										}
+									if([arg length] == 0) arg=fragment;	// first fragment
+									else arg=[arg stringByAppendingString:fragment];	// append
+									ap=entityp;
+								}
+							if(sq || dq)
+								cp++;
+							else if(!key && acceptHTML)
+								arg=[arg lowercaseString];	// unquoted keys are case insensitive by default in HTML
+#if 0
+							NSLog(@"arg=%@", arg);
+#endif
+							// FIXME: may this occur in <?target string... ?>
+							if(!key && [arg length] == 0)
+								{ // missing or invalid key (values may be empty though)
+									if(!acceptHTML)
+										{
+										[self _parseError:NSXMLParserAttributeNotStartedError message:[NSString stringWithFormat:@"<%@> attribute name is empty - attributes=%@", tag, parameters]];
+										return;
+										}
+									[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// ignore invalid argument and handle HTML tag
+									break;
+								}
+							while(cp < ep && isspace(*cp))	// also allows for line break and tabs which are ignored...
+								{
+								if(*cp == '\n')
+									line++, column=0;
+								cp++;	
+								}
+							if(!key && *cp == '=')
+								{ // explicit assignment follows
+									key=arg;	// save as the key
+									cp++;
+								}
+							else if(key)
+								{ // was explicit assignment
+									[parameters setObject:arg forKey:key];
+									key=nil;	// no longer needed
+								}
+							else	// implicit
+								{ // XML does not allow "singletons" ecxept if *tp == '!'
+									if(!acceptHTML && ![tag hasPrefix:@"!"])
+										{
+										[self _parseError:NSXMLParserAttributeHasNoValueError message:[NSString stringWithFormat:@"<%@> attribute %@ has no value - attributes", tag, arg, parameters]];
+										return;
+										}
+									[parameters setObject:[NSNull null] forKey:arg];
+								}
+							if(cp == ep)
+								{
+								if(done)
+									; // error
+								cp=vp;
+								return;	// incomplete
+								}
+						}
+					continue;	// try next fragment unless we are stalling
 				}
-			continue;	// try next fragment unless we are stalling
-			}
-		if(*cp == '&')
-			{ // entity starts
-			NSString *entity;
-			vp=cp++;
-			while(cp < ep && (isalnum(*cp) || *cp == '#'))
-				cp++;
-			if(cp == ep)
-				{ // still incomplete
-				if(!d && !acceptHTML)
-					[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ;"];
-				if(done)
-					; // error
-				cp=vp;	// reset
-				return;	// still incomplete - try again on next call
+			if(*cp == '&')
+				{ // entity starts
+					NSString *entity;
+					vp=cp++;
+					while(cp < ep && (isalnum(*cp) || *cp == '#'))
+						cp++;
+					if(cp == ep)
+						{ // still incomplete
+							if(!d && !acceptHTML)
+								[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ;"];
+							if(done)
+								; // error
+							cp=vp;	// reset
+							return;	// still incomplete - try again on next call
+						}
+					if(*cp != ';')
+						{ // invalid entity
+							if(!acceptHTML)
+								{
+								[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ; for entity"];
+								return;
+								}
+							if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
+								[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];	// pass unchanged
+							continue;	// just notify as plain characters
+						}
+					entity=[self _stringFromXMLEntity:vp length:cp-vp];	// vp is position of & and cp is position of ;
+					if(!entity)
+						{
+						[self _parseError:NSXMLParserParsedEntityRefNoNameError message:@"empty entity"];
+						return;
+						}
+					if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
+						[delegate parser:self foundCharacters:entity];	// send entity
+					cp++;	// skip ;
+					continue;
 				}
-			if(*cp != ';')
-				{ // invalid entity
-				if(!acceptHTML)
-					{
-					[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ; for entity"];
-					return;
-					}
-				if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
-					[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];	// pass unchanged
-				continue;	// just notify as plain characters
-				}
-			entity=[self _translateEntity:vp length:cp-vp];	// vp is position of & and cp is position of ;
-			if(!entity)
-					{
-					[self _parseError:NSXMLParserParsedEntityRefNoNameError message:@"empty entity"];
-					return;
-					}
-			if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
-				[delegate parser:self foundCharacters:entity];	// send entity
-			cp++;	// skip ;
-			continue;
-			}
 		}
 	if(cp == ep && done)
 		{ // we have processed the whole input
-		if([tagPath count] != 0)
-			; // error
-		[buffer release], buffer=nil;
-		if([delegate respondsToSelector:@selector(parserDidEndDocument:)])
-			[delegate parserDidEndDocument:self];	// notify - the delegate might dealloc us here!
+			if([tagPath count] != 0)
+				; // error
+			[buffer release], buffer=nil;
+			if([delegate respondsToSelector:@selector(parserDidEndDocument:)])
+				[delegate parserDidEndDocument:self];	// notify - the delegate might dealloc us here!
 		}
 }
 
@@ -749,6 +741,8 @@ static NSDictionary *entitiesTable;
 		}
 	if(!data)
 		return NO;	// not initialized for complete data
+	if([delegate respondsToSelector:@selector(parserDidStartDocument:)])
+		[delegate parserDidStartDocument:self];
 	[self _parseData:data];	// process complete data segment
 	if(isStalled)
 		NSLog(@"%@: don't call _stall in a delegate method for -parse", NSStringFromClass(isa));

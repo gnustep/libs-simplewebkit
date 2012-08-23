@@ -1,31 +1,28 @@
 /* simplewebkit
-DOMHTML.m
-
-Copyright (C) 2007 Free Software Foundation, Inc.
-
-Author: Dr. H. Nikolaus Schaller
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
-
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.
-If not, write to the Free Software Foundation,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+ DOMHTML.m
+ 
+ Copyright (C) 2007 Free Software Foundation, Inc.
+ 
+ Author: Dr. H. Nikolaus Schaller
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+ 
+ You should have received a copy of the GNU Library General Public
+ License along with this library; see the file COPYING.LIB.
+ If not, write to the Free Software Foundation,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
 // FIXME: learn from http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html
-// FIXME: add additional attributes (e.g. images, anchors etc. for DOMHTMLDocument) and DOMHTMLCollection type
-
-// look at for handling of whitespace: http://www.w3.org/TR/html401/struct/text.html
-// about "display:block" and "display:inline": http://de.selfhtml.org/html/referenz/elemente.htm
+// FIXME: move everything that is 'View' related to WebHTMLDocumentView.m so that this class tree is a pure 'Model'
 
 #import <WebKit/WebView.h>
 #import <WebKit/WebResource.h>
@@ -36,7 +33,6 @@ If not, write to the Free Software Foundation,
 
 NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
 NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
-NSString *DOMHTMLBlockInlineLevel=@"display";
 
 #if !defined (GNUSTEP) && !defined (__mySTEP__)
 #if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
@@ -141,6 +137,7 @@ enum
 
 @interface DOMCSSValue (Private)
 - (NSString *) _toString;
+- (NSString *) _toStringArray;
 @end
 
 @interface NSTextBlock (Attributes)
@@ -226,16 +223,16 @@ enum
 	e=[elements objectEnumerator];
 	while((element=[e nextObject]))
 		{ // x% or * or n* - first pass to get total width
-		float width;
-		element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-		if([element isEqualToString:@"*"])
-			strech+=1.0;	// count number of '*' positions
-		else
-			{
-			width=[element floatValue];
-			if(width > 0.0)
-				total+=width;	// accumulate
-			}
+			float width;
+			element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+			if([element isEqualToString:@"*"])
+				strech+=1.0;	// count number of '*' positions
+			else
+				{
+				width=[element floatValue];
+				if(width > 0.0)
+					total+=width;	// accumulate
+				}
 		}
 	if(strech > 0)
 		{
@@ -247,13 +244,13 @@ enum
 	e=[elements objectEnumerator];
 	while((element=[e nextObject]))
 		{ // x% or * or n*
-		float width;
-		element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-		if([element isEqualToString:@"*"])
-			width=strech;
-		else
-			width=[element floatValue];
-		[r addObject:[NSNumber numberWithFloat:width/total]];	// fraction of total width
+			float width;
+			element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+			if([element isEqualToString:@"*"])
+				width=strech;
+			else
+				width=[element floatValue];
+			[r addObject:[NSNumber numberWithFloat:width/total]];	// fraction of total width
 		}
 	return [r objectEnumerator];
 }
@@ -265,9 +262,9 @@ enum
 - (id) init
 {
 	if((self = [super init]))
-			{
-				elements=[NSMutableArray new]; 
-			}
+		{
+		elements=[NSMutableArray new]; 
+		}
 	return self;
 }
 
@@ -312,6 +309,7 @@ enum
 	return [rep _lastObject];	// default is to build a tree
 }
 
+#if 0
 // DOMDocumentAdditions
 
 - (DOMCSSRuleList *) getMatchedCSSRules:(DOMElement *) elt :(NSString *) pseudoElt;
@@ -320,6 +318,7 @@ enum
 	// and collect all matching rules
 	return nil;
 }
+#endif
 
 - (WebFrame *) webFrame
 {
@@ -340,28 +339,28 @@ enum
 {
 	NSURL *url=[self URLWithAttributeString:string];
 	if(url)
+		{
+		WebDataSource *source=[(DOMHTMLDocument *) [self ownerDocument] _webDataSource];
+		WebResource *res=[source subresourceForURL:url];
+		WebDataSource *sub;
+		NSData *data;
+		if(res)
 			{
-				WebDataSource *source=[(DOMHTMLDocument *) [self ownerDocument] _webDataSource];
-				WebResource *res=[source subresourceForURL:url];
-				WebDataSource *sub;
-				NSData *data;
-				if(res)
-						{
 #if 0
-							NSLog(@"sub: already completely loaded: %@ (%u bytes)", url, [[res data] length]);
+			NSLog(@"sub: already completely loaded: %@ (%u bytes)", url, [[res data] length]);
 #endif
-							// should we call _finishedLoading???
-							return [res data];	// already completely loaded
-						}
-				sub=[source _subresourceWithURL:url delegate:(id <WebDocumentRepresentation>) self];	// triggers loading if not yet and make me receive notification
-#if 0
-				NSLog(@"sub: loading: %@ (%u bytes) delegate=%@", url, [[sub data] length], self);
-#endif
-				data=[sub data];
-				if(!data && stall)	// incomplete
-					[[(_WebHTMLDocumentRepresentation *) [source representation] _parser] _stall:YES];	// make parser stall until we have loaded
-				return data;
+			// should we call _finishedLoading???
+			return [res data];	// already completely loaded
 			}
+		sub=[source _subresourceWithURL:url delegate:(id <WebDocumentRepresentation>) self];	// triggers loading if not yet and make me receive notification
+#if 0
+		NSLog(@"sub: loading: %@ (%u bytes) delegate=%@", url, [[sub data] length], self);
+#endif
+		data=[sub data];
+		if(!data && stall)	// incomplete
+			[[(_WebHTMLDocumentRepresentation *) [source representation] _parser] _stall:YES];	// make parser stall until we have loaded
+		return data;
+		}
 	return nil;
 }
 
@@ -444,27 +443,32 @@ enum
 
 @implementation DOMHTMLElement
 
-// FIXME: how do we recognize changes in attributes/CSS to clear the cache?
-// we must also clear the cache of all descendants!
-
-- (void) dealloc
-{
-	[_style release];
-	[super dealloc];
-}
-
 // layout and rendering
 
+- (NSString *) innerHTML;
+{ // HTML within this node
+	NSString *str=@"";
+	int i;
+	for(i=0; i<[_childNodes length]; i++)
+		{
+		NSString *d=[(DOMHTMLElement *) [_childNodes item:i] outerHTML];
+		str=[str stringByAppendingString:d];
+		}
+	return str;
+}
+
 - (NSString *) outerHTML;
-{
+{ // include this node tags
 	NSMutableString *str=[NSMutableString stringWithFormat:@"<%@", [self nodeName]];
 	if([self respondsToSelector:@selector(_attributes)])
 		{
-		NSEnumerator *e=[[self _attributes] objectEnumerator];
-		DOMAttr *a;
-		while((a=[e nextObject]))
+		DOMNamedNodeMap *attributes=[self attributes];
+		unsigned int i, cnt=[attributes length];
+		for(i=0; i<cnt; i++)
 			{
+			DOMAttr *a=[attributes item:i];
 			if([a specified])
+				// fixme: escape quotes etc.
 				[str appendFormat:@" %@=\"%@\"", [a name], [a value]];			
 			else
 				[str appendFormat:@" %@", [a name]];			
@@ -473,18 +477,6 @@ enum
 	[str appendFormat:@">%@", [self innerHTML]];
 	if([[self class] _nesting] != DOMHTMLNoNesting)
 		[str appendFormat:@"</%@>\n", [self nodeName]];	// close
-	return str;
-}
-
-- (NSString *) innerHTML;
-{
-	NSString *str=@"";
-	int i;
-	for(i=0; i<[_childNodes length]; i++)
-		{
-		NSString *d=[(DOMHTMLElement *) [_childNodes item:i] outerHTML];
-		str=[str stringByAppendingString:d];
-		}
 	return str;
 }
 
@@ -499,91 +491,77 @@ enum
 - (void) setOuterHTML:(NSString *) str; { NIMP; }
 
 - (NSAttributedString *) attributedString;
-{ // get part as attributed string
+{ // recursively get attributed string representing this node and subnodes
 	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
-	[self _spliceTo:str];	// recursively splice all child element strings into our string
-	[self _flushStyles];	// don't keep them in the DOM Tree
-#if 0
-	[str removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [str length])];
-#endif
+	[[[self webFrame] webView] _splice:self to:str parentStyle:nil];	// recursively splice all child element strings into this string
 	return str;
 }
+
+// methods to be overwritten in node specific subclasses
 
 - (void) _layout:(NSView *) parent;
 {
 	NIMP;	// no default implementation!
 }
 
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{ // recursively splice this node and any subnodes, taking end of last fragment into account
-	unsigned i;
-	NSDictionary *style=[self _style];
-	NSString *display=[style objectForKey:DOMHTMLBlockInlineLevel];
-	// FIXME: check for display: none here (and avoid all other processing)
-	NSTextAttachment *attachment=[self _attachment];	// may be nil
-	NSString *string=[self _string];	// may be nil
-	NSString *lastDisplay=[str length]>0 ? [str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL]:nil;
-	BOOL lastIsInline=[lastDisplay isEqualToString:@"inline"];
-	BOOL isInline=[display isEqualToString:@"inline"];
-	if([display isEqualToString:@"none"])
-		return;	// display: none style
-	if(lastIsInline && !isInline)
-		{ // we need to close the last inline segment and prefix new block mode segment
-		if([[str string] hasSuffix:@" "])
-			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@"\n"];	// replace space
-		else
-			[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation inherits attributes of the previous section
+- (NSString *) _string; { return @""; } // default is no contents
+
+- (NSTextAttachment *) _attachment; { return nil; }	// default is no attachment
+
+// REMOVEME:
+
+- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;			// add node specific attributes to style
+{ // allow nodes to override by examining the attributes and overwrite the default style (CSS still takes precedence)
+#if OLD	// moved to default.css
+	NSString *node=[self nodeName];
+	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
+		{ // make bold
+			[style setProperty:@"font-weight" value:@"bold" priority:nil];
 		}
-	if(attachment)
-		{ // add styled attachment (if available)
-		NSMutableAttributedString *astr=(NSMutableAttributedString *)[NSMutableAttributedString attributedStringWithAttachment:attachment];
-		[astr addAttributes:style range:NSMakeRange(0, [astr length])];
-		[str appendAttributedString:astr];
+	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
+		{ // make italics
+			[style setProperty:@"font-style" value:@"italic" priority:nil];
 		}
-	if([string length] > 0)	
-		{ // add styled string (if available)
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:style] autorelease]];
+	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
+		{ // make monospaced
+			[style setProperty:@"font-family" value:@"monospace" priority:nil];
 		}
-	if(string)
-		{ // if not nil
-		for(i=0; i<[_childNodes length]; i++)
-			{ // add children nodes (if available)
-			[(DOMHTMLElement *) [_childNodes item:i] _spliceTo:str];
-			}
+	else if([node isEqualToString:@"U"])
+		{ // make underlined
+			[style setProperty:@"text-decoration" value:@"underline" priority:nil];
 		}
-	if(!isInline)
-		{ // close our block
-		if([[str string] hasSuffix:@" "])
-			[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off trailing space
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:style] autorelease]];	// close this block
+	else if([node isEqualToString:@"STRIKE"])
+		{ // make strike-through
+			[style setProperty:@"text-decoration" value:@"line-through" priority:nil];
 		}
+	else if([node isEqualToString:@"BLINK"])
+		{ // make blink
+			[style setProperty:@"text-decoration" value:@"blink" priority:nil];
+		}
+	else if([node isEqualToString:@"SUP"])
+		{ // make superscript
+			[style setProperty:@"vertical-align" value:@"sup" priority:nil];	// inofficial value
+			[style setProperty:@"font-size" value:@"smaller" priority:nil];
+		}
+	else if([node isEqualToString:@"SUB"])
+		{ // make subscript
+			[style setProperty:@"vertical-align" value:@"sub" priority:nil];	// inofficial value
+			[style setProperty:@"font-size" value:@"smaller" priority:nil];
+		}
+	else if([node isEqualToString:@"BIG"])
+		{ // make font larger +1
+			[style setProperty:@"font-size" value:@"larger" priority:nil];
+		}
+	else if([node isEqualToString:@"SMALL"])
+		{ // make font smaller -1
+			[style setProperty:@"font-size" value:@"smaller" priority:nil];
+		}
+	/* else use defaults */
+#endif
 }
 
-- (NSMutableDictionary *) _style;
-{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
-	if(!_style)
-			{
-				_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify
-				//		[_style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
-				//		[_style setObject:[self webFrame] forKey:WebElementFrameKey];
-				[_style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// set default display style (override in _addAttributesToStyle)
-				[self _addAttributesToStyle];
-				[self _addCSSToStyle];
-			}
-	return _style;
-}
-
-- (void) _flushStyles;
-{
-	if(_style)
-		{
-		[_style release];
-		_style=nil;
-		}
-	[[_childNodes _list] makeObjectsPerformSelector:_cmd];	// also flush child nodes
-}
-
-// FIXME: make this a category that collects all code for DOMHTML/DOMCSS -> NSAttributedString translation
+#if OLD
+// FIXME: replace this by -[DOMCSSStyleDeclaration _append:]
 
 - (void) _addCSSToStyle:(DOMCSSStyleDeclaration *) style;
 {
@@ -598,13 +576,14 @@ enum
 		DOMCSSValue *val=[dict objectForKey:key];
 		if([val cssValueType] == DOM_CSS_INHERIT)
 			continue;	// skip (because parent node defines value)
+		// FIXME: postpone color translations until we really convert to NSAttributedString
 		if([key isEqualToString:@"color"])
 			{
 			NSColor *color;
 			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_RGBCOLOR)
 				{ // special optimization
-				unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
-				color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
+					unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
+					color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
 				}
 			else
 				color=[[val _toString] _htmlNamedColor];	// look up by color name
@@ -614,218 +593,163 @@ enum
 		// handle other attributes directly
 		else
 			{ // convert to string value
-			val=(DOMCSSValue *) [val _toString];
-			if(val)
-				[_style setObject:val forKey:key];	// copy value
-			else
-				; // was not able to convert into string!
+				val=(DOMCSSValue *) [val _toString];
+				if(val)
+					[_style setObject:val forKey:key];	// copy value
+				else
+					; // was not able to convert into string!
 			}
 		}
-	// margin-left: etc.
-	// text-align:
-	// padding-left: etc.
-	// border-left-style: etc.
-	// display:
-	// color: 
-	// font:
-	
 }
 
-- (void) _addCSSToStyle;
-{ // add CSS to style
-	if([[[[self webFrame] webView] preferences] authorAndUserStylesEnabled])
+// FIXME: replace this by -[WebView computedCSSStyleForElement:pseudoElement:]
+
+- (NSMutableDictionary *) _style;
+{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
+	if(!_style)
 		{
-		DOMStyleSheetList *list;
-		DOMCSSStyleDeclaration *css;
-		int i, cnt;
-		NSString *style;
-		// FIXME: how to handle different media?
-		list=[(DOMHTMLDocument *) [self ownerDocument] styleSheets];
-		cnt=[list length];
-		for(i=0; i<cnt; i++)
-			{ // go through all style sheets
-			// FIXME: make this a method of DOMCSSRuleList
-			// but in a way that multiple rules may match (and have different priorities!)
-			// i.e. we should have a method that returns all matching rules
-			// then sort by precedence
-			// the rules are described here:
-			// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
-			
-			DOMCSSRuleList *rules=[(DOMCSSStyleSheet *) [list item:i] cssRules];
-			int r, rcnt=[rules length];
-			for(r=0; r<rcnt; r++)
-				{
-				
-				DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
-				// FIXME: how to handle pseudoElement here?
-#if 0
-				NSLog(@"match %@ with %@", self, rule);
-#endif
-				if([rule _ruleMatchesElement:self pseudoElement:@""])
-					{
-					// FIXME: handle specificity and !important priority
-#if 0
-					NSLog(@"MATCH!");
-#endif
-					[self _addCSSToStyle:[(DOMCSSStyleRule *) rule style]];						
-					}
-				}
-			}
-		style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
-		if(style)
-			{ // parse locally defined CSS
-#if 1
-				NSLog(@"add style=\"%@\"", style);
-#endif
-				css=[[DOMCSSStyleDeclaration alloc] initWithString:style];	// parse
-				[self _addCSSToStyle:css];	// apply
-				[css release];
-			}
-		}
-}
-
-- (void) _addAttributesToStyle;			// add attributes to style
-{ // allow nodes to override by examining the attributes
-	NSString *node=[self nodeName];
-	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
-		{ // make bold
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %@ to Bold", [_style objectForKey:NSFontAttributeName]);
-		}
-	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
-		{ // make italics
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %@ to Italics", [_style objectForKey:NSFontAttributeName]);
-		}
-	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
-		{ // make monospaced
+		// FIXME: this is known to computedCSSStyleForElement:pseudoElement:
 		WebView *webView=[[self webFrame] webView];
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toFamily:[[webView preferences] fixedFontFamily]];
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[[webView preferences] defaultFixedFontSize]*[webView textSizeMultiplier]];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		}
-	else if([node isEqualToString:@"U"])
-		{ // make underlined
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
-		[_style setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
-#else	// MacOS X < 10.3 and GNUstep
-		[_style setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
+		WebPreferences *preferences=[webView preferences];
+		if([self isKindOfClass:[DOMHTMLHtmlElement class]])
+			{ // set document wide defaults
+				_style=[[NSMutableDictionary alloc] initWithCapacity:10];
+				[_style setObject:[preferences standardFontFamily] forKey:@"font-family"];
+				[_style setObject:[NSNumber numberWithFloat:[preferences defaultFontSize]*[webView textSizeMultiplier]] forKey:@"font-size"];
+			}
+		else
+			{
+			// FIXME: auto-inherit only a specific set of attributes
+			// but elements may explicitly specify "inherit" (e.g. height: or margin-bottom: )
+			_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify			
+			}
+		[_style setObject:@"inline" forKey:@"display"];		// set default display style (nodes can override by tag-name or attributes in _addAttributesToStyle)
+		[_style setObject:@"normal" forKey:@"white-space"];	// normal whitepace handling
+		[self _addAttributesToStyle];	// modify by tag name and explicit attributes
+		if([preferences authorAndUserStylesEnabled])
+			{ // CSS is not disabled
+				NSString *style;
+				DOMStyleSheetList *list;
+				DOMCSSStyleDeclaration *css;
+				int i, cnt;
+				// FIXME: how to handle different media?
+				list=[(DOMHTMLDocument *) [self ownerDocument] styleSheets];
+				cnt=[list length];
+				for(i=0; i<cnt; i++)
+					{ // go through all style sheets
+						// FIXME: make this a method of DOMCSSRuleList
+						// but in a way that multiple rules may match (and have different priorities!)
+						// i.e. we should have a method that returns all matching rules
+						// then sort by precedence
+						// the rules are described here:
+						// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
+						
+						DOMCSSRuleList *rules=[(DOMCSSStyleSheet *) [list item:i] cssRules];
+						int r, rcnt=[rules length];
+						for(r=0; r<rcnt; r++)
+							{
+							DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
+							// FIXME: how to handle pseudoElement here?
+							// it appears that the WebView method computedCSSStyleForElement:pseudoElement: is called when needed
+#if 0
+							NSLog(@"match %@ with %@", self, rule);
 #endif
+							if([rule _ruleMatchesElement:self pseudoElement:@""])
+								{
+								// FIXME: handle specificity and !important priority
+#if 0
+								NSLog(@"MATCH!");
+#endif
+								[self _addCSSToStyle:[(DOMCSSStyleRule *) rule style]];						
+								}
+							}
+					}
+				// CHECKME: if we add the style attribute here, it is also available for inheritance of lower level elements!?
+				style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
+				if(style)
+					{ // parse style attribute
+#if 1
+						NSLog(@"add style=\"%@\"", style);
+#endif
+						css=[[DOMCSSStyleDeclaration alloc] initWithString:style];	// parse
+						[self _addCSSToStyle:css];	// apply CSS
+						[css release];
+					}
+			}
 		}
-	else if([node isEqualToString:@"STRIKE"])
-		{ // make strike-through
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
-		[_style setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
-#else	// MacOS X < 10.3 and GNUstep
-		//		[s setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
-#endif		
-		}
-	else if([node isEqualToString:@"SUP"])
-		{ // make superscript
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		[_style setObject:[NSNumber numberWithInt:1] forKey:NSSuperscriptAttributeName];
-		}
-	else if([node isEqualToString:@"SUB"])
-		{ // make subscript
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		[_style setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
-		}
-	else if([node isEqualToString:@"BIG"])
-		{ // make font larger +1
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]*1.2];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		}
-	else if([node isEqualToString:@"SMALL"])
-		{ // make font smaller -1
-		NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:[f pointSize]/1.2];
-		if(f) [_style setObject:f forKey:NSFontAttributeName];
-		}
+	return _style;
 }
 
-- (NSString *) _string; { return @""; }	// default is no content
-
-- (NSTextAttachment *) _attachment; { return nil; }	// default is no attachment
+#endif
 
 @end
 
-@implementation DOMCharacterData (DOMHTMLElement)
+// REMOVEME:
+
+@implementation DOMNode (Content)
+
+- (void) _spliceTo:(NSMutableAttributedString *) str;
+{
+	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
+	[webView _spliceNode:self to:str pseudoElement:@"" parentStyle:nil parentAttributes:nil];
+}
+
+@end
+
+@implementation DOMCharacterData (DOMHTMLElement)	// this is subclass of DOMNode and not DOMElement!
 
 - (NSString *) outerHTML;
 {
+	// escape entities
 	return [self data];
 }
 
 - (NSString *) innerHTML;
 {
+	// escape entities
 	return [self data];
 }
 
-- (void) _flushStyles; { return; }	// we may be children but don't chache styles
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
+- (NSString *) _string;
 {
-	BOOL lastIsInline=[str length]>0 && [[str attribute:DOMHTMLBlockInlineLevel atIndex:[str length]-1 effectiveRange:NULL] isEqualToString:@"inline"];
-	// FIXME: there is a setting in CSS 3.0 which controls this mapping
-	// if we are enclosed in a <PRE> skip this step
-	NSMutableString *s=[NSMutableString stringWithString:[self data]];
-	[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-	[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-	[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-#if 1	// QUESTIONABLE_OPTIMIZATION
-	while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
-		;
-#endif
-	while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
-		;	// trim multiple spaces to single ones as long as we find them
-	if(!lastIsInline && [s hasPrefix:@" "])
-		s=(NSMutableString *)[s substringFromIndex:1];	// strip off leading spaces after blocks (string is immutable but we don't have to change it from now on)
-	if([s length] > 0)
-		{ // is not empty, get style from parent node and append characters
-		NSMutableDictionary *style=[[(DOMHTMLElement *) [self parentNode] _style] mutableCopy];
-		[style setObject:@"inline" forKey:DOMHTMLBlockInlineLevel];	// text must be regarded as inline
-//		[style setObject:self forKey:WebElementDOMNodeKey];	// establish a reference to ourselves into the DOM tree
-		[str appendAttributedString:[[[NSAttributedString alloc] initWithString:s attributes:style] autorelease]];	// add formatted content
-		[style release];
-		}
+	return [self data];	// character string
 }
 
-- (void) _layout:(NSView *) parent;
-{
-	return;	// ignore if mixed with <frame> and <frameset> elements
-}
+- (NSTextAttachment *) _attachment; { return nil; }	// no attachment
 
 @end
 
 @implementation DOMCDATASection (DOMHTMLElement)
 
-- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore
-
 - (NSString *) outerHTML;
 {
+	// FIXME: escape characters if needed
 	return [NSString stringWithFormat:@"<![CDATA[%@]]>", [(DOMHTMLElement *)self innerHTML]];
 }
+
+- (NSString *) _string;
+{
+	return @"";	// ignore
+}
+
+- (NSTextAttachment *) _attachment; { return nil; }	// no attachment
 
 @end
 
 @implementation DOMComment (DOMHTMLElement)
 
-- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore
-
 - (NSString *) outerHTML;
 {
-	return [NSString stringWithFormat:@"<!-- %@ -->\n", [(DOMHTMLElement *)self innerHTML]];
+	// FIXME: escape embeded -- characters
+	return [NSString stringWithFormat:@"<!--%@-->\n", [(DOMHTMLElement *)self innerHTML]];
 }
+
+- (NSString *) _string;
+{
+	return @"";	// ignore
+}
+
+- (NSTextAttachment *) _attachment; { return nil; }	// no attachment
 
 @end
 
@@ -834,14 +758,14 @@ enum
 - (id) init
 {
 	if((self = [super init]))
-			{
-				// we could simply add this as properties/attributes
-				anchors=[DOMHTMLCollection new]; 
-				forms=[DOMHTMLCollection new]; 
-				images=[DOMHTMLCollection new]; 
-				links=[DOMHTMLCollection new]; 
-				styleSheets=[DOMStyleSheetList new];
-			}
+		{
+		// we could simply add this as properties/attributes
+		anchors=[DOMHTMLCollection new]; 
+		forms=[DOMHTMLCollection new]; 
+		images=[DOMHTMLCollection new]; 
+		links=[DOMHTMLCollection new]; 
+		styleSheets=[DOMStyleSheetList new];
+		}
 	return self;
 }
 
@@ -856,7 +780,26 @@ enum
 }
 
 - (WebFrame *) webFrame; { return _webFrame; }
-- (void) _setWebFrame:(WebFrame *) f; { _webFrame=f; }
+
+- (void) _setWebFrame:(WebFrame *) f;
+{
+	WebPreferences *prefs=[[f webView] preferences];
+	_webFrame=f;
+	if([prefs userStyleSheetEnabled])
+		{
+		NSURL *url=[prefs userStyleSheetLocation];
+		if(url)
+			{
+			DOMCSSStyleSheet *sheet;
+			// load sheet
+			// parse
+			// if ok:
+			// CHECKME: is this the correct order/priority of user vs. author style sheets?
+			[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];
+			}
+		}
+}
+
 - (WebDataSource *) _webDataSource; { return _dataSource; }
 - (void) _setWebDataSource:(WebDataSource *) src; { _dataSource=src; }
 
@@ -921,32 +864,33 @@ enum
 	// FIXME: ignore in <body>
 	if([cmd caseInsensitiveCompare:@"refresh"] == NSOrderedSame)
 		{ // handle  <meta http-equiv="Refresh" content="4;url=http://www.domain.com/link.html">
-		NSString *content=[self valueForKey:@"content"];
-		NSArray *c=[content componentsSeparatedByString:@";"];
-		if([c count] == 2)
-			{
-			DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
-			NSString *u=[[c lastObject] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-			NSURL *url;
-			NSTimeInterval seconds;
-			if([[u lowercaseString] hasPrefix:@"url="])
-				u=[u substringFromIndex:4];	// cut off url= prefix
-			u=[u stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// sometimes people write "0; url = xxx"
-			url=[NSURL URLWithString:u relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
-			if(url)
+			NSString *content=[self valueForKey:@"content"];
+			NSArray *c=[content componentsSeparatedByString:@";"];
+			if([c count] == 2)
 				{
-				seconds=[[c objectAtIndex:0] doubleValue];
+				DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
+				NSString *u=[[c lastObject] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+				NSURL *url;
+				NSTimeInterval seconds;
+				if([[u lowercaseString] hasPrefix:@"url="])
+					u=[u substringFromIndex:4];	// cut off url= prefix
+				u=[u stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];	// sometimes people write "0; url = xxx"
+				url=[NSURL URLWithString:u relativeToURL:[[[htmlDocument _webDataSource] response] URL]];
+				if(url)
+					{
+					seconds=[[c objectAtIndex:0] doubleValue];
 #if 0
-				NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
+					NSLog(@"should redirect to %@ after %lf seconds", url, seconds);
 #endif
-				[[self webFrame] _performClientRedirectToURL:url delay:seconds];
+					[[self webFrame] _performClientRedirectToURL:url delay:seconds];
+					}
+				// else raise some error...
 				}
-			// else raise some error...
-			}
 		}
 	// decode other meta
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
+
 
 @end
 
@@ -972,39 +916,43 @@ enum
 			[sheet setHref:[self getAttribute:@"href"]];
 			if(media)
 				[[sheet media] setMediaText:media];
+#if 1
 			NSLog(@"sheet=%@", sheet);
+#endif
 			[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];	// add to list of known style sheets (before loading others)
 			[sheet release];
 			if(data)
-					{ // parse directly if already loaded
-						NSString *style=[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+				{ // parse directly if already loaded
+					NSString *style=[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 #if 1
-						NSLog(@"parsing <link> directly");
+					NSLog(@"parsing <link> directly");
 #endif
-						[sheet _setCssText:style];	// parse the style sheet to add
-						[style release];
-					}
+					[sheet _setCssText:style];	// parse the style sheet to add
+					[style release];
+				}
 		}
+#if 1
 	else if([rel isEqualToString:@"home"])
 		{
-		NSLog(@"<link>: %@", [self _attributes]);
+		NSLog(@"<link>: %@", [self outerHTML]);
 		}
  	else if([rel isEqualToString:@"alternate"])
 		{
-		NSLog(@"<link>: %@", [self _attributes]);
+		NSLog(@"<link>: %@", [self outerHTML]);
 		}
 	else if([rel isEqualToString:@"index"])
 		{
-		NSLog(@"<link>: %@", [self _attributes]);
+		NSLog(@"<link>: %@", [self outerHTML]);
 		}
 	else if([rel isEqualToString:@"shortcut icon"])
 		{
-		NSLog(@"<link>: %@", [self _attributes]);
+		NSLog(@"<link>: %@", [self outerHTML]);
 		}
 	else
 		{
-		NSLog(@"<link>: %@", [self _attributes]);
+		NSLog(@"<link>: %@", [self outerHTML]);
 		}
+#endif
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -1019,15 +967,15 @@ enum
 	NSLog(@"<link> finishedLoadingWithDataSource %@", source);
 #endif
 	if([rel isEqualToString:@"stylesheet"] && [[self valueForKey:@"type"] isEqualToString:@"text/css"])
-			{ // did load style sheet
-				NSString *style=[[NSString alloc] initWithData:[source data] encoding:NSUTF8StringEncoding];
-				[sheet setHref:[[[source response] URL] absoluteString]];	// replace
-				[sheet _setCssText:style];	// parse the style sheet to add
+		{ // did load style sheet
+			NSString *style=[[NSString alloc] initWithData:[source data] encoding:NSUTF8StringEncoding];
+			[sheet setHref:[[[source response] URL] absoluteString]];	// replace
+			[sheet _setCssText:style];	// parse the style sheet to add
 #if 1
-				NSLog(@"CSS <link>: %@", sheet);
+			NSLog(@"CSS <link>: %@", sheet);
 #endif
-				[style release];
-			}
+			[style release];
+		}
 }
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
@@ -1043,8 +991,6 @@ enum
 @end
 
 @implementation DOMHTMLStyleElement
-
-- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore if in <body> context
 
 // CHECKME: are style definitions "local"?
 
@@ -1083,7 +1029,7 @@ enum
 #endif
 	[sheet release];
 }
-	
+
 - (DOMCSSStyleSheet *) sheet; { return sheet; }	// allow to access from JS through var theSheet = document.getElementsByTagName('style')[0].sheet;
 
 @end
@@ -1092,8 +1038,6 @@ enum
 
 // FIXME: or should we use designatedParentNode; { return nil; } so that it is NOT even stored in DOM Tree?
 
-- (void) _spliceTo:(NSMutableAttributedString *) str; { return; }	// ignore if in <body> context
-
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	WebView *webView=[[self webFrame] webView];
@@ -1101,9 +1045,9 @@ enum
 	if([self hasAttribute:@"src"] && [[webView preferences] isJavaScriptEnabled])
 		{ // we have an external script to load first
 #if 0
-		NSLog(@"load <script src=%@>", [self valueForKey:@"src"]);
+			NSLog(@"load <script src=%@>", [self valueForKey:@"src"]);
 #endif
-		[self _loadSubresourceWithAttributeString:@"src" blocking:YES];	// trigger loading of script or get from cache - notifications will be tied to self, i.e. this instance of the <script element>
+			[self _loadSubresourceWithAttributeString:@"src" blocking:YES];	// trigger loading of script or get from cache - notifications will be tied to self, i.e. this instance of the <script element>
 		}
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
@@ -1120,13 +1064,13 @@ enum
 		return;	// ignore if it is not javascript
 	if([self hasAttribute:@"src"])
 		{ // external script
-		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// if we are called, we know that it has been loaded - fetch from cache
-		script=[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+			NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];		// if we are called, we know that it has been loaded - fetch from cache
+			script=[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 #if 0
-		NSLog(@"external script: %@", script);
+			NSLog(@"external script: %@", script);
 #endif
 #if 0
-		NSLog(@"raw: %@", data);
+			NSLog(@"raw: %@", data);
 #endif
 		}
 	else
@@ -1134,11 +1078,11 @@ enum
 	script=[script stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	if(script)
 		{ // not empty and not disabled
-		if([script hasPrefix:@"<!--"])
-			script=[script substringFromIndex:4];	// remove
-		if([script hasSuffix:@"-->"])
-			script=[script substringWithRange:NSMakeRange(0, [script length]-3)];	// remove
-		// checkme: is it permitted to write <script><!CDATA[....? and how is that represented
+			if([script hasPrefix:@"<!--"])
+				script=[script substringFromIndex:4];	// remove
+			if([script hasSuffix:@"-->"])
+				script=[script substringWithRange:NSMakeRange(0, [script length]-3)];	// remove
+			// checkme: is it permitted to write <script><!CDATA[....? and how is that represented
 			// YES: http://www.w3schools.com/xmL/xml_cdata.asp
 			/*
 			 Some text, like JavaScript code, contains a lot of "<" or "&" characters. To avoid errors script code can be defined as CDATA.
@@ -1164,14 +1108,14 @@ enum
 			 </script>
 			 */
 #if 1
-		{
-		id r;
-		NSLog(@"evaluate inlined <script>%@</script>", script);
-		r=[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
-		NSLog(@"result=%@", r);
-		}
+			{
+			id r;
+			NSLog(@"evaluate inlined <script>%@</script>", script);
+			r=[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
+			NSLog(@"result=%@", r);
+			}
 #else
-		[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
+			[[self ownerDocument] evaluateWebScript:script];	// try to parse and directly execute script in current document context
 #endif
 		}
 }
@@ -1186,11 +1130,6 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
-
 @end
 
 @implementation DOMHTMLParamElement
@@ -1199,12 +1138,7 @@ enum
 
 @implementation DOMHTMLFrameSetElement
 
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
-
-	// FIXME - lock if we have a <body> with children
+// FIXME - lock if we have a <body> with children
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <frameset> node or make child of <html>
@@ -1215,7 +1149,7 @@ enum
 			return (DOMHTMLElement *) n;
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <frameset> found!
-			// well, this should never happen
+	// well, this should never happen
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
@@ -1243,35 +1177,35 @@ enum
 		splits=@"100%";	// single entry with full width? or should we evenly split all children?`
 	if(![view isKindOfClass:[_WebHTMLDocumentFrameSetView class]])
 		{ // add/substitute a new _WebHTMLDocumentFrameSetView (subclass of NSSplitView) view of same dimensions
-		_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:[view frame]];
-		if([[view superview] isKindOfClass:[NSClipView class]])
-			[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view
-		else
-			[[view superview] replaceSubview:view with:setView];	// replace
+			_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:[view frame]];
+			if([[view superview] isKindOfClass:[NSClipView class]])
+				[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view
+			else
+				[[view superview] replaceSubview:view with:setView];	// replace
 			[setView setDelegate:self];	// become the delegate (to control no-resize)
-		view=setView;	// use new
-		[setView release];
+			view=setView;	// use new
+			[setView release];
 		}
 	[(NSSplitView *) view setVertical:vertical];
 	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
-			{
-				DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
+		{
+		DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
 #if 1
-			NSLog(@"child=%@", child);
+		NSLog(@"child=%@", child);
 #endif
-				if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
-						{ // real content
-							subviewIndex++;	// one more
-							if(subviewIndex > [[view subviews] count])
-									{ // we don't have instantiated enough subviews yet - add one
-										_WebHTMLDocumentView *childView=[[_WebHTMLDocumentView alloc] initWithFrame:[view frame]];
-										[view addSubview:childView];
-										[childView release];
-									}
-						}
+		if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
+			{ // real content
+				subviewIndex++;	// one more
+				if(subviewIndex > [[view subviews] count])
+					{ // we don't have instantiated enough subviews yet - add one
+						_WebHTMLDocumentView *childView=[[_WebHTMLDocumentView alloc] initWithFrame:[view frame]];
+						[view addSubview:childView];
+						[childView release];
+					}
 			}
+		}
 	while([[view subviews] count] > subviewIndex)
-			[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];	// we have too many subviews - remove last one
+		[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];	// we have too many subviews - remove last one
 #if 0
 	NSLog(@"subviews = %@", [view subviews]);
 #endif
@@ -1279,41 +1213,41 @@ enum
 	frame=[view frame];
 	total=(vertical?frame.size.width:frame.size.height)-[(NSSplitView *) view dividerThickness]*(subviewIndex-1);	// how much room we can distribute
 	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
-			{
-				DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
-				if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
-						{ // real content
-							NSView *childView=[[view subviews] objectAtIndex:subviewIndex];
-							[child _layout:childView];	// layout subview - this may replace the original subview!
-							childView=[[view subviews] objectAtIndex:subviewIndex];	// fetch the (new) subview to resize as needed
+		{
+		DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
+		if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
+			{ // real content
+				NSView *childView=[[view subviews] objectAtIndex:subviewIndex];
+				[child _layout:childView];	// layout subview - this may replace the original subview!
+				childView=[[view subviews] objectAtIndex:subviewIndex];	// fetch the (new) subview to resize as needed
 #if 0
-							NSLog(@" child = %@ - %@", childView, NSStringFromRect([childView frame]));
+				NSLog(@" child = %@ - %@", childView, NSStringFromRect([childView frame]));
 #endif
-							split=[e nextObject];	// get next splitting info
-							if(!split)
-								break;	// mismatch in count
-							frame=[childView frame];
+				split=[e nextObject];	// get next splitting info
+				if(!split)
+					break;	// mismatch in count
+				frame=[childView frame];
 #if 0
-							NSLog(@"  was = %@", NSStringFromRect([childView frame]));
+				NSLog(@"  was = %@", NSStringFromRect([childView frame]));
 #endif
-							if(vertical)
-									{ // vertical splitter
-										frame.origin.x=position;
-										position += frame.size.width=[split floatValue]*total;	// how much of total
-									}
-							else
-									{
-										frame.origin.y=position;
-										position += frame.size.height=[split floatValue]*total;	// how much of total
-									}
-							position += [(NSSplitView *) view dividerThickness];	// leave room for divider
-							[childView setFrame:frame];	// adjust
+				if(vertical)
+					{ // vertical splitter
+						frame.origin.x=position;
+						position += frame.size.width=[split floatValue]*total;	// how much of total
+					}
+				else
+					{
+					frame.origin.y=position;
+					position += frame.size.height=[split floatValue]*total;	// how much of total
+					}
+				position += [(NSSplitView *) view dividerThickness];	// leave room for divider
+				[childView setFrame:frame];	// adjust
 #if 0
-							NSLog(@"  is = %@ -> %@", NSStringFromRect(frame), NSStringFromRect([childView frame]));
+				NSLog(@"  is = %@ -> %@", NSStringFromRect(frame), NSStringFromRect([childView frame]));
 #endif
-							subviewIndex++;
-						}
+				subviewIndex++;
 			}
+		}
 	[(NSSplitView *) view adjustSubviews];	// adjust them all
 }
 
@@ -1321,19 +1255,9 @@ enum
 
 @implementation DOMHTMLNoFramesElement
 
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
-
 @end
 
 @implementation DOMHTMLFrameElement
-
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
@@ -1367,19 +1291,19 @@ enum
 #endif
 	if(![view isKindOfClass:[WebFrameView class]])
 		{ // substitute with a WebFrameView
-		frameView=[[WebFrameView alloc] initWithFrame:[view frame]];
-		[[view superview] replaceSubview:view with:frameView];	// replace
-		view=frameView;	// use new
-		[frameView release];
-		frame=[[WebFrame alloc] initWithName:name
-								 webFrameView:frameView
-									  webView:webView];	// allocate a new WebFrame
-		[frameView _setWebFrame:frame];	// create and attach a new WebFrame
+			frameView=[[WebFrameView alloc] initWithFrame:[view frame]];
+			[[view superview] replaceSubview:view with:frameView];	// replace
+			view=frameView;	// use new
+			[frameView release];
+			frame=[[WebFrame alloc] initWithName:name
+									webFrameView:frameView
+										 webView:webView];	// allocate a new WebFrame
+			[frameView _setWebFrame:frame];	// create and attach a new WebFrame
 			[frame release];
-		[frame _setFrameElement:self];	// make a link
-		[[self webFrame] _addChildFrame:frame];	// make new frame a child of our frame
-		if(src)
-			[frame loadRequest:[NSURLRequest requestWithURL:[self URLWithAttributeString:@"src"]]];
+			[frame _setFrameElement:self];	// make a link
+			[[self webFrame] _addChildFrame:frame];	// make new frame a child of our frame
+			if(src)
+				[frame loadRequest:[NSURLRequest requestWithURL:[self URLWithAttributeString:@"src"]]];
 		}
 	else
 		{
@@ -1387,13 +1311,13 @@ enum
 		frame=[frameView webFrame];		// get the webframe
 		}
 	[frame _setFrameName:name];
-								// FIXME: how to notify the scroll view for all three states: auto, yes, no?
+	// FIXME: how to notify the scroll view for all three states: auto, yes, no?
 	if([self hasAttribute:@"scrolling"])
 		{
 		if([scrolling caseInsensitiveCompare:@"auto"] == NSOrderedSame)
 			{ // enable autoscroll
-			[frameView setAllowsScrolling:YES];
-			// hm...
+				[frameView setAllowsScrolling:YES];
+				// hm...
 			}
 		else
 			[frameView setAllowsScrolling:[scrolling _htmlBoolValue]];
@@ -1411,17 +1335,12 @@ enum
 
 - (NSTextAttachment *) _attachment;
 {
-	return nil;	// NSTextAttachmentCell which controls a NSTextView/NSWebFrameView that loads and renders its content
+	return nil;	// should be a NSTextAttachmentCell which controls a NSTextView/NSWebFrameView that loads and renders its content
 }
 
 @end
 
 @implementation DOMHTMLObjectFrameElement
-
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
@@ -1446,36 +1365,23 @@ enum
 	return [rep _html];
 }
 
-- (NSMutableDictionary *) _style;
-{ // provide root styles
-	NSColor *text=[[self valueForKey:@"text"] _htmlColor];
-	if(!_style)
-		{
-		// FIXME: cache data until we are modified
-		WebView *webView=[[self webFrame] webView];
-		NSFont *font=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// determine default font
-		NSMutableParagraphStyle *paragraph=[NSMutableParagraphStyle new];
-    if(!font)
-		    font = [NSFont userFontOfSize:[[webView preferences] defaultFontSize]*[webView textSizeMultiplier]];	// default if webPrefs define unknown font
-		[paragraph setParagraphSpacing:[[webView preferences] defaultFontSize]/2.0];	// default
-		_style=[[NSMutableDictionary alloc] initWithObjectsAndKeys:
-			paragraph, NSParagraphStyleAttributeName,
-			font, NSFontAttributeName,
-//			self, WebElementDOMNodeKey,			// establish a reference into the DOM tree
-//			[self webFrame], WebElementFrameKey,
-			@"inline", DOMHTMLBlockInlineLevel,	// treat as inline (i.e. don't surround by \nl)
-									// background color
-			text, NSForegroundColorAttributeName,		// default text color - may be nil!
-			nil];
-#if 0
-		NSLog(@"_style for <body> with attribs %@ is %@", [self _attributes], _style);
-#endif
-			[paragraph release];
-		}
-	return _style;
+- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style
+{
+	NSString *val;
+	val=[self valueForKey:@"text"];
+	if(val)
+		[style setProperty:@"color" value:val priority:nil];
+	val=[self valueForKey:@"bgcolor"];
+	if(val)
+		[style setProperty:@"background-color" value:val priority:nil];
+	val=[self valueForKey:@"background"];
+	if(val)
+		[style setProperty:@"background-image" value:[NSString stringWithFormat:@"url(\"%@\")", val] priority:nil];
+	val=[self valueForKey:@"link"];
+	if(val)
+		; // set implicit color for links, i.e. define a a:link pseudo entry???
+	// FIXME: handle other background attributes
 }
-
-// FIXME: this might need more elaboration
 
 - (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
 {
@@ -1489,50 +1395,50 @@ enum
 		NSDictionary *attr=[str attributesAtIndex:start effectiveRange:&rng];
 		if(![attr objectForKey:NSLinkAttributeName])
 			{ // we don't yet have a link here
-			NSString *number=nil;
-			static NSCharacterSet *digits;
-			static NSCharacterSet *ignorable;
-			if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
-			// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
-			// so we should accept dots but only if they separate at least two digits...
-			// but don't recognize dates like 29.12.2007
-			if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
-			[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
-			while(![sc isAtEnd])
-				{
-				NSString *segment;
-				if([sc scanCharactersFromSet:ignorable intoString:NULL])
-					continue;	// skip
-				if([sc scanCharactersFromSet:digits intoString:&segment])
-					{ // found some (more) digits
-					if(number)
-						number=[number stringByAppendingString:segment];	// collect
-					else
-						number=segment;		// first segment
-					continue;	// skip
+				NSString *number=nil;
+				static NSCharacterSet *digits;
+				static NSCharacterSet *ignorable;
+				if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
+				// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
+				// so we should accept dots but only if they separate at least two digits...
+				// but don't recognize dates like 29.12.2007
+				if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
+				[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
+				while(![sc isAtEnd])
+					{
+					NSString *segment;
+					if([sc scanCharactersFromSet:ignorable intoString:NULL])
+						continue;	// skip
+					if([sc scanCharactersFromSet:digits intoString:&segment])
+						{ // found some (more) digits
+							if(number)
+								number=[number stringByAppendingString:segment];	// collect
+							else
+								number=segment;		// first segment
+							continue;	// skip
+						}
+					break;	// no digits
 					}
-				break;	// no digits
-				}
-			if([number length] > 6)
-				{ // there have been enough digits in sequence so that it looks like a phone number
-				NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
-				if(srng.length <= rng.length)
-					{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
+				if([number length] > 6)
+					{ // there have been enough digits in sequence so that it looks like a phone number
+						NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
+						if(srng.length <= rng.length)
+							{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
 #if 0
-					NSLog(@"found telephone number: %@", number);
+								NSLog(@"found telephone number: %@", number);
 #endif
-					// preprocess number so that it fits into E.164 and DIN 5008 formats
-					// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
-					if([number hasPrefix:@"00"])
-						number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];	// convert to international format
+								// preprocess number so that it fits into E.164 and DIN 5008 formats
+								// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
+								if([number hasPrefix:@"00"])
+									number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];	// convert to international format
 #if 0
-					NSLog(@"  -> %@", number);
+								NSLog(@"  -> %@", number);
 #endif
-					[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
-																   forKey:NSLinkAttributeName] range:srng];	// add link
-					continue;
+								[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
+																			   forKey:NSLinkAttributeName] range:srng];	// add link
+								continue;
+							}
 					}
-				}
 			}
 		[sc setScanLocation:start+1];	// skip anything else
 		}
@@ -1543,6 +1449,7 @@ enum
 	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 	WebDataSource *source=[htmlDocument _webDataSource];
 	NSString *anchor=[[[source response] URL] fragment];
+	// FIXME: get this from CSS?
 	NSString *backgroundURL=[self valueForKey:@"background"];		// URL for background image
 	NSColor *bg=[[self valueForKey:@"bgcolor"] _htmlColor];
 	NSColor *link=[[self valueForKey:@"link"] _htmlColor];
@@ -1554,63 +1461,64 @@ enum
 #endif
 	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
 		{ // add/substitute a new _WebHTMLDocumentView view to our parent (NSClipView)
-		view=[[_WebHTMLDocumentView alloc] initWithFrame:(NSRect){ NSZeroPoint, [view frame].size }];	// create a new one with same frame
+			view=[[_WebHTMLDocumentView alloc] initWithFrame:(NSRect){ NSZeroPoint, [view frame].size }];	// create a new one with same frame
 #if 0
-		NSLog(@"replace document view %@ by %@", view, textView);
+			NSLog(@"replace document view %@ by %@", view, textView);
 #endif
-		[[[self webFrame] frameView] _setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
-		[view release];
+			[[[self webFrame] frameView] _setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
+			[view release];
 #if 0
-		NSLog(@"textv=%@", view);
-		NSLog(@"mask=%02x", [view autoresizingMask]);
-		NSLog(@"horiz=%d", [view isHorizontallyResizable]);
-		NSLog(@"vert=%d", [view isVerticallyResizable]);
-		NSLog(@"webdoc=%@", [view superview]);
-		NSLog(@"mask=%02x", [[view superview] autoresizingMask]);
-		NSLog(@"clipv=%@", [[view superview] superview]);
-		NSLog(@"mask=%02x", [[[view superview] superview] autoresizingMask]);
-		NSLog(@"scrollv=%@", [[[view superview] superview] superview]);
-		NSLog(@"mask=%02x", [[[[view superview] superview] superview] autoresizingMask]);
-		NSLog(@"autohides=%d", [[[[view superview] superview] superview] autohidesScrollers]);
-		NSLog(@"horiz=%d", [[[[view superview] superview] superview] hasHorizontalScroller]);
-		NSLog(@"vert=%d", [[[[view superview] superview] superview] hasVerticalScroller]);
-		NSLog(@"layoutManager=%@", [view layoutManager]);
-		NSLog(@"textContainers=%@", [[view layoutManager] textContainers]);
+			NSLog(@"textv=%@", view);
+			NSLog(@"mask=%02x", [view autoresizingMask]);
+			NSLog(@"horiz=%d", [view isHorizontallyResizable]);
+			NSLog(@"vert=%d", [view isVerticallyResizable]);
+			NSLog(@"webdoc=%@", [view superview]);
+			NSLog(@"mask=%02x", [[view superview] autoresizingMask]);
+			NSLog(@"clipv=%@", [[view superview] superview]);
+			NSLog(@"mask=%02x", [[[view superview] superview] autoresizingMask]);
+			NSLog(@"scrollv=%@", [[[view superview] superview] superview]);
+			NSLog(@"mask=%02x", [[[[view superview] superview] superview] autoresizingMask]);
+			NSLog(@"autohides=%d", [[[[view superview] superview] superview] autohidesScrollers]);
+			NSLog(@"horiz=%d", [[[[view superview] superview] superview] hasHorizontalScroller]);
+			NSLog(@"vert=%d", [[[[view superview] superview] superview] hasVerticalScroller]);
+			NSLog(@"layoutManager=%@", [view layoutManager]);
+			NSLog(@"textContainers=%@", [[view layoutManager] textContainers]);
 #endif
 		}
 	ts=[(NSTextView *) view textStorage];
 	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear current content
 	[self _spliceTo:ts];	// translate DOM-Tree into attributed string
-	[self _flushStyles];	// clear style cache in the DOM Tree
-	[ts removeAttribute:DOMHTMLBlockInlineLevel range:NSMakeRange(0, [ts length])];	// release some memory
 	
-	// to handle <pre>:
+	// to correctly handle <pre>:
 	// scan through all paragraphs
 	// find all non-breaking paras, i.e. those with lineBreakMode == NSLineBreakByClipping
 	// determine unlimited width of any such paragraph
 	// resize textView to MIN(clipView.width, maxWidth+2*inset)
 	// also look for oversized attachments!
-
+	
 	// FIXME: we should recognize this element:
 	// <meta name = "format-detection" content = "telephone=no">
 	// as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
-
+	
 	[self _processPhoneNumbers:ts];	// update content
+	
+	// get this from CSS style
+	
 	if([self hasAttribute:@"bgcolor"])
 		{
 		[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
 		[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
-//	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
+		//	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
 #if 1	// WORKAROUND
-	/* the next line is a workaround for the following problem:
-		If we show HTML text that is longer than the scrollview it has a vertical scroller.
-		Now, if a new page is loaded and the text is shorter and completely fits into the
-		NSScrollView, the scroller is automatically hidden.
-		Due to a bug we still have to fix, the NSTextView is not aware of this
-		before the user resizes the enclosing WebView and NSScrollView.
-		And, the background is only drawn for the not-wide-enough NSTextView.
-		As a workaround, we set the background also for the ScrollView.
-	*/
+		/* the next line is a workaround for the following problem:
+		 If we show HTML text that is longer than the scrollview it has a vertical scroller.
+		 Now, if a new page is loaded and the text is shorter and completely fits into the
+		 NSScrollView, the scroller is automatically hidden.
+		 Due to a bug we still have to fix, the NSTextView is not aware of this
+		 before the user resizes the enclosing WebView and NSScrollView.
+		 And, the background is only drawn for the not-wide-enough NSTextView.
+		 As a workaround, we set the background also for the ScrollView.
+		 */
 		if(bg) [sc setBackgroundColor:bg];
 #endif
 		}
@@ -1619,28 +1527,28 @@ enum
 	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
 	if([anchor length] != 0)
 		{ // locate a matching anchor
-		unsigned idx, cnt=[ts length];
-		for(idx=0; idx < cnt; idx++)
-			{
-			NSString *attr=[ts attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
-			if(attr && [attr isEqualToString:anchor])
-				break;
-			}
-		if(idx < cnt)
-			[(_WebHTMLDocumentView *) view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
+			unsigned idx, cnt=[ts length];
+			for(idx=0; idx < cnt; idx++)
+				{
+				NSString *attr=[ts attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
+				if(attr && [attr isEqualToString:anchor])
+					break;
+				}
+			if(idx < cnt)
+				[(_WebHTMLDocumentView *) view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
 		}
 	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
 	[sc tile];
 	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
 #if 0	// show view hierarchy
 	{
-		NSView *parent;
-		//	[textView display];
-		NSLog(@"view hierarchy");
-		NSLog(@"NSWindow=%@", [view window]);
-		parent=view;
-		while(parent)
-			NSLog(@"%p: %@", parent, parent), parent=[parent superview];
+	NSView *parent;
+	//	[textView display];
+	NSLog(@"view hierarchy");
+	NSLog(@"NSWindow=%@", [view window]);
+	parent=view;
+	while(parent)
+		NSLog(@"%p: %@", parent, parent), parent=[parent superview];
 	}
 #endif	
 }
@@ -1651,32 +1559,9 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	if(align)
-		[paragraph setAlignment:[align _htmlAlignment]];
-	// and modify others...
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-
 @end
 
 @implementation DOMHTMLSpanElement
-
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	if(align)
-		[paragraph setAlignment:[align _htmlAlignment]];
-	// and modify others...
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
 
 @end
 
@@ -1684,60 +1569,29 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	if(align)
-		[paragraph setAlignment:[align _htmlAlignment]];
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	// and modify others...
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-
 @end
 
 @implementation DOMHTMLHeadingElement
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (void) _addAttributesToStyle;
+#if OLD
+- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
-	WebView *webView=[[self webFrame] webView];
-	float size=[[webView preferences] defaultFontSize]*[webView textSizeMultiplier];
-	NSFont *f;
 	NSString *align=[self valueForKey:@"align"];
-	if(align)
-		[paragraph setAlignment:[align _htmlAlignment]];
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-	[paragraph setHeaderLevel:level];	// if someone wants to convert the attributed string back to HTML...
-#endif
-	switch(level)
-		{
-		case 1:
-			size *= 24.0/12.0;	// 12 -> 24
-			break;
-		case 2:
-			size *= 18.0/12.0;	// 12 -> 18
-			break;
-		case 3:
-			size *= 14.0/12.0;	// 12 -> 14
-			break;
-		default:
-			break;	// standard
-		}
-	[paragraph setParagraphSpacing:size/2];
-	f=[NSFont fontWithName:[[webView preferences] standardFontFamily] size:size];
-	f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];	// get Bold variant
-	if(f)
-		[_style setObject:f forKey:NSFontAttributeName];	// set header font
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
+	if(align) [style setProperty:@"text-align" value:align priority:nil];
+	[style setProperty:@"x-header-level" value:[NSString stringWithFormat:@"%d", level] priority:nil];
+	if(level == 1)
+		[style setProperty:@"font-size" value:@"xx-large" priority:nil];	// 12 -> 24
+	else if(level == 2)
+		[style setProperty:@"font-size" value:@"x-large" priority:nil];	// 12 -> 18
+	else if(level == 3)
+		[style setProperty:@"font-size" value:@"large" priority:nil];		// 12 -> 14
+	// height passend setzen?
+	[style setProperty:@"display" value:@"block" priority:nil];
 }
+#endif
 
 @end
 
@@ -1745,104 +1599,62 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	// set monospaced font
-	[paragraph setLineBreakMode:NSLineBreakByClipping];
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	// and modify others...
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-
 @end
 
 @implementation DOMHTMLFontElement
 
-- (void) _addAttributesToStyle;
+- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
-	WebView *webView=[[self webFrame] webView];
-	NSArray *names=[[self valueForKey:@"face"] componentsSeparatedByString:@","];	// is a comma separated list of potential font names!
-	NSString *size=[self valueForKey:@"size"];
-	NSColor *color=[[self valueForKey:@"color"] _htmlColor];
-	NSFont *f=[_style objectForKey:NSFontAttributeName];	// style inherited from parent
-	if([names count] > 0)
-		{ // modify font family
-		NSEnumerator *e=[names objectEnumerator];
-		NSString *fname;
-		while((fname=[e nextObject]))
-			{
-			NSFont *ff=[[NSFontManager sharedFontManager] convertFont:f toFamily:fname];	// try to convert
-			if(ff && ff != f)
-				{ // found a different font - replace
-				f=ff;	// if we modify face AND size
-				[_style setObject:ff forKey:NSFontAttributeName];
-				break;	// take the first one we have found
-				}
+	NSString *val;
+#if OLD
+	val=[self valueForKey:@"face"];
+	if(val)
+		[style setProperty:@"font-family" value:val priority:nil];	// may be a comma separated list
+#endif
+	val=[self valueForKey:@"size"];
+	if(val)
+		{ // FIXME: handle through default.css
+		if([val hasPrefix:@"+"])
+			{ // enlarge by 1.2 for each step
+				float s=[[val substringFromIndex:1] floatValue];
+				[style setProperty:@"font-size" value:[NSString stringWithFormat:@"%.0f%%", 100.0*pow(1.2, s)] priority:nil];
 			}
-		}
-	if(size)
-		{ // modify size
-		float sz=[[_style objectForKey:NSFontAttributeName] pointSize];
-		if([size hasPrefix:@"+"])
-			{ // increase
-			int s=[[size substringFromIndex:1] intValue];
-			if(s > 7) s=7;
-			while(s-- > 0)
-				sz*=1.2;
-			}
-		else if([size hasPrefix:@"-"])
-			{ // decrease
-			int s=[[size substringFromIndex:1] intValue];
-			if(s > 7) s=7;
-			while(s-- > 0)
-				sz*=1.0/1.2;
+		else if([val hasPrefix:@"-"])
+			{ // reduce by 1.2 for each step
+				float s=[[val substringFromIndex:1] floatValue];
+				[style setProperty:@"font-size" value:[NSString stringWithFormat:@"%.0f%%", 100.0*pow(1.2, -s)] priority:nil];
 			}
 		else
-			{ // absolute
-			int s=[size intValue];
-			if(s > 7) s=7;
-			if(s < 1) s=1;
-			sz=12.0*[webView textSizeMultiplier];
-			while(s > 3)
-				sz*=1.2, s--;
-			while(s < 3)
-				sz*=1.0/1.2, s++;
+			{ // absolute size relative to 12 pnt
+				WebView *webView=[[self webFrame] webView];
+				float s=[val intValue];
+				if(s > 7) s=7;	// limit
+				if(s < 1) s=1;	// limit
+				s=12.0*pow(1.2, s);
+				[style setProperty:@"font-size" value:[NSString stringWithFormat:@"%.2g pt", s] priority:nil];
 			}
-		f=[[NSFontManager sharedFontManager] convertFont:f toSize:sz];	// try to convert
-		if(f)
-			[_style setObject:f forKey:NSFontAttributeName];
-		else NSLog(@"could not convert %@ to size %lf", [_style objectForKey:NSFontAttributeName], sz);
 		}
-	if(color)
-		[_style setObject:color forKey:NSForegroundColorAttributeName];
-	// and modify others...
+#if OLD
+	val=[self valueForKey:@"color"];
+	if(val)
+		[style setProperty:@"color" value:val priority:nil];
+#endif
 }
 
 @end
 
 @implementation DOMHTMLAnchorElement
 
-#if FIXME
-- (NSString *) _string;
-{
-	// if we are a simple anchor without content, add a nonadvancing space that can be the placeholder for the attributes
-}
-
-#endif
-
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	NSString *urlString=[self valueForKey:@"href"];
-	if(urlString)
+	if(urlString)	// link
 		[[(DOMHTMLDocument *) [self ownerDocument] links] appendChild:self];	// add to Links[] DOM Level 0 list
-	else
-		[[(DOMHTMLDocument *) [self ownerDocument] anchors] appendChild:self];	// add to Links[] DOM Level 0 list
+	else	// anchor
+		[[(DOMHTMLDocument *) [self ownerDocument] anchors] appendChild:self];	// add to Anchors[] DOM Level 0 list
 }
 
-- (void) _addAttributesToStyle;
+- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
 	NSString *urlString=[self valueForKey:@"href"];
 	NSString *target=[self valueForKey:@"target"];	// WebFrame name where to show
@@ -1853,20 +1665,16 @@ enum
 	NSString *coords=[self valueForKey:@"coords"];
 	if(urlString)
 		{ // add a hyperlink
-		NSCursor *cursor=[NSCursor pointingHandCursor];
-		[_style setObject:urlString forKey:NSLinkAttributeName];	// set the link
-		[_style setObject:urlString forKey:NSToolTipAttributeName];	// set the ToolTip 
-		[_style setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
-		if(target)
-			[_style setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
+			[style setProperty:@"x-link" value:urlString priority:nil];
+			[style setProperty:@"x-tooltip" value:urlString priority:nil];
+			[style setProperty:@"cursor" value:@"pointer" priority:nil];
+			if(target)
+				[style setProperty:@"x-target-window" value:target priority:nil];	// set the target window
 		}
 	if(!name)
 		name=[self valueForKey:@"id"];	// XHTML alternative
 	if(name)
-		{ // add an anchor
-		[_style setObject:name forKey:DOMHTMLAnchorElementAnchorName];	// set the cursor
-		}
-	// and modify others...
+		[style setProperty:@"x-anchor" value:name priority:nil];	// add an anchor
 }
 
 @end
@@ -1881,17 +1689,25 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (void) _addAttributesToStyle;
+- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
-	NSString *align=[self valueForKey:@"align"];
-	NSURL *urlString=[self valueForKey:@"src"];	// relative links will be expanded when clicking on the link
-	if(urlString && ![_style objectForKey:NSLinkAttributeName])
+	NSString *height=[self valueForKey:@"height"];
+	NSString *width=[self valueForKey:@"width"];
+	NSString *urlString=[self valueForKey:@"src"];	// relative links will be expanded when clicking on the link
+	if(urlString /* && ![_style objectForKey:@"x-link"] */)
 		{ // add a hyperlink with the image source (unless we are embedded within a link)
-		NSCursor *cursor=[NSCursor pointingHandCursor];
-		[_style setObject:urlString forKey:NSLinkAttributeName];	// set the link
-		[_style setObject:cursor forKey:NSCursorAttributeName];	// set the cursor
-// 		[_style setObject:target forKey:DOMHTMLAnchorElementTargetWindow];		// set the target window
+// FIXME:			[_style setObject:urlString forKey:@"x-link"];	// set the link
+			[style setProperty:@"cursor" value:@"pointer" priority:nil];
 		}
+	// FIXME: there is a difference between width=100 and style={ width: 100px }
+	// in the first case the height is defined by the source file, while in the second case the image is scaled proportionally
+	if(width)
+		[style setProperty:@"width" value:[width stringByAppendingString:@" px"] priority:nil];	// should be in Pixels
+	if(height)
+		[style setProperty:@"height" value:[height stringByAppendingString:@" px"] priority:nil];
+	if(urlString)
+		// FIXME: we should get rid of this string processing!!!
+		[style setProperty:@"content" value:[NSString stringWithFormat:@"url(\"%@\")", urlString] priority:nil];
 }
 
 - (NSString *) string;
@@ -1920,7 +1736,7 @@ enum
 	NSLog(@"<img>: %@", [self _attributes]);
 #endif
 	if(!src)
-		return nil;	// can't show
+		return nil;	// can't show as attachment
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
 #if 0
@@ -1929,20 +1745,21 @@ enum
 	[cell setTarget:self];
 	[cell setAction:@selector(_imgAction:)];
 	if([[webView preferences] loadsImagesAutomatically])
-			{
-				NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
-				[self retain];	// FIXME: if we can cancel the load we don't need to keep us alive until the data source is done
-				if(data)
-						{ // we got some or all
-							image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
-							[image setScalesWhenResized:YES];
-						}
+		{
+		NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+		[self retain];	// FIXME: if we can cancel the load we don't need to keep us alive until the data source is done
+		if(data)
+			{ // we got some or all
+				image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
+				[image setScalesWhenResized:YES];
 			}
+		}
 	if(!image)
-			{ // could not convert
-				image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
-				[image setScalesWhenResized:NO];	// hm... does not really work
-			}
+		{ // could not convert
+			image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
+			[image setScalesWhenResized:NO];	// hm... does not really work
+		}
+	// take CSS width & height!
 	if(width || height) // resize image
 		[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
 	[cell setImage:image];	// set image
@@ -1993,16 +1810,9 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-- (NSString *) _string;		{ return @"\n"; }
+// FIXME: this will be eliminated unless we set "white-space"
 
-- (void) _addAttributesToStyle
-{ // <br> is an inline element
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	[paragraph setParagraphSpacing:0.0];
-	// and modify others...
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
+- (NSString *) _string; { return @"\n"; }	// add line break
 
 @end
 
@@ -2010,31 +1820,11 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSString *) _string;		{ return @"\n"; }
-
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	if(align)
-		[paragraph setAlignment:[align _htmlAlignment]];
-	[paragraph setParagraphSpacing:6.0];
-	// and modify others...
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-
 @end
 
 @implementation DOMHTMLHRElement
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
-
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
 
 - (NSTextAttachment *) _attachment;
 {
@@ -2044,7 +1834,7 @@ enum
     
     att = [NSTextAttachmentCell textAttachmentWithCellOfClass:[NSHRAttachmentCell class]];
     cell=(NSHRAttachmentCell *) [att attachmentCell];        // get the real cell
-        
+	
 	[cell setShaded:![self hasAttribute:@"noshade"]];
 	size = [[self valueForKey:@"size"] intValue];
 #if 1  
@@ -2057,6 +1847,8 @@ enum
 @end
 
 @implementation NSTextBlock (Attributes)
+
+// FIXME to use CSS attributes only!
 
 - (void) _setTextBlockAttributes:(DOMHTMLElement *) element	paragraph:(NSMutableParagraphStyle *) paragraph
 { // apply style attributes to NSTextBlock or NSTextTable and the paragraph
@@ -2074,6 +1866,9 @@ enum
 	BOOL isTable=[element isKindOfClass:[DOMHTMLTableElement class]];	// handle defaults
 	if(!isTable && [element parentNode])
 		[self _setTextBlockAttributes:(DOMHTMLElement *) [element parentNode] paragraph:paragraph];	// inherit from parent node(s)
+	
+	// FIXME: move this to _spliceTo: general handler
+	
 	if([align isEqualToString:@"left"])
 		[paragraph setAlignment:NSLeftTextAlignment];
 	else if([align isEqualToString:@"center"])
@@ -2118,15 +1913,15 @@ enum
 		[self setVerticalAlignment:NSTextBlockMiddleAlignment];	// default
 	if(width)
 		{
-			NSScanner *sc=[NSScanner scannerWithString:width];
-			double val;
-			if([sc scanDouble:&val])
-				{
-					NSTextBlockValueType type=[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType;
-					[self setValue:20 type:NSTextBlockAbsoluteValueType forDimension:NSTextBlockMinimumWidth];
-					[self setValue:val type:type forDimension:NSTextBlockWidth];
-					[self setValue:50 type:NSTextBlockAbsoluteValueType forDimension:NSTextBlockMaximumWidth];
-				}
+		NSScanner *sc=[NSScanner scannerWithString:width];
+		double val;
+		if([sc scanDouble:&val])
+			{
+			NSTextBlockValueType type=[sc scanString:@"%" intoString:NULL]?NSTextBlockPercentageValueType:NSTextBlockAbsoluteValueType;
+			[self setValue:20 type:NSTextBlockAbsoluteValueType forDimension:NSTextBlockMinimumWidth];
+			[self setValue:val type:type forDimension:NSTextBlockWidth];
+			[self setValue:50 type:NSTextBlockAbsoluteValueType forDimension:NSTextBlockMaximumWidth];
+			}
 		}
 }
 
@@ -2143,7 +1938,8 @@ enum
 	[super dealloc];
 }
 
-- (void) _addAttributesToStyle;
+#if 0
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	unsigned cols=[[self valueForKey:@"cols"] intValue];
@@ -2157,13 +1953,14 @@ enum
 	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
 	// should reset to default paragraph
 	// should reset font style, color etc. to defaults!
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];	// a table is a block element, i.e. force a \n before table starts
+	[_style setObject:@"table" forKey:@"display"];	// a table is a block element, i.e. force a \n before table starts
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
 #if 0
 	NSLog(@"<table> _style=%@", _style);
 #endif
 }
+#endif
 
 - (NSTextTable *) _getRow:(int *) row andColumn:(int *) col rowSpan:(int *) rowspan colSpan:(int *) colspan forCell:(DOMHTMLTableCellElement *) cell
 {
@@ -2177,45 +1974,45 @@ enum
 	*colspan=0;
 	if([l length] > 0)
 		{
-			DOMHTMLTBodyElement *body=(DOMHTMLTBodyElement *)[l item:0];
-			NSEnumerator *re;
-			DOMHTMLTableRowElement *r;
-			re=[[[body childNodes] _list] objectEnumerator];
-			while((r=[re nextObject]))
-				{ // check in which <tr> we are child
-					NSEnumerator *ce;
-					DOMHTMLTableCellElement *c;
-					int i;
-					if(![r isKindOfClass:[DOMHTMLTableRowElement class]])
+		DOMHTMLTBodyElement *body=(DOMHTMLTBodyElement *)[l item:0];
+		NSEnumerator *re;
+		DOMHTMLTableRowElement *r;
+		re=[[[body childNodes] _list] objectEnumerator];
+		while((r=[re nextObject]))
+			{ // check in which <tr> we are child
+				NSEnumerator *ce;
+				DOMHTMLTableCellElement *c;
+				int i;
+				if(![r isKindOfClass:[DOMHTMLTableRowElement class]])
+					continue;
+				ce=[[[r childNodes] _list] objectEnumerator];
+				while((c=[ce nextObject]))
+					{
+					if(![c isKindOfClass:[DOMHTMLTableCellElement class]])
 						continue;
-					ce=[[[r childNodes] _list] objectEnumerator];
-					while((c=[ce nextObject]))
+					while(([rowSpanTracking countForObject:[NSNumber numberWithInt:*col]] > 0))
+						(*col)++;	// skip
+					*rowspan=[[c valueForKey:@"rowspan"] intValue];
+					*colspan=[[c valueForKey:@"colspan"] intValue];
+					if((*colspan) > ([table numberOfColumns]-(*col-1)))
+						*colspan=[table numberOfColumns]-(*col-1);	// limit (default mechanism will add at least one!)
+					if(*colspan < 1) *colspan=1;	// default
+					if(*rowspan < 1) *rowspan=1;	// default
+					if(cell == c)
+						return table;	// found!
+					while(*colspan >= 1)
 						{
-							if(![c isKindOfClass:[DOMHTMLTableCellElement class]])
-								continue;
-							while(([rowSpanTracking countForObject:[NSNumber numberWithInt:*col]] > 0))
-								(*col)++;	// skip
-							*rowspan=[[c valueForKey:@"rowspan"] intValue];
-							*colspan=[[c valueForKey:@"colspan"] intValue];
-							if((*colspan) > ([table numberOfColumns]-(*col-1)))
-								*colspan=[table numberOfColumns]-(*col-1);	// limit (default mechanism will add at least one!)
-							if(*colspan < 1) *colspan=1;	// default
-							if(*rowspan < 1) *rowspan=1;	// default
-							if(cell == c)
-								return table;	// found!
-							while(*colspan >= 1)
-								{
-									for(i=0; i<*rowspan; i++)
-										[rowSpanTracking addObject:[NSNumber numberWithInt:*col]];	// extend rowspan set
-									(*col)++;
-									(*colspan)--;
-								}
+						for(i=0; i<*rowspan; i++)
+							[rowSpanTracking addObject:[NSNumber numberWithInt:*col]];	// extend rowspan set
+						(*col)++;
+						(*colspan)--;
 						}
-					(*row)++;
-					for(i=1; i<[table numberOfColumns]; i++)
-						[rowSpanTracking removeObject:[NSNumber numberWithInt:i]];	// remove one count per column number
-					*col=1;
-				}
+					}
+				(*row)++;
+				for(i=1; i<[table numberOfColumns]; i++)
+					[rowSpanTracking removeObject:[NSNumber numberWithInt:i]];	// remove one count per column number
+				*col=1;
+			}
 		}
 	return nil;
 }
@@ -2245,23 +2042,23 @@ enum
 	DOMHTMLElement *n=[rep _lastObject];
 	while([n isKindOfClass:[DOMHTMLElement class]])
 		{
-			if([[n nodeName] isEqualToString:@"TBODY"])
-				return n;	// found
-			if([[n nodeName] isEqualToString:@"TABLE"])
-				{ // find <tbody> and create a new if there isn't one
-					NSEnumerator *list=[[[n childNodes] _list] objectEnumerator];
-					DOMHTMLTBodyElement *tbe;
-					while((tbe=[list nextObject]))
-						{
-							if([[tbe nodeName] isEqualToString:@"TBODY"])
-								return tbe;	// found!
-						}
-					tbe=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil];	// create new <tbody>
-					[n appendChild:tbe];	// insert a fresh <tbody> element
-					[tbe release];
-					return tbe;
-				}
-			n=(DOMHTMLElement *)[n parentNode];	// go one level up
+		if([[n nodeName] isEqualToString:@"TBODY"])
+			return n;	// found
+		if([[n nodeName] isEqualToString:@"TABLE"])
+			{ // find <tbody> and create a new if there isn't one
+				NSEnumerator *list=[[[n childNodes] _list] objectEnumerator];
+				DOMHTMLTBodyElement *tbe;
+				while((tbe=[list nextObject]))
+					{
+					if([[tbe nodeName] isEqualToString:@"TBODY"])
+						return tbe;	// found!
+					}
+				tbe=[[DOMHTMLTBodyElement alloc] _initWithName:@"TBODY" namespaceURI:nil];	// create new <tbody>
+				[n appendChild:tbe];	// insert a fresh <tbody> element
+				[tbe release];
+				return tbe;
+			}
+		n=(DOMHTMLElement *)[n parentNode];	// go one level up
 		}	// no <table> found!
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy#tr" namespaceURI:nil] autorelease];	// return dummy
 }
@@ -2276,9 +2073,11 @@ enum
 
 @implementation DOMHTMLTableCellElement
 
-- (NSString *) _string;		{ return @"\n"; }	// each cell creates a line
+// FIXME: shouldn't this be processed during _layout?
 
-- (void) _addAttributesToStyle;
+#if 0
+
+- (void) OLD_addAttributesToStyle;
 { // add attributes to style
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSMutableArray *blocks;
@@ -2326,6 +2125,7 @@ enum
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
 }
+#endif
 
 @end
 
@@ -2334,24 +2134,19 @@ enum
 - (id) init
 {
 	if((self = [super init]))
-			{
-				elements=[DOMHTMLCollection new]; 
-			}
+		{
+		elements=[DOMHTMLCollection new]; 
+		}
 	return self;
 }
 
 - (void) dealloc
 {
-	[elements	release];
+	[elements release];
 	[super dealloc];
 }
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLStandardNesting; }
-
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-}
 
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
@@ -2458,8 +2253,8 @@ enum
 - (void) _elementDidAwakeFromDocumentRepresentation:(_WebHTMLDocumentRepresentation *) rep;
 {
 	form=[self valueForKeyPath:@"ownerDocument.forms.lastChild"];	// add to last form we have seen
-//	form=(DOMHTMLFormElement *) [[(DOMHTMLDocument *) [self ownerDocument] forms] lastChild];
-// Objc-2.0? self.ownerDocument.forms.elements.appendChild=self
+	//	form=(DOMHTMLFormElement *) [[(DOMHTMLDocument *) [self ownerDocument] forms] lastChild];
+	// Objc-2.0? self.ownerDocument.forms.elements.appendChild=self
 #if 1
 	NSLog(@"<input>: form=%@", form);
 #endif
@@ -2472,7 +2267,7 @@ enum
 	NSTextAttachment *attachment;
 	NSString *type=[[self valueForKey:@"type"] lowercaseString];
 	NSString *name=[self valueForKey:@"name"];
-// FIXME:	NSString *val=[self valueForKey:@"value"];   <-- returns e.g. INPUT: WHY???
+	// FIXME:	NSString *val=[self valueForKey:@"value"];   <-- returns e.g. INPUT: WHY???
 	NSString *val=[self getAttribute:@"value"];
 	NSString *title=[self valueForKey:@"title"];
 	NSString *placeholder=[self valueForKey:@"placeholder"];
@@ -2482,11 +2277,11 @@ enum
 	NSString *autosave=[self valueForKey:@"autosave"];
 	NSString *align=[self valueForKey:@"align"];
 	if([type isEqualToString:@"hidden"])
-			{ // ignore for rendering purposes - will be collected when sending the <form>
-				return nil;
-			}
+		{ // ignore for rendering purposes - will be collected when sending the <form>
+			return nil;
+		}
 #if 1
-	NSLog(@"<input>: %@", [self _attributes]);
+	NSLog(@"<input>: %@", [self attributes]);
 #endif
 	if([type isEqualToString:@"submit"] || [type isEqualToString:@"reset"] ||
 	   [type isEqualToString:@"checkbox"] || [type isEqualToString:@"radio"] ||
@@ -2507,89 +2302,89 @@ enum
 	[(NSActionCell *) cell setAction:@selector(_submit:)];	// default action
 	[cell setEditable:!([self hasAttribute:@"disabled"] || [self hasAttribute:@"readonly"])];
 	if([cell isKindOfClass:[NSTextFieldCell class]])
-			{ // set text field, placeholder etc.
-				[(NSTextFieldCell *) cell setSelectable:YES];
-				[(NSTextFieldCell *) cell setBezeled:YES];
-				[(NSTextFieldCell *) cell setStringValue: (val != nil) ? val : (NSString *)@""];
-				// how to handle the size attribute?
-				// an NSCell has no inherent size
-				// should we pad the placeholder string?
-				if([cell respondsToSelector:@selector(setPlaceholderString:)])
-					[(NSTextFieldCell *) cell setPlaceholderString:placeholder];
-			}
+		{ // set text field, placeholder etc.
+			[(NSTextFieldCell *) cell setSelectable:YES];
+			[(NSTextFieldCell *) cell setBezeled:YES];
+			[(NSTextFieldCell *) cell setStringValue: (val != nil) ? val : (NSString *)@""];
+			// how to handle the size attribute?
+			// an NSCell has no inherent size
+			// should we pad the placeholder string?
+			if([cell respondsToSelector:@selector(setPlaceholderString:)])
+				[(NSTextFieldCell *) cell setPlaceholderString:placeholder];
+		}
 	else if([cell isKindOfClass:[NSButtonCell class]])
-			{ // button
-				[(NSButtonCell *) cell setButtonType:NSMomentaryLightButton];
-				[(NSButtonCell *) cell setBezelStyle:NSRoundedBezelStyle];
-				if([type isEqualToString:@"submit"])
-					[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];	// FIXME: Localization!
-				else if([type isEqualToString:@"reset"])
-						{
-							[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Reset"];
-							[(NSActionCell *) cell setAction:@selector(_reset:)];
-						}
-				else if([type isEqualToString:@"checkbox"])
-						{
-							[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
-							[(NSButtonCell *) cell setButtonType:NSSwitchButton];
-							[(NSButtonCell *) cell setTitle:@""];
-							[(NSActionCell *) cell setAction:@selector(_checkbox:)];
-						}
-				else if([type isEqualToString:@"radio"])
-						{
-							[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
-							[(NSButtonCell *) cell setButtonType:NSRadioButton];
-							[(NSButtonCell *) cell setTitle:@""];
-							[(NSActionCell *) cell setAction:@selector(_radio:)];
-						}
-				else
-					[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
-			}
+		{ // button
+			[(NSButtonCell *) cell setButtonType:NSMomentaryLightButton];
+			[(NSButtonCell *) cell setBezelStyle:NSRoundedBezelStyle];
+			if([type isEqualToString:@"submit"])
+				[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Submit"];	// FIXME: Localization!
+			else if([type isEqualToString:@"reset"])
+				{
+				[(NSButtonCell *) cell setTitle:val?val: (NSString *)@"Reset"];
+				[(NSActionCell *) cell setAction:@selector(_reset:)];
+				}
+			else if([type isEqualToString:@"checkbox"])
+				{
+				[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
+				[(NSButtonCell *) cell setButtonType:NSSwitchButton];
+				[(NSButtonCell *) cell setTitle:@""];
+				[(NSActionCell *) cell setAction:@selector(_checkbox:)];
+				}
+			else if([type isEqualToString:@"radio"])
+				{
+				[(NSButtonCell *) cell setState:[self hasAttribute:@"checked"]];
+				[(NSButtonCell *) cell setButtonType:NSRadioButton];
+				[(NSButtonCell *) cell setTitle:@""];
+				[(NSActionCell *) cell setAction:@selector(_radio:)];
+				}
+			else
+				[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
+		}
 	else if([type isEqualToString:@"file"])
 		// FIXME
 		;
 	else if([type isEqualToString:@"image"])
-			{
-				WebView *webView=[[self webFrame] webView];
-				NSImage *image=nil;
-				NSString *height=[self valueForKey:@"height"];
-				NSString *width=[self valueForKey:@"width"];
-				NSString *border=[self valueForKey:@"border"];
-				NSString *src=[self valueForKey:@"border"];
+		{
+		WebView *webView=[[self webFrame] webView];
+		NSImage *image=nil;
+		NSString *height=[self valueForKey:@"height"];
+		NSString *width=[self valueForKey:@"width"];
+		NSString *border=[self valueForKey:@"border"];
+		NSString *src=[self valueForKey:@"border"];
 #if 0
-				NSLog(@"cell attachment: %@", [cell attachment]);
+		NSLog(@"cell attachment: %@", [cell attachment]);
 #endif
-				if([[webView preferences] loadsImagesAutomatically])
-						{
-							NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
-							[self retain];	// FIXME: if we can cancel the load we don't need to keep us alive until the data source is done
-							if(data)
-									{ // we got some or all
-										image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
-										[image setScalesWhenResized:YES];
-									}
-						}
-				if(!image)
-						{ // could not convert
-							image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
-							[image setScalesWhenResized:NO];	// hm... does not really work
-						}
-				if(width || height) // resize image
-					[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
-				[cell setImage:image];	// set image
-				[image release];
+		if([[webView preferences] loadsImagesAutomatically])
+			{
+			NSData *data=[self _loadSubresourceWithAttributeString:@"src" blocking:NO];	// get from cache or trigger loading (makes us the WebDocumentRepresentation)
+			[self retain];	// FIXME: if we can cancel the load we don't need to keep us alive until the data source is done
+			if(data)
+				{ // we got some or all
+					image=[[NSImage alloc] initWithData:data];	// try to get as far as we can
+					[image setScalesWhenResized:YES];
+				}
+			}
+		if(!image)
+			{ // could not convert
+				image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
+				[image setScalesWhenResized:NO];	// hm... does not really work
+			}
+		if(width || height) // resize image
+			[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
+		[cell setImage:image];	// set image
+		[image release];
 #if 1
-				NSLog(@"attachmentCell=%@", [attachment attachmentCell]);
-				NSLog(@"[attachmentCell attachment]=%@", [[attachment attachmentCell] attachment]);
-				NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
+		NSLog(@"attachmentCell=%@", [attachment attachmentCell]);
+		NSLog(@"[attachmentCell attachment]=%@", [[attachment attachmentCell] attachment]);
+		NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
 			NSLog(@"[attachmentCell target]=%@", [[attachment attachmentCell] target]);
 			NSLog(@"[attachmentCell controlView]=%@", [[attachment attachmentCell] controlView]);
 #endif
-			}
+		}
 #if 1
 	NSLog(@"  cell: %@", cell);
 	NSLog(@"  cell control view: %@", [cell controlView]);
-	NSLog(@"  _style: %@", _style);
+//	NSLog(@"  _style: %@", _style);
 #endif
 	return attachment;
 }
@@ -2638,34 +2433,34 @@ enum
 	if(![[[self valueForKey:@"type"] lowercaseString] isEqualToString:@"radio"])
 		return;	// only process radio buttons
 	if([[clickedCell valueForKey:@"name"] caseInsensitiveCompare:[self valueForKey:@"name"]] == NSOrderedSame)
-			{ // yes, they have the same name i.e. group!
-				[cell setState:NSOffState];	// reset radio button
-			}
+		{ // yes, they have the same name i.e. group!
+			[cell setState:NSOffState];	// reset radio button
+		}
 }
 
 - (NSString *) _formValue;	// return nil if not successful according to http://www.w3.org/TR/html401/interact/forms.html#h-17.3 17.13.2 Successful controls
 {
 	NSString *type=[[self valueForKey:@"type"] lowercaseString];
-//	FIXME: NSString *val=[self valueForKey:@"value"];	// returns strange values...
+	//	FIXME: NSString *val=[self valueForKey:@"value"];	// returns strange values...
 	NSString *val=[self getAttribute:@"value"];
 	if([type isEqualToString:@"checkbox"])
-			{
-				if(!val) val=@"on";
-				return [cell state] == NSOnState?val:(NSString *) @"";
-			}
+		{
+		if(!val) val=@"on";
+		return [cell state] == NSOnState?val:(NSString *) @"";
+		}
 	else if([type isEqualToString:@"radio"])
-			{ // report only the active button
-				if(!val) val=@"on";
-				return [cell state] == NSOnState?val:(NSString *) nil;
-			}
+		{ // report only the active button
+			if(!val) val=@"on";
+			return [cell state] == NSOnState?val:(NSString *) nil;
+		}
 	else if([type isEqualToString:@"submit"])
-			{
-				if(![cell isHighlighted])
-					return nil;	// is not the button that has sent submit:
-				if(val)
-					return val;	// send value
-				return [cell title];
-			}
+		{
+		if(![cell isHighlighted])
+			return nil;	// is not the button that has sent submit:
+		if(val)
+			return val;	// send value
+		return [cell title];
+		}
 	else if([type isEqualToString:@"reset"])
 		return nil;	// never send
 	else if([type isEqualToString:@"hidden"])
@@ -2684,17 +2479,17 @@ enum
 	NSLog(@"[attachmentCell controlView]=%@", [cell controlView]);	// nil!
 #endif
 	switch([code intValue])
-		{
-			case NSReturnTextMovement:
-				[self _submit:nil];
-				break;
-			case NSTabTextMovement:
-				break;
-			case NSBacktabTextMovement:
-				break;
-			case NSIllegalTextMovement:
-				break;
-			}
+	{
+		case NSReturnTextMovement:
+		[self _submit:nil];
+		break;
+		case NSTabTextMovement:
+		break;
+		case NSBacktabTextMovement:
+		break;
+		case NSIllegalTextMovement:
+		break;
+	}
 }
 
 // WebDocumentRepresentation callbacks (source is the subresource) - for type="image"
@@ -2726,10 +2521,10 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (NSString *) _string; { return nil; }	// don't process content
+// FIXME: handle this through display: inline-box
 
 - (NSTextAttachment *) _attachment;
-{ // create a text attachment that display the content of the button
+{ // create a text attachment that displays the content of the button
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
 	NSString *name=[self valueForKey:@"name"];
@@ -2812,44 +2607,42 @@ enum
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
 	if(YES || [size intValue] <= 1)
-			{ // popup menu
-				DOMHTMLOptionElement *option;
-				NSMenu *menu;
-				NSEnumerator *e;
-				attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
-				cell=[attachment attachmentCell];	// get the real cell
-				[(NSPopUpButtonCell *) cell setPullsDown:NO];
-				[(NSPopUpButtonCell *) cell setTitle:val];
-				[(NSPopUpButtonCell *) cell setTarget:self];
-				[(NSPopUpButtonCell *) cell setAction:@selector(_submit:)];
-				[(NSPopUpButtonCell *) cell setAltersStateOfSelectedItem:!multiSelect];
-				// this musst also be done if we update the options nodes
-				[cell removeAllItems];
-				menu=[(NSPopUpButtonCell *) cell menu];
-				[menu setMenuChangedMessagesEnabled:NO];
-				e=[[options valueForKey:@"elements"] objectEnumerator];
-				while((option=[e nextObject]))
-						{
-							NSMenuItem *item=[menu addItemWithTitle:[option text] action:NULL keyEquivalent:@""];
-							if([option hasAttribute:@"disabled"])
-								[item setEnabled:NO];
-							if([option hasAttribute:@"selected"])
-								[cell selectItem:item];
-						}
-				[menu setMenuChangedMessagesEnabled:YES];
-			}
+		{ // popup menu
+			DOMHTMLOptionElement *option;
+			NSMenu *menu;
+			NSEnumerator *e;
+			attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
+			cell=[attachment attachmentCell];	// get the real cell
+			[(NSPopUpButtonCell *) cell setPullsDown:NO];
+			[(NSPopUpButtonCell *) cell setTitle:val];
+			[(NSPopUpButtonCell *) cell setTarget:self];
+			[(NSPopUpButtonCell *) cell setAction:@selector(_submit:)];
+			[(NSPopUpButtonCell *) cell setAltersStateOfSelectedItem:!multiSelect];
+			// this musst also be done if we update the options nodes
+			[cell removeAllItems];
+			menu=[(NSPopUpButtonCell *) cell menu];
+			[menu setMenuChangedMessagesEnabled:NO];
+			e=[[options valueForKey:@"elements"] objectEnumerator];
+			while((option=[e nextObject]))
+				{
+				NSMenuItem *item=[menu addItemWithTitle:[option text] action:NULL keyEquivalent:@""];
+				if([option hasAttribute:@"disabled"])
+					[item setEnabled:NO];
+				if([option hasAttribute:@"selected"])
+					[cell selectItem:item];
+				}
+			[menu setMenuChangedMessagesEnabled:YES];
+		}
 	else
-			{ // embed NSTableView with [size intValue] visible lines
-				attachment=nil;
-				cell=nil;
-			}
+		{ // embed NSTableView with [size intValue] visible lines
+			attachment=nil;
+			cell=nil;
+		}
 #if 0
 	NSLog(@"  cell: %@", cell);
 #endif
 	return attachment;
 }
-
-- (NSString *) _string; { return nil; }	// don't process content
 
 - (void) _submit:(id) sender
 { // forward to <form> so that it can handle
@@ -2864,11 +2657,11 @@ enum
 	int i, cnt=[elements count];
 	[cell selectItemAtIndex:0];	// default to select first item
 	for(i=0; i<cnt; i++)
-			{
-				DOMHTMLOptionElement *option=[elements objectAtIndex:i];
-				if([option hasAttribute:@"selected"])
-					[cell selectItemAtIndex:i];	// selects the last one with "selected"
-			}
+		{
+		DOMHTMLOptionElement *option=[elements objectAtIndex:i];
+		if([option hasAttribute:@"selected"])
+			[cell selectItemAtIndex:i];	// selects the last one with "selected"
+		}
 }
 
 - (void) _willPopUp:(NSNotification *)aNotification
@@ -2898,13 +2691,13 @@ enum
 {
 	DOMHTMLElement *sel=self;
 	while(sel)
-			{ // find enclosing <select>
-				if([sel isKindOfClass:[DOMHTMLSelectElement class]])
-					 break;
-				sel=(DOMHTMLElement *) [sel parentNode];
-			}
+		{ // find enclosing <select>
+			if([sel isKindOfClass:[DOMHTMLSelectElement class]])
+				break;
+			sel=(DOMHTMLElement *) [sel parentNode];
+		}
 	if(sel)
-			[[(DOMHTMLSelectElement *) sel options] appendChild:self];
+		[[(DOMHTMLSelectElement *) sel options] appendChild:self];
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
@@ -2934,8 +2727,6 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (NSString *) _string; { return nil; }	// don't process content
-
 - (NSTextAttachment *) _attachment;
 { // <textarea cols=xxx lines=yyy>value</textarea> 
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
@@ -2950,7 +2741,7 @@ enum
 	// FIXME: this should be an embedded TextView
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
 	cell=(NSTextFieldCell *) [attachment attachmentCell];	// get the real cell
-//	[cell setBezelStyle:0];	// select a grey square button bezel by default
+	//	[cell setBezelStyle:0];	// select a grey square button bezel by default
 	[(NSTextFieldCell *) cell setBezeled:YES];
 	[cell setEditable:!([self hasAttribute:@"disabled"] || [self hasAttribute:@"readonly"])];
 	[(NSTextFieldCell *) cell setSelectable:YES];
@@ -3001,7 +2792,8 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-- (NSString *) _string;
+#if 0
+- (NSString *) _stringBefore;
 {
 	NSParagraphStyle *paragraph=[_style objectForKey:NSParagraphStyleAttributeName];
 	NSArray *lists=[paragraph textLists];	// get (nested) list
@@ -3025,18 +2817,14 @@ enum
 	else	// <DL>
 		return @"\t";
 }
-
-- (void) _addAttributesToStyle
-{
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-	// modify paragraph head indent etc. so that we have proper indentation of the list entries
-}
+#endif
 
 @end
 
 @implementation DOMHTMLDListElement		// <dl>
 
-- (void) _addAttributesToStyle
+#if 0
+- (void) OLD_addAttributesToStyle
 {
 	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 	NSString *align=[self valueForKey:@"align"];
@@ -3046,6 +2834,78 @@ enum
 	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"\t" options:NSTextListPrependEnclosingMarker];
 	if(list)
 		{ // add initial list marker
+			if(!lists)
+				lists=[NSMutableArray new];	// start new one
+			else
+				lists=[lists mutableCopy];			// make mutable
+			[(NSMutableArray *) lists addObject:list];
+			[list release];
+			[paragraph setTextLists:lists];
+			[lists release];
+		}
+#if 0
+	NSLog(@"lists=%@", lists);
+#endif
+	[_style setObject:@"list-item" forKey:@"display"];
+	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+	[paragraph release];
+}
+#endif
+
+@end
+
+@implementation DOMHTMLOListElement		// <ol>
+
+#if 0
+- (void) OLD_addAttributesToStyle;
+{ 
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	NSString *align=[self valueForKey:@"align"];
+	NSArray *lists=[paragraph textLists];	// get (nested) list
+	NSTextList *list;
+	// FIXME: decode HTML list formats and options and translate
+	list=[[NSClassFromString(@"NSTextList") alloc] 
+		  initWithMarkerFormat: @"{decimal}." 
+		  options: NSTextListPrependEnclosingMarker];
+	if(list)
+		{
+		if(!lists) 
+			lists=[NSMutableArray new];	// start new one
+		else 
+			lists=[lists mutableCopy];	// make mutable
+		[(NSMutableArray *) lists addObject:list];
+		[list release];
+		[paragraph setTextLists:lists];
+		[lists release];
+		}
+#if 0
+	NSLog(@"lists=%@", lists);
+#endif
+	[_style setObject:@"block" forKey:@"display"];
+	[_style setObject:paragraph forKey: NSParagraphStyleAttributeName];
+	[paragraph release];
+}
+#endif
+
+@end
+
+@implementation DOMHTMLUListElement		// <ul>
+
+#if 0
+- (void) OLD_addAttributesToStyle;
+{ // add attributes to style
+	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	NSArray *lists=[paragraph textLists];	// get (nested) list
+	NSTextList *list;
+	
+	// FIXME: decode list formats and options
+	
+	// change the marker style depending on nesting level disc -> circle -> hyphen
+	
+	// move this to _splice
+	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
+	if(list)
+		{
 		if(!lists)
 			lists=[NSMutableArray new];	// start new one
 		else
@@ -3058,78 +2918,11 @@ enum
 #if 0
 	NSLog(@"lists=%@", lists);
 #endif
-	[_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
+	[_style setObject:@"block" forKey:@"display"];
 	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 	[paragraph release];
 }
-
-@end
-
-@implementation DOMHTMLOListElement		// <ol>
-
-- (void) _addAttributesToStyle;
-{ 
-  NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-  NSString *align=[self valueForKey:@"align"];
-  NSArray *lists=[paragraph textLists];	// get (nested) list
-  NSTextList *list;
-  // add attributes to style
-
-  // FIXME: decode HTML list formats and options and translate
-  list=[[NSClassFromString(@"NSTextList") alloc] 
-         initWithMarkerFormat: @"{decimal}." 
-         options: NSTextListPrependEnclosingMarker];
-  if(list)
-    {
-      if(!lists) 
-        lists=[NSMutableArray new];	// start new one
-      else 
-        lists=[lists mutableCopy];	// make mutable
-      [(NSMutableArray *) lists addObject:list];
-      [list release];
-      [paragraph setTextLists:lists];
-			[lists release];
-    }
-#if 0
-  NSLog(@"lists=%@", lists);
 #endif
-  [_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-  [_style setObject:paragraph forKey: NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-
-@end
-
-@implementation DOMHTMLUListElement		// <ul>
-
-- (void) _addAttributesToStyle;
-{ // add attributes to style
-  NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-  NSArray *lists=[paragraph textLists];	// get (nested) list
-  NSTextList *list;
-  
-  // FIXME: decode list formats and options
-  // e.g. change the marker style depending on nesting level disc -> circle -> hyphen
-  
-  list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
-  if(list)
-    {
-      if(!lists)
-				lists=[NSMutableArray new];	// start new one
-      else
-				lists=[lists mutableCopy];			// make mutable
-      [(NSMutableArray *) lists addObject:list];
-      [list release];
-      [paragraph setTextLists:lists];
-      [lists release];
-    }
-#if 0
-  NSLog(@"lists=%@", lists);
-#endif
-  [_style setObject:@"block" forKey:DOMHTMLBlockInlineLevel];
-  [_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
 
 @end
 

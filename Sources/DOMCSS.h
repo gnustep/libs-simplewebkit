@@ -291,9 +291,7 @@ enum DOMCSSPrimitiveValueType
 @interface DOMCSSPrimitiveValue : DOMCSSValue
 {
 	unsigned short primitiveType;
-	float floatValue;
-	NSString *stringValue;
-	// id value;	// NSString, NSValue, NSURL, NSColor, ...
+	id value;	// NSNumber, NSString, NSValue, NSURL, NSColor, ...
 }
 
 - (unsigned short) primitiveType;
@@ -304,5 +302,12 @@ enum DOMCSSPrimitiveValueType
 //- (DOMCounter *) getCounterValue;
 //- (DOMRect *) getRectValue;
 //- (DOMRGBColor *) getRGBColorValue;
+
+@end
+
+@interface DOMCSSPrimitiveValue (Private)
+
+// evaluate relative (and absoulte) values to unitType:
+- (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
 
 @end

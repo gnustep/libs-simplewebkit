@@ -28,6 +28,8 @@
 	IBOutlet NSTextView *domSource;
 	id currentItem;
 	IBOutlet NSTableView *domAttribs;
+	id currentCSS;
+	IBOutlet NSTableView *domCSS;
 	// Style Sheets
 	NSMutableSet *styleNodes;
 	IBOutlet NSOutlineView *styleSheets;

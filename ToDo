@@ -24,7 +24,7 @@ CSS
 	Loading				100%
 	Parser				99%		
 	Evaluator			90%		handles shortcuts
-	DOM Integration		0%		does not yet apply CSS style to attributed string
+	DOM Integration		50%		does not correctly "cascade" and apply specificity and !important
 WebView, WebFrame, ...
 	Basics				100%
 	Advanced			90%		(Scrolling, Forms, Frames)
@@ -33,7 +33,6 @@ WebView, WebFrame, ...
 High Prio:
 
 1. <table> elements should really work
-2. handle at least the most important CSS properties
 
 HTML parsing:
 - NSXMLParser:
@@ -44,18 +43,12 @@ HTML parsing:
   - entites should simply end at the first non-alphanumeric character and ignore if it is a ;
 
 HTML Evaluator:
-- small problem with space after tag "<p> " and inline-elements surrounded by blanks -> "abc <span> def" renders two spaces
-- color does only understand #rrggbb and no plain text (X11) names yet
-- <table> does not handle colspan, rowspan
-- (better) handle <pre> incl. keeping newlines -> <br>
-
 - link color definition by <body> and if link was visited recently (history)
 - handle different <hr> styles
 - special <input> styles should show a small slider for e.g. <input type="range" min="0" value="100" max="100">
 - parse !DOCTYPE
 
 View:
-- <frame> not tested if it properly loads and displays subframes
 - <iframe> should display a WebFrameView as NSTextAttachmentCell
 - <select> should display a NSTableView as NSTextAttachmentCell (i.e. wrap a View's lock/drawRect/unlock into a Cell)
 

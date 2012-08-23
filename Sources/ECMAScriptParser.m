@@ -1359,6 +1359,8 @@
 
 /* *** */
 
+// rename this to allocNode so that it is better covered by Analyze
+
 + (id) node:(id) l :(id) r;
 { // create a new node (not released and initialized!)
 	_WebScriptTreeNode *n=[self alloc];
