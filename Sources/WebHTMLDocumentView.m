@@ -23,8 +23,8 @@
 
 #import "Private.h"
 #import <WebKit/WebFrameLoadDelegate.h>
-#import "WebHTMLDocumentView.h"
-#import "DOMCSS.h"
+#import <WebKit/WebHTMLDocumentView.h>
+#import <WebKit/DOMCSS.h>
 
 NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
 NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";

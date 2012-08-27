@@ -1,3 +1,7 @@
+2012-08-27 18:59-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Sources/WebHTMLDocumentView.m: Same fix as below.
+
 2012-08-27 18:53-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Sources/DOMCSS.m: Fix double include problem. #import was including
