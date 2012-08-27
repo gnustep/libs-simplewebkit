@@ -84,7 +84,8 @@ SimpleWebKit_RESOURCE_FILES = \
 	WebKitIMG.png \
 	HTMLEntities.strings \
 	DOMHTMLColors.plist \
-	DOMHTML.plist
+	DOMHTML.plist \
+	default.css
 
 -include Makefile.preamble
 -include GNUmakefile.local
