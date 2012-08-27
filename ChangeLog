@@ -1,3 +1,9 @@
+2012-08-27 18:53-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Sources/DOMCSS.m: Fix double include problem. #import was including
+	the DOMHTML.h file twice since it was both in the current directory
+	and in the derived_src directory.
+
 2012-08-**  Nikolaus Schaller <hns@computer.org>
 	* reworked CSS processing to provide computedStyleForElement:pseudoElement:
 	* reworked spliceTo: to translate CSS to NSAttributedString attributes

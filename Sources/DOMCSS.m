@@ -27,8 +27,8 @@
  */
 
 #import <WebKit/WebView.h>
+#import <WebKit/DOMHTML.h>
 #import "Private.h"
-#import "DOMHTML.h"
 
 @interface DOMStyleSheetList (Private)
 - (void) _addStyleSheet:(DOMStyleSheet *) sheet;
