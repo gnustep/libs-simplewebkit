@@ -5,8 +5,8 @@
 
 /* define defaults */
 
-*				{ white-space: normal; display: inline; }
-body			{ padding: 8px; line-height: 1.33; font-family: serif; font-size: medium; }
+*				{ display: inline; }
+body			{ white-space: normal; padding: 8px; line-height: 1.33; font-family: serif; font-size: medium; }
 
 /* define specific display style */
 
@@ -40,14 +40,6 @@ caption			{ display: table-caption; text-align: center  }
 li				{ display: list-item }
 fieldset		{ display: inline-block }	/* define border/box */
 
-ol				{ list-style-type: decimal }
-ul				{ list-style-type: disc }
-ol ul, ul ul	{ list-style-type: circle }	/* second level */
-ol ol ul, ul ol ul,
-ol ul ul, ul ul ul	{ list-style-type: square }	/* third level */
-dl				{ list-style-type: disc }
-dt				{ }
-dd				{ }
 center			{ text-align: center }
 th				{ font-weight: bolder; text-align: center }
 pre				{ white-space: pre; font-family: monospace }
@@ -68,18 +60,17 @@ h4				{ x-header-level: 4; font-weight: bold; }
 h5				{ x-header-level: 5; font-weight: bold; }
 h6				{ x-header-level: 6; font-weight: bold; }
 a				{ cursor: pointer; }
-q:before		{ content: open-quote; }
-q:after			{ content: close-quote; }
-q				{ x-before: open-quote; }
-q				{ x-after: close-quote; }
+/* q:before		{ content: open-quote; }
+q:after			{ content: close-quote; } pseudo elements are not yet implemented */
+q				{ x-before: '"'; }
+q				{ x-after: '"'; }
 
 /* HTML tag to style attribute translation */
 
-p[align]		{ text-align: attr(align); }
 body[text]		{ color: attr(text); }
 body[bgcolor]	{ background-color: attr(bgcolor); }
-body[background]	{ background-color: url(attr(background)); }
-body[link]		{ visited-color: attr(link); }
+body[background]	{ background-image: attr(background); }
+body[link]			{ visited-color: attr(link); }
 h1[align],
 h2[align],
 h3[align],
@@ -88,23 +79,100 @@ h5[align],
 h6[align],
 div[align],
 center[align],
-p[align]		{ text-align: attr(align); }
+p[align],
+ol[align],
+ul[align],
+td[align], th[align],
+input[align]	{ text-align: attr(align); }
 font[face]		{ font-family: attr(face); }
 font[size]		{ font-size: attr(size); }	/* needs calculations - handle +/- */
 font[color]		{ color: attr(color); }
-a[href]			{ x-link: url(attr(href)); x-tooltip: attr(href); }
+a[href]			{ x-link: attr(href); x-tooltip: attr(href); }
 a[target]		{ x-target-window: attr(target); }
 a[id]			{ x-anchor: attr(id); }
 a[name]			{ x-anchor: attr(name); }
-img[src]		{ cursor: pointer; x-link: url(attr(src)); content: url(attr(src)); }
+/*
+a[charset]
+a[accesskey]
+a[shape]
+a[coords]
+*/
+img				{ width: auto; height: auto; }
+img[src]		{ cursor: pointer; x-link: attr(src); content: attr(src); }
 img[alt]		{ x-tooltip: attr(alt); }
 img[width]		{ width: attr(width); }
-img[heigh]		{ height: attr(height); }
-
-br:before		{ content: "\n"; }	/* pseudo elements not implemented */
+img[height]		{ height: attr(height); }
+/*
+img[border]
+img[hspace]
+img[vspace]
+img[usemap]
+img[name]
+img[ismap]
+*/
+/* br:before		{ content: "\A"; }	pseudo elements and hex escapes are not yet implemented */
 br				{ x-before: "\n"; }
-nobr			{ white-space: nowrap; }
+nobr			{ white-space: nowrap; x-linebreak: clip; }
+/*
+hr[noshade]
+hr[size]
+hr[width]
+*/
 
+/* lists */
+ol				{ list-style-type: decimal }
+ul				{ list-style-type: disc }
+ol ul, ul ul	{ list-style-type: circle }	/* second level */
+ol ol ul, ul ol ul,
+ol ul ul, ul ul ul	{ list-style-type: square }	/* third level */
+dl				{ list-style-type: disc }
+dt				{ }
+dd				{ }
+
+/* tables */
+table[border]			{ border: attr(border); }
+table[width], tr[width],
+td[width], th[width]	{ width: attr(width); }
+td[valign], th[valign]	{ vertical-align: attr(valign); }
+
+/* forms */
+input					{ x-editable: yes; x-text-columns: 20; x-text-lines: 1; }
 input[type="hidden"]	{ display: none; }
 input[type="password"]	{ text-transform: password; }
+input[type]				{ x-input-type: attr(type); }
+input[value]			{ content: attr(value); }
+input[size]				{ x-text-columns: attr(size); }
+/*
+name
+title
+placeholder
+size
+maxlength
+results
+autosave
+disabled, readonly
+*/
+select					{ }
+/* [name], [value], [size], multiple] */
+option					{ display: none; }
+
+/* handle other types */
 button					{ display: inline-block }	/* define button style */
+/* button[size]			{ x-text-columns: attr(size); } */
+textarea				{ display: inline-block; x-editable: yes; x-text-columns: 20; x-text-lines: 8; }
+textarea[cols]			{ x-text-columns: attr(cols); }
+textarea[lines]			{ x-text-lines: attr(lines); }
+textarea[disabled], input[disabled]		{ x-editable: no; }
+textarea[readonly], input[readonly]		{ x-editable: no; }
+/* textarea[name] */
+
+/* frames */
+frame[scrolling]		{ frame-scrolling: attr(scrolling); }
+frame[noresize]			{ frame-scrolling: no; }
+frame[marginwidth]		{ margin-width: attr(marginwidth); }
+frame[marginheight]		{ margin-width: attr(marginheight); }
+/* frame[src], frame[name]
+iframe[width]
+iframe[height]
+iframe[src]
+*/

@@ -275,6 +275,7 @@
 					{ // collect values (they differ by type: numeric -> width; identifier -> style; color -> color)
 						switch([(DOMCSSPrimitiveValue *) val primitiveType]) {
 							case DOM_CSS_RGBCOLOR:
+							case DOM_CSS_RGBACOLOR:
 								color=val;
 								break;
 							case DOM_CSS_IDENT: {
@@ -1421,6 +1422,7 @@
 	[self release];
 	self=[DOMCSSPrimitiveValue new];
 	[self setCssText:(NSString *) sc];
+	// FIXME: how dow we handle concatenation? "string" attr(src) "string"
 	if([sc scanString:@"," intoString:NULL])
 		{ // value list
 		self=[[DOMCSSValueList alloc] _initWithFirstElement:[self autorelease]];
@@ -1521,31 +1523,60 @@
 	[super dealloc];
 }
 
++ (NSString *) _suffix:(int) primitiveType;
+{
+	switch(primitiveType) {
+		case DOM_CSS_NUMBER: return @"";
+		case DOM_CSS_PERCENTAGE: return @"%";
+		case DOM_CSS_EMS: return @"em";
+		case DOM_CSS_EXS: return @"ex";
+		case DOM_CSS_PX: return @"px";
+		case DOM_CSS_CM: return @"cm";
+		case DOM_CSS_MM: return @"mm";
+		case DOM_CSS_IN: return @"in";
+		case DOM_CSS_PT: return @"pt";
+		case DOM_CSS_PC: return @"pc";
+		case DOM_CSS_DEG: return @"deg";
+		case DOM_CSS_RAD: return @"rad";
+		case DOM_CSS_GRAD: return @"grad";
+		case DOM_CSS_MS: return @"ms";
+		case DOM_CSS_S: return @"s";
+		case DOM_CSS_HZ: return @"hz";
+		case DOM_CSS_KHZ: return @"khz";
+		case DOM_CSS_TURNS: return @"turns";
+	}
+	return @"?";
+}
+
++ (int) _scanSuffix:(NSScanner *) sc;
+{
+	if([sc scanString:@"%" intoString:NULL]) return DOM_CSS_PERCENTAGE;
+	if([sc scanString:@"em" intoString:NULL]) return DOM_CSS_EMS;
+	if([sc scanString:@"ex" intoString:NULL]) return DOM_CSS_EXS;
+	if([sc scanString:@"px" intoString:NULL]) return DOM_CSS_PX;
+	if([sc scanString:@"cm" intoString:NULL]) return DOM_CSS_CM;
+	if([sc scanString:@"mm" intoString:NULL]) return DOM_CSS_MM;
+	if([sc scanString:@"in" intoString:NULL]) return DOM_CSS_IN;
+	if([sc scanString:@"pt" intoString:NULL]) return DOM_CSS_PT;
+	if([sc scanString:@"pc" intoString:NULL]) return DOM_CSS_PC;
+	if([sc scanString:@"deg" intoString:NULL]) return DOM_CSS_DEG;
+	if([sc scanString:@"rad" intoString:NULL]) return DOM_CSS_RAD;
+	if([sc scanString:@"grad" intoString:NULL]) return DOM_CSS_GRAD;
+	if([sc scanString:@"ms" intoString:NULL]) return DOM_CSS_MS;
+	if([sc scanString:@"s" intoString:NULL]) return DOM_CSS_S;
+	if([sc scanString:@"hz" intoString:NULL]) return DOM_CSS_HZ;
+	if([sc scanString:@"khz" intoString:NULL]) return DOM_CSS_KHZ;
+	if([sc scanString:@"turns" intoString:NULL]) return DOM_CSS_TURNS;
+	return DOM_CSS_UNKNOWN;
+}
+
 - (NSString *) cssText;
 {
 	float val;
 	NSString *suffix;
 	switch(primitiveType)
 	{
-		default:
 		case DOM_CSS_UNKNOWN:	return @"unknown";
-		case DOM_CSS_NUMBER: suffix=@""; break;
-		case DOM_CSS_PERCENTAGE: suffix=@"%"; break;
-		case DOM_CSS_EMS: suffix=@"em"; break;
-		case DOM_CSS_EXS: suffix=@"ex"; break;
-		case DOM_CSS_PX: suffix=@"px"; break;
-		case DOM_CSS_CM: suffix=@"cm"; break;
-		case DOM_CSS_MM: suffix=@"mm"; break;
-		case DOM_CSS_IN: suffix=@"in"; break;
-		case DOM_CSS_PT: suffix=@"pt"; break;
-		case DOM_CSS_PC: suffix=@"pc"; break;
-		case DOM_CSS_DEG: suffix=@"deg"; break;
-		case DOM_CSS_RAD: suffix=@"rad"; break;
-		case DOM_CSS_GRAD: suffix=@"grad"; break;
-		case DOM_CSS_MS: suffix=@"ms"; break;
-		case DOM_CSS_S: suffix=@"s"; break;
-		case DOM_CSS_HZ: suffix=@"hz"; break;
-		case DOM_CSS_KHZ: suffix=@"khz"; break;
 		case DOM_CSS_STRING:
 			{
 			NSMutableString *s=[[[self getStringValue] mutableCopy] autorelease];
@@ -1559,53 +1590,42 @@
 		case DOM_CSS_ATTR: return [NSString stringWithFormat:@"attr(%@)", [self getStringValue]];
 		case DOM_CSS_RGBCOLOR: {
 			int val=[value intValue];
-			return [NSString stringWithFormat:@"#%02x%02x%02x", val/65536, (val/256)%256, val%256];
+			return [NSString stringWithFormat:@"#%02x%02x%02x", (val>>24)&0xff, (val>>16)&0xff, (val>>8)&0xff];
 			}
+		case DOM_CSS_RGBACOLOR: {
+			int val=[value intValue];
+			return [NSString stringWithFormat:@"rgb(%d,%d,%d,%d) ", (val>>24)&0xff, (val>>16)&0xff, (val>>8)&0xff, (val>>0)&0xff];
+		}
 		case DOM_CSS_DIMENSION:
 		case DOM_CSS_COUNTER:
 		case DOM_CSS_RECT:
 		return @"TODO";
 	}
 	val=[self getFloatValue:primitiveType];
-	if(val == 0.0) suffix=@"";	// hide suffix
+	if(val == 0.0)
+		suffix=@"";	// ignore suffix
+	else
+		suffix=[DOMCSSPrimitiveValue _suffix:primitiveType];
 	return [NSString stringWithFormat:@"%g%@", val, suffix];
 }
 
 - (NSString *) _toString;
 {
-	NSString *suffix;
 	switch(primitiveType)
 	{
-		default:
 		case DOM_CSS_UNKNOWN:	return @"unknown";
-		case DOM_CSS_NUMBER: suffix=@""; break;
-		case DOM_CSS_PERCENTAGE: suffix=@"%"; break;
-		case DOM_CSS_EMS: suffix=@"em"; break;
-		case DOM_CSS_EXS: suffix=@"ex"; break;
-		case DOM_CSS_PX: suffix=@"px"; break;
-		case DOM_CSS_CM: suffix=@"cm"; break;
-		case DOM_CSS_MM: suffix=@"mm"; break;
-		case DOM_CSS_IN: suffix=@"in"; break;
-		case DOM_CSS_PT: suffix=@"pt"; break;
-		case DOM_CSS_PC: suffix=@"pc"; break;
-		case DOM_CSS_DEG: suffix=@"deg"; break;
-		case DOM_CSS_RAD: suffix=@"rad"; break;
-		case DOM_CSS_GRAD: suffix=@"grad"; break;
-		case DOM_CSS_MS: suffix=@"ms"; break;
-		case DOM_CSS_S: suffix=@"s"; break;
-		case DOM_CSS_HZ: suffix=@"hz"; break;
-		case DOM_CSS_KHZ: suffix=@"khz"; break;
-		case DOM_CSS_STRING: return value;
-		case DOM_CSS_URI:	return [value _toString];
-		case DOM_CSS_IDENT: return value;
-		case DOM_CSS_ATTR:	return [value _toString];
-		case DOM_CSS_RGBCOLOR:	return [value _toString];
+		case DOM_CSS_STRING:	return value;
+		case DOM_CSS_URI:		return [value _toString];
+		case DOM_CSS_IDENT:		return value;
+		case DOM_CSS_ATTR:		return [value _toString];
+		case DOM_CSS_RGBCOLOR:
+		case DOM_CSS_RGBACOLOR:	return [value _toString];
 		case DOM_CSS_DIMENSION:
 		case DOM_CSS_COUNTER:
 		case DOM_CSS_RECT:
 			return @"TODO";
 	}
-	return [NSString stringWithFormat:@"%f%@", [self getFloatValue:primitiveType], suffix];
+	return [NSString stringWithFormat:@"%f%@", [self getFloatValue:primitiveType], [DOMCSSPrimitiveValue _suffix:primitiveType]];
 }
 
 - (NSArray *) _toStringArray; {	return [NSArray arrayWithObject:[self _toString]]; }
@@ -1655,11 +1675,10 @@
 			return;
 		}
 	if([sc scanString:@"#" intoString:NULL])
-		{ // hex value
+		{ // hex value as RGB color constant
 			unsigned intValue=0;
 			unsigned int sl=[sc scanLocation];	// to determine length
 			[sc scanHexInt:&intValue];
-			// FIXME: is this correct or just for #rgb hex values???
 			if([sc scanLocation] - sl <= 4)
 				{ // short hex - convert into full value
 					unsigned fullValue=0;
@@ -1684,55 +1703,37 @@
 	if([sc scanFloat:&floatValue])
 		{ // float value
 //			[DOMCSSRule _skip:sc];
-			if([sc scanString:@"%" intoString:NULL]) primitiveType=DOM_CSS_PERCENTAGE;
-			else if([sc scanString:@"em" intoString:NULL]) primitiveType=DOM_CSS_EMS;
-			else if([sc scanString:@"ex" intoString:NULL]) primitiveType=DOM_CSS_EXS;
-			else if([sc scanString:@"px" intoString:NULL]) primitiveType=DOM_CSS_PX;
-			else if([sc scanString:@"cm" intoString:NULL]) primitiveType=DOM_CSS_CM;
-			else if([sc scanString:@"mm" intoString:NULL]) primitiveType=DOM_CSS_MM;
-			else if([sc scanString:@"in" intoString:NULL]) primitiveType=DOM_CSS_IN;
-			else if([sc scanString:@"pt" intoString:NULL]) primitiveType=DOM_CSS_PT;
-			else if([sc scanString:@"pc" intoString:NULL]) primitiveType=DOM_CSS_PC;
-			else if([sc scanString:@"deg" intoString:NULL]) primitiveType=DOM_CSS_DEG;
-			else if([sc scanString:@"rad" intoString:NULL]) primitiveType=DOM_CSS_RAD;
-			else if([sc scanString:@"grad" intoString:NULL]) primitiveType=DOM_CSS_GRAD;
-			else if([sc scanString:@"ms" intoString:NULL]) primitiveType=DOM_CSS_MS;
-			else if([sc scanString:@"s" intoString:NULL]) primitiveType=DOM_CSS_S;
-			else if([sc scanString:@"hz" intoString:NULL]) primitiveType=DOM_CSS_HZ;
-			else if([sc scanString:@"khz" intoString:NULL]) primitiveType=DOM_CSS_KHZ;
-			else primitiveType=DOM_CSS_NUMBER;	// number without units
-			[self setFloatValue:primitiveType floatValue:floatValue];
+			int type=[DOMCSSPrimitiveValue _scanSuffix:sc];
+			if(type == DOM_CSS_UNKNOWN) type=DOM_CSS_NUMBER;
+			[self setFloatValue:type floatValue:floatValue];
 			return;
 		}
 	if([sc scanCharactersFromSet:identChars intoString:&value])
 		{ // appears to be a valid token
 			primitiveType=DOM_CSS_IDENT;
 			[DOMCSSRule _skip:sc];
-			/*
-			 DOM_CSS_DIMENSION = 18,
-			 DOM_CSS_RECT = 24,
-			 */				
 			if([sc scanString:@"(" intoString:NULL])
 				{ // "functional" token
-					// FIXME: WebKit understands rgba()
-					if([value isEqualToString:@"rgb"])
-						{ // rgb(r, g, b)
+					BOOL noAlpha;
+					// FIXME: WebKit understands rgba(), hsv(), hsva()
+					if((noAlpha=[value isEqualToString:@"rgb"]) || [value isEqualToString:@"rgba"])
+						{ // rgb(r, g, b) or rgba(r, g, b, a)
 							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 							NSArray *args=[val _toStringArray];
-							unsigned rgb=0;
+							unsigned int rgb=noAlpha?255:0;
 							int i;
-							for(i=0; i<=2 && i < [args count]; i++)
+							for(i=0; i<=noAlpha?2:3 && i < [args count]; i++)
 								{
 								NSString *component=[args objectAtIndex:i];
 								float c=[component floatValue];
 								if([component hasSuffix:@"%"])	c=(255.0/100.0)*c;	// convert %
 								if(c > 255.0)		c=255.0;	// clamp to range
 								else if(c < 0.0)	c=0.0;
-								rgb=(rgb << 8) + (((unsigned) c) % 256);
+								rgb |= (((unsigned) c) % 256) << (8*(3-i));	// fill from left
 								}
 							value=[[NSNumber alloc] initWithInt:rgb];
 							[val release];
-							primitiveType=DOM_CSS_RGBCOLOR;
+							primitiveType=noAlpha?DOM_CSS_RGBCOLOR:DOM_CSS_RGBACOLOR;
 						}
 					else if([value isEqualToString:@"url"])
 						{ // url(location) or url("location")
@@ -1749,7 +1750,21 @@
 							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 							primitiveType=DOM_CSS_COUNTER;
 						}
-					// rect()
+					else if([value isEqualToString:@"dimension"])
+						{
+						// FIXME
+						primitiveType=DOM_CSS_DIMENSION;
+						}
+					else if([value isEqualToString:@"rect"])
+						{						
+						// FIXME
+						primitiveType=DOM_CSS_RECT;
+						}
+					else if([value isEqualToString:@"calc"])
+						{
+						// FIXME
+						primitiveType=DOM_CSS_CALC;
+						}
 					else
 						primitiveType=DOM_CSS_UNKNOWN;
 					[sc scanString:@")" intoString:NULL];					
@@ -1764,16 +1779,16 @@
 
 - (void) setFloatValue:(unsigned short) unitType floatValue:(float) floatValue;
 {
-	switch(primitiveType)
+	switch(unitType)
 	{ // convert to internal inits (meters, seconds, rad, Hz)
 		case DOM_CSS_CM: floatValue *= 0.01; break;		// store in meters
 		case DOM_CSS_MM: floatValue *= 0.001; break;	// store in meters
 		case DOM_CSS_IN: floatValue *= 0.0254; break;	// store in meters
 		case DOM_CSS_PT: floatValue *= 0.0254/72; break;	// store in meters
 		case DOM_CSS_PC: floatValue *= 0.0254/6; break;	// store in meters
-//		case DOM_CSS_DEG: break;
-//		case DOM_CSS_RAD: break;
-//		case DOM_CSS_GRAD: break;
+		case DOM_CSS_DEG: floatValue *= M_PI/180.0;	// 360 deg for full circle
+		case DOM_CSS_GRAD: floatValue *= M_PI/200.0;	// 400 grad for full circle
+		case DOM_CSS_TURNS: floatValue *= M_PI/0.5;	// 1 turn for full circle
 		case DOM_CSS_MS: floatValue *= 0.001; break;	// store in seconds
 		case DOM_CSS_KHZ: floatValue *= 1000.0; break;	// store in Hz
 	}
@@ -1794,9 +1809,9 @@
 		case DOM_CSS_IN: return [value floatValue] / 0.0254;
 		case DOM_CSS_PT: return [value floatValue] / (0.0254/72);
 		case DOM_CSS_PC: return [value floatValue] / (0.0254/6);
-//		case DOM_CSS_DEG: return [value floatValue];
-//		case DOM_CSS_RAD: return [value floatValue];
-//		case DOM_CSS_GRAD: return [value floatValue];
+		case DOM_CSS_DEG: return [value floatValue] / (M_PI/180.0);
+		case DOM_CSS_GRAD: return [value floatValue] / (M_PI/200.0);
+		case DOM_CSS_TURNS: return [value floatValue] / (M_PI/0.5);
 		case DOM_CSS_MS: return 1000.0*[value floatValue];
 		case DOM_CSS_KHZ: return 0.001*[value floatValue];
 		default: return [value floatValue];
@@ -1806,7 +1821,7 @@
 }
 
 - (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
-{ // convert to unitType if requested
+{ // convert to given unitType
 	switch(primitiveType) {
 		case DOM_CSS_PERCENTAGE: return 0.01*[value floatValue]*base;
 		case DOM_CSS_EMS: return [value floatValue]*([font ascender]+[font descender]);
@@ -1833,7 +1848,57 @@
 //- (DOMCounter *) getCounterValue;
 //- (DOMRect *) getRectValue;
 //- (DOMRGBColor *) getRGBColorValue;
-//- (NSColor *) getRGBAColorValue;
+
+- (NSColor *) _lookupColorTable:(NSString *) str;
+{
+	static NSMutableDictionary *list;
+	NSColor *color;
+	NSScanner *sc;
+	if(!list)
+		{ // load color list (based on table 4.3 in http://www.w3.org/TR/css3-color/) from resource file
+			NSDictionary *dict=[NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"DOMHTMLColors" ofType:@"plist"]];
+			NSEnumerator *e=[dict keyEnumerator];
+			NSString *name;
+			list=[[NSMutableDictionary alloc] initWithCapacity:[dict count]];
+			while((name=[e nextObject]))
+				{
+				NSString *val=[dict objectForKey:name];
+				color=[self _lookupColorTable:val];	 // try to translate (may become a recursive definition!)
+				if(color)
+					[list setObject:color forKey:name];
+				else
+					NSLog(@"color table error %@/%@ -> nil", name, val);
+				}
+		}
+	color=[list objectForKey:[str lowercaseString]];
+	if(!color)
+		{ // should be used only while reading the color table
+			unsigned int hex;
+			sc=[NSScanner scannerWithString:str];
+			if([sc scanString:@"#" intoString:NULL] && [sc scanHexInt:&hex])
+				{ // hex string
+					if([str length] <= 4)	// short hex - convert into full value
+						return [NSColor colorWithCalibratedRed:((hex>>8)&0xf)/15.0 green:((hex>>4)&0xf)/15.0 blue:(hex&0xf)/15.0 alpha:1.0];
+					return [NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
+				}
+		}
+	return color;
+}
+
+- (NSColor *) _getNSColorValue;
+{
+	if([self primitiveType] == DOM_CSS_RGBCOLOR || [self primitiveType] == DOM_CSS_RGBACOLOR)
+		{
+		unsigned int hex=[value intValue];
+		return [NSColor colorWithCalibratedRed:((hex>>24)&0xff)/255.0 green:((hex>>16)&0xff)/255.0 blue:((hex>>8)&0xff)/255.0 alpha:((hex>>0)&0xff)/255.0];		
+		}
+	// handle HSV etc.
+	return [self _lookupColorTable:[self _toString]];
+}
+
+//- (DOMCounter *) getCounterValue;
+//- (DOMRect *) getRectValue;			// define DOMRect to 'have a' NSRect
+//- (DOMRGBColor *) getRGBColorValue;	// define DOMRGBColor to 'have a' NSColor
 
 @end
 
@@ -1865,7 +1930,7 @@
 
 	// FIXME: get rid of this (handle completely through default.css)
 
-	[element _addAttributesToStyle:style];	// get attributes (pre)defined by tag name and explicit attributes
+	[element OLD_addAttributesToStyle:style];	// get attributes (pre)defined by tag name and explicit attributes
 	
 	if([preferences authorAndUserStylesEnabled])
 		{ // loaded style is not disabled
@@ -1899,16 +1964,20 @@
 				}
 		}
 	cnt=[style length];
+	// FIXME: recursively expand in lists and concatenation, i.e. allow { content: "prefix-" attr(value) "-suffix" }
+	// FIXME: expand calc()
 	for(i=0; i<cnt; i++)
 		{ // expand attr(name)
 			NSString *property=[style item:i];
 			DOMCSSValue *val=[style getPropertyCSSValue:property];
 			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_ATTR)
 				{ // expand attr(name)
-					NSString *property=[val _toString];
-					NSString *attr=[element getAttribute:property];
+					NSString *attr=[element getAttribute:[val _toString]];	// read attribute as string
 					// FIXME: this allows e.g. <font face="attr(something)">
-					[style setProperty:property CSSvalue:[[[DOMCSSValue alloc] initWithString:attr] autorelease] priority:nil];
+					// i.e. we should separate value and type
+					// i.e. CSS3 attr(property [, type [, default]])
+					if(attr)
+						[style setProperty:property CSSvalue:[[[DOMCSSValue alloc] initWithString:attr] autorelease] priority:nil];
 				}
 		}	
 	return style;

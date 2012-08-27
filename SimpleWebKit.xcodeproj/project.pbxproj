@@ -308,7 +308,7 @@
 		EE60FCB40BA69A8D00503BB4 /* DOMRange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMRange.h; sourceTree = "<group>"; };
 		EE60FCB50BA69A8D00503BB4 /* DOMRange.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOMRange.m; sourceTree = "<group>"; };
 		EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebArchive.m; sourceTree = "<group>"; };
-		EE6635651219BA8B00761982 /* DOMHTMLColors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = DOMHTMLColors.plist; sourceTree = "<group>"; };
+		EE6635651219BA8B00761982 /* DOMHTMLColors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.bplist; name = DOMHTMLColors.plist; path = Sources/DOMHTMLColors.plist; sourceTree = "<group>"; };
 		EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebImageDocument.h; sourceTree = "<group>"; };
 		EE6FBB120C21D9E50095EEA6 /* WebImageDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebImageDocument.m; sourceTree = "<group>"; };
 		EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPDFDocument.h; sourceTree = "<group>"; };
@@ -445,6 +445,7 @@
 			children = (
 				EE60FC830BA6993E00503BB4 /* DOMCSS.h */,
 				EE60FC840BA6993E00503BB4 /* DOMCSS.m */,
+				EE6635651219BA8B00761982 /* DOMHTMLColors.plist */,
 				EE77A01115DE317C00B07FCE /* default.css */,
 			);
 			name = "CSS DOM Engine";
@@ -571,7 +572,6 @@
 				EEBA300D0F2F50F200FA7110 /* DOMSVG.h */,
 				EEBA300C0F2F50F200FA7110 /* DOMSVG.m */,
 				EE24FD190C209B37001947BB /* DOMHTML.plist */,
-				EE6635651219BA8B00761982 /* DOMHTMLColors.plist */,
 			);
 			name = DOM;
 			path = Sources;

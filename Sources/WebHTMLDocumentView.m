@@ -24,7 +24,436 @@
 #import "Private.h"
 #import <WebKit/WebFrameLoadDelegate.h>
 #import "WebHTMLDocumentView.h"
+#import "DOMCSS.h"
 
+NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
+NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
+
+#if !defined (GNUSTEP) && !defined (__mySTEP__)
+#if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
+
+// Tiger (10.4) and later - include (through WebKit/WebView.h and Cocoa/Cocoa.h) and implements Tables
+
+#else
+
+// declarations for headers of classes introduced in OSX 10.4 (#import <NSTextTable.h>) on systems that don't have it
+
+@interface NSTextBlock : NSObject <NSCoding, NSCopying>
+- (void) setBackgroundColor:(NSColor *) color;
+- (void) setBorderColor:(NSColor *) color;
+- (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
+
+// NOTE: values must match implementation in Apple AppKit!
+
+#define NSTextBlockBorder 0
+#define NSTextBlockPadding -1
+#define NSTextBlockMargin 1
+
+#define NSTextBlockAbsoluteValueType 0
+#define NSTextBlockPercentageValueType 1
+
+#define NSTextBlockTopAlignment	0
+#define NSTextBlockMiddleAlignment 1
+#define NSTextBlockBottomAlignment 2
+#define NSTextBlockBaselineAlignment 3
+
+#define NSTextBlockWidth	0
+#define NSTextBlockMinimumWidth	1
+#define NSTextBlockMaximumWidth	2
+#define NSTextBlockHeight	4
+#define NSTextBlockMinimumHeight	5
+#define NSTextBlockMaximumHeight	6
+
+#define NSTextTableAutomaticLayoutAlgorithm	0
+#define NSTextTableFixedLayoutAlgorithm	1
+
+@end
+
+@interface NSTextTable : NSTextBlock
+- (int) numberOfColumns;
+- (void) setHidesEmptyCells:(BOOL) flag;
+- (void) setNumberOfColumns:(unsigned) cols;
+@end
+
+@interface NSTextTableBlock : NSTextBlock
+- (id) initWithTable:(NSTextTable *) table startingRow:(int) r rowSpan:(int) rs startingColumn:(int) c columnSpan:(int) cs;
+@end
+
+@interface NSTextList : NSObject <NSCoding, NSCopying>
+- (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
+- (unsigned) listOptions;
+- (NSString *) markerForItemNumber:(int) item;
+- (NSString *) markerFormat;
+@end
+
+enum
+{
+    NSTextListPrependEnclosingMarker = 1
+};
+
+@interface NSParagraphStyle (NSTextBlock)
+- (NSArray *) textBlocks;
+- (NSArray *) textLists;
+@end
+
+@interface SWKTextTableCell : NSTextAttachmentCell
+{
+	NSAttributedString *table;
+}
+@end
+
+@implementation NSParagraphStyle (NSTextBlock)
+- (NSArray *) textBlocks; { return nil; }
+- (NSArray *) textLists; { return nil; }
+@end
+
+@interface NSMutableParagraphStyle (NSTextBlock)
+- (void) setTextBlocks:(NSArray *) array;
+- (void) setTextLists:(NSArray *) array;
+@end
+
+@implementation NSMutableParagraphStyle (NSTextBlock)
+- (void) setTextBlocks:(NSArray *) array; { return; }	// ignore
+- (void) setTextLists:(NSArray *) array; { return; }	// ignore
+@end
+
+@implementation SWKTextTableCell
+
+// when asked to draw, analyse the table blocks and draw a table
+
+@end
+
+#endif
+#endif
+
+@implementation DOMHTMLElement (Layout)
+
+- (void) _layout:(NSView *) parent;
+{
+	NIMP;	// no default implementation!
+}
+
+@end
+
+@implementation DOMHTMLFrameSetElement (Layout)
+
+- (NSEnumerator *) _htmlFrameSetEnumerator:(NSString *) str;
+{
+	NSArray *elements=[str componentsSeparatedByString:@","];
+	NSEnumerator *e;
+	NSString *element;
+	NSMutableArray *r=[NSMutableArray arrayWithCapacity:[elements count]];
+	float total=0.0;
+	float strech=0.0;
+	e=[elements objectEnumerator];
+	while((element=[e nextObject]))
+		{ // x% or * or n* - first pass to get total width
+			float width;
+			element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+			if([element isEqualToString:@"*"])
+				strech+=1.0;	// count number of '*' positions
+			else
+				{
+				width=[element floatValue];
+				if(width > 0.0)
+					total+=width;	// accumulate
+				}
+		}
+	if(strech > 0)
+		{
+		strech=(100.0-total)/strech;	// how much is missing to 100% for each *
+		total=100.0;		// 100% total
+		}
+	if(total == 0.0)
+		return nil;
+	e=[elements objectEnumerator];
+	while((element=[e nextObject]))
+		{ // x% or * or n*
+			float width;
+			element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+			if([element isEqualToString:@"*"])
+				width=strech;
+			else
+				width=[element floatValue];
+			[r addObject:[NSNumber numberWithFloat:width/total]];	// fraction of total width
+		}
+	return [r objectEnumerator];
+}
+
+- (void) _layout:(NSView *) view;
+{ // recursively arrange subviews so that they match children
+	NSString *splits;	// "50%,*"
+	NSEnumerator *e;	// enumerator
+	NSNumber *split;	// current splitting value (float)
+	DOMNodeList *children=[self childNodes];
+	unsigned count=[children length];
+	unsigned childIndex=0;
+	unsigned subviewIndex=0;
+	float position=0.0;
+	float total;
+	NSRect frame;
+	BOOL vertical;
+#if 0
+	NSLog(@"_layout: %@", self);
+	NSLog(@"attribs: %@", [self _attributes]);
+#endif
+	splits=[self valueForKey:@"cols"];		// cols has precedence if defined
+	if(!(vertical=(splits != nil)))				// if we have any cols...
+		splits=[self valueForKey:@"rows"];	// check for rows
+	if(!splits)	// neither
+		splits=@"100%";	// single entry with full width? or should we evenly split all children?`
+	if(![view isKindOfClass:[_WebHTMLDocumentFrameSetView class]])
+		{ // add/substitute a new _WebHTMLDocumentFrameSetView (subclass of NSSplitView) view of same dimensions
+			_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:[view frame]];
+			if([[view superview] isKindOfClass:[NSClipView class]])
+				[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view
+			else
+				[[view superview] replaceSubview:view with:setView];	// replace
+			[setView setDelegate:self];	// become the delegate (to control no-resize)
+			view=setView;	// use new
+			[setView release];
+		}
+	[(NSSplitView *) view setVertical:vertical];
+	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
+		{
+		DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
+#if 1
+		NSLog(@"child=%@", child);
+#endif
+		if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
+			{ // real content
+				subviewIndex++;	// one more
+				if(subviewIndex > [[view subviews] count])
+					{ // we don't have instantiated enough subviews yet - add one
+						_WebHTMLDocumentView *childView=[[_WebHTMLDocumentView alloc] initWithFrame:[view frame]];
+						[view addSubview:childView];
+						[childView release];
+					}
+			}
+		}
+	while([[view subviews] count] > subviewIndex)
+		[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];	// we have too many subviews - remove last one
+#if 0
+	NSLog(@"subviews = %@", [view subviews]);
+#endif
+	e=[self _htmlFrameSetEnumerator:splits];		// comma separated list e.g. "20%,*" or "1*,3*,7*"
+	frame=[view frame];
+	total=(vertical?frame.size.width:frame.size.height)-[(NSSplitView *) view dividerThickness]*(subviewIndex-1);	// how much room we can distribute
+	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
+		{
+		DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
+		if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
+			{ // real content
+				NSView *childView=[[view subviews] objectAtIndex:subviewIndex];
+				[child _layout:childView];	// layout subview - this may replace the original subview!
+				childView=[[view subviews] objectAtIndex:subviewIndex];	// fetch the (new) subview to resize as needed
+#if 0
+				NSLog(@" child = %@ - %@", childView, NSStringFromRect([childView frame]));
+#endif
+				split=[e nextObject];	// get next splitting info
+				if(!split)
+					break;	// mismatch in count
+				frame=[childView frame];
+#if 0
+				NSLog(@"  was = %@", NSStringFromRect([childView frame]));
+#endif
+				if(vertical)
+					{ // vertical splitter
+						frame.origin.x=position;
+						position += frame.size.width=[split floatValue]*total;	// how much of total
+					}
+				else
+					{
+					frame.origin.y=position;
+					position += frame.size.height=[split floatValue]*total;	// how much of total
+					}
+				position += [(NSSplitView *) view dividerThickness];	// leave room for divider
+				[childView setFrame:frame];	// adjust
+#if 0
+				NSLog(@"  is = %@ -> %@", NSStringFromRect(frame), NSStringFromRect([childView frame]));
+#endif
+				subviewIndex++;
+			}
+		}
+	[(NSSplitView *) view adjustSubviews];	// adjust them all
+}
+
+@end
+
+@implementation DOMHTMLFrameElement (Layout)
+
+- (void) _layout:(NSView *) view;
+{
+	NSString *name=[self valueForKey:@"name"];
+	NSString *src=[self valueForKey:@"src"];
+	NSString *border=[self valueForKey:@"frameborder"];
+	NSString *width=[self valueForKey:@"marginwidth"];
+	NSString *height=[self valueForKey:@"marginheight"];
+	NSString *scrolling=[self valueForKey:@"scrolling"];
+	BOOL noresize=[self hasAttribute:@"noresize"];
+	WebFrame *frame;
+	WebFrameView *frameView;
+	WebView *webView=[[self webFrame] webView];
+#if 0
+	NSLog(@"_layout: %@", self);
+	NSLog(@"attribs: %@", [self _attributes]);
+#endif
+	if(![view isKindOfClass:[WebFrameView class]])
+		{ // substitute with a WebFrameView
+			frameView=[[WebFrameView alloc] initWithFrame:[view frame]];
+			[[view superview] replaceSubview:view with:frameView];	// replace
+			view=frameView;	// use new
+			[frameView release];
+			frame=[[WebFrame alloc] initWithName:name
+									webFrameView:frameView
+										 webView:webView];	// allocate a new WebFrame
+			[frameView _setWebFrame:frame];	// create and attach a new WebFrame
+			[frame release];
+			[frame _setFrameElement:self];	// make a link
+			[[self webFrame] _addChildFrame:frame];	// make new frame a child of our frame
+			if(src)
+				[frame loadRequest:[NSURLRequest requestWithURL:[self URLWithAttributeString:@"src"]]];
+		}
+	else
+		{
+		frameView=(WebFrameView *) view;
+		frame=[frameView webFrame];		// get the webframe
+		}
+	[frame _setFrameName:name];
+	// FIXME: how to notify the scroll view for all three states: auto, yes, no?
+	// FIXME: make this a CSS attribute
+	if([self hasAttribute:@"scrolling"])
+		{
+		if([scrolling caseInsensitiveCompare:@"auto"] == NSOrderedSame)
+			{ // enable autoscroll
+				[frameView setAllowsScrolling:YES];
+				// hm...
+			}
+		if([scrolling isEqualToString:@""] || [scrolling caseInsensitiveCompare:@"yes"] == NSOrderedSame)
+			[frameView setAllowsScrolling:YES];
+		else
+			[frameView setAllowsScrolling:NO];
+		}
+	else
+		[frameView setAllowsScrolling:YES];	// default
+	[frameView setNeedsDisplay:YES];
+}
+
+@end
+
+@implementation DOMHTMLBodyElement (Layout)
+
+- (void) _layout:(NSView *) view;
+{
+	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
+	WebDataSource *source=[htmlDocument _webDataSource];
+	NSString *anchor=[[[source response] URL] fragment];
+	// FIXME: get this from CSS?
+	NSString *backgroundURL=[self valueForKey:@"background"];		// URL for background image
+	// FIXME: move to CSS:
+	NSColor *bg=nil; // [[self valueForKey:@"bgcolor"] _htmlColor];
+	NSColor *link=nil;	// [[self valueForKey:@"link"] _htmlColor];
+	NSTextStorage *ts;
+	NSScrollView *sc=[view enclosingScrollView];
+#if 0
+	NSLog(@"%@ _layout: %@", NSStringFromClass(isa), view);
+	NSLog(@"attribs: %@", [self _attributes]);
+#endif
+	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
+		{ // add/substitute a new _WebHTMLDocumentView view to our parent (NSClipView)
+			view=[[_WebHTMLDocumentView alloc] initWithFrame:(NSRect){ NSZeroPoint, [view frame].size }];	// create a new one with same frame
+#if 0
+			NSLog(@"replace document view %@ by %@", view, textView);
+#endif
+			[[[self webFrame] frameView] _setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
+			[view release];
+#if 0
+			NSLog(@"textv=%@", view);
+			NSLog(@"mask=%02x", [view autoresizingMask]);
+			NSLog(@"horiz=%d", [view isHorizontallyResizable]);
+			NSLog(@"vert=%d", [view isVerticallyResizable]);
+			NSLog(@"webdoc=%@", [view superview]);
+			NSLog(@"mask=%02x", [[view superview] autoresizingMask]);
+			NSLog(@"clipv=%@", [[view superview] superview]);
+			NSLog(@"mask=%02x", [[[view superview] superview] autoresizingMask]);
+			NSLog(@"scrollv=%@", [[[view superview] superview] superview]);
+			NSLog(@"mask=%02x", [[[[view superview] superview] superview] autoresizingMask]);
+			NSLog(@"autohides=%d", [[[[view superview] superview] superview] autohidesScrollers]);
+			NSLog(@"horiz=%d", [[[[view superview] superview] superview] hasHorizontalScroller]);
+			NSLog(@"vert=%d", [[[[view superview] superview] superview] hasVerticalScroller]);
+			NSLog(@"layoutManager=%@", [view layoutManager]);
+			NSLog(@"textContainers=%@", [[view layoutManager] textContainers]);
+#endif
+		}
+	ts=[(NSTextView *) view textStorage];
+	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear current content
+	[self _spliceTo:ts];	// translate DOM-Tree into attributed string
+	
+	// to correctly handle <pre>:
+	// scan through all paragraphs
+	// find all non-breaking paras, i.e. those with lineBreakMode == NSLineBreakByClipping
+	// determine unlimited width of any such paragraph
+	// resize textView to MIN(clipView.width, maxWidth+2*inset)
+	// also look for oversized attachments!
+	
+	// FIXME: we should recognize this element:
+	// <meta name = "format-detection" content = "telephone=no">
+	// as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
+	
+	[self _processPhoneNumbers:ts];	// update content
+	
+	// get this from CSS style
+	
+	if([self hasAttribute:@"bgcolor"])
+		{
+		[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
+		[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
+		//	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
+#if 1	// WORKAROUND
+		/* the next line is a workaround for the following problem:
+		 If we show HTML text that is longer than the scrollview it has a vertical scroller.
+		 Now, if a new page is loaded and the text is shorter and completely fits into the
+		 NSScrollView, the scroller is automatically hidden.
+		 Due to a bug we still have to fix, the NSTextView is not aware of this
+		 before the user resizes the enclosing WebView and NSScrollView.
+		 And, the background is only drawn for the not-wide-enough NSTextView.
+		 As a workaround, we set the background also for the ScrollView.
+		 */
+		if(bg) [sc setBackgroundColor:bg];
+#endif
+		}
+	if([self hasAttribute:@"link"])
+		[(_WebHTMLDocumentView *) view setLinkColor:link];	// change link color
+	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
+	if([anchor length] != 0)
+		{ // locate a matching anchor
+			unsigned idx, cnt=[ts length];
+			for(idx=0; idx < cnt; idx++)
+				{
+				NSString *attr=[ts attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
+				if(attr && [attr isEqualToString:anchor])
+					break;
+				}
+			if(idx < cnt)
+				[(_WebHTMLDocumentView *) view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
+		}
+	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
+	[sc tile];
+	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
+#if 0	// show view hierarchy
+	{
+	NSView *parent;
+	//	[textView display];
+	NSLog(@"view hierarchy");
+	NSLog(@"NSWindow=%@", [view window]);
+	parent=view;
+	while(parent)
+		NSLog(@"%p: %@", parent, parent), parent=[parent superview];
+	}
+#endif	
+}
+
+@end
 
 @implementation _WebHTMLDocumentView
 
@@ -427,7 +856,7 @@
 @implementation NSViewAttachmentCell
 
 // show a generic view as an attachment cell (e.g. an WebFrameView for <iframe>)
-// or an embedded NSTextView
+// or an embedded editable NSTextView for <textarea>
 
 // is the view a subview of our control view???
 
@@ -461,6 +890,7 @@
 { // click into text field
 	if(![[controlTextView window] makeFirstResponder:view])
 		return NO;
+	// check for resize
 	[view mouseDown:event];	// tracking loop of embedded view
 	return YES;
 }
@@ -577,8 +1007,9 @@
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
-	id val;
 	unsigned i, cnt;
+	DOMCSSValue *val;
+	NSString *sval;
 	WebPreferences *preferences=[self preferences];
 	NSMutableDictionary *attributes;
 	DOMCSSStyleDeclaration *style;
@@ -592,7 +1023,7 @@
 	if(![node isKindOfClass:[DOMElement class]])
 		{ // inherit all style for DOMText nodes
 			style=parent;					// inherit style
-			attributes=parentAttributes;	// inherit attributes
+			attributes=(NSMutableDictionary *) parentAttributes;	// inherit attributes
 			childNodes=nil;					// no children
 		}
 	else
@@ -605,12 +1036,18 @@
 				{ // evaluate inheritance (attr() has already been processed)
 					NSString *property=[style item:i];
 					DOMCSSValue *val=[style getPropertyCSSValue:property];
-					if(parent && [val cssValueType] == DOM_CSS_INHERIT)
-						[style setProperty:property CSSvalue:[parent getPropertyCSSValue:property] priority:[parent getPropertyPriority:property]];	// inherit
+					if([val cssValueType] == DOM_CSS_INHERIT)
+						{
+						if(parent)
+							[style setProperty:property CSSvalue:[parent getPropertyCSSValue:property] priority:[parent getPropertyPriority:property]];	// inherit
+						else
+							NSLog(@"inherit but no parent? %@ %@", property, node);
+						}
 				}
 		}
 	display=[[style getPropertyCSSValue:@"display"] _toString];
-	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];	
+	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];
+	// FIXME: handle "display: run-in"
 	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
 	isInline=style == parent || !display || [display isEqualToString:@"inline"];	// plain text counts as inline
 	
@@ -625,27 +1062,9 @@
 	
 	if([display isEqualToString:@"none"])
 		return;
-	// FIXME: move this at the end of the style calculation
-	if([display isEqualToString:@"inline-block"])
-		{ // create an inline-block
-			NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
-			NSCell *cell;
-			childNodes=[node childNodes];
-			for(i=0; i<[childNodes length]; i++)
-				{ // add child nodes
-					// NSLog(@"splice child %@", [_childNodes item:i]);
-					[self _spliceNode:[childNodes item:i] to:str pseudoElement:pseudoElement parentStyle:style parentAttributes:attributes];
-				}
-			attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSCell class]];
-			cell=(NSCell *) [attachment attachmentCell];	// get the real cell
-			[cell setAttributedStringValue:value];	// formatted by contents between <buton> and </button>
-			// set other attributes like background etc.
-#if 0
-			NSLog(@"  cell: %@", cell);
-#endif
-		}
-	else
-		attachment=[node _attachment];	// may be nil
+	// FIXME: move this after the end of the style calculation where we would handle the children
+//	[[[node webFrame] frameView] documentView]
+	attachment=[node _attachment];	// may be nil
 	string=[node _string];	// may be nil
 	
 	// FIXME: handle inherit and default values!
@@ -693,33 +1112,33 @@
 				{
 				float sz;
 				sz=[[parentAttributes objectForKey:NSFontAttributeName] pointSize]/[self textSizeMultiplier];	// inherited size
-				if([val primitiveType] == DOM_CSS_IDENT || [val primitiveType] == DOM_CSS_STRING)
+				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_IDENT || [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_STRING)
 					{
-					val=[val _toString];
-					if([val isEqualToString:@"smaller"])
+					sval=[val _toString];
+					if([sval isEqualToString:@"smaller"])
 						sz/=1.2;
-					else if([val isEqualToString:@"larger"])
+					else if([sval isEqualToString:@"larger"])
 						sz*=1.2;
-					else if([val isEqualToString:@"medium"])
+					else if([sval isEqualToString:@"medium"])
 						sz=12.0;
-					else if([val isEqualToString:@"large"])
+					else if([sval isEqualToString:@"large"])
 						sz=14.0;
-					else if([val isEqualToString:@"x-large"])
+					else if([sval isEqualToString:@"x-large"])
 						sz=18.0;
-					else if([val isEqualToString:@"xx-large"])
+					else if([sval isEqualToString:@"xx-large"])
 						sz=24.0;
-					else if([val isEqualToString:@"small"])
+					else if([sval isEqualToString:@"small"])
 						sz=10.0;
-					else if([val isEqualToString:@"x-small"])
+					else if([sval isEqualToString:@"x-small"])
 						sz=8.0;
-					else if([val isEqualToString:@"xx-small"])
+					else if([sval isEqualToString:@"xx-small"])
 						sz=6.0;					
 					if(sz < [preferences minimumLogicalFontSize])
 						sz=[preferences minimumLogicalFontSize];
 					}
 				else
 					{
-					sz=[val getFloatValue:DOM_CSS_PT relativeTo100Percent:sz andFont:[parentAttributes objectForKey:NSFontAttributeName]];
+					sz=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:sz andFont:[parentAttributes objectForKey:NSFontAttributeName]];
 					// for relative specs:	if(sz < [preferences minimumLogicalFontSize])
 					//							sz=[preferences minimumLogicalFontSize];
 					}
@@ -733,26 +1152,26 @@
 			val=[style getPropertyCSSValue:@"font-style"];
 			if(val)
 				{
-				val=[val _toString];
-				if([val isEqualToString:@"normal"])
+				sval=[val _toString];
+				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSItalicFontMask];
-				else if([val isEqualToString:@"italic"])
+				else if([sval isEqualToString:@"italic"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
-				else if([val isEqualToString:@"oblique"])
+				else if([sval isEqualToString:@"oblique"])
 					;
 				if(ff) f=ff;
 				}
 			val=[style getPropertyCSSValue:@"font-weight"];
 			if(val)
 				{
-				val=[val _toString];
-				if([val isEqualToString:@"normal"])
+				sval=[val _toString];
+				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSBoldFontMask];
-				else if([val isEqualToString:@"bold"])
+				else if([sval isEqualToString:@"bold"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
-				else if([val isEqualToString:@"bolder"])
+				else if([sval isEqualToString:@"bolder"])
 					ff=[[NSFontManager sharedFontManager] convertWeight:YES ofFont:f];
-				else if([val isEqualToString:@"lighter"])
+				else if([sval isEqualToString:@"lighter"])
 					ff=[[NSFontManager sharedFontManager] convertWeight:NO ofFont:f];
 				// handle numeric values (how? we may have to loop over convertWeight until we get close enough...)
 				// - (NSFont *)fontWithFamily:[f family] traits:[f traits] weight:15*weight/10 size:[f size]
@@ -761,10 +1180,10 @@
 			val=[style getPropertyCSSValue:@"font-variant"];
 			if(val)
 				{
-				val=[val _toString];
-				if([val isEqualToString:@"normal"])
+				sval=[val _toString];
+				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSSmallCapsFontMask];
-				else if([val isEqualToString:@"small-caps"])
+				else if([sval isEqualToString:@"small-caps"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSSmallCapsFontMask];
 				if(ff) f=ff;
 				}
@@ -799,28 +1218,23 @@
 			val=[style getPropertyCSSValue:@"color"];
 			if(val)
 				{
-				NSColor *color;
-				if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_RGBCOLOR)
-					{ // special optimization
-						unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
-						color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
-					}
-				else
-					color=[[val _toString] _htmlNamedColor];	// look up by color name
-				[attributes setObject:color forKey:NSForegroundColorAttributeName];
+				NSColor *color=[val _getNSColorValue];
+				if(color)
+					[attributes setObject:color forKey:NSForegroundColorAttributeName];
 				}
+			// handle bgcolor etc.
 			val=[style getPropertyCSSValue:@"cursor"];
 			if(val)
 				{
 				NSCursor *cursor=nil;
-				val=[val _toString];
-				if([val isEqualToString:@"auto"])
+				sval=[val _toString];
+				if([sval isEqualToString:@"auto"])
 					cursor=[NSCursor arrowCursor];
-				else if([val isEqualToString:@"default"])
+				else if([sval isEqualToString:@"default"])
 					cursor=[NSCursor arrowCursor];
-				else if([val isEqualToString:@"pointer"])
+				else if([sval isEqualToString:@"pointer"])
 					cursor=[NSCursor pointingHandCursor];
-				else if([val isEqualToString:@"crosshair"])
+				else if([sval isEqualToString:@"crosshair"])
 					cursor=[NSCursor crosshairCursor];
 				// FIXME: decode more cursor names
 				if(cursor)
@@ -829,39 +1243,39 @@
 			val=[style getPropertyCSSValue:@"x-link"];
 			if(val)
 				{
-				val=[val _toString];
-				[attributes setObject:val forKey:NSLinkAttributeName];	// set the link
+				sval=[val _toString];
+				[attributes setObject:sval forKey:NSLinkAttributeName];	// set the link (as a string)
 				}
 			val=[style getPropertyCSSValue:@"x-tooltip"];
 			if(val)
 				{
-				val=[val _toString];
-				[attributes setObject:val forKey:NSToolTipAttributeName];	// set the tooltip
+				sval=[val _toString];
+				[attributes setObject:sval forKey:NSToolTipAttributeName];	// set the tooltip string
 				}
 			val=[style getPropertyCSSValue:@"x-target-window"];
 			if(val)
 				{
-				val=[val _toString];
-				[attributes setObject:val forKey:DOMHTMLAnchorElementTargetWindow];	// set the target window
+				sval=[val _toString];
+				[attributes setObject:sval forKey:DOMHTMLAnchorElementTargetWindow];	// set the target window name string
 				}
 			val=[style getPropertyCSSValue:@"x-anchor"];
 			if(val)
 				{
-				val=[val _toString];
-				[attributes setObject:val forKey:DOMHTMLAnchorElementAnchorName];	// set the anchor
+				sval=[val _toString];
+				[attributes setObject:sval forKey:DOMHTMLAnchorElementAnchorName];	// set the anchor
 				}
 			/* paragraph style */
 			val=[style getPropertyCSSValue:@"text-align"];
 			if(val)
 				{
-				val=[val _toString];
-				if([val isEqualToString:@"left"])
+				sval=[val _toString];
+				if([sval isEqualToString:@"left"])
 					[p setAlignment:NSLeftTextAlignment];
-				else if([val isEqualToString:@"center"])
+				else if([sval isEqualToString:@"center"])
 					[p setAlignment:NSCenterTextAlignment];
-				else if([val isEqualToString:@"right"])
+				else if([sval isEqualToString:@"right"])
 					[p setAlignment:NSRightTextAlignment];
-				else if([val isEqualToString:@"justify"])
+				else if([sval isEqualToString:@"justify"])
 					[p setAlignment:NSJustifiedTextAlignment];
 				// if([align isEqualToString:@"char"])
 				//    [p setAlignment:NSNaturalTextAlignment];
@@ -869,21 +1283,61 @@
 			val=[style getPropertyCSSValue:@"vertical-align"];
 			if(val)
 				{
-				val=[val _toString];
-				if([val isEqualToString:@"super"])
+				sval=[val _toString];
+				if([sval isEqualToString:@"super"])
 					[attributes setObject:[NSNumber numberWithInt:1] forKey:NSSuperscriptAttributeName];
-				else if([val isEqualToString:@"sub"])
+				else if([sval isEqualToString:@"sub"])
 					[attributes setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
-				else if([val isEqualToString:@"top"])
+				else if([sval isEqualToString:@"top"])
 					; // modify table cell if possible
+				else if([sval isEqualToString:@"middle"])
+					; // modify table cell if possible
+				else if([sval isEqualToString:@"bottom"])
+					; // modify table cell if possible
+				}
+			val=[style getPropertyCSSValue:@"**first-line-head-indent**"];
+			if(val)
+				{
+				[p setFirstLineHeadIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p firstLineHeadIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				}
+			val=[style getPropertyCSSValue:@"**head-indent**"];
+			if(val)
+				{
+				[p setHeadIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p headIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				}
+			// setHyphenationFactor:
+			// setLineBreakMode: -- does this depend on white-space == pre?
+			// setTighteningFactorForTruncation:
+			// setLineHeightMultiple:
+			val=[style getPropertyCSSValue:@"**line-spacing**"];
+			if(val)
+				{
+				[p setLineSpacing:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p lineSpacing] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				}
+			// setMaximumLineHeight:
+			// setMinimumLineHeight:
+			val=[style getPropertyCSSValue:@"**paragraph-spacing**"];
+			if(val)
+				{
+				[p setParagraphSpacing:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p paragraphSpacing] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				}
+			val=[style getPropertyCSSValue:@"**paragraph-spacing-before**"];
+			if(val)
+				{
+				[p setParagraphSpacingBefore:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p paragraphSpacingBefore] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				}
+			val=[style getPropertyCSSValue:@"**paragraph-tail-indent**"];
+			if(val)
+				{
+				[p setTailIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p tailIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
 			val=[style getPropertyCSSValue:@"direction"];
 			if(val)
 				{		
-					val=[val _toString];
-					if([val isEqualToString:@"ltr"])
+					sval=[val _toString];
+					if([sval isEqualToString:@"ltr"])
 						[p setBaseWritingDirection:NSWritingDirectionLeftToRight];
-					else if([val isEqualToString:@"rtl"])
+					else if([sval isEqualToString:@"rtl"])
 						[p setBaseWritingDirection:NSWritingDirectionRightToLeft];
 					// else NSWritingDirectionNatural?
 				}
@@ -891,8 +1345,7 @@
 			val=[style getPropertyCSSValue:@"x-header-level"];
 			if(val)
 				{
-				val=[val _toString];
-				[p setHeaderLevel:[val intValue]];	// if someone wants to convert the attributed string back to HTML...					
+				[p setHeaderLevel:[[val _toString] intValue]];	// if someone wants to convert the attributed string back to HTML...					
 				}
 #endif
 			[attributes setObject:p forKey:NSParagraphStyleAttributeName];
@@ -905,16 +1358,16 @@
 			BOOL nobrk=NO;
 			BOOL trim=NO;
 			NSMutableString *s;
-			val=[val _toString];
-			if([val isEqualToString:@"normal"])
+			sval=[val _toString];
+			if([sval isEqualToString:@"normal"])
 				trim=YES, nobrk=YES;
-			else if([val isEqualToString:@"nowrap"])
+			else if([sval isEqualToString:@"nowrap"])
 				trim=YES, nobrk=YES, nowrap=YES;
-			else if([val isEqualToString:@"pre"])
+			else if([sval isEqualToString:@"pre"])
 				nowrap=YES;
-			else if([val isEqualToString:@"pre-wrap"])
+			else if([sval isEqualToString:@"pre-wrap"])
 				nobrk=YES, nowrap=YES;
-			else if([val isEqualToString:@"pre-line"])
+			else if([sval isEqualToString:@"pre-line"])
 				trim=YES, nowrap=YES;
 			s=[[string mutableCopy] autorelease];
 
@@ -948,33 +1401,25 @@
 	val=[style getPropertyCSSValue:@"text-transform"]; 
 	if(val)
 		{
-		val=[val _toString];
-		if([val isEqualToString:@"uppercase"])
+		sval=[val _toString];
+		if([sval isEqualToString:@"uppercase"])
 			string=[string uppercaseString];
-		else if([val isEqualToString:@"lowercase"])
+		else if([sval isEqualToString:@"lowercase"])
 			string=[string lowercaseString];
-		else if([val isEqualToString:@"capitalize"])
+		else if([sval isEqualToString:@"capitalize"])
 			string=[string capitalizedString];
+		else if([sval isEqualToString:@"password"])
+			string=[@"" stringByPaddingToLength:[string length] withString:@"*" startingAtIndex:0];
 		}
 	val=[style getPropertyCSSValue:@"quotes"];
 	if(val)
 		{
-		val=[val _toString];
+		sval=[val _toString];
 		// handle "quotes: "
 		}
 	if([visibility isEqualToString:@"hidden"])
 		{
 		// replace by string with spaces of same length
-		}
-	val=[style getPropertyCSSValue:@"x-before"];
-	if(val)
-		{ // special case to implement <br>
-			string=[[val _toString] stringByAppendingString:string];
-		}
-	val=[style getPropertyCSSValue:@"x-after"];
-	if(val)
-		{
-			string=[string stringByAppendingString:[val _toString]];
 		}
 	if(lastIsInline && !isInline)
 		{ // we need to close the last inline segment and prefix new block mode segment
@@ -982,6 +1427,34 @@
 				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@"\n"];	// replace if it did end with a space
 			else
 				[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation inherits attributes of the previous section
+		}
+	// to implement the :before pseudo element, we must extract the attribute/style calculation to a separate method
+	// and call this _spliceTo without specifying a pseudoElement
+	val=[style getPropertyCSSValue:@"x-before"];
+	if(val)
+		{ // special case to implement <br>
+			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
+		}
+	if([display isEqualToString:@"inline-block"])
+		{ // create an inline-block
+			NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
+			NSCell *cell;
+			childNodes=[node childNodes];
+			for(i=0; i<[childNodes length]; i++)
+				{ // add child nodes
+					// NSLog(@"splice child %@", [_childNodes item:i]);
+					[self _spliceNode:[childNodes item:i] to:str pseudoElement:pseudoElement parentStyle:style parentAttributes:attributes];
+				}
+			// allow cell type to be modified
+			attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSCell class]];
+			string=nil;
+			childNodes=nil;	// already processed
+			cell=(NSCell *) [attachment attachmentCell];	// get the real cell
+			[cell setAttributedStringValue:value];	// formatted by contents between <buton> and </button>
+			// set other attributes like background, cellSize etc.
+#if 0
+			NSLog(@"  cell: %@", cell);
+#endif
 		}
 	if(attachment)
 		{ // add attribute attachment (if available)
@@ -998,7 +1471,11 @@
 			// NSLog(@"splice child %@", [_childNodes item:i]);
 			[self _spliceNode:[childNodes item:i] to:str pseudoElement:pseudoElement parentStyle:style parentAttributes:attributes];
 		}
-	// stringAfter?
+	val=[style getPropertyCSSValue:@"x-after"];
+	if(val)
+		{ // special case
+			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
+		}
 	if(!isInline)
 		{ // close our block
 			if([[str string] hasSuffix:@" "])

@@ -105,15 +105,6 @@
 - (void) _recursivelySetNeedsLayout;
 @end
 
-@interface NSString (HTMLAttributes)
-
-- (BOOL) _htmlBoolValue;
-- (NSColor *) _htmlColor;
-- (NSTextAlignment) _htmlAlignment;
-- (NSEnumerator *) _htmlFrameSetEnumerator;
-
-@end
-
 @interface WebPreferences (Private)
 
 - (BOOL) authorAndUserStylesEnabled;

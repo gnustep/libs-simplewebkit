@@ -532,8 +532,8 @@ static NSDictionary *entitiesTable;
 									if([delegate respondsToSelector:@selector(parser:foundProcessingInstructionWithTarget:data:)])
 										{
 										// FXIME:
-										NSString *data=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
-										[delegate parser:self foundProcessingInstructionWithTarget:[tag substringFromIndex:1] data:data];						
+										NSString *d=[NSString _string:(char *)tp withEncoding:encoding length:cp-tp];
+										[delegate parser:self foundProcessingInstructionWithTarget:[tag substringFromIndex:1] data:d];						
 										}
 									break; // done
 								}

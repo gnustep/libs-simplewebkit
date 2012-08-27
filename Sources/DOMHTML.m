@@ -31,106 +31,6 @@
 #import "WebHTMLDocumentRepresentation.h"
 #import "Private.h"
 
-NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
-NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
-
-#if !defined (GNUSTEP) && !defined (__mySTEP__)
-#if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
-
-// Tiger (10.4) and later - include (through WebKit/WebView.h and Cocoa/Cocoa.h) and implements Tables
-
-#else
-
-// declarations for headers of classes introduced in OSX 10.4 (#import <NSTextTable.h>) on systems that don't have it
-
-@interface NSTextBlock : NSObject <NSCoding, NSCopying>
-- (void) setBackgroundColor:(NSColor *) color;
-- (void) setBorderColor:(NSColor *) color;
-- (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
-
-// NOTE: values must match implementation in Apple AppKit!
-
-#define NSTextBlockBorder 0
-#define NSTextBlockPadding -1
-#define NSTextBlockMargin 1
-
-#define NSTextBlockAbsoluteValueType 0
-#define NSTextBlockPercentageValueType 1
-
-#define NSTextBlockTopAlignment	0
-#define NSTextBlockMiddleAlignment 1
-#define NSTextBlockBottomAlignment 2
-#define NSTextBlockBaselineAlignment 3
-
-#define NSTextBlockWidth	0
-#define NSTextBlockMinimumWidth	1
-#define NSTextBlockMaximumWidth	2
-#define NSTextBlockHeight	4
-#define NSTextBlockMinimumHeight	5
-#define NSTextBlockMaximumHeight	6
-
-#define NSTextTableAutomaticLayoutAlgorithm	0
-#define NSTextTableFixedLayoutAlgorithm	1
-
-@end
-
-@interface NSTextTable : NSTextBlock
-- (int) numberOfColumns;
-- (void) setHidesEmptyCells:(BOOL) flag;
-- (void) setNumberOfColumns:(unsigned) cols;
-@end
-
-@interface NSTextTableBlock : NSTextBlock
-- (id) initWithTable:(NSTextTable *) table startingRow:(int) r rowSpan:(int) rs startingColumn:(int) c columnSpan:(int) cs;
-@end
-
-@interface NSTextList : NSObject <NSCoding, NSCopying>
-- (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
-- (unsigned) listOptions;
-- (NSString *) markerForItemNumber:(int) item;
-- (NSString *) markerFormat;
-@end
-
-enum
-{
-    NSTextListPrependEnclosingMarker = 1
-};
-
-@interface NSParagraphStyle (NSTextBlock)
-- (NSArray *) textBlocks;
-- (NSArray *) textLists;
-@end
-
-@interface SWKTextTableCell : NSTextAttachmentCell
-{
-	NSAttributedString *table;
-}
-@end
-
-@implementation NSParagraphStyle (NSTextBlock)
-- (NSArray *) textBlocks; { return nil; }
-- (NSArray *) textLists; { return nil; }
-@end
-
-@interface NSMutableParagraphStyle (NSTextBlock)
-- (void) setTextBlocks:(NSArray *) array;
-- (void) setTextLists:(NSArray *) array;
-@end
-
-@implementation NSMutableParagraphStyle (NSTextBlock)
-- (void) setTextBlocks:(NSArray *) array; { return; }	// ignore
-- (void) setTextLists:(NSArray *) array; { return; }	// ignore
-@end
-
-@implementation SWKTextTableCell
-
-// when asked to draw, analyse the table blocks and draw a table
-
-@end
-
-#endif
-#endif
-
 @interface DOMHTMLFormElement (Private)
 - (void) _submitForm:(DOMHTMLElement *) clickedElement;
 @end
@@ -152,109 +52,6 @@ enum
 - (void) _radio:(id) sender;
 - (void) _radioOff:(DOMHTMLElement *) clickedCell;
 - (NSString *) _formValue;	// return nil if not successful according to http://www.w3.org/TR/html401/interact/forms.html#h-17.3 17.13.2 Successful controls
-@end
-
-@implementation NSString (HTMLAttributes)
-
-- (BOOL) _htmlBoolValue;
-{
-	if([self length] == 0)
-		return YES;	// pure existence means YES
-	if([[self lowercaseString] isEqualToString:@"yes"])
-		return YES;
-	return NO;
-}
-
-- (NSColor *) _htmlNamedColor;
-{ // look up in catalog
-	static NSMutableDictionary *list;
-	if(!list)
-		{ // load color list (based on table 4.3 in http://www.w3.org/TR/css3-color/) from resource file
-			NSDictionary *dict=[NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass:[DOMHTMLElement class]] pathForResource:@"DOMHTMLColors" ofType:@"plist"]];
-			NSEnumerator *e=[dict keyEnumerator];
-			NSString *color;
-			list=[[NSMutableDictionary alloc] initWithCapacity:[dict count]];
-			while((color=[e nextObject]))
-				{
-				NSColor *c=[[dict objectForKey:color] _htmlColor];	 // try to translate (may be recursive!)
-				if(c)
-					[list setObject:c forKey:color];
-				}
-		}
-	return [list objectForKey:[self lowercaseString]];
-}
-
-- (NSColor *) _htmlColor;
-{
-	unsigned hex;
-	NSScanner *sc=[NSScanner scannerWithString:self];
-	if([sc scanString:@"#" intoString:NULL] && [sc scanHexInt:&hex])
-		{ // hex string
-			if([self length] <= 4)	// short hex - convert into full value
-				return [NSColor colorWithCalibratedRed:((hex>>8)&0xf)/15.0 green:((hex>>4)&0xf)/15.0 blue:(hex&0xf)/15.0 alpha:1.0];
-			return [NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
-		}
-	return [self _htmlNamedColor];
-}
-
-- (NSTextAlignment) _htmlAlignment;
-{
-	self=[self lowercaseString];
-	if([self isEqualToString:@"left"])
-		return NSLeftTextAlignment;
-	else if([self isEqualToString:@"right"])
-		return NSRightTextAlignment;
-	else if([self isEqualToString:@"center"])
-		return NSCenterTextAlignment;
-	else if([self isEqualToString:@"justify"])
-		return NSJustifiedTextAlignment;
-	else
-		return NSNaturalTextAlignment;
-}
-
-- (NSEnumerator *) _htmlFrameSetEnumerator;
-{
-	NSArray *elements=[self componentsSeparatedByString:@","];
-	NSEnumerator *e;
-	NSString *element;
-	NSMutableArray *r=[NSMutableArray arrayWithCapacity:[elements count]];
-	float total=0.0;
-	float strech=0.0;
-	e=[elements objectEnumerator];
-	while((element=[e nextObject]))
-		{ // x% or * or n* - first pass to get total width
-			float width;
-			element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-			if([element isEqualToString:@"*"])
-				strech+=1.0;	// count number of '*' positions
-			else
-				{
-				width=[element floatValue];
-				if(width > 0.0)
-					total+=width;	// accumulate
-				}
-		}
-	if(strech > 0)
-		{
-		strech=(100.0-total)/strech;	// how much is missing to 100% for each *
-		total=100.0;		// 100% total
-		}
-	if(total == 0.0)
-		return nil;
-	e=[elements objectEnumerator];
-	while((element=[e nextObject]))
-		{ // x% or * or n*
-			float width;
-			element=[element stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-			if([element isEqualToString:@"*"])
-				width=strech;
-			else
-				width=[element floatValue];
-			[r addObject:[NSNumber numberWithFloat:width/total]];	// fraction of total width
-		}
-	return [r objectEnumerator];
-}
-
 @end
 
 @implementation DOMHTMLCollection
@@ -280,16 +77,16 @@ enum
 	return element;
 }
 
-// - (DOMNodeList *) childNodes;
-// - (DOMElement *) cloneNode:(BOOL) deep;
+- (DOMNodeList *) childNodes; { return NIMP; }
+- (DOMElement *) cloneNode:(BOOL) deep; { return NIMP; }
 - (DOMElement *) firstChild; { return [elements objectAtIndex:0]; }
 - (BOOL) hasChildNodes; { return [elements count] > 0; }
-// - (DOMElement *) insertBefore:(DOMElement *) node :(DOMElement *) ref;
+- (DOMElement *) insertBefore:(DOMElement *) node :(DOMElement *) ref; { return NIMP; }
 - (DOMElement *) lastChild; { return [elements lastObject]; }
-// - (DOMElement *) nextSibling;
-// - (DOMElement *) previousSibling;
+- (DOMElement *) nextSibling; { return NIMP; }
+- (DOMElement *) previousSibling; { return NIMP; }
 - (DOMElement *) removeChild:(DOMNode *) node; { [elements removeObject:node]; return (DOMElement *) self; }
-// - (DOMElement *) replaceChild:(DOMNode *) node :(DOMNode *) old;
+- (DOMElement *) replaceChild:(DOMNode *) node :(DOMNode *) old; { return NIMP; }
 
 - (void) _makeObjectsPerformSelector:(SEL) sel withObject:(id) obj
 {
@@ -309,16 +106,15 @@ enum
 	return [rep _lastObject];	// default is to build a tree
 }
 
-#if 0
 // DOMDocumentAdditions
 
 - (DOMCSSRuleList *) getMatchedCSSRules:(DOMElement *) elt :(NSString *) pseudoElt;
 {
+	NIMP;
 	// call -[DOMCSSStyleRule _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement]
 	// and collect all matching rules
 	return nil;
 }
-#endif
 
 - (WebFrame *) webFrame
 {
@@ -493,16 +289,11 @@ enum
 - (NSAttributedString *) attributedString;
 { // recursively get attributed string representing this node and subnodes
 	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
-	[[[self webFrame] webView] _splice:self to:str parentStyle:nil];	// recursively splice all child element strings into this string
+	[[[self webFrame] webView] _spliceNode:self to:str pseudoElement:@"" parentStyle:nil parentAttributes:nil];	// recursively splice all child element strings into this string
 	return str;
 }
 
 // methods to be overwritten in node specific subclasses
-
-- (void) _layout:(NSView *) parent;
-{
-	NIMP;	// no default implementation!
-}
 
 - (NSString *) _string; { return @""; } // default is no contents
 
@@ -510,177 +301,10 @@ enum
 
 // REMOVEME:
 
-- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;			// add node specific attributes to style
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;			// add node specific attributes to style
 { // allow nodes to override by examining the attributes and overwrite the default style (CSS still takes precedence)
-#if OLD	// moved to default.css
-	NSString *node=[self nodeName];
-	if([node isEqualToString:@"B"] || [node isEqualToString:@"STRONG"])
-		{ // make bold
-			[style setProperty:@"font-weight" value:@"bold" priority:nil];
-		}
-	else if([node isEqualToString:@"I"] || [node isEqualToString:@"EM"] || [node isEqualToString:@"VAR"] || [node isEqualToString:@"CITE"])
-		{ // make italics
-			[style setProperty:@"font-style" value:@"italic" priority:nil];
-		}
-	else if([node isEqualToString:@"TT"] || [node isEqualToString:@"CODE"] || [node isEqualToString:@"KBD"] || [node isEqualToString:@"SAMP"])
-		{ // make monospaced
-			[style setProperty:@"font-family" value:@"monospace" priority:nil];
-		}
-	else if([node isEqualToString:@"U"])
-		{ // make underlined
-			[style setProperty:@"text-decoration" value:@"underline" priority:nil];
-		}
-	else if([node isEqualToString:@"STRIKE"])
-		{ // make strike-through
-			[style setProperty:@"text-decoration" value:@"line-through" priority:nil];
-		}
-	else if([node isEqualToString:@"BLINK"])
-		{ // make blink
-			[style setProperty:@"text-decoration" value:@"blink" priority:nil];
-		}
-	else if([node isEqualToString:@"SUP"])
-		{ // make superscript
-			[style setProperty:@"vertical-align" value:@"sup" priority:nil];	// inofficial value
-			[style setProperty:@"font-size" value:@"smaller" priority:nil];
-		}
-	else if([node isEqualToString:@"SUB"])
-		{ // make subscript
-			[style setProperty:@"vertical-align" value:@"sub" priority:nil];	// inofficial value
-			[style setProperty:@"font-size" value:@"smaller" priority:nil];
-		}
-	else if([node isEqualToString:@"BIG"])
-		{ // make font larger +1
-			[style setProperty:@"font-size" value:@"larger" priority:nil];
-		}
-	else if([node isEqualToString:@"SMALL"])
-		{ // make font smaller -1
-			[style setProperty:@"font-size" value:@"smaller" priority:nil];
-		}
-	/* else use defaults */
-#endif
+	return;
 }
-
-#if OLD
-// FIXME: replace this by -[DOMCSSStyleDeclaration _append:]
-
-- (void) _addCSSToStyle:(DOMCSSStyleDeclaration *) style;
-{
-	NSDictionary *dict=[style _items];	// get dictionary
-	NSString *key;
-	NSEnumerator *e=[dict keyEnumerator];
-#if 1
-	NSLog(@"merge %@ into %@", style, _style);
-#endif
-	while((key=[e nextObject]))
-		{
-		DOMCSSValue *val=[dict objectForKey:key];
-		if([val cssValueType] == DOM_CSS_INHERIT)
-			continue;	// skip (because parent node defines value)
-		// FIXME: postpone color translations until we really convert to NSAttributedString
-		if([key isEqualToString:@"color"])
-			{
-			NSColor *color;
-			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_RGBCOLOR)
-				{ // special optimization
-					unsigned hex=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_RGBCOLOR];
-					color=[NSColor colorWithCalibratedRed:((hex>>16)&0xff)/255.0 green:((hex>>8)&0xff)/255.0 blue:(hex&0xff)/255.0 alpha:1.0];
-				}
-			else
-				color=[[val _toString] _htmlNamedColor];	// look up by color name
-			if(color)
-				[_style setObject:color forKey:NSForegroundColorAttributeName];
-			}
-		// handle other attributes directly
-		else
-			{ // convert to string value
-				val=(DOMCSSValue *) [val _toString];
-				if(val)
-					[_style setObject:val forKey:key];	// copy value
-				else
-					; // was not able to convert into string!
-			}
-		}
-}
-
-// FIXME: replace this by -[WebView computedCSSStyleForElement:pseudoElement:]
-
-- (NSMutableDictionary *) _style;
-{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
-	if(!_style)
-		{
-		// FIXME: this is known to computedCSSStyleForElement:pseudoElement:
-		WebView *webView=[[self webFrame] webView];
-		WebPreferences *preferences=[webView preferences];
-		if([self isKindOfClass:[DOMHTMLHtmlElement class]])
-			{ // set document wide defaults
-				_style=[[NSMutableDictionary alloc] initWithCapacity:10];
-				[_style setObject:[preferences standardFontFamily] forKey:@"font-family"];
-				[_style setObject:[NSNumber numberWithFloat:[preferences defaultFontSize]*[webView textSizeMultiplier]] forKey:@"font-size"];
-			}
-		else
-			{
-			// FIXME: auto-inherit only a specific set of attributes
-			// but elements may explicitly specify "inherit" (e.g. height: or margin-bottom: )
-			_style=[[(DOMHTMLElement *) _parentNode _style] mutableCopy];	// inherit initial style from parent node; make a copy so that we can modify			
-			}
-		[_style setObject:@"inline" forKey:@"display"];		// set default display style (nodes can override by tag-name or attributes in _addAttributesToStyle)
-		[_style setObject:@"normal" forKey:@"white-space"];	// normal whitepace handling
-		[self _addAttributesToStyle];	// modify by tag name and explicit attributes
-		if([preferences authorAndUserStylesEnabled])
-			{ // CSS is not disabled
-				NSString *style;
-				DOMStyleSheetList *list;
-				DOMCSSStyleDeclaration *css;
-				int i, cnt;
-				// FIXME: how to handle different media?
-				list=[(DOMHTMLDocument *) [self ownerDocument] styleSheets];
-				cnt=[list length];
-				for(i=0; i<cnt; i++)
-					{ // go through all style sheets
-						// FIXME: make this a method of DOMCSSRuleList
-						// but in a way that multiple rules may match (and have different priorities!)
-						// i.e. we should have a method that returns all matching rules
-						// then sort by precedence
-						// the rules are described here:
-						// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
-						
-						DOMCSSRuleList *rules=[(DOMCSSStyleSheet *) [list item:i] cssRules];
-						int r, rcnt=[rules length];
-						for(r=0; r<rcnt; r++)
-							{
-							DOMCSSRule *rule=(DOMCSSRule *) [rules item:r];
-							// FIXME: how to handle pseudoElement here?
-							// it appears that the WebView method computedCSSStyleForElement:pseudoElement: is called when needed
-#if 0
-							NSLog(@"match %@ with %@", self, rule);
-#endif
-							if([rule _ruleMatchesElement:self pseudoElement:@""])
-								{
-								// FIXME: handle specificity and !important priority
-#if 0
-								NSLog(@"MATCH!");
-#endif
-								[self _addCSSToStyle:[(DOMCSSStyleRule *) rule style]];						
-								}
-							}
-					}
-				// CHECKME: if we add the style attribute here, it is also available for inheritance of lower level elements!?
-				style=[self getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) _style!)
-				if(style)
-					{ // parse style attribute
-#if 1
-						NSLog(@"add style=\"%@\"", style);
-#endif
-						css=[[DOMCSSStyleDeclaration alloc] initWithString:style];	// parse
-						[self _addCSSToStyle:css];	// apply CSS
-						[css release];
-					}
-			}
-		}
-	return _style;
-}
-
-#endif
 
 @end
 
@@ -1153,104 +777,6 @@ enum
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
-- (void) _layout:(NSView *) view;
-{ // recursively arrange subviews so that they match children
-	NSString *splits;	// "50%,*"
-	NSEnumerator *e;	// enumerator
-	NSNumber *split;	// current splitting value (float)
-	DOMNodeList *children=[self childNodes];
-	unsigned count=[children length];
-	unsigned childIndex=0;
-	unsigned subviewIndex=0;
-	float position=0.0;
-	float total;
-	NSRect frame;
-	BOOL vertical;
-#if 0
-	NSLog(@"_layout: %@", self);
-	NSLog(@"attribs: %@", [self _attributes]);
-#endif
-	splits=[self valueForKey:@"cols"];		// cols has precedence if defined
-	if(!(vertical=(splits != nil)))				// if we have any cols...
-		splits=[self valueForKey:@"rows"];	// check for rows
-	if(!splits)	// neither
-		splits=@"100%";	// single entry with full width? or should we evenly split all children?`
-	if(![view isKindOfClass:[_WebHTMLDocumentFrameSetView class]])
-		{ // add/substitute a new _WebHTMLDocumentFrameSetView (subclass of NSSplitView) view of same dimensions
-			_WebHTMLDocumentFrameSetView *setView=[[_WebHTMLDocumentFrameSetView alloc] initWithFrame:[view frame]];
-			if([[view superview] isKindOfClass:[NSClipView class]])
-				[(NSClipView *) [view superview] setDocumentView:setView];			// make the FrameSetView the document view
-			else
-				[[view superview] replaceSubview:view with:setView];	// replace
-			[setView setDelegate:self];	// become the delegate (to control no-resize)
-			view=setView;	// use new
-			[setView release];
-		}
-	[(NSSplitView *) view setVertical:vertical];
-	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
-		{
-		DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
-#if 1
-		NSLog(@"child=%@", child);
-#endif
-		if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
-			{ // real content
-				subviewIndex++;	// one more
-				if(subviewIndex > [[view subviews] count])
-					{ // we don't have instantiated enough subviews yet - add one
-						_WebHTMLDocumentView *childView=[[_WebHTMLDocumentView alloc] initWithFrame:[view frame]];
-						[view addSubview:childView];
-						[childView release];
-					}
-			}
-		}
-	while([[view subviews] count] > subviewIndex)
-		[[[view subviews] lastObject] removeFromSuperviewWithoutNeedingDisplay];	// we have too many subviews - remove last one
-#if 0
-	NSLog(@"subviews = %@", [view subviews]);
-#endif
-	e=[splits _htmlFrameSetEnumerator];		// comma separated list e.g. "20%,*" or "1*,3*,7*"
-	frame=[view frame];
-	total=(vertical?frame.size.width:frame.size.height)-[(NSSplitView *) view dividerThickness]*(subviewIndex-1);	// how much room we can distribute
-	for(childIndex=0, subviewIndex=0; childIndex < count; childIndex++)
-		{
-		DOMHTMLElement *child=(DOMHTMLElement *) [children item:childIndex];
-		if([child isKindOfClass:[DOMHTMLFrameSetElement class]] || [child isKindOfClass:[DOMHTMLFrameElement class]])
-			{ // real content
-				NSView *childView=[[view subviews] objectAtIndex:subviewIndex];
-				[child _layout:childView];	// layout subview - this may replace the original subview!
-				childView=[[view subviews] objectAtIndex:subviewIndex];	// fetch the (new) subview to resize as needed
-#if 0
-				NSLog(@" child = %@ - %@", childView, NSStringFromRect([childView frame]));
-#endif
-				split=[e nextObject];	// get next splitting info
-				if(!split)
-					break;	// mismatch in count
-				frame=[childView frame];
-#if 0
-				NSLog(@"  was = %@", NSStringFromRect([childView frame]));
-#endif
-				if(vertical)
-					{ // vertical splitter
-						frame.origin.x=position;
-						position += frame.size.width=[split floatValue]*total;	// how much of total
-					}
-				else
-					{
-					frame.origin.y=position;
-					position += frame.size.height=[split floatValue]*total;	// how much of total
-					}
-				position += [(NSSplitView *) view dividerThickness];	// leave room for divider
-				[childView setFrame:frame];	// adjust
-#if 0
-				NSLog(@"  is = %@ -> %@", NSStringFromRect(frame), NSStringFromRect([childView frame]));
-#endif
-				subviewIndex++;
-			}
-		}
-	[(NSSplitView *) view adjustSubviews];	// adjust them all
-}
-
 @end
 
 @implementation DOMHTMLNoFramesElement
@@ -1273,60 +799,6 @@ enum
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
-- (void) _layout:(NSView *) view;
-{
-	NSString *name=[self valueForKey:@"name"];
-	NSString *src=[self valueForKey:@"src"];
-	NSString *border=[self valueForKey:@"frameborder"];
-	NSString *width=[self valueForKey:@"marginwidth"];
-	NSString *height=[self valueForKey:@"marginheight"];
-	NSString *scrolling=[self valueForKey:@"scrolling"];
-	BOOL noresize=[self hasAttribute:@"noresize"];
-	WebFrame *frame;
-	WebFrameView *frameView;
-	WebView *webView=[[self webFrame] webView];
-#if 0
-	NSLog(@"_layout: %@", self);
-	NSLog(@"attribs: %@", [self _attributes]);
-#endif
-	if(![view isKindOfClass:[WebFrameView class]])
-		{ // substitute with a WebFrameView
-			frameView=[[WebFrameView alloc] initWithFrame:[view frame]];
-			[[view superview] replaceSubview:view with:frameView];	// replace
-			view=frameView;	// use new
-			[frameView release];
-			frame=[[WebFrame alloc] initWithName:name
-									webFrameView:frameView
-										 webView:webView];	// allocate a new WebFrame
-			[frameView _setWebFrame:frame];	// create and attach a new WebFrame
-			[frame release];
-			[frame _setFrameElement:self];	// make a link
-			[[self webFrame] _addChildFrame:frame];	// make new frame a child of our frame
-			if(src)
-				[frame loadRequest:[NSURLRequest requestWithURL:[self URLWithAttributeString:@"src"]]];
-		}
-	else
-		{
-		frameView=(WebFrameView *) view;
-		frame=[frameView webFrame];		// get the webframe
-		}
-	[frame _setFrameName:name];
-	// FIXME: how to notify the scroll view for all three states: auto, yes, no?
-	if([self hasAttribute:@"scrolling"])
-		{
-		if([scrolling caseInsensitiveCompare:@"auto"] == NSOrderedSame)
-			{ // enable autoscroll
-				[frameView setAllowsScrolling:YES];
-				// hm...
-			}
-		else
-			[frameView setAllowsScrolling:[scrolling _htmlBoolValue]];
-		}
-	else
-		[frameView setAllowsScrolling:YES];	// default
-	[frameView setNeedsDisplay:YES];
-}
-
 @end
 
 @implementation DOMHTMLIFrameElement
@@ -1343,14 +815,14 @@ enum
 @implementation DOMHTMLObjectFrameElement
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
-{ // find matching <table> node
+{ // find matching <frameset> node
 	DOMHTMLElement *n=[rep _lastObject];
 	while([n isKindOfClass:[DOMHTMLElement class]])
 		{
 		if([[n nodeName] isEqualToString:@"FRAMESET"])
 			return (DOMHTMLElement *) n;
 		n=(DOMHTMLElement *)[n parentNode];	// go one level up
-		}	// no <table> found!
+		}	// no <frameset> found!
 	return [[[DOMHTMLElement alloc] _initWithName:@"#dummy" namespaceURI:nil] autorelease];	// return dummy
 }
 
@@ -1365,7 +837,8 @@ enum
 	return [rep _html];
 }
 
-- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style
+#if 0
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style
 {
 	NSString *val;
 	val=[self valueForKey:@"text"];
@@ -1382,6 +855,7 @@ enum
 		; // set implicit color for links, i.e. define a a:link pseudo entry???
 	// FIXME: handle other background attributes
 }
+#endif
 
 - (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
 {
@@ -1444,115 +918,6 @@ enum
 		}
 }
 
-- (void) _layout:(NSView *) view;
-{
-	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
-	WebDataSource *source=[htmlDocument _webDataSource];
-	NSString *anchor=[[[source response] URL] fragment];
-	// FIXME: get this from CSS?
-	NSString *backgroundURL=[self valueForKey:@"background"];		// URL for background image
-	NSColor *bg=[[self valueForKey:@"bgcolor"] _htmlColor];
-	NSColor *link=[[self valueForKey:@"link"] _htmlColor];
-	NSTextStorage *ts;
-	NSScrollView *sc=[view enclosingScrollView];
-#if 0
-	NSLog(@"%@ _layout: %@", NSStringFromClass(isa), view);
-	NSLog(@"attribs: %@", [self _attributes]);
-#endif
-	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
-		{ // add/substitute a new _WebHTMLDocumentView view to our parent (NSClipView)
-			view=[[_WebHTMLDocumentView alloc] initWithFrame:(NSRect){ NSZeroPoint, [view frame].size }];	// create a new one with same frame
-#if 0
-			NSLog(@"replace document view %@ by %@", view, textView);
-#endif
-			[[[self webFrame] frameView] _setDocumentView:view];	// replace - and add whatever notifications the Scrollview needs
-			[view release];
-#if 0
-			NSLog(@"textv=%@", view);
-			NSLog(@"mask=%02x", [view autoresizingMask]);
-			NSLog(@"horiz=%d", [view isHorizontallyResizable]);
-			NSLog(@"vert=%d", [view isVerticallyResizable]);
-			NSLog(@"webdoc=%@", [view superview]);
-			NSLog(@"mask=%02x", [[view superview] autoresizingMask]);
-			NSLog(@"clipv=%@", [[view superview] superview]);
-			NSLog(@"mask=%02x", [[[view superview] superview] autoresizingMask]);
-			NSLog(@"scrollv=%@", [[[view superview] superview] superview]);
-			NSLog(@"mask=%02x", [[[[view superview] superview] superview] autoresizingMask]);
-			NSLog(@"autohides=%d", [[[[view superview] superview] superview] autohidesScrollers]);
-			NSLog(@"horiz=%d", [[[[view superview] superview] superview] hasHorizontalScroller]);
-			NSLog(@"vert=%d", [[[[view superview] superview] superview] hasVerticalScroller]);
-			NSLog(@"layoutManager=%@", [view layoutManager]);
-			NSLog(@"textContainers=%@", [[view layoutManager] textContainers]);
-#endif
-		}
-	ts=[(NSTextView *) view textStorage];
-	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear current content
-	[self _spliceTo:ts];	// translate DOM-Tree into attributed string
-	
-	// to correctly handle <pre>:
-	// scan through all paragraphs
-	// find all non-breaking paras, i.e. those with lineBreakMode == NSLineBreakByClipping
-	// determine unlimited width of any such paragraph
-	// resize textView to MIN(clipView.width, maxWidth+2*inset)
-	// also look for oversized attachments!
-	
-	// FIXME: we should recognize this element:
-	// <meta name = "format-detection" content = "telephone=no">
-	// as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
-	
-	[self _processPhoneNumbers:ts];	// update content
-	
-	// get this from CSS style
-	
-	if([self hasAttribute:@"bgcolor"])
-		{
-		[(_WebHTMLDocumentView *) view setBackgroundColor:bg];
-		[(_WebHTMLDocumentView *) view setDrawsBackground:bg != nil];
-		//	[(_WebHTMLDocumentView *) view setBackgroundImage:load from URL background];
-#if 1	// WORKAROUND
-		/* the next line is a workaround for the following problem:
-		 If we show HTML text that is longer than the scrollview it has a vertical scroller.
-		 Now, if a new page is loaded and the text is shorter and completely fits into the
-		 NSScrollView, the scroller is automatically hidden.
-		 Due to a bug we still have to fix, the NSTextView is not aware of this
-		 before the user resizes the enclosing WebView and NSScrollView.
-		 And, the background is only drawn for the not-wide-enough NSTextView.
-		 As a workaround, we set the background also for the ScrollView.
-		 */
-		if(bg) [sc setBackgroundColor:bg];
-#endif
-		}
-	if([self hasAttribute:@"link"])
-		[(_WebHTMLDocumentView *) view setLinkColor:link];	// change link color
-	[(_WebHTMLDocumentView *) view setDelegate:[self webFrame]];	// should be someone who can handle clicks on links and knows the base URL
-	if([anchor length] != 0)
-		{ // locate a matching anchor
-			unsigned idx, cnt=[ts length];
-			for(idx=0; idx < cnt; idx++)
-				{
-				NSString *attr=[ts attribute:@"DOMHTMLAnchorElementAnchorName" atIndex:idx effectiveRange:NULL];
-				if(attr && [attr isEqualToString:anchor])
-					break;
-				}
-			if(idx < cnt)
-				[(_WebHTMLDocumentView *) view scrollRangeToVisible:NSMakeRange(idx, 0)];	// jump to anchor
-		}
-	//	[view setMarkedTextAttributes: ]	// update for visited link color (assuming that we mark visited links)
-	[sc tile];
-	[sc reflectScrolledClipView:[sc contentView]];	// make scrollers autohide
-#if 0	// show view hierarchy
-	{
-	NSView *parent;
-	//	[textView display];
-	NSLog(@"view hierarchy");
-	NSLog(@"NSWindow=%@", [view window]);
-	parent=view;
-	while(parent)
-		NSLog(@"%p: %@", parent, parent), parent=[parent superview];
-	}
-#endif	
-}
-
 @end
 
 @implementation DOMHTMLDivElement
@@ -1576,7 +941,7 @@ enum
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
 #if OLD
-- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
 	int level=[[[self nodeName] substringFromIndex:1] intValue];
 	NSString *align=[self valueForKey:@"align"];
@@ -1603,7 +968,7 @@ enum
 
 @implementation DOMHTMLFontElement
 
-- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
 	NSString *val;
 #if OLD
@@ -1654,7 +1019,8 @@ enum
 		[[(DOMHTMLDocument *) [self ownerDocument] anchors] appendChild:self];	// add to Anchors[] DOM Level 0 list
 }
 
-- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
+#if 0
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
 	NSString *urlString=[self valueForKey:@"href"];
 	NSString *target=[self valueForKey:@"target"];	// WebFrame name where to show
@@ -1676,6 +1042,7 @@ enum
 	if(name)
 		[style setProperty:@"x-anchor" value:name priority:nil];	// add an anchor
 }
+#endif
 
 @end
 
@@ -1689,7 +1056,8 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (void) _addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
+#if 0
+- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
 { // add attributes to style
 	NSString *height=[self valueForKey:@"height"];
 	NSString *width=[self valueForKey:@"width"];
@@ -1709,6 +1077,7 @@ enum
 		// FIXME: we should get rid of this string processing!!!
 		[style setProperty:@"content" value:[NSString stringWithFormat:@"url(\"%@\")", urlString] priority:nil];
 }
+#endif
 
 - (NSString *) string;
 { // if attachment can't be created
@@ -1810,9 +1179,11 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
+#if 0
 // FIXME: this will be eliminated unless we set "white-space"
 
 - (NSString *) _string; { return @"\n"; }	// add line break
+#endif
 
 @end
 
@@ -2023,6 +1394,8 @@ enum
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLSingletonNesting; }
 
+// FIXME: there may be <table><div style...><tbody>
+
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
 	DOMHTMLElement *n=[rep _lastObject];
@@ -2036,6 +1409,8 @@ enum
 @end
 
 @implementation DOMHTMLTableRowElement
+
+// FIXME: there may be <table><div style...><tr>
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <tbody> or <table> node to become child
@@ -2478,17 +1853,16 @@ enum
 	NSLog(@"[attachmentCell target]=%@", [cell target]);	// this DOMHTMLInputElement
 	NSLog(@"[attachmentCell controlView]=%@", [cell controlView]);	// nil!
 #endif
-	switch([code intValue])
-	{
+	switch([code intValue]) {
 		case NSReturnTextMovement:
-		[self _submit:nil];
-		break;
+			[self _submit:nil];
+			break;
 		case NSTabTextMovement:
-		break;
+			break;
 		case NSBacktabTextMovement:
-		break;
+			break;
 		case NSIllegalTextMovement:
-		break;
+			break;
 	}
 }
 
@@ -2529,7 +1903,8 @@ enum
 	NSTextAttachment *attachment;
 	NSString *name=[self valueForKey:@"name"];
 	NSString *size=[self valueForKey:@"size"];
-	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
+	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
+	[webView _spliceNode:[self firstChild] to:value pseudoElement:@"" parentStyle:nil parentAttributes:nil];
 #if 0
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
@@ -2704,8 +2079,9 @@ enum
 - (NSString *) text
 {
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
-	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
-	return [value string];
+	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
+	[webView _spliceNode:[self firstChild] to:value pseudoElement:@"" parentStyle:nil parentAttributes:nil];
+	return [value string];	// removes any style but has processed content:
 }
 
 @end
@@ -2727,6 +2103,9 @@ enum
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
+// FIXME: split into CSS component, attachment generation
+// FIXME: can we handle this completely as display: textarea (similar to display: inline-block)?
+
 - (NSTextAttachment *) _attachment;
 { // <textarea cols=xxx lines=yyy>value</textarea> 
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
@@ -2734,7 +2113,8 @@ enum
 	NSString *name=[self valueForKey:@"name"];
 	NSString *cols=[self valueForKey:@"cols"];
 	NSString *lines=[self valueForKey:@"lines"];
-	[(DOMHTMLElement *) [self firstChild] _spliceTo:value];	// recursively splice all child element strings into our value string
+	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
+	[webView _spliceNode:[self firstChild] to:value pseudoElement:@"" parentStyle:nil parentAttributes:nil];
 #if 0
 	NSLog(@"<textarea>: %@", [self _attributes]);
 #endif

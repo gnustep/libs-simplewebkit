@@ -118,9 +118,11 @@
 {
 	NSMutableArray *_list;
 }
+
 - (NSMutableArray *) _list;
 - (DOMNode *) item:(unsigned long) index;
 - (unsigned long) length;
+
 @end
 
 @interface DOMNamedNodeMap : DOMObject

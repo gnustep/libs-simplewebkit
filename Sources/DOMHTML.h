@@ -33,11 +33,6 @@
 
 @class _WebHTMLDocumentRepresentation;
 
-// special style attributes
-
-extern NSString *DOMHTMLAnchorElementTargetWindow;
-extern NSString *DOMHTMLAnchorElementAnchorName;
-
 @interface DOMHTMLCollection : WebScriptObject
 {
 	NSMutableArray *elements;
@@ -93,8 +88,6 @@ typedef enum
 - (NSString *) outerHTML;
 - (NSString *) innerHTML;
 
-- (void) _layout:(NSView *) parent;
-
 @end
 
 @interface DOMHTMLElement : DOMElement	// add private methods that need to work for HTML nodes only
@@ -108,8 +101,6 @@ typedef enum
 - (void) setOuterHTML:(NSString *) str;	// this should parse HTML and replace the node type and the contents
 - (NSString *) innerHTML;
 - (void) setInnerHTML:(NSString *) str;	// this should parse HTML and replace the contents
-
-- (void) _layout:(NSView *) view;				// layout view according to the DOM node (may swap the view within its superview!)
 
 - (NSString *) _string;							// get string to be spliced
 - (NSTextAttachment *) _attachment;				// get attachment to be spliced

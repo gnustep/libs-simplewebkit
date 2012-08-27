@@ -285,7 +285,13 @@ enum DOMCSSPrimitiveValueType
 	DOM_CSS_ATTR = 22,	// attr(name)
 	DOM_CSS_COUNTER = 23,
 	DOM_CSS_RECT = 24,
-	DOM_CSS_RGBCOLOR = 25	// rgb(red, green, blue)
+	DOM_CSS_RGBCOLOR = 25,	// rgb(red, green, blue)
+	/* CSS3 */
+	DOM_CSS_RGBACOLOR = 26,
+	DOM_CSS_HSVCOLOR = 27,
+	DOM_CSS_HSVACOLOR = 28,
+	DOM_CSS_CALC = 29,	// calc(formula)
+	DOM_CSS_TURNS = 30,
 };
 
 @interface DOMCSSPrimitiveValue : DOMCSSValue

@@ -36,6 +36,11 @@
 
 // FIXME: refactor to WebHTMLView
 
+// special style attributes
+
+extern NSString *DOMHTMLAnchorElementTargetWindow;
+extern NSString *DOMHTMLAnchorElementAnchorName;
+
 @interface _WebHTMLDocumentView : NSTextView <WebDocumentView, WebDocumentText>
 {
 	WebDataSource *_dataSource;
@@ -92,6 +97,6 @@
 
 @interface WebView (NSAttributedString)
 
-- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent;
+- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 
 @end
