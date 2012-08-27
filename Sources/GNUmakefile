@@ -6,10 +6,7 @@ endif
 include $(GNUSTEP_MAKEFILES)/common.make
 
 PACKAGE_NAME=SimpleWebKit
-PACKAGE_VERSION = 0.1.0
-SimpleWebKit_INTERFACE_VERSION=0.1
-SVN_BASE_URL=svn+ssh://svn.gna.org/svn/gnustep/libs
-SVN_MODULE_NAME=simplewebkit
+
 
 FRAMEWORK_NAME=SimpleWebKit
 SimpleWebKit_HEADER_FILES_INSTALL_DIR = WebKit
