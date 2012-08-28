@@ -6,6 +6,7 @@ endif
 include $(GNUSTEP_MAKEFILES)/common.make
 
 PACKAGE_NAME=SimpleWebKit
+SimpleWebKit_INTERFACE_VERSION=0.1
 
 
 FRAMEWORK_NAME=SimpleWebKit

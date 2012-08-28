@@ -20,7 +20,6 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 PACKAGE_NAME=SimpleWebKit
 PACKAGE_VERSION = 0.1.0
-SimpleWebKit_INTERFACE_VERSION=0.1
 SVN_BASE_URL=svn+ssh://svn.gna.org/svn/gnustep/libs
 SVN_MODULE_NAME=simplewebkit
 
@@ -29,4 +28,3 @@ FRAMEWORK_NAME=SimpleWebKit
 SUBPROJECTS = Sources
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
-include $(GNUSTEP_MAKEFILES)/framework.make
