@@ -184,7 +184,7 @@
     (DOMNode *)[_childNodes item:[_childNodes length]-1]: (DOMNode *)nil; 
 }
 
-- (NSString *) localName; { return [NSString stringWithFormat:@"%@::%@", _namespaceURI, _nodeName]; }
+- (NSString *) localName; { return [NSString stringWithFormat:@"%@::%@", _namespaceURI, [_nodeName lowercaseString]]; }
 
 - (NSString *) namespaceURI; { return _namespaceURI; }
 

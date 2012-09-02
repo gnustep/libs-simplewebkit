@@ -241,7 +241,6 @@ enum DOMCSSValueType
 
 @interface DOMCSSValue : DOMObject
 {
-	NSString *cssText;
 	unsigned short cssValueType;
 }
 
@@ -297,7 +296,7 @@ enum DOMCSSPrimitiveValueType
 @interface DOMCSSPrimitiveValue : DOMCSSValue
 {
 	unsigned short primitiveType;
-	id value;	// NSNumber, NSString, NSValue, NSURL, NSColor, ...
+	id value;	// NSNumber, NSString, NSValue, NSURL, NSColor, DOMCSSValue, ...
 }
 
 - (unsigned short) primitiveType;

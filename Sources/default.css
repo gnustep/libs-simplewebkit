@@ -5,8 +5,11 @@
 
 /* define defaults */
 
-*				{ display: inline; }
-body			{ white-space: normal; padding: 8px; line-height: 1.33; font-family: serif; font-size: medium; }
+*				{ display: inline; white-space: inherit; }
+
+/* fixme: there are CSS which (re)define body font-size: 95% - where do we inherit fromin this case? */
+/* fixme: line-height: and margin: interworking for paragraphs isn't correct */
+body			{ white-space: normal; padding: 8px; line-height: 1.0em; margin: 0.83em 0; font-family: serif; font-size: medium; }
 
 /* define specific display style */
 
@@ -53,12 +56,13 @@ sub				{ vertical-align: sub; font-size: smaller; }
 sup				{ vertical-align: super; font-size: smaller; }
 big				{ font-size: larger; }
 small			{ font-size: smaller; }
-h1				{ x-header-level: 1; font-size: xx-large; font-weight: bold; }
-h2				{ x-header-level: 2; font-size: x-large; font-weight: bold; }
-h3				{ x-header-level: 3; font-size: large; font-weight: bold; }
-h4				{ x-header-level: 4; font-weight: bold; }
-h5				{ x-header-level: 5; font-weight: bold; }
-h6				{ x-header-level: 6; font-weight: bold; }
+blockquote      { margin-left: 40px; margin-right: 40px }
+h1				{ x-header-level: 1; font-size: xx-large; font-weight: bold; margin: 0.67em 0; }
+h2				{ x-header-level: 2; font-size: x-large; font-weight: bold; margin: 0.75em 0; }
+h3				{ x-header-level: 3; font-size: large; font-weight: bold; margin: 0.83em 0; }
+h4				{ x-header-level: 4; font-weight: bold; margin: 1.12em 0; }
+h5				{ x-header-level: 5; font-weight: bold; margin: 1.12em 0; }
+h6				{ x-header-level: 6; font-weight: bold; margin: 1.12em 0; }
 a				{ cursor: pointer; }
 /* q:before		{ content: open-quote; }
 q:after			{ content: close-quote; } pseudo elements are not yet implemented */
@@ -67,10 +71,10 @@ q				{ x-after: '"'; }
 
 /* HTML tag to style attribute translation */
 
-body[text]		{ color: attr(text); }
-body[bgcolor]	{ background-color: attr(bgcolor); }
-body[background]	{ background-image: attr(background); }
-body[link]			{ visited-color: attr(link); }
+body[text]			{ color: attr(text, color); }
+body[bgcolor]		{ background-color: attr(bgcolor, color); }
+body[background]	{ background-image: attr(background, url); }
+body[link]			{ x-visited-color: attr(link, color); }
 h1[align],
 h2[align],
 h3[align],
@@ -85,9 +89,9 @@ ul[align],
 td[align], th[align],
 input[align]	{ text-align: attr(align); }
 font[face]		{ font-family: attr(face); }
-font[size]		{ font-size: attr(size); }	/* needs calculations - handle +/- */
-font[color]		{ color: attr(color); }
-a[href]			{ x-link: attr(href); x-tooltip: attr(href); }
+font[size]		{ font-size: attr(size, string); }
+font[color]		{ color: attr(color, color); }
+a[href]			{ x-link: attr(href, url); x-tooltip: attr(href, url); }
 a[target]		{ x-target-window: attr(target); }
 a[id]			{ x-anchor: attr(id); }
 a[name]			{ x-anchor: attr(name); }
@@ -97,11 +101,9 @@ a[accesskey]
 a[shape]
 a[coords]
 */
-img				{ width: auto; height: auto; }
-img[src]		{ cursor: pointer; x-link: attr(src); content: attr(src); }
+img				{ width: attr(width, px, auto); height: attr(height, px, auto); }
+img[src]		{ cursor: pointer; x-link: attr(src, url); content: attr(src, url); }
 img[alt]		{ x-tooltip: attr(alt); }
-img[width]		{ width: attr(width); }
-img[height]		{ height: attr(height); }
 /*
 img[border]
 img[hspace]
@@ -113,11 +115,8 @@ img[ismap]
 /* br:before		{ content: "\A"; }	pseudo elements and hex escapes are not yet implemented */
 br				{ x-before: "\n"; }
 nobr			{ white-space: nowrap; x-linebreak: clip; }
-/*
-hr[noshade]
-hr[size]
-hr[width]
-*/
+hr				{ height: attr(size, px, 1px); width: attr(width, px, 100%); }
+hr[noshade]		{ }
 
 /* lists */
 ol				{ list-style-type: decimal }
@@ -126,22 +125,24 @@ ol ul, ul ul	{ list-style-type: circle }	/* second level */
 ol ol ul, ul ol ul,
 ol ul ul, ul ul ul	{ list-style-type: square }	/* third level */
 dl				{ list-style-type: disc }
+li				{ }
 dt				{ }
 dd				{ }
+ol, ul, dir,
+menu, dd        { margin-left: 40px }
 
 /* tables */
 table[border]			{ border: attr(border); }
 table[width], tr[width],
-td[width], th[width]	{ width: attr(width); }
+td[width], th[width]	{ width: attr(width, px); }
 td[valign], th[valign]	{ vertical-align: attr(valign); }
 
 /* forms */
-input					{ x-editable: yes; x-text-columns: 20; x-text-lines: 1; }
+input					{ x-editable: yes; x-text-columns: attr(size, number, 20); x-text-lines: 1; }
 input[type="hidden"]	{ display: none; }
 input[type="password"]	{ text-transform: password; }
-input[type]				{ x-input-type: attr(type); }
+input[type]				{ x-input-type: attr(type, string, "text"); }
 input[value]			{ content: attr(value); }
-input[size]				{ x-text-columns: attr(size); }
 /*
 name
 title
@@ -157,22 +158,23 @@ select					{ }
 option					{ display: none; }
 
 /* handle other types */
-button					{ display: inline-block }	/* define button style */
+button					{ display: inline-block; /* define button style */ }
 /* button[size]			{ x-text-columns: attr(size); } */
 textarea				{ display: inline-block; x-editable: yes; x-text-columns: 20; x-text-lines: 8; }
-textarea[cols]			{ x-text-columns: attr(cols); }
-textarea[lines]			{ x-text-lines: attr(lines); }
+textarea[cols]			{ x-text-columns: attr(cols, number); }
+textarea[lines]			{ x-text-lines: attr(lines, number); }
 textarea[disabled], input[disabled]		{ x-editable: no; }
 textarea[readonly], input[readonly]		{ x-editable: no; }
 /* textarea[name] */
 
 /* frames */
-frame[scrolling]		{ frame-scrolling: attr(scrolling); }
-frame[noresize]			{ frame-scrolling: no; }
-frame[marginwidth]		{ margin-width: attr(marginwidth); }
-frame[marginheight]		{ margin-width: attr(marginheight); }
-/* frame[src], frame[name]
-iframe[width]
-iframe[height]
-iframe[src]
-*/
+frameset				{ x-frameset-elements: "100%"; }
+frameset[rows]			{ x-frameset-orientation: horizontal; x-frameset-elements: attr(rows, string); }
+frameset[cols]			{ x-frameset-orientation: vertical; x-frameset-elements: attr(cols, string); }	/* cols has precedence if both are defined */
+frame, iframe			{ x-frame-scrolling: attr(scrolling, string, "auto");  x-frame-resizeable: "yes"; }
+frame[noresize]			{ x-frame-resizeable: "no"; }
+frame[marginwidth], iframe[marginwidth]		{ margin-left: attr(marginwidth, px); margin-right: attr(marginwidth, px); }
+frame[marginheight], iframe[marginheight]	{ margin-top: attr(marginheight, px); margin-bottom: attr(marginheight, px); }
+frame[src], iframe[src]	{ content: attr(src, url); }
+iframe					{ width: attr(width, px, 100px); height: attr(height, px, 100px); }
+/* (i)frame[name], (i)frame[frameborder] */

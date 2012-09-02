@@ -559,9 +559,11 @@
 				[self release];
 				return nil;
 				}
-			while(![sc isAtEnd])
+			while([DOMCSSRule _skip:sc], ![sc isAtEnd])
+				{
 				if([(DOMCSSMediaRule *) self insertRule:(NSString *) sc index:[[(DOMCSSMediaRule *) self cssRules] length]] == (unsigned) -1)	// parse and scan rules
 					break;
+				}
 			if(![sc scanString:@"}" intoString:NULL])
 				{ // not closed properly - try to recover
 					[sc scanUpToString:@"}" intoString:NULL];
@@ -1304,10 +1306,13 @@
 #if 1
 	NSLog(@"_setCssText:\n%@", sheet);
 #endif
-	while(![scanner isAtEnd])
+	while([DOMCSSRule _skip:scanner], ![scanner isAtEnd])
 		{
 		if([self insertRule:(NSString *) scanner index:[cssRules length]] == (unsigned) -1)	// parse and scan rules
+			{
+			NSLog(@"CSS parse error");
 			break;	// parse error
+			}
 		}
 }
 
@@ -1431,7 +1436,7 @@
 			[val setCssText:(NSString *) sc];	// parse next value
 			[(DOMCSSValueList *) self _addItem:val];
 			[val release];
-			} while([sc scanString:@"," intoString:NULL]);
+			} while([DOMCSSRule _skip:sc], [sc scanString:@"," intoString:NULL]);
 		}
 	return self;
 }
@@ -1449,6 +1454,13 @@
 			return @"todo";
 	}
 	return @"?";
+}
+
+// FXIME: if we pass the parent style we can also evaluate inheritance here
+
+- (DOMCSSValue *) _evaluateForElement:(DOMElement *) element;
+{
+	return self;
 }
 
 @end
@@ -1505,23 +1517,15 @@
 - (DOMCSSValue *) item:(unsigned) index; { return [values objectAtIndex:index]; }
 - (void) _addItem:(DOMCSSValue *) item { [values addObject:item]; }
 
+- (DOMCSSValue *) _evaluateForElement:(DOMElement *) element;
+{
+	// FIXME: evaluate all components of the list
+	return self;
+}
+
 @end
 
 @implementation DOMCSSPrimitiveValue
-
-- (id) initWithString:(NSString *) str; {
-	return NIMP;
-}
-
-- (unsigned short) cssValueType { return DOM_CSS_PRIMITIVE_VALUE; }
-
-- (unsigned short) primitiveType; { return primitiveType; }
-
-- (void) dealloc
-{
-	[value release];
-	[super dealloc];
-}
 
 + (NSString *) _suffix:(int) primitiveType;
 {
@@ -1570,6 +1574,73 @@
 	return DOM_CSS_UNKNOWN;
 }
 
+// FIXME: it appears as if we have type dependent defaults for attr()
+
++ (DOMCSSPrimitiveValue *) _valueWithString:(NSString *) val andType:(NSString *) type;
+{ // create from string value and type
+	DOMCSSPrimitiveValue *newval=[[[self alloc] init] autorelease];
+	if(newval)
+		{
+		if([type isEqualToString:@"string"])
+			{
+			if(!val) val=@"";
+			[newval setStringValue:DOM_CSS_STRING stringValue:val];
+			}
+		else if([type isEqualToString:@"color"])
+			{
+			if(!val) val=@"currentColor";
+			if([val hasPrefix:@"#"])
+				return [[[DOMCSSValue alloc] initWithString:val] autorelease];	// parse hex color constant
+			[newval setStringValue:DOM_CSS_IDENT stringValue:val];
+			}
+		else if([type isEqualToString:@"url"])
+			{
+			if(!val) val=@"unknown.html";
+			[newval setStringValue:DOM_CSS_URI stringValue:val];
+			}
+		else if([type isEqualToString:@"integer"])
+			{
+			if(!val) val=@"0";
+			[newval setFloatValue:DOM_CSS_NUMBER floatValue:[val floatValue]];
+			}
+		else if([type isEqualToString:@"number"])
+			{
+			if(!val) val=@"0";
+			[newval setFloatValue:DOM_CSS_NUMBER floatValue:[val floatValue]];
+			}
+		// length, angle, time, frequency
+		else
+			{
+			NSScanner *sc=[NSScanner scannerWithString:type];
+			int type=[self _scanSuffix:sc];
+			if(!val) val=@"0";
+			else if([val hasSuffix:@"%"])
+				type=DOM_CSS_PERCENTAGE;	// overwrite any defined units
+			[newval setFloatValue:type floatValue:[val floatValue]];
+			}
+		}
+	return newval;
+}
+
+- (id) initWithString:(NSString *) str;
+{
+	if((self=[super init]))
+		{
+		[self setCssText:str];
+		}
+	return self;
+}
+
+- (unsigned short) cssValueType { return DOM_CSS_PRIMITIVE_VALUE; }
+
+- (unsigned short) primitiveType; { return primitiveType; }
+
+- (void) dealloc
+{
+	[value release];
+	[super dealloc];
+}
+
 - (NSString *) cssText;
 {
 	float val;
@@ -1587,7 +1658,7 @@
 			}
 		case DOM_CSS_URI:	return [NSString stringWithFormat:@"url(%@)", [self getStringValue]];
 		case DOM_CSS_IDENT: return [self getStringValue];
-		case DOM_CSS_ATTR: return [NSString stringWithFormat:@"attr(%@)", [self getStringValue]];
+		case DOM_CSS_ATTR: return [NSString stringWithFormat:@"attr(%@)", [value cssText]];
 		case DOM_CSS_RGBCOLOR: {
 			int val=[value intValue];
 			return [NSString stringWithFormat:@"#%02x%02x%02x", (val>>24)&0xff, (val>>16)&0xff, (val>>8)&0xff];
@@ -1696,7 +1767,7 @@
 #endif
 					intValue=fullValue;
 				}
-			value=[[NSNumber alloc] initWithInt:intValue];
+			value=[[NSNumber alloc] initWithInt:(intValue<<8)+255];	// stored as RGB(A) and A=100%
 			primitiveType=DOM_CSS_RGBCOLOR;
 			return;
 		}
@@ -1715,7 +1786,6 @@
 			if([sc scanString:@"(" intoString:NULL])
 				{ // "functional" token
 					BOOL noAlpha;
-					// FIXME: WebKit understands rgba(), hsv(), hsva()
 					if((noAlpha=[value isEqualToString:@"rgb"]) || [value isEqualToString:@"rgba"])
 						{ // rgb(r, g, b) or rgba(r, g, b, a)
 							DOMCSSValue *val=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
@@ -1735,8 +1805,11 @@
 							[val release];
 							primitiveType=noAlpha?DOM_CSS_RGBCOLOR:DOM_CSS_RGBACOLOR;
 						}
+					// FIXME: WebKit understands hsv(), hsva()
 					else if([value isEqualToString:@"url"])
 						{ // url(location) or url("location")
+							// FIXME: accepts paths incl. / without quotes!
+							// FIXME: relative URLS are relative to enclosing CSS
 							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
 							primitiveType=DOM_CSS_URI;
 						}
@@ -1753,16 +1826,19 @@
 					else if([value isEqualToString:@"dimension"])
 						{
 						// FIXME
+						value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 						primitiveType=DOM_CSS_DIMENSION;
 						}
 					else if([value isEqualToString:@"rect"])
 						{						
 						// FIXME
-						primitiveType=DOM_CSS_RECT;
+							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
+					primitiveType=DOM_CSS_RECT;
 						}
 					else if([value isEqualToString:@"calc"])
 						{
 						// FIXME
+						value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
 						primitiveType=DOM_CSS_CALC;
 						}
 					else
@@ -1785,6 +1861,7 @@
 		case DOM_CSS_MM: floatValue *= 0.001; break;	// store in meters
 		case DOM_CSS_IN: floatValue *= 0.0254; break;	// store in meters
 		case DOM_CSS_PT: floatValue *= 0.0254/72; break;	// store in meters
+		case DOM_CSS_PX: floatValue *= 0.0254/72; break;	// store in meters and assume 1px = 1pt
 		case DOM_CSS_PC: floatValue *= 0.0254/6; break;	// store in meters
 		case DOM_CSS_DEG: floatValue *= M_PI/180.0;	// 360 deg for full circle
 		case DOM_CSS_GRAD: floatValue *= M_PI/200.0;	// 400 grad for full circle
@@ -1801,13 +1878,23 @@
 { // convert to unitType if requested
 	if(unitType != primitiveType)
 		// check if compatible
+		/* classify both types as:
+		 * LENGTH: mm, cm, in, pt, px, pc
+		 * SCALE percent, em, ex
+		 * TIME
+		 * FREQ
+		 * ANGLE deg, rad, grad, turns
+		 * ...
+		 */
 		;
-	switch(primitiveType)
-	{ // since we store absolute lengths in meters, time in seconds and frequencies in Hz, conversion from e.g. cm to pt is not difficult
+	switch(unitType)
+	{ // since we store absolute lengths in meters, time in seconds and frequencies in Hz, conversion to compatible type does not depend on stored type
 		case DOM_CSS_CM: return 100.0*[value floatValue];
 		case DOM_CSS_MM: return 1000.0*[value floatValue];
 		case DOM_CSS_IN: return [value floatValue] / 0.0254;
 		case DOM_CSS_PT: return [value floatValue] / (0.0254/72);
+			// FIXME: we could ask the WebView's NSScreen for a scaling factor
+		case DOM_CSS_PX: return [value floatValue] / (0.0254/72);	// assume 1px = 1pt
 		case DOM_CSS_PC: return [value floatValue] / (0.0254/6);
 		case DOM_CSS_DEG: return [value floatValue] / (M_PI/180.0);
 		case DOM_CSS_GRAD: return [value floatValue] / (M_PI/200.0);
@@ -1826,7 +1913,6 @@
 		case DOM_CSS_PERCENTAGE: return 0.01*[value floatValue]*base;
 		case DOM_CSS_EMS: return [value floatValue]*([font ascender]+[font descender]);
 		case DOM_CSS_EXS: return [value floatValue]*[font xHeight];
-		case DOM_CSS_PX: return [value floatValue] / (0.0254/72);	// assume px = pt
 	}
 	return [self getFloatValue:unitType];	// absolute
 }
@@ -1900,15 +1986,48 @@
 //- (DOMRect *) getRectValue;			// define DOMRect to 'have a' NSRect
 //- (DOMRGBColor *) getRGBColorValue;	// define DOMRGBColor to 'have a' NSColor
 
+- (DOMCSSValue *) _evaluateForElement:(DOMElement *) element
+{
+	switch(primitiveType) {
+		case DOM_CSS_ATTR:
+			{ // expand attr(name, ...)
+				NSArray *args=[value _toStringArray];
+				if([args count] > 0)
+					{
+					NSString *name=[args objectAtIndex:0];
+					NSString *type=[args count] >= 2?[args objectAtIndex:1]:@"string";	// default type
+					NSString *attr=[element getAttribute:name];	// read attribute value as string
+					if(!attr && [args count] >= 3)
+						// NOTE: this goes beyond CSS3 spec where it is explicitly stated that it may not be another attr()
+						// return [[args objectAtIndex:2] _evaluateForElement:element];	// recursively replace default value
+						return [[DOMCSSValue alloc] initWithString:[args objectAtIndex:2]];	// can specify different units
+					else if([type isEqualToString:@"url"])
+						{ // resolve urls - attr(name url) is different from url(string) which is relative to the CSS path
+						NSURL *document=[[[[element webFrame] dataSource] response] URL];
+						NSURL *url=[NSURL URLWithString:attr relativeToURL:document];
+						// FIXME: make relative URLs absolute (relative to the loading document)
+						return [DOMCSSPrimitiveValue _valueWithString:[url absoluteString] andType:type];
+						}
+					else
+						return [DOMCSSPrimitiveValue _valueWithString:attr andType:type];
+					}
+				return self;	// could not evaluate
+			}
+			// expand calc(formula)
+	}
+	return self;	// could not evaluate
+}
+
 @end
 
 @implementation WebView (CSS)
 
-- (DOMCSSStyleDeclaration *) _styleForElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement;
-{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc. but neither handles inheritance nor expands defaults
+- (DOMCSSStyleDeclaration *) _styleForElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent;
+{ // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
 	int i, cnt;
 	WebPreferences *preferences=[self preferences];
 	DOMCSSStyleDeclaration *style;
+	static DOMCSSValue *inherit;
 	static DOMCSSStyleSheet *defaultSheet;
 	if(![element isKindOfClass:[DOMElement class]])
 		return nil;	// element has no CSS capabilities
@@ -1963,36 +2082,9 @@
 					[css release];
 				}
 		}
-	cnt=[style length];
-	// FIXME: recursively expand in lists and concatenation, i.e. allow { content: "prefix-" attr(value) "-suffix" }
-	// FIXME: expand calc()
-	for(i=0; i<cnt; i++)
-		{ // expand attr(name)
-			NSString *property=[style item:i];
-			DOMCSSValue *val=[style getPropertyCSSValue:property];
-			if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_ATTR)
-				{ // expand attr(name)
-					NSString *attr=[element getAttribute:[val _toString]];	// read attribute as string
-					// FIXME: this allows e.g. <font face="attr(something)">
-					// i.e. we should separate value and type
-					// i.e. CSS3 attr(property [, type [, default]])
-					if(attr)
-						[style setProperty:property CSSvalue:[[[DOMCSSValue alloc] initWithString:attr] autorelease] priority:nil];
-				}
-		}	
-	return style;
-}
-
-- (DOMCSSStyleDeclaration *) computedStyleForElement:(DOMElement *) element
-									   pseudoElement:(NSString *) pseudoElement;
-{ // this provides a complete list of attributes where inheritance and default values are expanded
-	DOMCSSStyleDeclaration *style=[self _styleForElement:element pseudoElement:pseudoElement];
-	DOMCSSStyleDeclaration *parent=nil;
-	unsigned int i, cnt=[style length];
-	static DOMCSSValue *inherit;
 	if(!inherit)
 		inherit=[[DOMCSSValue alloc] initWithString:@"inherit"];
-	/* add missing default values */
+	/* add any missing default inheritance */
 	if(![style getPropertyCSSValue:@"color"]) [style setProperty:@"color" CSSvalue:inherit priority:nil];
 	if(![style getPropertyCSSValue:@"cursor"]) [style setProperty:@"cursor" CSSvalue:inherit priority:nil];
 	if(![style getPropertyCSSValue:@"direction"]) [style setProperty:@"direction" CSSvalue:inherit priority:nil];
@@ -2017,12 +2109,41 @@
 	if(![style getPropertyCSSValue:@"border-spacing"]) [style setProperty:@"border-spacing" CSSvalue:inherit priority:nil];
 	if(![style getPropertyCSSValue:@"empty-cells"]) [style setProperty:@"empty-cells" CSSvalue:inherit priority:nil];
 	if(![style getPropertyCSSValue:@"table-layout"]) [style setProperty:@"table-layout" CSSvalue:inherit priority:nil];
-#if OLD
-	/* default values */
-	if(![style getPropertyCSSValue:@"display"]) [style setProperty:@"display" value:@"inline" priority:nil];
-	if(![style getPropertyCSSValue:@"whitespace"]) [style setProperty:@"whitespace" value:@"normal" priority:nil];
-#endif
-	/* expand inheritance - recursively go upwards only if needed */
+	cnt=[style length];
+	for(i=0; i<cnt; i++)
+		{ // expand functions and inheritance
+			NSString *property=[style item:i];
+			DOMCSSValue *val=[style getPropertyCSSValue:property];
+			if([val cssValueType] == DOM_CSS_INHERIT)
+				{
+				DOMCSSValue *newval;
+				if(parent)
+					newval=[parent getPropertyCSSValue:property];
+				else
+					newval=[[[DOMCSSPrimitiveValue alloc] initWithString:@"unknown"] autorelease];							
+				[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
+				}
+			else
+				{
+				DOMCSSValue *eval=[val _evaluateForElement:element];
+				if(eval != val)
+					[style setProperty:property CSSvalue:eval priority:nil];
+				}
+		}	
+	return style;
+}
+
+- (DOMCSSStyleDeclaration *) computedStyleForElement:(DOMElement *) element
+									   pseudoElement:(NSString *) pseudoElement;
+{ // this provides a complete list of attributes where inheritance and default values are expanded
+	/* this is now calculated always - not only if we really inherit something! */
+	// efficiency without caching is very questionable!!! */
+	DOMCSSStyleDeclaration *parent=[element parentNode]?[self computedStyleForElement:(DOMElement *) [element parentNode] pseudoElement:pseudoElement]:nil;
+	DOMCSSStyleDeclaration *style=[self _styleForElement:element pseudoElement:pseudoElement parentStyle:parent];
+#if 0
+	DOMCSSStyleDeclaration *parent=nil;
+	unsigned int i, cnt=[style length];
+	/* evaluate inheritance - recursively go upwards only if needed */
 	for(i=0; i<cnt; i++)
 		{ // replace (recursively) inherited values
 			NSString *property=[style item:i];
@@ -2047,8 +2168,9 @@
 					}
 				}
 		}
+#endif
 	/* handle special case where the default value is a copy of some other property */
-	if(![style getPropertyCSSValue:@"border-top-color"]) [style setProperty:@"border-top-color" CSSvalue:[style getPropertyCSSValue:@"color"] priority:nil];
+//	if(![style getPropertyCSSValue:@"border-top-color"]) [style setProperty:@"border-top-color" CSSvalue:[style getPropertyCSSValue:@"color"] priority:nil];
 	return style;
 }
 

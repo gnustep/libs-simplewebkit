@@ -103,7 +103,7 @@ typedef enum
 - (void) setInnerHTML:(NSString *) str;	// this should parse HTML and replace the contents
 
 - (NSString *) _string;							// get string to be spliced
-- (NSTextAttachment *) _attachment;				// get attachment to be spliced
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;		// get attachment to be spliced
 
 @end
 

@@ -75,6 +75,16 @@
 	return [sv hasHorizontalScroller] || [sv hasVerticalScroller];
 }
 
+- (BOOL) allowsAutoScrolling;
+{
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
+	NSScrollView *sv=[[self subviews] lastObject];
+	return [sv autohidesScrollers];
+#else
+	return NO;
+#endif
+}
+
 - (WebFrame *) webFrame; { return _webFrame; }
 - (NSView <WebDocumentView> *) documentView; { return [(WebFrameView *) [[self subviews] lastObject] documentView]; }
 
@@ -88,6 +98,14 @@
 	NSScrollView *sv=[[self subviews] lastObject];
 	[sv setHasHorizontalScroller:flag];
 	[sv setHasVerticalScroller:flag];
+}
+
+- (void) setAllowsAutoScrolling:(BOOL) flag;
+{
+#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
+	NSScrollView *sv=[[self subviews] lastObject];
+	[sv setAutohidesScrollers:flag];
+#endif
 }
 
 // - (void) drawRect:(NSRect) rect;

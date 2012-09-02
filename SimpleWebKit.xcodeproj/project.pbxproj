@@ -321,7 +321,6 @@
 		EE77A01115DE317C00B07FCE /* default.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = default.css; path = Sources/default.css; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.css; };
 		EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPluginContainer.h; sourceTree = "<group>"; };
 		EE7C19CA15D0339C004127D0 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		EE7C19D015D0339C004127D0 /* SimpleWebKit-Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SimpleWebKit-Info copy.plist"; sourceTree = "<group>"; };
 		EE8721C10D0214F600B2037D /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile; path = SWKBrowser/GNUmakefile; sourceTree = "<group>"; };
 		EE8721C20D0214F600B2037D /* GNUmakefile.postamble */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile.postamble; path = SWKBrowser/GNUmakefile.postamble; sourceTree = "<group>"; };
 		EE8721D00D02152600B2037D /* Info-gnustep.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = "Info-gnustep.plist"; path = "SWKBrowser/Info-gnustep.plist"; sourceTree = "<group>"; };
@@ -581,7 +580,6 @@
 			isa = PBXGroup;
 			children = (
 				EEA3D392095468BA001244CF /* SimpleWebKit-Info.plist */,
-				EE7C19D015D0339C004127D0 /* SimpleWebKit-Info copy.plist */,
 			);
 			name = Resources;
 			path = Sources;
@@ -1396,7 +1394,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
 				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "SimpleWebKit-Info copy.plist";
+				INFOPLIST_FILE = "Sources/SimpleWebKit-Info.plist";
 				INSTALL_PATH = /Library/Frameworks;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (

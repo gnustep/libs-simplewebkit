@@ -39,9 +39,11 @@
 
 
 - (BOOL) allowsScrolling;
+- (BOOL) allowsAutoScrolling;
 - (NSView <WebDocumentView> *) documentView;
 - (WebFrame *) webFrame;
 - (void) setAllowsScrolling:(BOOL) flag;
+- (void) setAllowsAutoScrolling:(BOOL) flag;
 - (void) _setDocumentView:(NSView /* <WebDocumentView> */ *) view;
 - (void) _setWebFrame:(WebFrame *) wframe;
 

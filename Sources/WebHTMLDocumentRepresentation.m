@@ -391,7 +391,20 @@ static NSDictionary *tagtable;
 		}
 	if(nesting == DOMHTMLStandardNesting || nesting == DOMHTMLLazyNesting)
 		[_elementStack addObject:newElement];	// go down one level for new element
-	[newElement _elementDidAwakeFromDocumentRepresentation:self];
+	NS_DURING
+		[newElement _elementDidAwakeFromDocumentRepresentation:self];
+	NS_HANDLER
+		if(NSRunAlertPanel(@"An internal parse exception occurred\nPlease report to <http://projects.goldelico.com/p/swk/issues>",
+						@"URL: <%@>\nTag: <%@>\nException: %@",
+						@"Continue",
+						@"Abort",
+						nil,
+						[[[[[(DOMHTMLDocument *) [parent ownerDocument] webFrame] dataSource] request] URL] absoluteString],
+						tag,
+						localException
+						) == NSAlertAlternateReturn)
+			[localException raise];	// should end any processing
+	NS_ENDHANDLER
 }
 
 - (void) parser:(NSXMLParser *) parser didEndElement:(NSString *) tag namespaceURI:(NSString *) uri qualifiedName:(NSString *) name;

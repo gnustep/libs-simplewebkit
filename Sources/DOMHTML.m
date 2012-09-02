@@ -289,7 +289,7 @@
 - (NSAttributedString *) attributedString;
 { // recursively get attributed string representing this node and subnodes
 	NSMutableAttributedString *str=[[[NSMutableAttributedString alloc] init] autorelease];
-	[[[self webFrame] webView] _spliceNode:self to:str pseudoElement:@"" parentStyle:nil parentAttributes:nil];	// recursively splice all child element strings into this string
+	[[[self webFrame] webView] _spliceNode:self to:str parentStyle:nil parentAttributes:nil];	// recursively splice all child element strings into this string
 	return str;
 }
 
@@ -297,25 +297,13 @@
 
 - (NSString *) _string; { return @""; } // default is no contents
 
-- (NSTextAttachment *) _attachment; { return nil; }	// default is no attachment
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style; { return nil; }	// default is no attachment
 
 // REMOVEME:
 
 - (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;			// add node specific attributes to style
 { // allow nodes to override by examining the attributes and overwrite the default style (CSS still takes precedence)
 	return;
-}
-
-@end
-
-// REMOVEME:
-
-@implementation DOMNode (Content)
-
-- (void) _spliceTo:(NSMutableAttributedString *) str;
-{
-	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
-	[webView _spliceNode:self to:str pseudoElement:@"" parentStyle:nil parentAttributes:nil];
 }
 
 @end
@@ -339,7 +327,7 @@
 	return [self data];	// character string
 }
 
-- (NSTextAttachment *) _attachment; { return nil; }	// no attachment
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style; { return nil; }	// no attachment
 
 @end
 
@@ -356,7 +344,7 @@
 	return @"";	// ignore
 }
 
-- (NSTextAttachment *) _attachment; { return nil; }	// no attachment
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style; { return nil; }	// no attachment
 
 @end
 
@@ -373,7 +361,7 @@
 	return @"";	// ignore
 }
 
-- (NSTextAttachment *) _attachment; { return nil; }	// no attachment
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style; { return nil; }	// no attachment
 
 @end
 
@@ -805,7 +793,8 @@
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-- (NSTextAttachment *) _attachment;
+// handle through inline-block
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 {
 	return nil;	// should be a NSTextAttachmentCell which controls a NSTextView/NSWebFrameView that loads and renders its content
 }
@@ -857,67 +846,6 @@
 }
 #endif
 
-- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
-{
-	NSString *raw=[str string];
-	NSScanner *sc=[NSScanner scannerWithString:raw];
-	[sc setCharactersToBeSkipped:nil];	// don't skip spaces or newlines automatically
-	while(![sc isAtEnd])
-		{
-		unsigned start=[sc scanLocation];	// remember where we did start
-		NSRange rng;
-		NSDictionary *attr=[str attributesAtIndex:start effectiveRange:&rng];
-		if(![attr objectForKey:NSLinkAttributeName])
-			{ // we don't yet have a link here
-				NSString *number=nil;
-				static NSCharacterSet *digits;
-				static NSCharacterSet *ignorable;
-				if(!digits) digits=[[NSCharacterSet characterSetWithCharactersInString:@"0123456789#*"] retain];
-				// FIXME: what about dots? Some countries write a phone number as 12.34.56.78
-				// so we should accept dots but only if they separate at least two digits...
-				// but don't recognize dates like 29.12.2007
-				if(!ignorable) ignorable=[[NSCharacterSet characterSetWithCharactersInString:@" -()\t"] retain];	// NOTE: does not include \n !
-				[sc scanString:@"+" intoString:&number];	// looks like a good start (if followed by any digits)
-				while(![sc isAtEnd])
-					{
-					NSString *segment;
-					if([sc scanCharactersFromSet:ignorable intoString:NULL])
-						continue;	// skip
-					if([sc scanCharactersFromSet:digits intoString:&segment])
-						{ // found some (more) digits
-							if(number)
-								number=[number stringByAppendingString:segment];	// collect
-							else
-								number=segment;		// first segment
-							continue;	// skip
-						}
-					break;	// no digits
-					}
-				if([number length] > 6)
-					{ // there have been enough digits in sequence so that it looks like a phone number
-						NSRange srng=NSMakeRange(start, [sc scanLocation]-start);	// string range
-						if(srng.length <= rng.length)
-							{ // we have uniform attributes (i.e. rng covers srng) else -> ignore
-#if 0
-								NSLog(@"found telephone number: %@", number);
-#endif
-								// preprocess number so that it fits into E.164 and DIN 5008 formats
-								// how do we handle if someone writes +49 (0) 89 - we must remove the 0?
-								if([number hasPrefix:@"00"])
-									number=[NSString stringWithFormat:@"+%@", [number substringFromIndex:2]];	// convert to international format
-#if 0
-								NSLog(@"  -> %@", number);
-#endif
-								[str setAttributes:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"tel:%@", number]
-																			   forKey:NSLinkAttributeName] range:srng];	// add link
-								continue;
-							}
-					}
-			}
-		[sc setScanLocation:start+1];	// skip anything else
-		}
-}
-
 @end
 
 @implementation DOMHTMLDivElement
@@ -967,44 +895,6 @@
 @end
 
 @implementation DOMHTMLFontElement
-
-- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
-{ // add attributes to style
-	NSString *val;
-#if OLD
-	val=[self valueForKey:@"face"];
-	if(val)
-		[style setProperty:@"font-family" value:val priority:nil];	// may be a comma separated list
-#endif
-	val=[self valueForKey:@"size"];
-	if(val)
-		{ // FIXME: handle through default.css
-		if([val hasPrefix:@"+"])
-			{ // enlarge by 1.2 for each step
-				float s=[[val substringFromIndex:1] floatValue];
-				[style setProperty:@"font-size" value:[NSString stringWithFormat:@"%.0f%%", 100.0*pow(1.2, s)] priority:nil];
-			}
-		else if([val hasPrefix:@"-"])
-			{ // reduce by 1.2 for each step
-				float s=[[val substringFromIndex:1] floatValue];
-				[style setProperty:@"font-size" value:[NSString stringWithFormat:@"%.0f%%", 100.0*pow(1.2, -s)] priority:nil];
-			}
-		else
-			{ // absolute size relative to 12 pnt
-				WebView *webView=[[self webFrame] webView];
-				float s=[val intValue];
-				if(s > 7) s=7;	// limit
-				if(s < 1) s=1;	// limit
-				s=12.0*pow(1.2, s);
-				[style setProperty:@"font-size" value:[NSString stringWithFormat:@"%.2g pt", s] priority:nil];
-			}
-		}
-#if OLD
-	val=[self valueForKey:@"color"];
-	if(val)
-		[style setProperty:@"color" value:val priority:nil];
-#endif
-}
 
 @end
 
@@ -1084,17 +974,19 @@
 	return [self valueForKey:@"alt"];
 }
 
-- (NSTextAttachment *) _attachment;
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 {
 	WebView *webView=[[self webFrame] webView];
 	NSTextAttachment *attachment;
 	NSCell *cell;
+	NSSize imgSize;
 	NSImage *image=nil;
-	NSFileWrapper *wrapper;
-	NSString *src=[self valueForKey:@"src"];
+	// NOTE: we use _loadSubresourceWithAttributeString, i.e. we don't load from a CSS url!
+//	DOMCSSValue *src=[style getPropertyCSSValue:@"content"];
+	DOMCSSValue *height=[style getPropertyCSSValue:@"height"];
+	DOMCSSValue *width=[style getPropertyCSSValue:@"width"];
+	// FIXME: move these to CSS style attributes
 	NSString *alt=[self valueForKey:@"alt"];
-	NSString *height=[self valueForKey:@"height"];
-	NSString *width=[self valueForKey:@"width"];
 	NSString *border=[self valueForKey:@"border"];
 	NSString *hspace=[self valueForKey:@"hspace"];
 	NSString *vspace=[self valueForKey:@"vspace"];
@@ -1104,8 +996,8 @@
 #if 0
 	NSLog(@"<img>: %@", [self _attributes]);
 #endif
-	if(!src)
-		return nil;	// can't show as attachment
+//	if(!src)
+//		return nil;	// can't show as attachment
 	attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	cell=(NSCell *) [attachment attachmentCell];	// get the real cell
 #if 0
@@ -1124,13 +1016,23 @@
 			}
 		}
 	if(!image)
-		{ // could not convert
+		{ // could not (yet) convert or load - substitute default image
 			image=[[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"WebKitIMG" ofType:@"png"]];	// substitute default image
 			[image setScalesWhenResized:NO];	// hm... does not really work
 		}
-	// take CSS width & height!
-	if(width || height) // resize image
-		[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
+	imgSize=[image size];	// set default
+	// FIXME: scaling rules are not really symmetric
+	if(width && [width cssValueType] == DOM_CSS_PRIMITIVE_VALUE && ![[width _toString] isEqualToString:@"auto"])
+		{ // explicit width
+			float newWidth=[(DOMCSSPrimitiveValue *) width getFloatValue:DOM_CSS_PX relativeTo100Percent:[image size].width andFont:nil];	// can't we specify 100em?
+			imgSize.height*=newWidth/imgSize.width;	// scale proportionally
+			imgSize.width=newWidth;
+		}
+	if(height && [height cssValueType] == DOM_CSS_PRIMITIVE_VALUE && ![[height _toString] isEqualToString:@"auto"])
+		{ // explicit height
+			imgSize.height=[(DOMCSSPrimitiveValue *) height getFloatValue:DOM_CSS_PX relativeTo100Percent:[image size].height andFont:nil];	// can't we specify 100em?
+		}
+	[image setSize:imgSize];
 	[cell setImage:image];	// set image
 	[image release];
 #if 0
@@ -1197,7 +1099,7 @@
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-- (NSTextAttachment *) _attachment;
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 {
     NSTextAttachment *att;
     NSHRAttachmentCell *cell;
@@ -1238,7 +1140,7 @@
 	if(!isTable && [element parentNode])
 		[self _setTextBlockAttributes:(DOMHTMLElement *) [element parentNode] paragraph:paragraph];	// inherit from parent node(s)
 	
-	// FIXME: move this to _spliceTo: general handler
+	// FIXME: move this to _spliceNode: general handler
 	
 	if([align isEqualToString:@"left"])
 		[paragraph setAlignment:NSLeftTextAlignment];
@@ -1253,8 +1155,9 @@
 	if(background)
 		{
 		}
-	if(bg)
-		[self setBackgroundColor:[bg _htmlColor]];
+	// FIXME:
+//	if(bg)
+//		[self setBackgroundColor:[bg _htmlColor]];
 	[self setBorderColor:[NSColor blackColor]];
 	// here we could use black and grey color for different borders
 	if([element valueForKey:@"border"])
@@ -1637,7 +1540,7 @@
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (NSTextAttachment *) _attachment;
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 {
 	NSTextAttachment *attachment;
 	NSString *type=[[self valueForKey:@"type"] lowercaseString];
@@ -1897,14 +1800,14 @@
 
 // FIXME: handle this through display: inline-box
 
-- (NSTextAttachment *) _attachment;
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 { // create a text attachment that displays the content of the button
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
 	NSString *name=[self valueForKey:@"name"];
 	NSString *size=[self valueForKey:@"size"];
 	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
-	[webView _spliceNode:[self firstChild] to:value pseudoElement:@"" parentStyle:nil parentAttributes:nil];
+	[webView _spliceNode:[self firstChild] to:value parentStyle:nil parentAttributes:nil];
 #if 0
 	NSLog(@"<button>: %@", [self _attributes]);
 #endif
@@ -1969,7 +1872,7 @@
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
 
-- (NSTextAttachment *) _attachment
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 { 
 	NSTextAttachment *attachment;
 	NSString *name=[self valueForKey:@"name"];
@@ -2080,7 +1983,7 @@
 {
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
-	[webView _spliceNode:[self firstChild] to:value pseudoElement:@"" parentStyle:nil parentAttributes:nil];
+	[webView _spliceNode:[self firstChild] to:value parentStyle:nil parentAttributes:nil];
 	return [value string];	// removes any style but has processed content:
 }
 
@@ -2106,7 +2009,7 @@
 // FIXME: split into CSS component, attachment generation
 // FIXME: can we handle this completely as display: textarea (similar to display: inline-block)?
 
-- (NSTextAttachment *) _attachment;
+- (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
 { // <textarea cols=xxx lines=yyy>value</textarea> 
 	NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 	NSTextAttachment *attachment;
@@ -2114,7 +2017,7 @@
 	NSString *cols=[self valueForKey:@"cols"];
 	NSString *lines=[self valueForKey:@"lines"];
 	WebView *webView=[[(DOMHTMLElement *) self webFrame] webView];
-	[webView _spliceNode:[self firstChild] to:value pseudoElement:@"" parentStyle:nil parentAttributes:nil];
+	[webView _spliceNode:[self firstChild] to:value parentStyle:nil parentAttributes:nil];
 #if 0
 	NSLog(@"<textarea>: %@", [self _attributes]);
 #endif
