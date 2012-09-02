@@ -126,7 +126,7 @@ enum
 #endif
 #endif
 
-@implementation DOMHTMLElement (Layout)
+@implementation DOMNode (Layout)
 
 // FIXME: don't stumble over dates like 2011-08-22 05:02:10
 
