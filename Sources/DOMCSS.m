@@ -1869,7 +1869,7 @@
 		case DOM_CSS_MS: floatValue *= 0.001; break;	// store in seconds
 		case DOM_CSS_KHZ: floatValue *= 1000.0; break;	// store in Hz
 	}
-	[value release];
+	[value autorelease];
 	value=[[NSNumber alloc] initWithFloat:floatValue];
 	primitiveType=unitType;
 }
@@ -1921,7 +1921,7 @@
 {
 	// only for ident, attr, string?
 	// or should we run the parser here?
-	[value release];
+	[value autorelease];
 	value=[stringValue retain];
 	primitiveType=stringType;
 }
