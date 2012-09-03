@@ -24,6 +24,7 @@
 #import "Private.h"
 #import <WebKit/WebFrameLoadDelegate.h>
 #import <WebKit/WebHTMLDocumentView.h>
+#import <WebKit/DOMHTML.h>
 #import <WebKit/DOMCSS.h>
 
 NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
@@ -125,6 +126,18 @@ enum
 
 #endif
 #endif
+
+@interface DOMCSSValue (Private)
+- (NSString *) _toString;	// value as string (independent of type)
+- (NSArray *) _toStringArray;
+- (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
+- (NSColor *) _getNSColorValue;
+@end
+
+@interface DOMNode (Layout)
+- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
+- (void) _layout:(NSView *) parent;
+@end
 
 @implementation DOMNode (Layout)
 
@@ -443,7 +456,6 @@ enum
 	NSString *anchor=[[[source response] URL] fragment];
 	WebFrame *webFrame=[self webFrame];
 	WebView *webView=[webFrame webView];
-	WebFrameView *frameView;
 	DOMCSSStyleDeclaration *style;
 	DOMCSSValue *val;
 	NSTextStorage *ts;
@@ -559,10 +571,11 @@ enum
 	val=[style getPropertyCSSValue:@"background-image"];
 	if(val)
 		{
-		// FIXME: load the image
-		NSImage *img=nil;
-		// FIXME: handle background-repeat: we could create tiles sharing the NSImage...
+		NSImage *img;
+		img=nil;
 		NSImageView *iv;
+		// FIXME: load the image
+		// FIXME: handle background-repeat: we could create tiles sharing the NSImage...
 		// scan all subviews
 		// remove/reuse existing NSImageViews
 		iv=[[NSImageView alloc] initWithFrame:[view frame]];
@@ -1161,7 +1174,7 @@ enum
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
-	unsigned i, cnt;
+	unsigned i;
 	DOMCSSValue *val;
 	NSString *sval;
 	WebPreferences *preferences=[self preferences];
@@ -1183,7 +1196,7 @@ enum
 	else
 		{ // calculate/apply new style
 			// FIXME: make pseudoElement depend on state, e.g. :hover, :link etc.
-			style=[self _styleForElement:node pseudoElement:@"" parentStyle:parent];
+			style=[self _styleForElement:(DOMElement *) node pseudoElement:@"" parentStyle:parent];
 			attributes=[NSMutableDictionary dictionaryWithCapacity:10];	// we will create a set of new ones
 			childNodes=[node childNodes];
 		}
@@ -1204,7 +1217,7 @@ enum
 
 	// FIXME: move this after the end of the style calculation where we would handle the children
 //	[[[node webFrame] frameView] documentView]
-	string=[node _string];	// may be nil
+	string=[(DOMHTMLElement *) node _string];	// may be nil
 	
 	// FIXME: handle default values!
 	// handle (ignore) incompatible/unknown values, i.e. specifying a list as the font size
@@ -1308,6 +1321,7 @@ enum
 			if(val)
 				{
 				sval=[val _toString];
+				ff=nil;
 				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSItalicFontMask];
 				else if([sval isEqualToString:@"italic"])
@@ -1320,6 +1334,7 @@ enum
 			if(val)
 				{
 				sval=[val _toString];
+				ff=nil;
 				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSBoldFontMask];
 				else if([sval isEqualToString:@"bold"])
@@ -1336,6 +1351,7 @@ enum
 			if(val)
 				{
 				sval=[val _toString];
+				ff=nil;
 				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSSmallCapsFontMask];
 				else if([sval isEqualToString:@"small-caps"])
@@ -1647,8 +1663,111 @@ enum
 			NSLog(@"  cell: %@", cell);
 #endif
 		}
+#if 0
+	// handle other display: styles
+
+	@"list-item"
+		NSArray *lists=[paragraph textLists];	// get (nested) list
+		NSTextList *list;
+		list=[[NSClassFromString(@"NSTextList") alloc] 
+			  initWithMarkerFormat: @"{decimal}." 
+			  options: NSTextListPrependEnclosingMarker];
+		if(list)
+			{
+			if(!lists) 
+				lists=[NSMutableArray new];	// start new one
+			else 
+				lists=[lists mutableCopy];	// make mutable
+			[(NSMutableArray *) lists addObject:list];
+			[list release];
+			[paragraph setTextLists:lists];
+			[lists release];
+			}
+#if 0
+		NSLog(@"lists=%@", lists);
+#endif
+	
+#if 0
+@"table"
+	{ // add attributes to style
+		NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+		unsigned cols=[[self valueForKey:@"cols"] intValue];
+#if 0
+		NSLog(@"<table>: %@", [self _attributes]);
+#endif
+		table=[[NSClassFromString(@"NSTextTable") alloc] init];
+		[table setHidesEmptyCells:YES];
+		[table setNumberOfColumns:cols];	// will be increased automatically as needed!
+		[table _setTextBlockAttributes:self paragraph:paragraph];
+		// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
+		// should reset to default paragraph
+		// should reset font style, color etc. to defaults!
+		[_style setObject:@"table" forKey:@"display"];	// a table is a block element, i.e. force a \n before table starts
+		[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+		[paragraph release];
+#if 0
+		NSLog(@"<table> _style=%@", _style);
+#endif
+	}
+#endif
+	
+#if 0
+	
+@"table-cell"
+	{ // add attributes to style
+		NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+		NSMutableArray *blocks;
+		NSTextTableBlock *cell;
+		DOMHTMLTableElement *tableElement;
+		NSTextTable *table;	// the table we belong to
+		int row, col;
+		int rowspan, colspan;
+		tableElement=(DOMHTMLTableElement *) self;
+		while(tableElement && ![tableElement isKindOfClass:[DOMHTMLTableElement class]])
+			tableElement=(DOMHTMLTableElement *)[tableElement parentNode];	// go one level up
+		table=[tableElement _getRow:&row andColumn:&col rowSpan:&rowspan colSpan:&colspan forCell:self];	// ask tableElement for our position
+		if(!table)
+			{ // we are not within a table
+				[paragraph release];
+				return;	// error...
+			}
+		if(col+colspan-1 > [table numberOfColumns])
+			[table setNumberOfColumns:col+colspan-1];			// adjust number of columns of our enclosing table
+		cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
+															   startingRow:row
+																   rowSpan:rowspan
+															startingColumn:col
+																columnSpan:colspan];
+		[(NSTextBlock *) cell _setTextBlockAttributes:self paragraph:paragraph];
+		if([[self nodeName] isEqualToString:@"TH"])
+			{ // make centered and bold paragraph for header cells
+				NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
+				f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
+				if(f) [_style setObject:f forKey:NSFontAttributeName];
+				[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
+			}
+		blocks=(NSMutableArray *) [paragraph textBlocks];	// the text blocks
+		if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
+			blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
+		else
+			blocks=[blocks mutableCopy];
+		[blocks addObject:cell];	// add to list of text blocks
+		[paragraph setTextBlocks:blocks];	// add to paragraph style
+		[cell release];
+		[blocks release];	// was either mutableCopy or alloc/initWithCapacity
+#if 0
+		NSLog(@"<td> _style=%@", _style);
+#endif
+		[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
+		[paragraph release];
+	}
+#endif
+	
+	
+		
+#endif
 	else
-		attachment=[node _attachmentForStyle:style];	// may be nil
+		attachment=[(DOMHTMLElement *) node _attachmentForStyle:style];	// may be nil
 	if(attachment)
 		{ // add attribute attachment (if available)
 			NSMutableAttributedString *astr=(NSMutableAttributedString *)[NSMutableAttributedString attributedStringWithAttachment:attachment];

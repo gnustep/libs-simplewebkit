@@ -68,12 +68,13 @@
 @interface DOMCSSValueList (Private)
 - (id) _initWithFirstElement:(DOMCSSValue *) first;
 - (void) _addItem:(DOMCSSValue *) item;
-- (NSArray *) _toStringArray;
 @end
 
 @interface DOMCSSValue (Private)
 - (NSString *) _toString;	// value as string (independent of type)
 - (NSArray *) _toStringArray;
+- (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
+- (NSColor *) _getNSColorValue;
 @end
 
 @implementation DOMStyleSheetList
@@ -1071,7 +1072,10 @@
 		case ATTRIBUTE_CONTAINS_SELECTOR:	return [NSString stringWithFormat:@"[%@*=%@]", selector, [(DOMCSSValue *) value cssText]];
 		case ATTRIBUTE_LIST_SELECTOR:	return [NSString stringWithFormat:@"[%@~=%@]", selector, [(DOMCSSValue *) value cssText]];
 		case ATTRIBUTE_DASHED_SELECTOR:	return [NSString stringWithFormat:@"[%@|=%@]", selector, [(DOMCSSValue *) value cssText]];
-		case PSEUDO_SELECTOR:		return [NSString stringWithFormat:@":%@(%@)", selector, [(DOMCSSValue *) value cssText]];	// may have a paramter!
+		case PSEUDO_SELECTOR:
+			if(value)
+				return [NSString stringWithFormat:@":%@(%@)", selector, [(DOMCSSValue *) value cssText]];	// may have a paramter!
+			return [NSString stringWithFormat:@":%@", selector];
 		case DESCENDANT_SELECTOR:	return [NSString stringWithFormat:@"%@ %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
 		case CHILD_SELECTOR:		return [NSString stringWithFormat:@"%@ > %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
 		case PRECEDING_SELECTOR:	return [NSString stringWithFormat:@"%@ + %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
@@ -1945,6 +1949,7 @@
 			NSDictionary *dict=[NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"DOMHTMLColors" ofType:@"plist"]];
 			NSEnumerator *e=[dict keyEnumerator];
 			NSString *name;
+			NSAssert(dict, @"needs color lookup table");
 			list=[[NSMutableDictionary alloc] initWithCapacity:[dict count]];
 			while((name=[e nextObject]))
 				{
@@ -2036,6 +2041,7 @@
 		{ // read default.css from bundle
 			NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"default" ofType:@"css"];
 			NSString *sheet=[NSString stringWithContentsOfFile:path];
+			NSAssert(sheet, @"needs default.css");
 			if(sheet)
 				{
 				defaultSheet=[DOMCSSStyleSheet new];
@@ -2046,10 +2052,6 @@
 #endif
 		}
 	[defaultSheet _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
-
-	// FIXME: get rid of this (handle completely through default.css)
-
-	[element OLD_addAttributesToStyle:style];	// get attributes (pre)defined by tag name and explicit attributes
 	
 	if([preferences authorAndUserStylesEnabled])
 		{ // loaded style is not disabled

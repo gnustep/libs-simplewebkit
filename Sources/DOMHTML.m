@@ -36,8 +36,8 @@
 @end
 
 @interface DOMCSSValue (Private)
-- (NSString *) _toString;
-- (NSString *) _toStringArray;
+- (NSString *) _toString;	// value as string (independent of type)
+- (NSArray *) _toStringArray;
 @end
 
 @interface NSTextBlock (Attributes)
@@ -262,7 +262,7 @@
 		unsigned int i, cnt=[attributes length];
 		for(i=0; i<cnt; i++)
 			{
-			DOMAttr *a=[attributes item:i];
+			DOMAttr *a=(DOMAttr *) [attributes item:i];
 			if([a specified])
 				// fixme: escape quotes etc.
 				[str appendFormat:@" %@=\"%@\"", [a name], [a value]];			
@@ -403,9 +403,11 @@
 		if(url)
 			{
 			DOMCSSStyleSheet *sheet;
+			// FIXME:
 			// load sheet
 			// parse
 			// if ok:
+			sheet=nil;
 			// CHECKME: is this the correct order/priority of user vs. author style sheets?
 			[[(DOMHTMLDocument *) [self ownerDocument] styleSheets] _addStyleSheet:sheet];
 			}
@@ -826,26 +828,6 @@
 	return [rep _html];
 }
 
-#if 0
-- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style
-{
-	NSString *val;
-	val=[self valueForKey:@"text"];
-	if(val)
-		[style setProperty:@"color" value:val priority:nil];
-	val=[self valueForKey:@"bgcolor"];
-	if(val)
-		[style setProperty:@"background-color" value:val priority:nil];
-	val=[self valueForKey:@"background"];
-	if(val)
-		[style setProperty:@"background-image" value:[NSString stringWithFormat:@"url(\"%@\")", val] priority:nil];
-	val=[self valueForKey:@"link"];
-	if(val)
-		; // set implicit color for links, i.e. define a a:link pseudo entry???
-	// FIXME: handle other background attributes
-}
-#endif
-
 @end
 
 @implementation DOMHTMLDivElement
@@ -867,24 +849,6 @@
 @implementation DOMHTMLHeadingElement
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
-
-#if OLD
-- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
-{ // add attributes to style
-	int level=[[[self nodeName] substringFromIndex:1] intValue];
-	NSString *align=[self valueForKey:@"align"];
-	if(align) [style setProperty:@"text-align" value:align priority:nil];
-	[style setProperty:@"x-header-level" value:[NSString stringWithFormat:@"%d", level] priority:nil];
-	if(level == 1)
-		[style setProperty:@"font-size" value:@"xx-large" priority:nil];	// 12 -> 24
-	else if(level == 2)
-		[style setProperty:@"font-size" value:@"x-large" priority:nil];	// 12 -> 18
-	else if(level == 3)
-		[style setProperty:@"font-size" value:@"large" priority:nil];		// 12 -> 14
-	// height passend setzen?
-	[style setProperty:@"display" value:@"block" priority:nil];
-}
-#endif
 
 @end
 
@@ -909,31 +873,6 @@
 		[[(DOMHTMLDocument *) [self ownerDocument] anchors] appendChild:self];	// add to Anchors[] DOM Level 0 list
 }
 
-#if 0
-- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
-{ // add attributes to style
-	NSString *urlString=[self valueForKey:@"href"];
-	NSString *target=[self valueForKey:@"target"];	// WebFrame name where to show
-	NSString *name=[self valueForKey:@"name"];
-	NSString *charset=[self valueForKey:@"charset"];
-	NSString *accesskey=[self valueForKey:@"accesskey"];
-	NSString *shape=[self valueForKey:@"shape"];
-	NSString *coords=[self valueForKey:@"coords"];
-	if(urlString)
-		{ // add a hyperlink
-			[style setProperty:@"x-link" value:urlString priority:nil];
-			[style setProperty:@"x-tooltip" value:urlString priority:nil];
-			[style setProperty:@"cursor" value:@"pointer" priority:nil];
-			if(target)
-				[style setProperty:@"x-target-window" value:target priority:nil];	// set the target window
-		}
-	if(!name)
-		name=[self valueForKey:@"id"];	// XHTML alternative
-	if(name)
-		[style setProperty:@"x-anchor" value:name priority:nil];	// add an anchor
-}
-#endif
-
 @end
 
 @implementation DOMHTMLImageElement
@@ -945,29 +884,6 @@
 	[[(DOMHTMLDocument *) [self ownerDocument] images] appendChild:self];	// add to Images[] DOM Level 0 list
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }
-
-#if 0
-- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
-{ // add attributes to style
-	NSString *height=[self valueForKey:@"height"];
-	NSString *width=[self valueForKey:@"width"];
-	NSString *urlString=[self valueForKey:@"src"];	// relative links will be expanded when clicking on the link
-	if(urlString /* && ![_style objectForKey:@"x-link"] */)
-		{ // add a hyperlink with the image source (unless we are embedded within a link)
-// FIXME:			[_style setObject:urlString forKey:@"x-link"];	// set the link
-			[style setProperty:@"cursor" value:@"pointer" priority:nil];
-		}
-	// FIXME: there is a difference between width=100 and style={ width: 100px }
-	// in the first case the height is defined by the source file, while in the second case the image is scaled proportionally
-	if(width)
-		[style setProperty:@"width" value:[width stringByAppendingString:@" px"] priority:nil];	// should be in Pixels
-	if(height)
-		[style setProperty:@"height" value:[height stringByAppendingString:@" px"] priority:nil];
-	if(urlString)
-		// FIXME: we should get rid of this string processing!!!
-		[style setProperty:@"content" value:[NSString stringWithFormat:@"url(\"%@\")", urlString] priority:nil];
-}
-#endif
 
 - (NSString *) string;
 { // if attachment can't be created
@@ -1212,30 +1128,6 @@
 	[super dealloc];
 }
 
-#if 0
-- (void) OLD_addAttributesToStyle:(DOMCSSStyleDeclaration *) style;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	unsigned cols=[[self valueForKey:@"cols"] intValue];
-#if 0
-	NSLog(@"<table>: %@", [self _attributes]);
-#endif
-	table=[[NSClassFromString(@"NSTextTable") alloc] init];
-	[table setHidesEmptyCells:YES];
-	[table setNumberOfColumns:cols];	// will be increased automatically as needed!
-	[table _setTextBlockAttributes:self paragraph:paragraph];
-	// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
-	// should reset to default paragraph
-	// should reset font style, color etc. to defaults!
-	[_style setObject:@"table" forKey:@"display"];	// a table is a block element, i.e. force a \n before table starts
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-#if 0
-	NSLog(@"<table> _style=%@", _style);
-#endif
-}
-#endif
-
 - (NSTextTable *) _getRow:(int *) row andColumn:(int *) col rowSpan:(int *) rowspan colSpan:(int *) colspan forCell:(DOMHTMLTableCellElement *) cell
 {
 	// algorithm could cache the current cell and start over only if it is not called for the next one
@@ -1350,60 +1242,6 @@
 @end
 
 @implementation DOMHTMLTableCellElement
-
-// FIXME: shouldn't this be processed during _layout?
-
-#if 0
-
-- (void) OLD_addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSMutableArray *blocks;
-	NSTextTableBlock *cell;
-	DOMHTMLTableElement *tableElement;
-	NSTextTable *table;	// the table we belong to
-	int row, col;
-	int rowspan, colspan;
-	tableElement=(DOMHTMLTableElement *) self;
-	while(tableElement && ![tableElement isKindOfClass:[DOMHTMLTableElement class]])
-		tableElement=(DOMHTMLTableElement *)[tableElement parentNode];	// go one level up
-	table=[tableElement _getRow:&row andColumn:&col rowSpan:&rowspan colSpan:&colspan forCell:self];	// ask tableElement for our position
-	if(!table)
-		{ // we are not within a table
-			[paragraph release];
-			return;	// error...
-		}
-	if(col+colspan-1 > [table numberOfColumns])
-		[table setNumberOfColumns:col+colspan-1];			// adjust number of columns of our enclosing table
-	cell=[[NSClassFromString(@"NSTextTableBlock") alloc] initWithTable:table
-														   startingRow:row
-															   rowSpan:rowspan
-														startingColumn:col
-															columnSpan:colspan];
-	[(NSTextBlock *) cell _setTextBlockAttributes:self paragraph:paragraph];
-	if([[self nodeName] isEqualToString:@"TH"])
-		{ // make centered and bold paragraph for header cells
-			NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-			f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
-			if(f) [_style setObject:f forKey:NSFontAttributeName];
-			[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
-		}
-	blocks=(NSMutableArray *) [paragraph textBlocks];	// the text blocks
-	if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
-		blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
-	else
-		blocks=[blocks mutableCopy];
-	[blocks addObject:cell];	// add to list of text blocks
-	[paragraph setTextBlocks:blocks];	// add to paragraph style
-	[cell release];
-	[blocks release];	// was either mutableCopy or alloc/initWithCapacity
-#if 0
-	NSLog(@"<td> _style=%@", _style);
-#endif
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-#endif
 
 @end
 
@@ -1651,12 +1489,12 @@
 			[image setSize:NSMakeSize([width floatValue], [height floatValue])];	// or intValue?
 		[cell setImage:image];	// set image
 		[image release];
-#if 1
+#if 0
 		NSLog(@"attachmentCell=%@", [attachment attachmentCell]);
 		NSLog(@"[attachmentCell attachment]=%@", [[attachment attachmentCell] attachment]);
 		NSLog(@"[attachmentCell image]=%@", [(NSCell *) [attachment attachmentCell] image]);	// maybe, we can apply sizing...
-			NSLog(@"[attachmentCell target]=%@", [[attachment attachmentCell] target]);
-			NSLog(@"[attachmentCell controlView]=%@", [[attachment attachmentCell] controlView]);
+		NSLog(@"[attachmentCell target]=%@", [[attachment attachmentCell] target]);
+		NSLog(@"[attachmentCell controlView]=%@", [[attachment attachmentCell] controlView]);
 #endif
 		}
 #if 1
@@ -2106,106 +1944,13 @@
 
 @implementation DOMHTMLDListElement		// <dl>
 
-#if 0
-- (void) OLD_addAttributesToStyle
-{
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	NSArray *lists=[paragraph textLists];	// get (nested) list
-	NSTextList *list;
-	// FIXME: decode HTML list formats and options and translate
-	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"\t" options:NSTextListPrependEnclosingMarker];
-	if(list)
-		{ // add initial list marker
-			if(!lists)
-				lists=[NSMutableArray new];	// start new one
-			else
-				lists=[lists mutableCopy];			// make mutable
-			[(NSMutableArray *) lists addObject:list];
-			[list release];
-			[paragraph setTextLists:lists];
-			[lists release];
-		}
-#if 0
-	NSLog(@"lists=%@", lists);
-#endif
-	[_style setObject:@"list-item" forKey:@"display"];
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-#endif
-
 @end
 
 @implementation DOMHTMLOListElement		// <ol>
 
-#if 0
-- (void) OLD_addAttributesToStyle;
-{ 
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSString *align=[self valueForKey:@"align"];
-	NSArray *lists=[paragraph textLists];	// get (nested) list
-	NSTextList *list;
-	// FIXME: decode HTML list formats and options and translate
-	list=[[NSClassFromString(@"NSTextList") alloc] 
-		  initWithMarkerFormat: @"{decimal}." 
-		  options: NSTextListPrependEnclosingMarker];
-	if(list)
-		{
-		if(!lists) 
-			lists=[NSMutableArray new];	// start new one
-		else 
-			lists=[lists mutableCopy];	// make mutable
-		[(NSMutableArray *) lists addObject:list];
-		[list release];
-		[paragraph setTextLists:lists];
-		[lists release];
-		}
-#if 0
-	NSLog(@"lists=%@", lists);
-#endif
-	[_style setObject:@"block" forKey:@"display"];
-	[_style setObject:paragraph forKey: NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-#endif
-
 @end
 
 @implementation DOMHTMLUListElement		// <ul>
-
-#if 0
-- (void) OLD_addAttributesToStyle;
-{ // add attributes to style
-	NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	NSArray *lists=[paragraph textLists];	// get (nested) list
-	NSTextList *list;
-	
-	// FIXME: decode list formats and options
-	
-	// change the marker style depending on nesting level disc -> circle -> hyphen
-	
-	// move this to _splice
-	list=[[NSClassFromString(@"NSTextList") alloc] initWithMarkerFormat:@"{disc}" options:0];
-	if(list)
-		{
-		if(!lists)
-			lists=[NSMutableArray new];	// start new one
-		else
-			lists=[lists mutableCopy];			// make mutable
-		[(NSMutableArray *) lists addObject:list];
-		[list release];
-		[paragraph setTextLists:lists];
-		[lists release];
-		}
-#if 0
-	NSLog(@"lists=%@", lists);
-#endif
-	[_style setObject:@"block" forKey:@"display"];
-	[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-	[paragraph release];
-}
-#endif
 
 @end
 

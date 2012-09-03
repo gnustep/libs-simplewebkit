@@ -99,6 +99,8 @@
 + (Class) _viewClassForMIMEType:(NSString *) type;
 - (BOOL) drawsBackground;
 - (void) setDrawsBackground:(BOOL) flag;
+- (DOMCSSStyleDeclaration *) _styleForElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent;
+- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 @end
 
 @interface NSView (WebDocumentView)

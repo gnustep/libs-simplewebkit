@@ -90,7 +90,7 @@
 
 - (NSRect) _recommendedDocumentFrame;
 {
-	return (NSRect) { NSZeroPoint, [[(WebFrameView *) [[self subviews] lastObject] contentView] bounds].size };
+	return (NSRect) { NSZeroPoint, [[(NSScrollView *) [[self subviews] lastObject] contentView] bounds].size };
 }
 
 - (void) setAllowsScrolling:(BOOL) flag;

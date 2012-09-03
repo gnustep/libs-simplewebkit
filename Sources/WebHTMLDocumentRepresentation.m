@@ -70,7 +70,7 @@ static NSDictionary *tagtable;
 			NSLog(@"path=%@", path);
 			NSLog(@"tagtable=%@", tagtable);
 #endif
-			NSAssert(tagtable, @"could not load tag table");
+			NSAssert(tagtable, @"load <tag> table");
 			}
 		}
 	return self;

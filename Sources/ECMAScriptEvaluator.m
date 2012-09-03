@@ -344,8 +344,7 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 	l=[left _evaluate:context];	// 1.
 	e=[right objectEnumerator];
 	while((arg=[e nextObject]))
-		[arglist addObject:[[arg _evaluate:context]
- _getValue]];	// 2.	
+		[arglist addObject:[[arg _evaluate:context] _getValue]];	// 2.	
 	fn=[l _getValue];		// 3.
 	if(![fn isKindOfClass:[WebScriptObject class]])
 		[self setException:@"TypeError"];
@@ -357,6 +356,7 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 		// should we check if we are allowed to call this method? i.e. don't allow a _ prefix, don't allow to call e.g. release
 		// is this the place to use the WebScriptObject informal protocol?
 		fnname=[fnname stringByPaddingToLength:[fnname length]+[arglist count] withString:@":" startingAtIndex:0];		// add a : for each argument
+			this=nil;	// FIXME: where to get this from???
 		sel=NSSelectorFromString(fnname);
 		if([this respondsToSelector:sel])
 			{
