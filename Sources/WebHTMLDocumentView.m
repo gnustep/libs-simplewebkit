@@ -23,9 +23,9 @@
 
 #import "Private.h"
 #import <WebKit/WebFrameLoadDelegate.h>
-#import <WebKit/WebHTMLDocumentView.h>
 #import <WebKit/DOMHTML.h>
 #import <WebKit/DOMCSS.h>
+#import "WebHTMLDocumentView.h"
 
 NSString *DOMHTMLAnchorElementTargetWindow=@"DOMHTMLAnchorElementTargetName";
 NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
@@ -126,18 +126,6 @@ enum
 
 #endif
 #endif
-
-@interface DOMCSSValue (Private)
-- (NSString *) _toString;	// value as string (independent of type)
-- (NSArray *) _toStringArray;
-- (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
-- (NSColor *) _getNSColorValue;
-@end
-
-@interface DOMNode (Layout)
-- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
-- (void) _layout:(NSView *) parent;
-@end
 
 @implementation DOMNode (Layout)
 
@@ -1268,13 +1256,13 @@ enum
 				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_IDENT || [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_STRING)
 					{
 					sval=[val _toString];
-					if([sval isEqualToString:@"smaller"])
+					if([sval isEqualToString:@"initial"])
+						sz=def;
+					else if([sval isEqualToString:@"smaller"])
 						sz/=1.2;
 					else if([sval isEqualToString:@"larger"])
 						sz*=1.2;
 					else if([sval isEqualToString:@"medium"])
-						sz=def;
-					else if([sval isEqualToString:@"unknown"])
 						sz=def;
 					else if([sval isEqualToString:@"large"])
 						sz=14.0/12*def;

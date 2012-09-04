@@ -100,3 +100,15 @@ extern NSString *DOMHTMLAnchorElementAnchorName;
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 
 @end
+
+@interface DOMCSSValue (Private)
+- (NSString *) _toString;	// value as string (independent of type)
+- (NSArray *) _toStringArray;
+- (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
+- (NSColor *) _getNSColorValue;
+@end
+
+@interface DOMNode (Layout)
+- (void) _processPhoneNumbers:(NSMutableAttributedString *) str;
+- (void) _layout:(NSView *) parent;
+@end

@@ -29,8 +29,8 @@
 #import <WebKit/WebBackForwardList.h>
 #import <WebKit/WebHistory.h>
 #import <WebKit/DOM.h>
-#import <WebKit/WebHTMLDocumentView.h>
 #import "Private.h"
+#import "WebHTMLDocumentView.h"
 
 static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource objects even if not in view hierarchy
 

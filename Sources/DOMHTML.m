@@ -35,11 +35,6 @@
 - (void) _submitForm:(DOMHTMLElement *) clickedElement;
 @end
 
-@interface DOMCSSValue (Private)
-- (NSString *) _toString;	// value as string (independent of type)
-- (NSArray *) _toStringArray;
-@end
-
 @interface NSTextBlock (Attributes)
 - (void) _setTextBlockAttributes:(DOMHTMLElement *) element	paragraph:(NSMutableParagraphStyle *) paragraph;
 @end

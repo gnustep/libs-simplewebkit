@@ -748,9 +748,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		EE01D4520B7786570089A538 /* SWK Browser with System WebKit */ = {
+		EE01D4520B7786570089A538 /* SWK Browser linked to System WebKit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with System WebKit" */;
+			buildConfigurationList = EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser linked to System WebKit" */;
 			buildPhases = (
 				EEAA53860DDB4F6E00D42522 /* ShellScript */,
 				EE01D4550B7786570089A538 /* Resources */,
@@ -761,7 +761,7 @@
 			);
 			dependencies = (
 			);
-			name = "SWK Browser with System WebKit";
+			name = "SWK Browser linked to System WebKit";
 			productName = WebKitTest;
 			productReference = EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */;
 			productType = "com.apple.product-type.application";
@@ -827,9 +827,9 @@
 			productReference = EE6FE352076F05AF009CC969 /* WebKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		EE7C197815D0339C004127D0 /* SimpleWebKit for Debug */ = {
+		EE7C197815D0339C004127D0 /* SimpleWebKit without cross-compile */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit for Debug" */;
+			buildConfigurationList = EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit without cross-compile" */;
 			buildPhases = (
 				EE7C197915D0339C004127D0 /* Headers */,
 				EE7C19A015D0339C004127D0 /* Resources */,
@@ -841,7 +841,7 @@
 			comments = "Todo:\n\nDistribute System-Info.plist to AB-Framework and AppKit-Framework\n";
 			dependencies = (
 			);
-			name = "SimpleWebKit for Debug";
+			name = "SimpleWebKit without cross-compile";
 			productName = Calendar;
 			productReference = EE7C19CA15D0339C004127D0 /* WebKit.framework */;
 			productType = "com.apple.product-type.framework";
@@ -870,9 +870,9 @@
 			projectRoot = "";
 			targets = (
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
-				EE7C197815D0339C004127D0 /* SimpleWebKit for Debug */,
+				EE7C197815D0339C004127D0 /* SimpleWebKit without cross-compile */,
 				EE147E830A16668700E60AF8 /* SWK Browser */,
-				EE01D4520B7786570089A538 /* SWK Browser with System WebKit */,
+				EE01D4520B7786570089A538 /* SWK Browser linked to System WebKit */,
 				EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */,
 				EE29B0681205617B00B8C7CA /* Commit CVS */,
 			);
@@ -1118,7 +1118,7 @@
 		};
 		EE7C19D415D033B9004127D0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = EE7C197815D0339C004127D0 /* SimpleWebKit for Debug */;
+			target = EE7C197815D0339C004127D0 /* SimpleWebKit without cross-compile */;
 			targetProxy = EE7C19D315D033B9004127D0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -1505,7 +1505,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser with System WebKit" */ = {
+		EE01D4610B7786570089A538 /* Build configuration list for PBXNativeTarget "SWK Browser linked to System WebKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EE01D4620B7786570089A538 /* Development */,
@@ -1541,7 +1541,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
 		};
-		EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit for Debug" */ = {
+		EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit without cross-compile" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EE7C19C815D0339C004127D0 /* Development */,

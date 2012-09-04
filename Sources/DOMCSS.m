@@ -228,6 +228,9 @@
 	static DOMCSSValue *initial;
 	if(!initial)
 		initial=[[DOMCSSValue alloc] initWithString:@"initial"];
+#if 0
+	NSLog(@"_handleProperty: %@", property);
+#endif	
 	if([property isEqualToString:@"margin"] || [property isEqualToString:@"padding"])
 		{ // margin/padding: [ width | percent | auto ] { 1, 4 } | inherit
 			DOMCSSValue *top=inherit?val:initial;
@@ -344,6 +347,9 @@
 {
 	NSScanner *sc;
 	static NSCharacterSet *propertychars;
+#if 0
+	NSLog(@"setCssText: %@", style);
+#endif
 	if(!propertychars)
 		propertychars=[[NSCharacterSet characterSetWithCharactersInString:@"-abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
 	if([style isKindOfClass:[NSScanner class]])
@@ -361,6 +367,9 @@
 		if(![sc scanString:@":" intoString:NULL])
 			break;	// invalid
 		[self _handleProperty:propertyName withScanner:sc];
+#if 0
+		NSLog(@"items: %@", items);
+#endif			
 		[DOMCSSRule _skip:sc];
 		// FIXME: there may be a space between ! and "important"
 		// see e.g. http://www.yellowjug.com/web-design/the-importance-of-important-in-css/
@@ -611,7 +620,14 @@
 	[(DOMCSSStyleRule *) self setStyle:[[[DOMCSSStyleDeclaration alloc] initWithString:(NSString *) sc] autorelease]];	// set from scanner
 	[DOMCSSRule _skip:sc];
 	if(![sc scanString:@"}" intoString:NULL])
-		[sc scanUpToString:@"}" intoString:NULL];	// try to recover from parse errors
+		{
+			NSString *skipped=@"";
+			[sc scanUpToString:@"}" intoString:&skipped];	// try to recover from parse errors
+#if 1
+			NSLog(@"missing } for style; skipped: %@", skipped);
+#endif
+			[sc scanString:@"}" intoString:NULL];		// and skip!
+		}
 	return self;
 }
 
@@ -1223,7 +1239,7 @@
 				selObj->selector=[entry retain];
 				if(type == ATTRIBUTE_SELECTOR)
 					{ // handle tag[attrib=value]
-#if 1
+#if 0
 						NSLog(@"attribute selector");
 #endif
 						if([sc scanString:@"~=" intoString:NULL])
@@ -1314,7 +1330,17 @@
 		{
 		if([self insertRule:(NSString *) scanner index:[cssRules length]] == (unsigned) -1)	// parse and scan rules
 			{
-			NSLog(@"CSS parse error");
+			NSLog(@"CSS parse aborted");
+				{
+				int idx=[scanner scanLocation]-20;
+				NSString *before, *after;
+				if(idx < 0) idx=0;
+				before=[[scanner string] substringWithRange:NSMakeRange(idx, [scanner scanLocation]-idx)];
+				idx=idx+40;
+				if(idx > [[scanner string] length]) idx=[[scanner string] length];
+				after=[[scanner string] substringWithRange:NSMakeRange([scanner scanLocation], idx-[scanner scanLocation])];
+				NSLog(@"%@ <---> %@", before, after);
+				}
 			break;	// parse error
 			}
 		}
@@ -2122,7 +2148,7 @@
 				if(parent)
 					newval=[parent getPropertyCSSValue:property];
 				else
-					newval=[[[DOMCSSPrimitiveValue alloc] initWithString:@"unknown"] autorelease];							
+					newval=[[[DOMCSSPrimitiveValue alloc] initWithString:@"initial"] autorelease];							
 				[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
 				}
 			else
