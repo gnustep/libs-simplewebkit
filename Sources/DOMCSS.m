@@ -380,9 +380,11 @@
 		if(![sc scanString:@";" intoString:NULL])
 			{ // invalid - try to recover
 				static NSCharacterSet *recover;	// cache once
+				NSString *skipped=@"";
 				if(!recover)
 					recover=[[NSCharacterSet characterSetWithCharactersInString:@";}"] retain];
-				[sc scanUpToCharactersFromSet:recover intoString:NULL];
+				[sc scanUpToCharactersFromSet:recover intoString:&skipped];
+				NSLog(@"skipped: %@", skipped);
 				[sc scanString:@";" intoString:NULL];
 				break;
 			}
@@ -576,7 +578,9 @@
 				}
 			if(![sc scanString:@"}" intoString:NULL])
 				{ // not closed properly - try to recover
-					[sc scanUpToString:@"}" intoString:NULL];
+					NSString *skipped=@"";
+					[sc scanUpToString:@"}" intoString:&skipped];
+					NSLog(@"skipped: %@", skipped);
 					[sc scanString:@"}" intoString:NULL];
 				}
 			return self;
@@ -1556,6 +1560,23 @@
 @end
 
 @implementation DOMCSSPrimitiveValue
+
+#if 1
++ (void) initialize
+{
+	NSScanner *sc=[NSScanner scannerWithString:@"1.0em"];
+	float flt=0.0;
+	NSString *em=@"";
+	[sc scanFloat:&flt];
+	[sc scanString:@"em" intoString:&em];
+	NSLog(@"flt=%g", flt);
+	NSLog(@"em=%@", em);
+	NSLog(@"scanLocation=%u", [sc scanLocation]);
+	NSAssert(flt==1.0, @"flt=1.0");
+	NSAssert([em isEqualToString:@"em"], @"em");
+	NSAssert([sc scanLocation] == 5, @"all scanned");
+}
+#endif
 
 + (NSString *) _suffix:(int) primitiveType;
 {
