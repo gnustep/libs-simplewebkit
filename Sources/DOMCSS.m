@@ -1561,7 +1561,7 @@
 
 @implementation DOMCSSPrimitiveValue
 
-#if 1
+#if 0
 + (void) initialize
 {
 	NSScanner *sc=[NSScanner scannerWithString:@"1.0em"];

@@ -10,6 +10,44 @@
 #import "MyApplication.h"
 #import <WebKit/DOMCSS.h>
 
+// FIXME: SWK also needs some (private) implementation for properly handling URLs in link-tooltips, handling CSS, -title etc.
+
+@interface NSURL (UnicodeURL)
+
++ (NSURL *) URLWithUnicodeString:(NSString *) str;
+- (id) initWithUnicodeString:(NSString *) str;
+- (NSString *) unicodeAbsoluteString;
+- (NSString *) unicodeHost;
+
+@end
+
+@implementation NSURL (UnicodeURL)
+
++ (NSURL *) URLWithUnicodeString:(NSString *) str;
+{
+	return [[[self alloc] initWithUnicodeString:str] autorelease];
+}
+
+- (id) initWithUnicodeString:(NSString *) str;
+{
+	// FIXME:
+	return [self initWithString:str];
+}
+
+- (NSString *) unicodeAbsoluteString;
+{
+	// FIXME:
+	return [self absoluteString];
+}
+
+- (NSString *) unicodeHost;
+{
+	// FIXME:
+	return [self host];
+}
+
+@end
+
 @implementation MyDocument
 
 - (NSString *) windowNibName {
@@ -75,7 +113,7 @@
 #endif
 	if(!url)
 		return;
-	[currentURL setStringValue:[url absoluteString]];
+	[currentURL setStringValue:[url unicodeAbsoluteString]];
 }
 
 - (IBAction) makeTextDefault:(id) Sender;
@@ -96,7 +134,7 @@
 	if(!home)
 		home=@"about:blank";
 #if 1
-	[self setLocationAndLoad:[NSURL URLWithString:home]];
+	[self setLocationAndLoad:[NSURL URLWithUnicodeString:home]];
 #else
 	[[webView mainFrame] loadHTMLString:@"<html><head><title>Document Title</title></head><body bgcolor=\"#f0f0f0f0\">Welcome to the GNUstep Web Browser</body></html>" baseURL:nil];
 #endif
@@ -177,9 +215,9 @@
 			u=[NSURL fileURLWithPath:path];
 		}
 	else
-		u=[NSURL URLWithString:str];
+		u=[NSURL URLWithUnicodeString:str];
 	if([[u scheme] length] == 0)
-		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
+		u=[NSURL URLWithUnicodeString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
 #if 1
 	NSLog(@"loadPageFromComboBox %@ -> %@", str, u);
 #endif
@@ -192,9 +230,9 @@
 	NSString *str;
 	NSURL *u;
 	str=[sender title];
-	u=[NSURL URLWithString:str];
+	u=[NSURL URLWithUnicodeString:str];
 	if([[u scheme] length] == 0)
-		u=[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
+		u=[NSURL URLWithUnicodeString:[NSString stringWithFormat:@"http://%@", str]];	// try to prefix
 #if 1
 	NSLog(@"loadPageFromMenuItem %@ -> %@", str, u);
 #endif
@@ -204,7 +242,7 @@
 - (IBAction) loadPageFromHistoryItem:(id) menuItem
 {
 	WebHistoryItem *historyItem=[menuItem representedObject];
-    [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[historyItem URLString]]]];
+    [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithUnicodeString:[historyItem URLString]]]];
 }
 
 - (IBAction) scriptFromMenuItem:(id) sender;

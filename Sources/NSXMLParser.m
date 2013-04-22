@@ -225,7 +225,9 @@ static NSDictionary *entitiesTable;
 	if(vp[1] == '#')
 		{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
 			unsigned int val;
-			if(sscanf((char *)vp+2, "x%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "X%x;", &val) == 1 || sscanf((char *)vp+2, "%u;", &val) == 1)
+			char temp[10];
+			strncpy(temp, vp+2, sizeof(temp)-1);	// make it a 0 terminated string since some sscanf() implementations have problems otherwise
+			if(sscanf(temp, "x%x;", &val) == 1 || sscanf(temp, "X%x;", &val) == 1 || sscanf(temp, "X%x;", &val) == 1 || sscanf(temp, "%u;", &val) == 1)
 				return [NSString stringWithFormat:@"%C", val];	// &#xhhhh; hex value; &ddd; decimal value
 			else
 				return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
