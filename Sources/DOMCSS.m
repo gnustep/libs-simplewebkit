@@ -1059,7 +1059,7 @@
 			NSString *val=[element getAttribute:selector];
 			return val && [val hasSuffix:[value _toString]];
 		}
-		case ATTRIBUTE_CONTAINS_SELECTOR: { // attrubutes contains substring
+		case ATTRIBUTE_CONTAINS_SELECTOR: { // attributes contains substring
 			NSString *val=[element getAttribute:selector];
 			return val && [val rangeOfString:[value _toString]].location != NSNotFound;
 		}
@@ -2090,6 +2090,7 @@
 
 - (DOMCSSStyleDeclaration *) _styleForElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent;
 { // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
+	NSAutoreleasePool *arp=[NSAutoreleasePool new];
 	int i, cnt;
 	WebPreferences *preferences=[self preferences];
 	DOMCSSStyleDeclaration *style;
@@ -2140,6 +2141,7 @@
 #if 1
 					NSLog(@"add style=\"%@\"", styleString);
 #endif
+					// we should somehow cache this or we will parse this again and again...
 					css=[[DOMCSSStyleDeclaration alloc] initWithString:styleString];	// parse
 					[style _append:css];	// append/overwrite
 					[css release];
@@ -2192,8 +2194,10 @@
 				if(eval != val)
 					[style setProperty:property CSSvalue:eval priority:nil];
 				}
-		}	
-	return style;
+		}
+	[style retain];
+	[arp release];
+	return [style autorelease];
 }
 
 - (DOMCSSStyleDeclaration *) computedStyleForElement:(DOMElement *) element

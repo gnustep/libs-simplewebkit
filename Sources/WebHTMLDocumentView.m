@@ -439,6 +439,7 @@ enum
 
 - (void) _layout:(NSView *) view;
 {
+	NSAutoreleasePool *arp=[NSAutoreleasePool new];
 	DOMHTMLDocument *htmlDocument=(DOMHTMLDocument *) [self ownerDocument];
 	WebDataSource *source=[htmlDocument _webDataSource];
 	NSString *anchor=[[[source response] URL] fragment];
@@ -606,7 +607,8 @@ enum
 	while(parent)
 		NSLog(@"%p: %@", parent, parent), parent=[parent superview];
 	}
-#endif	
+#endif
+	[arp release];
 }
 
 @end
@@ -1163,6 +1165,7 @@ enum
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
 	unsigned i;
+	NSAutoreleasePool *arp;
 	DOMCSSValue *val;
 	NSString *sval;
 	WebPreferences *preferences=[self preferences];
@@ -1766,11 +1769,13 @@ enum
 		{ // add attributed string
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:attributes] autorelease]];
 		}
+	arp=[NSAutoreleasePool new];
 	for(i=0; i<[childNodes length]; i++)
 		{ // add child nodes
 			// NSLog(@"splice child %@", [_childNodes item:i]);
 			[self _spliceNode:[childNodes item:i] to:str parentStyle:style parentAttributes:attributes];
 		}
+	[arp release];
 	val=[style getPropertyCSSValue:@"x-after"];
 	if(val)
 		{ // special case
