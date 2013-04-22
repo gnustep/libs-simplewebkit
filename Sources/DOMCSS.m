@@ -221,7 +221,7 @@
  
 */
 
-- (void) _handleProperty:(NSString *) property withScanner:(NSScanner *) sc;
+- (BOOL) _handleProperty:(NSString *) property withScanner:(NSScanner *) sc;
 { // check for and translate shorthand properties; see: http://www.dustindiaz.com/css-shorthand/
 	DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];	// at least one
 	BOOL inherit=[val cssValueType] == DOM_CSS_INHERIT;
@@ -261,7 +261,7 @@
 			[items setObject:right forKey:[property stringByAppendingString:@"-right"]];
 			[items setObject:bottom forKey:[property stringByAppendingString:@"-bottom"]];
 			[items setObject:left forKey:[property stringByAppendingString:@"-left"]];
-			return;
+			return YES;
 		}
 	if([property isEqualToString:@"border"]
 	   || [property isEqualToString:@"outline"]
@@ -306,20 +306,20 @@
 			[items setObject:width forKey:[property stringByAppendingString:@"-width"]];
 			[items setObject:style forKey:[property stringByAppendingString:@"-style"]];
 			[items setObject:color forKey:[property stringByAppendingString:@"-color"]];
-			return;
+			return YES;
 		}
 	if([property isEqualToString:@"list-style"])
 		{ // list-style: [ -type || -image || -position ] | inherit
-		return;
+		return YES;
 		}
 	if([property isEqualToString:@"background"])
 		{ // background: [ -color || -image || -repeat || -attachment || -position ] | inherit
-		return;
+		return YES;
 		}
 	if([property isEqualToString:@"font"])
 		{ // font: [[ -style || -variant || -weight] -size [ / -height ] -family ] | caption | icon | menu | ... | inherit
 			// check for inherit or system font
-		return;
+		return YES;
 		}
 	if([property isEqualToString:@"pause"] || [property isEqualToString:@"cue"])
 		{ // pause: [[ time | percent ]{1,2} | inherit
@@ -338,9 +338,10 @@
 				}
 			[items setObject:before forKey:[property stringByAppendingString:@"-before"]];
 			[items setObject:after forKey:[property stringByAppendingString:@"-after"]];
-			return;
+			return YES;
 		}
 	[items setObject:val forKey:property];	// not a shorthand, i.e. a single-value
+	return NO;
 }
 
 - (void) setCssText:(NSString *) style
@@ -360,13 +361,14 @@
 		{
 		NSString *propertyName;
 		NSString *priority=@"important";	// default priority
+		BOOL sh;
 		[DOMCSSRule _skip:sc];
 		if(![sc scanCharactersFromSet:propertychars intoString:&propertyName])
 			break;
 		[DOMCSSRule _skip:sc];				
 		if(![sc scanString:@":" intoString:NULL])
 			break;	// invalid
-		[self _handleProperty:propertyName withScanner:sc];
+		sh=[self _handleProperty:propertyName withScanner:sc];
 #if 0
 		NSLog(@"items: %@", items);
 #endif			
@@ -377,14 +379,18 @@
 		[sc scanString:@"important" intoString:&priority] || [sc scanString:@"!important" intoString:&priority];
 		[priorities setObject:priority forKey:propertyName];
 		[DOMCSSRule _skip:sc];
+		// FIXME: shorthand properties are allowed without ;
+		// maybe we should simply detect if the next character is a } and accept a missing ;
 		if(![sc scanString:@";" intoString:NULL])
-			{ // invalid - try to recover
+			{ // missing ; - try to recover
 				static NSCharacterSet *recover;	// cache once
 				NSString *skipped=@"";
 				if(!recover)
 					recover=[[NSCharacterSet characterSetWithCharactersInString:@";}"] retain];
 				[sc scanUpToCharactersFromSet:recover intoString:&skipped];
+#if 1
 				NSLog(@"skipped: %@", skipped);
+#endif
 				[sc scanString:@";" intoString:NULL];
 				break;
 			}
@@ -1330,6 +1336,7 @@
 #if 1
 	NSLog(@"_setCssText:\n%@", sheet);
 #endif
+	// FIXME: delete existing rules!
 	while([DOMCSSRule _skip:scanner], ![scanner isAtEnd])
 		{
 		if([self insertRule:(NSString *) scanner index:[cssRules length]] == (unsigned) -1)	// parse and scan rules
@@ -1563,7 +1570,7 @@
 
 #if 0
 + (void) initialize
-{
+{ // check how scanner treats the e (empty exponent or net character)
 	NSScanner *sc=[NSScanner scannerWithString:@"1.0em"];
 	float flt=0.0;
 	NSString *em=@"";
@@ -1763,6 +1770,8 @@
 		sc=(NSScanner *) str;	// we already got a NSScanner
 	else
 		sc=[NSScanner scannerWithString:str];
+	[value release];
+	value=nil;
 	[DOMCSSRule _skip:sc];
 	if([sc scanString:@"\"" intoString:NULL])
 		{ // double-quoted
@@ -1883,8 +1892,8 @@
 					else if([value isEqualToString:@"rect"])
 						{						
 						// FIXME
-							value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
-					primitiveType=DOM_CSS_RECT;
+						value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];	// parse argument(s)
+						primitiveType=DOM_CSS_RECT;
 						}
 					else if([value isEqualToString:@"calc"])
 						{
@@ -1893,7 +1902,12 @@
 						primitiveType=DOM_CSS_CALC;
 						}
 					else
+						{ // e.g. alpha(opacity=40)
 						primitiveType=DOM_CSS_UNKNOWN;
+						// we may need to parse arbitrary functions...
+						[sc scanUpToString:@")" intoString:NULL];					
+						value=nil;	// trow away pointer or we get into troubles on dealloc
+						}
 					[sc scanString:@")" intoString:NULL];					
 				}
 			else

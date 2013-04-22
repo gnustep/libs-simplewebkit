@@ -499,7 +499,7 @@
 	NSLog(@"windowScriptObject document.documentElement.offsetWidth=%@", [[sender windowScriptObject] valueForKeyPath:@"document.documentElement.offsetWidth"]);
 	NSLog(@"windowScriptObject frames=%@", [[sender windowScriptObject] evaluateWebScript:@"frames"]);
 	NSLog(@"windowScriptObject frames[0]=%@", [[sender windowScriptObject] evaluateWebScript:@"frames[0]"]);
-	NSLog(@"styleDeclarationWithText=%@", [[frame webView] styleDeclarationWithText:@"color: red"]);
+	NSLog(@"styleDeclarationWithText=%@", [[frame webView] styleDeclarationWithText:@"color: red;"]);
 #endif
 	// and... print subviews hierarchy
 #endif
