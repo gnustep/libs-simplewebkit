@@ -1,4 +1,7 @@
 /*
+ * part of SimpleWebKit
+ * License: GPLÖ
+ *
  * default CSS for handling HTML4 tags and attributes
  * see http://www.w3.org/TR/CSS21/sample.html
  */
@@ -25,38 +28,38 @@ h5, h6, iframe,
 object, ol, p, 
 ul, applet, 
 center, dir, 
-hr, menu, pre	{ display: block }
+hr, menu, pre	{ display: block; }
 head, title,
 meta, link,
 base,
-style, script	{ display: none }
-noframes		{ display: none }	/* we support frames */
-table			{ display: table }
-tr				{ display: table-row }
-thead			{ display: table-header-group }
-tbody			{ display: table-row-group }
-tfoot			{ display: table-footer-group }
-col				{ display: table-column }
-colgroup		{ display: table-column-group }
-td, th			{ display: table-cell }
-caption			{ display: table-caption; text-align: center  }
-li				{ display: list-item }
-fieldset		{ display: inline-block }	/* define border/box */
+style, script	{ display: none; }
+noframes		{ display: none; }	/* we support frames */
+table			{ display: table; }
+tr				{ display: table-row; }
+thead			{ display: table-header-group; }
+tbody			{ display: table-row-group; }
+tfoot			{ display: table-footer-group; }
+col				{ display: table-column; }
+colgroup		{ display: table-column-group; }
+td, th			{ display: table-cell; }
+caption			{ display: table-caption; text-align: center;  }
+li				{ display: list-item; }
+fieldset		{ display: inline-block; }	/* define border/box */
 
-center			{ text-align: center }
-th				{ font-weight: bolder; text-align: center }
-pre				{ white-space: pre; font-family: monospace }
-b, strong		{ font-weight: bold }
-i, em, var		{ font-style: italic }
-tt, code, kbd	{ font-family: monospace }
-u				{ text-decoration: underline }
-strike			{ text-decoration: line-through }
-blink			{ text-decoration: blink }
+center			{ text-align: center; }
+th				{ font-weight: bolder; text-align: center; }
+pre				{ white-space: pre; font-family: monospace; }
+b, strong		{ font-weight: bold; }
+i, em, var		{ font-style: italic; }
+tt, code, kbd	{ font-family: monospace; }
+u				{ text-decoration: underline; }
+strike			{ text-decoration: line-through; }
+blink			{ text-decoration: blink; }
 sub				{ vertical-align: sub; font-size: smaller; }
 sup				{ vertical-align: super; font-size: smaller; }
 big				{ font-size: larger; }
 small			{ font-size: smaller; }
-blockquote      { margin-left: 40px; margin-right: 40px }
+blockquote      { margin-left: 40px; margin-right: 40px; }
 h1				{ x-header-level: 1; font-size: xx-large; font-weight: bold; margin: 0.67em 0; }
 h2				{ x-header-level: 2; font-size: x-large; font-weight: bold; margin: 0.75em 0; }
 h3				{ x-header-level: 3; font-size: large; font-weight: bold; margin: 0.83em 0; }
@@ -119,17 +122,17 @@ hr				{ height: attr(size, px, 1px); width: attr(width, px, 100%); }
 hr[noshade]		{ }
 
 /* lists */
-ol				{ list-style-type: decimal }
-ul				{ list-style-type: disc }
-ol ul, ul ul	{ list-style-type: circle }	/* second level */
+ol				{ list-style-type: decimal; }
+ul				{ list-style-type: disc; }
+ol ul, ul ul	{ list-style-type: circle; }	/* second level */
 ol ol ul, ul ol ul,
-ol ul ul, ul ul ul	{ list-style-type: square }	/* third level */
-dl				{ list-style-type: disc }
+ol ul ul, ul ul ul	{ list-style-type: square; }	/* third level */
+dl				{ list-style-type: disc; }
 li				{ }
 dt				{ }
 dd				{ }
 ol, ul, dir,
-menu, dd        { margin-left: 40px }
+menu, dd        { margin-left: 40px; }
 
 /* tables */
 table[border]			{ border: attr(border); }
