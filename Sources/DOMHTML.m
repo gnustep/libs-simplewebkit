@@ -1706,7 +1706,7 @@
 }
 
 - (NSTextAttachment *) _attachmentForStyle:(DOMCSSStyleDeclaration *) style;
-{ 
+{
 	NSTextAttachment *attachment;
 	NSString *name=[self valueForKey:@"name"];
 	NSString *val=[self valueForKey:@"value"];
@@ -1746,6 +1746,7 @@
 		}
 	else
 		{ // embed NSTableView with [size intValue] visible lines
+			// and make us the data source to read out the options values
 			attachment=nil;
 			cell=nil;
 		}
@@ -1783,7 +1784,8 @@
 - (NSString *) _formValue;
 {
 	int idx=[cell indexOfSelectedItem];
-	if(idx < 0)
+	// FIXME: why can cell be nil?
+	if(idx < 0 || cell == nil)
 		return nil;	// nothing selected
 	return [[[options valueForKey:@"elements"] objectAtIndex:idx] valueForKey:@"value"];
 }
