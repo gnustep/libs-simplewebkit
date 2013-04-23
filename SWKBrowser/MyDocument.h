@@ -74,4 +74,7 @@
 - (IBAction) cancelBookmark:(id) sender;
 - (IBAction) saveBookmark:(id) sender;
 
+- (IBAction) singleClick:(id) sender;
+- (IBAction) doubleClick:(id) sender;
+
 @end

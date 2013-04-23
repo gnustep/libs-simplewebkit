@@ -866,8 +866,16 @@
 - (IBAction) doubleClick:(id) sender;
 { // open URL if double click into CSS url
 	if(sender == domTree)
-		{
-		
+		{ // click onto DOM tree node
+		DOMNode *refNode=[sender itemAtRow:[sender clickedRow]];
+		NS_DURING
+			// can't -init a DOMRange since it is connected to a DOMDocument!
+			DOMRange *rng=[[[webView mainFrame] DOMDocument] createRange];
+			[rng selectNode:refNode];
+			[webView setSelectedDOMRange:rng affinity:NSSelectionAffinityDownstream];
+		NS_HANDLER
+			NSLog(@"can't select: %@", localException);
+		NS_ENDHANDLER
 		}
 }
 
