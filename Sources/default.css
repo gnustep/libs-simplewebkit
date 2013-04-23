@@ -44,7 +44,7 @@ colgroup		{ display: table-column-group; }
 td, th			{ display: table-cell; }
 caption			{ display: table-caption; text-align: center;  }
 li				{ display: list-item; }
-fieldset		{ display: inline-block; }	/* define border/box */
+fieldset		{ display: inline-block; border: 1px; }	/* define border/box */
 
 center			{ text-align: center; }
 th				{ font-weight: bolder; text-align: center; }

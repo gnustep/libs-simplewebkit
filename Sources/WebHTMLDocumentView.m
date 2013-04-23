@@ -1157,6 +1157,70 @@ enum
 
 @end
 
+@implementation NSFileSelectionCell
+
+- (void) dealloc
+{
+	[fileName release];
+	[super dealloc];
+}
+
+- (NSSize) cellSize;
+{ // should depend file name size
+	return NSMakeSize(200.0, 22.0);
+}
+
+- (void) drawWithFrame:(NSRect)cellFrame
+				inView:(NSView *)controlView
+{ // draw button, file name (unless empty) and file size (if known)
+	NSRect buttonRect=cellFrame;
+	[self setTitle:@"Choose File"];
+	buttonRect.size=[super cellSize];
+	[super drawWithFrame:buttonRect inView:controlView];
+	// draw file name
+	cellFrame.size.width=NSMaxX(cellFrame) - NSMaxX(buttonRect);
+	cellFrame.origin.x=NSMaxX(buttonRect);
+	if(fileName)
+		[[fileName lastPathComponent] drawInRect:cellFrame withAttributes:nil];
+	else
+		[@"no file selected" drawInRect:cellFrame withAttributes:nil];
+}
+
+- (void) setStringValue:(NSString *) path
+{ // may be @"" for Reset button
+	if([path length] == 0)
+		path=nil;
+	[fileName autorelease];
+	fileName=[path retain];
+	// check file existence and size
+	// trigger redrawing!
+	// and update of the NSTextView
+}
+
+- (NSString *) stringValue;
+{
+	return fileName;
+}
+
+- (BOOL) trackMouse:(NSEvent *)event 
+			 inRect:(NSRect)cellFrame 
+			 ofView:(NSView *)controlTextView 
+   atCharacterIndex:(unsigned) index
+	   untilMouseUp:(BOOL)flag;
+{ // click into text field
+	NSOpenPanel *o;
+	// handle click on button to track the button and check for correct mouse-Up
+	o=[NSOpenPanel openPanel];
+	[o setAllowsMultipleSelection:NO];	// single file only
+	// if a file name has been specified, preselect it as the current directory/file
+	if([o runModal] == NSFileHandlingPanelOKButton)
+		[self setStringValue:[[o filenames] lastObject]];
+	return NO;	// never use to trigger the send-event
+}
+
+@end
+
+
 @implementation WebView (NSAttributedString)
 
 // FIXME: inherit bei Attributen verarbeiten und Wert aus parentAttribs Ÿbernehmen

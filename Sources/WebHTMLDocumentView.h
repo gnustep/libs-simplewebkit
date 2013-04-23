@@ -95,6 +95,13 @@ extern NSString *DOMHTMLAnchorElementAnchorName;
 
 @end
 
+@interface NSFileSelectionCell : NSButtonCell
+{
+	NSString *fileName;
+	unsigned long long fileSize;
+}
+@end
+
 @interface WebView (NSAttributedString)
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;

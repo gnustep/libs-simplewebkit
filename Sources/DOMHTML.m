@@ -1403,7 +1403,7 @@
 	else if([type isEqualToString:@"password"])
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSSecureTextFieldCell class]];
 	else if([type isEqualToString:@"file"])
-		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSTextFieldCell class]];
+		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSFileSelectionCell class]];
 	else if([type isEqualToString:@"image"])
 		attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSActionCell class]];
 	else
@@ -1452,8 +1452,10 @@
 				[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
 		}
 	else if([type isEqualToString:@"file"])
-		// FIXME
-		;
+		{
+		NSString *size=[self valueForKey:@"size"];
+		// save size attribute
+		}
 	else if([type isEqualToString:@"image"])
 		{
 		WebView *webView=[[self webFrame] webView];
@@ -1576,6 +1578,8 @@
 		return nil;	// never send
 	else if([type isEqualToString:@"hidden"])
 		return val;	// pass value of hidden fields
+	else if([type isEqualToString:@"file"])
+		return [NSString stringWithContentsOfFile:[cell stringValue]];	// may be nil?
 	return [cell stringValue];	// text field
 }
 
@@ -1729,7 +1733,7 @@
 			[(NSPopUpButtonCell *) cell setTarget:self];
 			[(NSPopUpButtonCell *) cell setAction:@selector(_submit:)];
 			[(NSPopUpButtonCell *) cell setAltersStateOfSelectedItem:!multiSelect];
-			// this musst also be done if we update the options nodes
+			// this must also be done if we update the options nodes
 			[cell removeAllItems];
 			menu=[(NSPopUpButtonCell *) cell menu];
 			[menu setMenuChangedMessagesEnabled:NO];
@@ -1739,7 +1743,7 @@
 				NSMenuItem *item=[menu addItemWithTitle:[option text] action:NULL keyEquivalent:@""];
 				if([option hasAttribute:@"disabled"])
 					[item setEnabled:NO];
-				if([option hasAttribute:@"selected"])
+				if([option hasAttribute:@"selected"])	// it is sufficient to have the 'selected' attribute (any value)
 					[cell selectItem:item];
 				}
 			[menu setMenuChangedMessagesEnabled:YES];
