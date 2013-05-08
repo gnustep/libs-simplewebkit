@@ -554,6 +554,7 @@
 		NSEnumerator *e;
 		destinations=[[NSMutableArray alloc] init];
 		[destinations addObject:@"-- rendering and browser tests --"];
+		[destinations addObject:@"http://info.cern.ch/hypertext/WWW/TheProject.html"];
 		[destinations addObject:@"http://www.mired.org/home/mwm/bugs.html"];
 		[destinations addObject:@"http://dillo.rti-zone.org/Html.testsuite/"];
 		[destinations addObject:@"http://www.webstandards.org/files/acid2/test.html"];
