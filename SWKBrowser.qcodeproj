@@ -8,6 +8,10 @@ export SOURCES="SWKBrowser/MyApplication.m"
 export SOURCES+=" SWKBrowser/MyComboBoxCell.m"
 export SOURCES+=" SWKBrowser/MyDocument.m"
 export SOURCES+=" SWKBrowser/main.m"
+export SOURCES+=" SWKBrowser/DemoHTML"
+export SOURCES+=" SWKBrowser/English.lproj"
+export WRAPPER_EXTENSION="app"
+
 
 
 [ "$QuantumSTEP" ] || export QuantumSTEP=/usr/share/QuantumSTEP
