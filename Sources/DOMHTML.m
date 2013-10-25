@@ -1278,6 +1278,7 @@
 	NSEnumerator *e;
 	DOMHTMLElement *element;
 	BOOL post;
+	NSURL *newUrl;
 	[self _triggerEvent:@"onsubmit"];
 	// can the trigger abort sending the form? Through an exception?
 	htmlDocument=(DOMHTMLDocument *) [self ownerDocument];	// may have been changed by the onsubmit script
@@ -1327,18 +1328,32 @@
 		[a release];
 		[r appendFormat:[r length] > 0?@"&%@=%@":@"%@=%@", name, val];	// separate by &
 		}
+	newUrl=[[[htmlDocument _webDataSource] response] URL];
 	if(!post && [r length] > 0)
 		{
 #if 1
 		NSLog(@"getURL = %@", r);
 #endif
-		action=[action stringByAppendingFormat:@"?%@", r];
+//		action=[action stringByAppendingFormat:@"?%@", r];
 #if 1
 		NSLog(@"action = %@", action);
+		NSLog(@"newUrl = %@", newUrl);
+#endif		
+		newUrl=[NSURL URLWithString:action relativeToURL:newUrl];
+		newUrl=[newUrl absoluteURL];
+#if 1
+		NSLog(@"newUrl = %@", newUrl);
 #endif
-		// FIXME: remove any existing ?query part and replace
+		// NOTE: this removes a #fragment that may be present in the action (e.g. on gap.nongnu.org search field)
+		// Safari does keep the #fragment
+		// we could add #%@", r, [newUrl fragment] if it exists
+		newUrl=[NSURL URLWithString:[NSString stringWithFormat:@"?%@", r] relativeToURL:newUrl];
+		newUrl=[newUrl absoluteURL];
+#if 1
+		NSLog(@"newUrl = %@", newUrl);
+#endif
 		}
-	request=(NSMutableURLRequest *)[NSMutableURLRequest requestWithURL:[NSURL URLWithString:action relativeToURL:[[[htmlDocument _webDataSource] response] URL]]];
+	request=(NSMutableURLRequest *)[NSMutableURLRequest requestWithURL:newUrl];
 	if(method)
 		[request setHTTPMethod:[method uppercaseString]];	// will default to "GET" if missing
 	if(post)
