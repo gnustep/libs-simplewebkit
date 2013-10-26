@@ -315,7 +315,7 @@
 		EE4727070B99AC6500559020 /* DOMCore.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = DOMCore.m; sourceTree = "<group>"; };
 		EE4729240B99D8F700559020 /* DOMCore.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DOMCore.h; sourceTree = "<group>"; };
 		EE475F3E0B9AF3B600559020 /* WebHTMLDocumentView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebHTMLDocumentView.h; sourceTree = "<group>"; };
-		EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebHTMLDocumentView.m; sourceTree = "<group>"; };
+		EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebHTMLDocumentView.m; sourceTree = "<group>"; };
 		EE5D27D60A1A677A000E507B /* WebBackForwardList.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebBackForwardList.m; sourceTree = "<group>"; };
 		EE5D27DD0A1A69BE000E507B /* WebHistoryItem.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebHistoryItem.m; sourceTree = "<group>"; };
 		EE5D27E40A1B0708000E507B /* WebHistory.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebHistory.m; sourceTree = "<group>"; };
@@ -1325,7 +1325,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "SWKBrowser-Info.plist";
+				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -1353,7 +1353,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "SWKBrowser-Info.plist";
+				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
