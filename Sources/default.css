@@ -43,7 +43,7 @@ col				{ display: table-column; }
 colgroup		{ display: table-column-group; }
 td, th			{ display: table-cell; }
 caption			{ display: table-caption; text-align: center;  }
-li				{ display: list-item; }
+li, dl, dt		{ display: list-item; }
 fieldset		{ display: inline-block; border: 1px; }	/* define border/box */
 
 center			{ text-align: center; }
@@ -116,7 +116,7 @@ img[name]
 img[ismap]
 */
 /* br:before		{ content: "\A"; }	pseudo elements and hex escapes are not yet implemented */
-br				{ x-before: "\n"; }
+br				{ display: break-line; }
 nobr			{ white-space: nowrap; x-linebreak: clip; }
 hr				{ height: attr(size, px, 1px); width: attr(width, px, 100%); }
 hr[noshade]		{ }

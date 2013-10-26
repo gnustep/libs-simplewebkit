@@ -992,12 +992,6 @@
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLNoNesting; }
 
-#if 0
-// FIXME: this will be eliminated unless we set "white-space"
-
-- (NSString *) _string; { return @"\n"; }	// add line break
-#endif
-
 @end
 
 @implementation DOMHTMLParagraphElement
@@ -1184,8 +1178,6 @@
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLSingletonNesting; }
 
-// FIXME: there may be <table><div style...><tbody>
-
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <table> node
 	DOMHTMLElement *n=[rep _lastObject];
@@ -1199,8 +1191,6 @@
 @end
 
 @implementation DOMHTMLTableRowElement
-
-// FIXME: there may be <table><div style...><tr>
 
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <tbody> or <table> node to become child
@@ -1464,7 +1454,7 @@
 				[(NSActionCell *) cell setAction:@selector(_radio:)];
 				}
 			else
-				[(NSButtonCell *) cell setTitle:val?val:(NSString *)@"Button"];
+				[(NSButtonCell *) cell setTitle:val?val:(NSString *)@""];
 		}
 	else if([type isEqualToString:@"file"])
 		{
@@ -1741,6 +1731,7 @@
 			DOMHTMLOptionElement *option;
 			NSMenu *menu;
 			NSEnumerator *e;
+			NSMenuItem *selected=nil;
 			attachment=[NSTextAttachmentCell textAttachmentWithCellOfClass:[NSPopUpButtonCell class]];
 			cell=[attachment attachmentCell];	// get the real cell
 			[(NSPopUpButtonCell *) cell setPullsDown:NO];
@@ -1759,9 +1750,10 @@
 				if([option hasAttribute:@"disabled"])
 					[item setEnabled:NO];
 				if([option hasAttribute:@"selected"])	// it is sufficient to have the 'selected' attribute (any value)
-					[cell selectItem:item];
+					selected=item;	// the last one will become selected
 				}
 			[menu setMenuChangedMessagesEnabled:YES];
+			[cell selectItem:selected];
 		}
 	else
 		{ // embed NSTableView with [size intValue] visible lines

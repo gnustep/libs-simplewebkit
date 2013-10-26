@@ -52,6 +52,7 @@
 @class DOMEntityReference;
 @class DOMImplementation;
 @class DOMNodeList;
+@class DOMRange;
 @class DOMProcessingInstruction;
 @class DOMText;
 
@@ -177,6 +178,7 @@
 - (DOMElement *) createElementNS:(NSString *) uri :(NSString *) name;
 - (DOMEntityReference *) createEntityReference:(NSString *) name;
 - (DOMProcessingInstruction *) createProcessingInstruction:(NSString *) target :(NSString *) data;
+- (DOMRange *) createRange;
 - (DOMText *) createTextNode:(NSString *) data;
 - (DOMDocumentType *) doctype;
 - (DOMElement *) documentElement;

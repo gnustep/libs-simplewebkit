@@ -2096,55 +2096,56 @@
 	DOMCSSStyleDeclaration *style;
 	static DOMCSSValue *inherit;
 	static DOMCSSStyleSheet *defaultSheet;
-	if(![element isKindOfClass:[DOMElement class]])
-		return nil;	// element has no CSS capabilities
 	style=[[DOMCSSStyleDeclaration new] autorelease];
-	if(!defaultSheet)
-		{ // read default.css from bundle
-			NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"default" ofType:@"css"];
-			NSString *sheet=[NSString stringWithContentsOfFile:path];
-			NSAssert(sheet, @"needs default.css");
-			if(sheet)
-				{
-				defaultSheet=[DOMCSSStyleSheet new];
-				[defaultSheet _setCssText:sheet];	// parse the style sheet to add
-				}
+	if([element isKindOfClass:[DOMElement class]])
+		{ // has no CSS capabilites - but should still be able to inherit default styles
+			if(!defaultSheet)
+				{ // read default.css from bundle
+					NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"default" ofType:@"css"];
+					NSString *sheet=[NSString stringWithContentsOfFile:path];
+					NSAssert(sheet, @"needs default.css");
+					if(sheet)
+						{
+						defaultSheet=[DOMCSSStyleSheet new];
+						[defaultSheet _setCssText:sheet];	// parse the style sheet to add
+						}
 #if 1
-			NSLog(@"parsed default.css: %@", defaultSheet);
+					NSLog(@"parsed default.css: %@", defaultSheet);
 #endif
-		}
-	[defaultSheet _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
-	
-	if([preferences authorAndUserStylesEnabled])
-		{ // loaded style is not disabled
-			NSString *styleString;
-			DOMStyleSheetList *list;
-			DOMCSSStyleDeclaration *css;
-			// FIXME: how to handle different media?
-			list=[(DOMHTMLDocument *) [element ownerDocument] styleSheets];
-			cnt=[list length];
-			for(i=0; i<cnt; i++)
-				{ // go through all style sheets
-					// FIXME:
-					// multiple rules may match (and have different priorities!)
-					// i.e. we should have a method that returns all matching rules
-					// then sort by precedence/priority/specificity/importance
-					// the rules are described here:
-					// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
-					
-					[(DOMCSSStyleSheet *) [list item:i] _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
 				}
-			// what comes first? browser or author defined and how is the style={} attribute taken?
-			styleString=[element getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) style!)
-			if(styleString)
-				{ // parse style attribute
+			[defaultSheet _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
+			
+			if([preferences authorAndUserStylesEnabled])
+				{ // loaded style is not disabled
+					NSString *styleString;
+					DOMStyleSheetList *list;
+					DOMCSSStyleDeclaration *css;
+					// FIXME: how to handle different media?
+					list=[(DOMHTMLDocument *) [element ownerDocument] styleSheets];
+					cnt=[list length];
+					for(i=0; i<cnt; i++)
+						{ // go through all style sheets
+							// FIXME:
+							// multiple rules may match (and have different priorities!)
+							// i.e. we should have a method that returns all matching rules
+							// then sort by precedence/priority/specificity/importance
+							// the rules are described here:
+							// http://www.w3.org/TR/1998/REC-CSS2-19980512/cascade.html#cascade
+							
+							[(DOMCSSStyleSheet *) [list item:i] _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
+						}
+					// what comes first? browser or author defined and how is the style={} attribute taken?
+					styleString=[element getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) style!)
+					if(styleString)
+						{ // parse style attribute
 #if 1
-					NSLog(@"add style=\"%@\"", styleString);
+							NSLog(@"add style=\"%@\"", styleString);
 #endif
-					// we should somehow cache this or we will parse this again and again...
-					css=[[DOMCSSStyleDeclaration alloc] initWithString:styleString];	// parse
-					[style _append:css];	// append/overwrite
-					[css release];
+							// we should somehow cache this or we will parse this again and again...
+							css=[[DOMCSSStyleDeclaration alloc] initWithString:styleString];	// parse
+							[style _append:css];	// append/overwrite
+							[css release];
+						}
 				}
 		}
 	if(!inherit)
@@ -2182,9 +2183,8 @@
 			if([val cssValueType] == DOM_CSS_INHERIT)
 				{
 				DOMCSSValue *newval;
-				if(parent)
-					newval=[parent getPropertyCSSValue:property];
-				else
+				newval=[parent getPropertyCSSValue:property];
+				if(!newval)
 					newval=[[[DOMCSSPrimitiveValue alloc] initWithString:@"initial"] autorelease];							
 				[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
 				}

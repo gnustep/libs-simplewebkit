@@ -515,6 +515,11 @@
 
 - (DOMProcessingInstruction *) createProcessingInstruction:(NSString *) target :(NSString *) data; { return NIMP; }
 
+- (DOMRange *) createRange;
+{
+	return NIMP;
+}
+
 - (DOMText *) createTextNode:(NSString *) data;
 {
 	DOMText *r=[[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil] autorelease];

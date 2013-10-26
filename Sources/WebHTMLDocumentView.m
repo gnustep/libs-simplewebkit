@@ -851,12 +851,14 @@ enum
 - (void) setAttachment:(NSTextAttachment *) anAttachment;	 { return; }
 - (NSTextAttachment *) attachment; { return nil; }
 
+- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, 0.0); }	// must be defined but does not do what I did think...
+
 - (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
 								proposedLineFragment:(NSRect) fragment
 											 glyphPosition:(NSPoint) pos
 											characterIndex:(unsigned) index;
 {
-	return (NSRect){ NSZeroPoint, [self cellSize] };
+	return (NSRect){ NSMakePoint(0.0, -10.0), [self cellSize] };	// move buttons etc. down a little
 }
 
 - (void) drawWithFrame:(NSRect)cellFrame
@@ -926,15 +928,19 @@ enum
 
 @implementation NSActionCell (NSTextAttachment)
 
-- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -30.0); }
-
 @end
 
 @implementation NSButtonCell (NSTextAttachment)
 
-- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -20.0); }
+- (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
+				proposedLineFragment:(NSRect) fragment
+					   glyphPosition:(NSPoint) pos
+					  characterIndex:(unsigned) index;
+{
+	return (NSRect){ NSMakePoint(0.0, -16.0), [self cellSize] };	// move text field down a little (may depend on 
+}
 
-// add missing methods
+// add other missing methods
 
 @end
 
@@ -942,13 +948,19 @@ enum
 
 - (NSSize) cellSize; { return NSMakeSize(200.0, 22.0); }		// should depend on font&SIZE parameter
 
-- (NSPoint) cellBaselineOffset; { return NSMakePoint(0.0, -10.0); }
+- (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
+				proposedLineFragment:(NSRect) fragment
+					   glyphPosition:(NSPoint) pos
+					  characterIndex:(unsigned) index;
+{
+	return (NSRect){ NSMakePoint(0.0, -7.0), [self cellSize] };	// move text field down a little
+}
 
 - (BOOL) trackMouse:(NSEvent *)event 
-						 inRect:(NSRect)cellFrame 
-						 ofView:(NSView *)controlTextView 
+			 inRect:(NSRect)cellFrame 
+			 ofView:(NSView *)controlTextView 
    atCharacterIndex:(unsigned) index
-			 untilMouseUp:(BOOL)flag;
+	   untilMouseUp:(BOOL)flag;
 { // click into text field
 	if(![self isEditable])
 		return NO;
@@ -964,7 +976,7 @@ enum
 	return NO;
 }
 
-// add missing methods
+// add other missing methods
 
 @end
 
@@ -1223,8 +1235,8 @@ enum
 
 @implementation WebView (NSAttributedString)
 
-// FIXME: inherit bei Attributen verarbeiten und Wert aus parentAttribs übernehmen
-// unklar: was heißt 'inherit' bei pseudoElements?
+// FIXME: inherit bei Attributen verarbeiten und Wert aus parentAttribs √ºbernehmen
+// unklar: was hei√üt 'inherit' bei pseudoElements?
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
@@ -1240,18 +1252,17 @@ enum
 	NSString *visibility;
 	BOOL lastIsInline;
 	BOOL isInline;
-	NSTextAttachment *attachment;
+	NSTextAttachment *attachment=nil;
 	NSString *string;
+	style=[self _styleForElement:(DOMElement *) node pseudoElement:@"" parentStyle:parent];
 	if(![node isKindOfClass:[DOMElement class]])
 		{ // inherit all style for DOMText nodes
-			style=parent;					// inherit style
 			attributes=(NSMutableDictionary *) parentAttributes;	// inherit attributes
 			childNodes=nil;					// no children
 		}
 	else
 		{ // calculate/apply new style
 			// FIXME: make pseudoElement depend on state, e.g. :hover, :link etc.
-			style=[self _styleForElement:(DOMElement *) node pseudoElement:@"" parentStyle:parent];
 			attributes=[NSMutableDictionary dictionaryWithCapacity:10];	// we will create a set of new ones
 			childNodes=[node childNodes];
 		}
@@ -1259,8 +1270,10 @@ enum
 	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];
 	// FIXME: handle "display: run-in"
 	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
-	isInline=style == parent || !display || [display isEqualToString:@"inline"];	// plain text counts as inline
-	
+	isInline=!display || [display isEqualToString:@"inline"];	// plain text counts as inline
+#if 1
+	NSLog(@"<%@ display=%@>: %@%@", [node nodeName], display, lastIsInline?@" was-inline":@"", isInline?@" inline":@" block");
+#endif
 	// hm. _range is only known for DOMHTMLElements!
 	//	_range.location=[str length];
 	//	_range.length=0;
@@ -1693,10 +1706,83 @@ enum
 	// and use style=[self _styleForElement:node pseudoElement:@"before" parentStyle:parent];
 	val=[style getPropertyCSSValue:@"x-before"];
 	if(val)
-		{ // special case to implement <br>
+		{ // special case to implement <q>
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
-	if([display isEqualToString:@"inline-block"])
+	if([display isEqualToString:@"break-line"])
+		{ // special case to implement <br>
+			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease]];
+		}
+	else if([display isEqualToString:@"list-item"])
+		{ // special case to implement <li>
+			NSMutableParagraphStyle *p;
+			NSArray *list;
+			NSTextList *item;
+			NSString *value;
+			int level=0;	// nesting level
+			DOMHTMLElement *listElement=(DOMHTMLElement *) [node parentNode];	// enclosing list
+			DOMHTMLElement *le;	// used for finding the nesting level
+			DOMNodeList *children;
+			unsigned int index=0;
+			while(listElement && ![listElement isKindOfClass:[DOMHTMLUListElement class]]
+				   && ![listElement isKindOfClass:[DOMHTMLOListElement class]]
+				   && ![listElement isKindOfClass:[DOMHTMLDListElement class]])
+				{ // find enclosing <ul> <ol> or <dl>
+				listElement=(DOMHTMLTableElement *)[listElement parentNode];	// go one level up
+				}
+			le=listElement;
+			while(le)
+				{ // count total levels
+					level++;
+					le=(DOMHTMLTableElement *)[le parentNode];	// go one level up
+					while(le && ![le isKindOfClass:[DOMHTMLUListElement class]]
+						  && ![le isKindOfClass:[DOMHTMLOListElement class]]
+						  && ![le isKindOfClass:[DOMHTMLDListElement class]])
+						le=(DOMHTMLTableElement *)[le parentNode];	// skip intermediate levels
+				}
+			children=[listElement childNodes];
+			for(i=0; i<[children length]; i++)
+				{ // warning: this may not work correctly for <p style="display: list-item">
+					DOMHTMLElement *item=(DOMHTMLElement *) [children item:i];
+					if([item isKindOfClass:[DOMHTMLLIElement class]])
+					   index++;
+					if(item == node)
+					   break;	// we have found our index
+				}
+#if 0	// to be evaluated
+			val=[style getPropertyCSSValue:@"list-style-image"];	// url()
+			val=[style getPropertyCSSValue:@"list-style-position"];	// outside, inside, inherit
+#endif
+			// get nesting level (go tree upwards and count <ol>, <ul>, <dl> parents
+			// go up and find the enclosing <ol> to get the autoincrementing number by finding which index we are
+			// or use the CSS counter() mechanism
+			p=[attributes objectForKey:NSParagraphStyleAttributeName];
+			list=[p textLists];	// get (nested) list
+			item=[[NSClassFromString(@"NSTextList") alloc] 
+				  initWithMarkerFormat:[NSString stringWithFormat:@"{%@}", [[style getPropertyCSSValue:@"list-style-type"] _toString]] 
+								 options:NSTextListPrependEnclosingMarker];
+			if(item)
+				{
+				if(!list) 
+					list=[NSMutableArray new];	// start new one
+				else 
+					list=[list mutableCopy];	// make mutable
+				[(NSMutableArray *) list addObject:item];
+				[item release];
+				[p setTextLists:list];	// assume it is mutable
+				value=[item markerForItemNumber:index];
+				[item release];
+				}
+			else
+				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
+#if 0
+			NSLog(@"lists=%@", list);
+#endif
+			// change indentation
+			// [attributes setObject:p forKey:NSParagraphStyleAttributeName];
+			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:value attributes:attributes] autorelease]];
+		}
+	else if([display isEqualToString:@"inline-block"])
 		{ // create an inline-block
 			NSMutableAttributedString *value=[[[NSMutableAttributedString alloc] init] autorelease];
 			NSCell *cell;
@@ -1704,7 +1790,7 @@ enum
 			for(i=0; i<[childNodes length]; i++)
 				{ // add child nodes
 					// NSLog(@"splice child %@", [_childNodes item:i]);
-					[self _spliceNode:[childNodes item:i] to:str parentStyle:style parentAttributes:attributes];
+					[self _spliceNode:[childNodes item:i] to:value parentStyle:style parentAttributes:attributes];
 				}
 			[(DOMElement *) node _processPhoneNumbers:value];	// update conten
 			// allow cell type to be modified
@@ -1718,33 +1804,9 @@ enum
 			NSLog(@"  cell: %@", cell);
 #endif
 		}
-#if 0
-	// handle other display: styles
-
-	@"list-item"
-		NSArray *lists=[paragraph textLists];	// get (nested) list
-		NSTextList *list;
-		list=[[NSClassFromString(@"NSTextList") alloc] 
-			  initWithMarkerFormat: @"{decimal}." 
-			  options: NSTextListPrependEnclosingMarker];
-		if(list)
-			{
-			if(!lists) 
-				lists=[NSMutableArray new];	// start new one
-			else 
-				lists=[lists mutableCopy];	// make mutable
-			[(NSMutableArray *) lists addObject:list];
-			[list release];
-			[paragraph setTextLists:lists];
-			[lists release];
-			}
-#if 0
-		NSLog(@"lists=%@", lists);
-#endif
-	
-#if 0
-@"table"
-	{ // add attributes to style
+#if 0	// needs to be implemented (+ the other table related display: styles)
+	else if([display isEqualToString:@"table"])
+		{ // display as table
 		NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 		unsigned cols=[[self valueForKey:@"cols"] intValue];
 #if 0
@@ -1763,13 +1825,9 @@ enum
 #if 0
 		NSLog(@"<table> _style=%@", _style);
 #endif
-	}
-#endif
-	
-#if 0
-	
-@"table-cell"
-	{ // add attributes to style
+		}
+	else if([display isEqualToString:@"table-cell"])
+		{ // add attributes to style
 		NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 		NSMutableArray *blocks;
 		NSTextTableBlock *cell;
@@ -1815,13 +1873,9 @@ enum
 #endif
 		[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
 		[paragraph release];
-	}
+	}	
 #endif
-	
-	
-		
-#endif
-	else
+	else	// any other display: style
 		attachment=[(DOMHTMLElement *) node _attachmentForStyle:style];	// may be nil
 	if(attachment)
 		{ // add attribute attachment (if available)
@@ -1842,7 +1896,7 @@ enum
 	[arp release];
 	val=[style getPropertyCSSValue:@"x-after"];
 	if(val)
-		{ // special case
+		{ // special case to implement <q>
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	if(!isInline)
