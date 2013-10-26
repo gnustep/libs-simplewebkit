@@ -1235,7 +1235,16 @@ enum
 
 @implementation WebView (NSAttributedString)
 
-// FIXME: inherit bei Attributen verarbeiten und Wert aus parentAttribs übernehmen
+// FIXME: make code more clear - split this method into its steps and pass only arguments we need
+/*
+ * apply properties modifying the text (e.g. white-space) NSString -> NSString
+ * apply properties modifying the attributes (e.g. font-size) NSMutableDictionary -> NSMutableDictionary
+ * apply properties modifying the paragraph style (e.g. line-spacing) NSMutableParagraphStyle -> NSMutableParagraphStyle
+ * apply display: styles
+ * and keep only the handling of inheritance, block vs. inline in this method
+ */
+
+// FIXME: noch mehr "inherit" bei Attributen verarbeiten und Wert aus parentAttribs übernehmen
 // unklar: was heißt 'inherit' bei pseudoElements?
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
@@ -1246,6 +1255,7 @@ enum
 	NSString *sval;
 	WebPreferences *preferences=[self preferences];
 	NSMutableDictionary *attributes;
+	NSMutableParagraphStyle *p;
 	DOMCSSStyleDeclaration *style;
 	DOMNodeList *childNodes;
 	NSString *display;
@@ -1254,6 +1264,7 @@ enum
 	BOOL isInline;
 	NSTextAttachment *attachment=nil;
 	NSString *string;
+	unsigned initialLength=[str length];	// to find out if we or a child has added content to a block
 	style=[self _styleForElement:(DOMElement *) node pseudoElement:@"" parentStyle:parent];
 	if(![node isKindOfClass:[DOMElement class]])
 		{ // inherit all style for DOMText nodes
@@ -1270,9 +1281,9 @@ enum
 	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];
 	// FIXME: handle "display: run-in"
 	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
-	isInline=!display || [display isEqualToString:@"inline"];	// plain text counts as inline
+	isInline=!display || [display isEqualToString:@"inline"];	// plain text (no display: attribute) counts as inline
 #if 1
-	NSLog(@"<%@ display=%@>: %@%@", [node nodeName], display, lastIsInline?@" was-inline":@"", isInline?@" inline":@" block");
+	NSLog(@"<%@ display=%@>: %@ + %@", [node nodeName], display, lastIsInline?@"inline":@"block", isInline?@"inline":@"block");
 #endif
 	// hm. _range is only known for DOMHTMLElements!
 	//	_range.location=[str length];
@@ -1283,21 +1294,105 @@ enum
 	if([display isEqualToString:@"none"])
 		return;
 
-	// FIXME: move this after the end of the style calculation where we would handle the children
-//	[[[node webFrame] frameView] documentView]
 	string=[(DOMHTMLElement *) node _string];	// may be nil
 	
-	// FIXME: handle default values!
+	// FIXME: correctly handle default values!
 	// handle (ignore) incompatible/unknown values, i.e. specifying a list as the font size
+	
+	/* text modification */
+	val=[style getPropertyCSSValue:@"white-space"];
+	if(!val)
+		val=@"normal";	// here "inherit" means to use the default value
+	if(val && [string length] > 0)
+		{ // must this be defined!? What is the default?
+			BOOL nowrap=NO;
+			BOOL nobrk=NO;
+			BOOL trim=NO;
+			NSMutableString *s;
+			sval=[val _toString];
+			if([sval isEqualToString:@"normal"])
+				trim=YES, nobrk=YES;
+			else if([sval isEqualToString:@"nowrap"])
+				trim=YES, nobrk=YES, nowrap=YES;
+			else if([sval isEqualToString:@"pre"])
+				nowrap=YES;
+			else if([sval isEqualToString:@"pre-wrap"])
+				nobrk=YES, nowrap=YES;
+			else if([sval isEqualToString:@"pre-line"])
+				trim=YES, nowrap=YES;
+			else if([sval isEqualToString:@"initial"])
+				trim=YES, nowrap=YES;	// wasn't defined but inherited?
+			s=[[string mutableCopy] autorelease];
+			
+			/* we have no access to p here!
+			 if(nowrap)
+			 [p setLineBreakMode:NSLineBreakByClipping];
+			 */
+			if(nobrk)
+				{ // don't break where html says
+					[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+					[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+					[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space				
+				}
+			if(trim)
+				{ // trim multiple spaces
+#if 1	// QUESTIONABLE_OPTIMIZATION
+					while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
+						;
+#endif
+					while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
+						;	// trim multiple spaces to single ones as long as we find them
+					if([s hasPrefix:@" "])
+						{ // new fragment starts with a space
+							NSString *ss=[str string];	// previous string
+							if([ss length] == 0 || [ss hasSuffix:@"\n"] || [ss hasSuffix:@" "])
+								s=(NSMutableString *) [s substringFromIndex:1];	// strip off leading spaces if last fragment indicates that						
+						}
+				}
+			string=s;
+		}
+	val=[style getPropertyCSSValue:@"text-transform"];
+#if 0	// not required since the default is a "no-op"
+	if(!val)
+		val=@"none";
+#endif
+	if(val && [string length] > 0)
+		{
+		sval=[val _toString];
+		if([sval isEqualToString:@"uppercase"])
+			string=[string uppercaseString];
+		else if([sval isEqualToString:@"lowercase"])
+			string=[string lowercaseString];
+		else if([sval isEqualToString:@"capitalize"])
+			string=[string capitalizedString];
+		else if([sval isEqualToString:@"password"])
+			string=[@"" stringByPaddingToLength:[string length] withString:@"*" startingAtIndex:0];
+		}
+	// FIXME: now we usually have "initial" here!!!
+	val=[style getPropertyCSSValue:@"quotes"];
+	if(val)
+		{
+		sval=[val _toString];
+		// handle "quotes: "
+		}
+	if([visibility isEqualToString:@"hidden"])
+		{ // replace by string with spaces of same length
+		string=[@"" stringByPaddingToLength:[string length] withString:@" " startingAtIndex:0];
+		}
+
+	/* attributes and paragraph style modifications */
+	
+	p=[[parentAttributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];	// start with inherited paragraph style
+	if(!p)
+		p=[[[NSMutableParagraphStyle alloc] init] autorelease];	// start with default paragraph style
+	[attributes setObject:p forKey:NSParagraphStyleAttributeName];
 	
 	if(childNodes && ([childNodes length] > 0 || [string length] > 0))
 		{ // calculate (new) string attributes to apply and pass down to children
-			NSMutableParagraphStyle *p=[[parentAttributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];	// start with inherited paragraph style
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
 			NSFont *ff;	// temporary converted font
-			if(!p) p=[[[NSMutableParagraphStyle alloc] init] autorelease];	// start with default paragraph style
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
-			val=[style getPropertyCSSValue:@"font-family"];
+			val=[style getPropertyCSSValue:@"font-family"];	// here "nil" means "inherit" from parentAttributes
 			if(val)
 				{ // scan through all fonts defined by font-family until we find one that exists and provides the font
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];	// get as string array
@@ -1550,6 +1645,7 @@ enum
 				//    [p setAlignment:NSNaturalTextAlignment];
 				}
 			val=[style getPropertyCSSValue:@"vertical-align"];
+			// default: baseline
 			if(val)
 				{
 				sval=[val _toString];
@@ -1564,6 +1660,7 @@ enum
 				else if([sval isEqualToString:@"bottom"])
 					; // modify table cell if possible
 				}
+			// CHECKME: can we really change both through CSS?
 			val=[style getPropertyCSSValue:@"margin-left"];
 			if(val)
 				{
@@ -1587,8 +1684,6 @@ enum
 				if(s < 0.0) s=0.0;
 				[p setLineSpacing:s];
 				}
-			// setMaximumLineHeight:
-			// setMinimumLineHeight:
 			val=[style getPropertyCSSValue:@"margin-bottom"];
 			if(val)
 				{
@@ -1622,78 +1717,6 @@ enum
 				[p setHeaderLevel:[[val _toString] intValue]];	// if someone wants to convert the attributed string back to HTML...					
 				}
 #endif
-			[attributes setObject:p forKey:NSParagraphStyleAttributeName];
-		}
-	/* text modification */
-	val=[style getPropertyCSSValue:@"white-space"];
-	if(val)
-		{ // must this be defined!? What is the defalult?
-			BOOL nowrap=NO;
-			BOOL nobrk=NO;
-			BOOL trim=NO;
-			NSMutableString *s;
-			sval=[val _toString];
-			if([sval isEqualToString:@"normal"])
-				trim=YES, nobrk=YES;
-			else if([sval isEqualToString:@"nowrap"])
-				trim=YES, nobrk=YES, nowrap=YES;
-			else if([sval isEqualToString:@"pre"])
-				nowrap=YES;
-			else if([sval isEqualToString:@"pre-wrap"])
-				nobrk=YES, nowrap=YES;
-			else if([sval isEqualToString:@"pre-line"])
-				trim=YES, nowrap=YES;
-			s=[[string mutableCopy] autorelease];
-
-/* we have no access to p here!
-			if(nowrap)
-				[p setLineBreakMode:NSLineBreakByClipping];
-*/
-			if(nobrk)
-				{ // don't break where html says
-					[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-					[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-					[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space				
-				}
-			if(trim)
-				{ // trim multiple spaces
-#if 1	// QUESTIONABLE_OPTIMIZATION
-					while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
-						;
-#endif
-					while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
-						;	// trim multiple spaces to single ones as long as we find them
-					if([s hasPrefix:@" "])
-						{ // new fragment starts with a space
-							NSString *ss=[str string];	// previous string
-							if([ss length] == 0 || [ss hasSuffix:@"\n"] || [ss hasSuffix:@" "])
-								s=(NSMutableString *) [s substringFromIndex:1];	// strip off leading spaces if last fragment indicates that						
-						}
-				}
-			string=s;
-		}
-	val=[style getPropertyCSSValue:@"text-transform"]; 
-	if(val)
-		{
-		sval=[val _toString];
-		if([sval isEqualToString:@"uppercase"])
-			string=[string uppercaseString];
-		else if([sval isEqualToString:@"lowercase"])
-			string=[string lowercaseString];
-		else if([sval isEqualToString:@"capitalize"])
-			string=[string capitalizedString];
-		else if([sval isEqualToString:@"password"])
-			string=[@"" stringByPaddingToLength:[string length] withString:@"*" startingAtIndex:0];
-		}
-	val=[style getPropertyCSSValue:@"quotes"];
-	if(val)
-		{
-		sval=[val _toString];
-		// handle "quotes: "
-		}
-	if([visibility isEqualToString:@"hidden"])
-		{
-		// replace by string with spaces of same length
 		}
 	if(lastIsInline && !isInline)
 		{ // we need to close the last inline segment and prefix new block mode segment
@@ -1715,10 +1738,10 @@ enum
 		}
 	else if([display isEqualToString:@"list-item"])
 		{ // special case to implement <li>
-			NSMutableParagraphStyle *p;
 			NSArray *list;
 			NSTextList *item;
 			NSString *value;
+			NSString *listStyle;
 			int level=0;	// nesting level
 			DOMHTMLElement *listElement=(DOMHTMLElement *) [node parentNode];	// enclosing list
 			DOMHTMLElement *le;	// used for finding the nesting level
@@ -1749,17 +1772,17 @@ enum
 					if(item == node)
 					   break;	// we have found our index
 				}
-#if 0	// to be evaluated
+#if NOT_IMPLEMENTED	// to be evaluated
 			val=[style getPropertyCSSValue:@"list-style-image"];	// url()
 			val=[style getPropertyCSSValue:@"list-style-position"];	// outside, inside, inherit
 #endif
 			// get nesting level (go tree upwards and count <ol>, <ul>, <dl> parents
 			// go up and find the enclosing <ol> to get the autoincrementing number by finding which index we are
 			// or use the CSS counter() mechanism
-			p=[attributes objectForKey:NSParagraphStyleAttributeName];
 			list=[p textLists];	// get (nested) list
+			listStyle=[[style getPropertyCSSValue:@"list-style-type"] _toString];
 			item=[[NSClassFromString(@"NSTextList") alloc] 
-				  initWithMarkerFormat:[NSString stringWithFormat:@"{%@}", [[style getPropertyCSSValue:@"list-style-type"] _toString]] 
+				  initWithMarkerFormat:[NSString stringWithFormat:@"{%@}%@ ", listStyle, [listStyle isEqualToString:@"decimal"]?@".":@""] 
 								 options:NSTextListPrependEnclosingMarker];
 			if(item)
 				{
@@ -1775,11 +1798,11 @@ enum
 				}
 			else
 				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
+			[p setHeadIndent:20.0*level];
+			[p setFirstLineHeadIndent:20.0*level];
 #if 0
 			NSLog(@"lists=%@", list);
 #endif
-			// change indentation
-			// [attributes setObject:p forKey:NSParagraphStyleAttributeName];
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:value attributes:attributes] autorelease]];
 		}
 	else if([display isEqualToString:@"inline-block"])
@@ -1804,10 +1827,9 @@ enum
 			NSLog(@"  cell: %@", cell);
 #endif
 		}
-#if 0	// needs to be implemented (+ the other table related display: styles)
+#if NOT_IMPLEMENTED	// needs to be implemented (+ the other table related display: styles)
 	else if([display isEqualToString:@"table"])
 		{ // display as table
-		NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 		unsigned cols=[[self valueForKey:@"cols"] intValue];
 #if 0
 		NSLog(@"<table>: %@", [self _attributes]);
@@ -1815,20 +1837,18 @@ enum
 		table=[[NSClassFromString(@"NSTextTable") alloc] init];
 		[table setHidesEmptyCells:YES];
 		[table setNumberOfColumns:cols];	// will be increased automatically as needed!
-		[table _setTextBlockAttributes:self paragraph:paragraph];
+		[table _setTextBlockAttributes:self paragraph:p];
 		// should use a different method - e.g. store the NSTextTable in an iVar and search us from the siblings
 		// should reset to default paragraph
 		// should reset font style, color etc. to defaults!
 		[_style setObject:@"table" forKey:@"display"];	// a table is a block element, i.e. force a \n before table starts
-		[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-		[paragraph release];
+		[p release];
 #if 0
 		NSLog(@"<table> _style=%@", _style);
 #endif
 		}
 	else if([display isEqualToString:@"table-cell"])
 		{ // add attributes to style
-		NSMutableParagraphStyle *paragraph=[[_style objectForKey:NSParagraphStyleAttributeName] mutableCopy];
 		NSMutableArray *blocks;
 		NSTextTableBlock *cell;
 		DOMHTMLTableElement *tableElement;
@@ -1841,8 +1861,6 @@ enum
 		table=[tableElement _getRow:&row andColumn:&col rowSpan:&rowspan colSpan:&colspan forCell:self];	// ask tableElement for our position
 		if(!table)
 			{ // we are not within a table
-				[paragraph release];
-				return;	// error...
 			}
 		if(col+colspan-1 > [table numberOfColumns])
 			[table setNumberOfColumns:col+colspan-1];			// adjust number of columns of our enclosing table
@@ -1851,7 +1869,7 @@ enum
 																   rowSpan:rowspan
 															startingColumn:col
 																columnSpan:colspan];
-		[(NSTextBlock *) cell _setTextBlockAttributes:self paragraph:paragraph];
+		[(NSTextBlock *) cell _setTextBlockAttributes:self paragraph:p];
 		if([[self nodeName] isEqualToString:@"TH"])
 			{ // make centered and bold paragraph for header cells
 				NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
@@ -1859,20 +1877,18 @@ enum
 				if(f) [_style setObject:f forKey:NSFontAttributeName];
 				[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
 			}
-		blocks=(NSMutableArray *) [paragraph textBlocks];	// the text blocks
+		blocks=(NSMutableArray *) [p textBlocks];	// the text blocks
 		if(!blocks)	// didn't inherit text blocks (i.e. outermost table)
 			blocks=[[NSMutableArray alloc] initWithCapacity:2];	// rarely needs more nesting
 		else
 			blocks=[blocks mutableCopy];
 		[blocks addObject:cell];	// add to list of text blocks
-		[paragraph setTextBlocks:blocks];	// add to paragraph style
+		[p setTextBlocks:blocks];	// add to paragraph style
 		[cell release];
 		[blocks release];	// was either mutableCopy or alloc/initWithCapacity
 #if 0
 		NSLog(@"<td> _style=%@", _style);
 #endif
-		[_style setObject:paragraph forKey:NSParagraphStyleAttributeName];
-		[paragraph release];
 	}	
 #endif
 	else	// any other display: style
@@ -1900,12 +1916,36 @@ enum
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	if(!isInline)
-		{ // close our block
+		{ // close our block and set the maxmimum line height
 			if([[str string] hasSuffix:@" "])
 				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off any trailing space
+			val=[style getPropertyCSSValue:@"height"];
+			if(!val)
+				val=@"auto";
+			if(val)
+				{
+				float height;
+				NSLog(@"height:%@", val);
+				sval=[val _toString];
+				if([sval isEqualToString:@"auto"])
+					{ // "auto" should make it as high as the content needs (0 for empty content)
+						if(initialLength != [str length])	// children or processing has added some contensts
+							height=0.0;	// let NSTypesetter determine height that we need for our contents
+						else
+							height=1e-6;	// make a line with practically invisible height
+					}
+				else // add some epsilon so that we can set the maximum height to virtually 0
+					// specifying "auto" in the parent and 50% here will not return a useful result!
+					height=1e-6+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p maximumLineHeight] andFont:[attributes objectForKey:NSFontAttributeName]];
+				if(height < 0.0) height=0.0;
+				[p setMinimumLineHeight:(height==1e-6)?0.0:height];
+				[p setMaximumLineHeight:height];
+				}
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease]];	// close this block
 		}
+	// FIXME range handling to map nodes <-> character indexes
 	//	_range.length=[str length]-_range.location;	// store resulting range
+	// FIXME: caching not implemented
 	//	[_style release];
 	//	_style=nil;
 }

@@ -1,6 +1,6 @@
 /*
  * part of SimpleWebKit
- * License: GPLÖ
+ * License: GPL
  *
  * default CSS for handling HTML4 tags and attributes
  * see http://www.w3.org/TR/CSS21/sample.html
@@ -8,11 +8,11 @@
 
 /* define defaults */
 
-*				{ display: inline; white-space: inherit; }
+*				{ display: inline; }
 
 /* fixme: there are CSS which (re)define body font-size: 95% - where do we inherit fromin this case? */
 /* fixme: line-height: and margin: interworking for paragraphs isn't correct */
-body			{ white-space: normal; padding: 8px; line-height: 1.0em; margin: 0.83em 0; font-family: serif; font-size: medium; }
+body			{ padding: 8px; line-height: 1.0em; margin: 0.83em 0; font-family: serif; font-size: medium; }
 
 /* define specific display style */
 
@@ -28,7 +28,8 @@ h5, h6, iframe,
 object, ol, p, 
 ul, applet, 
 center, dir, 
-hr, menu, pre	{ display: block; }
+hr, menu, pre,
+dl, dt			{ display: block; }
 head, title,
 meta, link,
 base,
@@ -43,7 +44,7 @@ col				{ display: table-column; }
 colgroup		{ display: table-column-group; }
 td, th			{ display: table-cell; }
 caption			{ display: table-caption; text-align: center;  }
-li, dl, dt		{ display: list-item; }
+li				{ display: list-item; }
 fieldset		{ display: inline-block; border: 1px; }	/* define border/box */
 
 center			{ text-align: center; }
@@ -60,6 +61,8 @@ sup				{ vertical-align: super; font-size: smaller; }
 big				{ font-size: larger; }
 small			{ font-size: smaller; }
 blockquote      { margin-left: 40px; margin-right: 40px; }
+dt, li			{ margin-left: 20px }
+dd				{ margin-left: 40px }
 h1				{ x-header-level: 1; font-size: xx-large; font-weight: bold; margin: 0.67em 0; }
 h2				{ x-header-level: 2; font-size: x-large; font-weight: bold; margin: 0.75em 0; }
 h3				{ x-header-level: 3; font-size: large; font-weight: bold; margin: 0.83em 0; }

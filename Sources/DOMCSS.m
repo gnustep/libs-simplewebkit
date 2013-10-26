@@ -2150,7 +2150,7 @@
 		}
 	if(!inherit)
 		inherit=[[DOMCSSValue alloc] initWithString:@"inherit"];
-	/* add any missing default inheritance */
+	/* add any default values */
 	if(![style getPropertyCSSValue:@"color"]) [style setProperty:@"color" CSSvalue:inherit priority:nil];
 	if(![style getPropertyCSSValue:@"cursor"]) [style setProperty:@"cursor" CSSvalue:inherit priority:nil];
 	if(![style getPropertyCSSValue:@"direction"]) [style setProperty:@"direction" CSSvalue:inherit priority:nil];
