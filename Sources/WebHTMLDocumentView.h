@@ -109,6 +109,7 @@ extern NSString *DOMHTMLAnchorElementAnchorName;
 @end
 
 @interface DOMCSSValue (Private)
+- (id) initWithString:(NSString *) style;
 - (NSString *) _toString;	// value as string (independent of type)
 - (NSArray *) _toStringArray;
 - (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
