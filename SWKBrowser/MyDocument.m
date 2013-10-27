@@ -848,7 +848,7 @@
 	if(aTableView == viewAttribs)
 		{
 		if(!currentView)
-			return;
+			return 0;
 		if(!viewAttribNames)
 			{
 			[currentView class];
