@@ -2135,6 +2135,11 @@
 					 @"orphans",
 					 @"page-break-inside",
 					 @"widows",
+					 /* private extensions */
+					 @"x-link",
+					 @"x-tooltip",
+					 @"x-target-window",
+					 @"x-anchor",
 					 nil];	
 	if(!initializable)	// these properties are initialized (unless overwritten)
 		initializable=[[NSDictionary alloc] initWithObjectsAndKeys:
