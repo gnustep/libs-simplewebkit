@@ -71,6 +71,7 @@
 @end
 
 @interface DOMCSSValue (Private)
+- (id) initWithString:(NSString *) str;
 - (NSString *) _toString;	// value as string (independent of type)
 - (NSArray *) _toStringArray;
 - (float) getFloatValue:(unsigned short) unitType relativeTo100Percent:(float) base andFont:(NSFont *) font;
@@ -216,8 +217,8 @@
  
  Conclusions:
  * shorthand properties are translated directly
- * some missing values are set to 'initial' (!)
- * duplicates remain duplicate (!), i.e. the priority/cascading rules choose between duplicates
+ * some missing values are set to 'initial' while others are 'inherit'
+ * duplicates remain duplicate (!), i.e. the priority/cascading rules have to choose between duplicates
  
 */
 
@@ -225,18 +226,15 @@
 { // check for and translate shorthand properties; see: http://www.dustindiaz.com/css-shorthand/
 	DOMCSSValue *val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];	// at least one
 	BOOL inherit=[val cssValueType] == DOM_CSS_INHERIT;
-	static DOMCSSValue *initial;
-	if(!initial)
-		initial=[[DOMCSSValue alloc] initWithString:@"initial"];
 #if 0
 	NSLog(@"_handleProperty: %@", property);
 #endif	
 	if([property isEqualToString:@"margin"] || [property isEqualToString:@"padding"])
-		{ // margin/padding: [ width | percent | auto ] { 1, 4 } | inherit
-			DOMCSSValue *top=inherit?val:initial;
-			DOMCSSValue *right=inherit?val:initial;
-			DOMCSSValue *bottom=inherit?val:initial;
-			DOMCSSValue *left=inherit?val:initial;
+		{ // margin/padding: [ width | percent | auto ] { 1, 4 } | inherit - not inherited by default
+			DOMCSSValue *top=inherit?val:nil;
+			DOMCSSValue *right=inherit?val:nil;
+			DOMCSSValue *bottom=inherit?val:nil;
+			DOMCSSValue *left=inherit?val:nil;
 			if(!inherit)
 				{ // collect up to 4 values clockwise from top to left
 					if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] != DOM_CSS_UNKNOWN)
@@ -257,10 +255,10 @@
 							}
 						}
 				}
-			[items setObject:top forKey:[property stringByAppendingString:@"-top"]];
-			[items setObject:right forKey:[property stringByAppendingString:@"-right"]];
-			[items setObject:bottom forKey:[property stringByAppendingString:@"-bottom"]];
-			[items setObject:left forKey:[property stringByAppendingString:@"-left"]];
+			if(top) [items setObject:top forKey:[property stringByAppendingString:@"-top"]];
+			if(right) [items setObject:right forKey:[property stringByAppendingString:@"-right"]];
+			if(bottom) [items setObject:bottom forKey:[property stringByAppendingString:@"-bottom"]];
+			if(left) [items setObject:left forKey:[property stringByAppendingString:@"-left"]];
 			return YES;
 		}
 	if([property isEqualToString:@"border"]
@@ -269,10 +267,10 @@
 	   || [property isEqualToString:@"border-right"]
 	   || [property isEqualToString:@"border-bottom"]
 	   || [property isEqualToString:@"border-left"])
-		{ // border: [ border-width || border-style || border-color ] | inherit;
-			DOMCSSValue *width=inherit?val:initial;
-			DOMCSSValue *style=inherit?val:initial;
-			DOMCSSValue *color=inherit?val:initial;
+		{ // border: [ border-width || border-style || border-color ] | inherit; - not inherited by default
+			DOMCSSValue *width=inherit?val:nil;
+			DOMCSSValue *style=inherit?val:nil;
+			DOMCSSValue *color=inherit?val:nil;
 			if(!inherit)
 				{
 				while([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] != DOM_CSS_UNKNOWN)
@@ -303,29 +301,32 @@
 					}
 				}
 			// FIXME: should border-style etc. set all four variants of border-top-style?
-			[items setObject:width forKey:[property stringByAppendingString:@"-width"]];
-			[items setObject:style forKey:[property stringByAppendingString:@"-style"]];
-			[items setObject:color forKey:[property stringByAppendingString:@"-color"]];
+			if(width) [items setObject:width forKey:[property stringByAppendingString:@"-width"]];
+			if(style) [items setObject:style forKey:[property stringByAppendingString:@"-style"]];
+			if(color) [items setObject:color forKey:[property stringByAppendingString:@"-color"]];
 			return YES;
 		}
 	if([property isEqualToString:@"list-style"])
-		{ // list-style: [ -type || -image || -position ] | inherit
+		{ // list-style: [ -type || -image || -position ] | inherit -- default is inherit
+			// FIXME
 		return YES;
 		}
 	if([property isEqualToString:@"background"])
-		{ // background: [ -color || -image || -repeat || -attachment || -position ] | inherit
+		{ // background: [ -color || -image || -repeat || -attachment || -position ] | inherit -- not inherited by defaul
+			// FIXME
 		return YES;
 		}
 	if([property isEqualToString:@"font"])
-		{ // font: [[ -style || -variant || -weight] -size [ / -height ] -family ] | caption | icon | menu | ... | inherit
-			// check for inherit or system font
+		{ // font: [[ -style || -variant || -weight] -size [ / -height ] -family ] | caption | icon | menu | ... | inherit - default is inherit
+			NSLog(@"please implement 'font' shorthand urgently!");
+			// FIXME: check for inherit or system font
 		return YES;
 		}
 	if([property isEqualToString:@"pause"] || [property isEqualToString:@"cue"])
-		{ // pause: [[ time | percent ]{1,2} | inherit
+		{ // pause: [[ time | percent ]{1,2} | inherit - not inherited by default
 			// cue: [ cue-before || cue-after ] | inherit
-			DOMCSSValue *before=inherit?val:initial;
-			DOMCSSValue *after=inherit?val:initial;
+			DOMCSSValue *before=inherit?val:nil;
+			DOMCSSValue *after=inherit?val:nil;
 			if(!inherit)
 				{ // collect up to 2 values
 					if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE && [(DOMCSSPrimitiveValue *) val primitiveType] != DOM_CSS_UNKNOWN)
@@ -336,8 +337,8 @@
 							after=val;
 						}
 				}
-			[items setObject:before forKey:[property stringByAppendingString:@"-before"]];
-			[items setObject:after forKey:[property stringByAppendingString:@"-after"]];
+			if(before) [items setObject:before forKey:[property stringByAppendingString:@"-before"]];
+			if(after) [items setObject:after forKey:[property stringByAppendingString:@"-after"]];
 			return YES;
 		}
 	[items setObject:val forKey:property];	// not a shorthand, i.e. a single-value
@@ -2088,14 +2089,147 @@
 
 @implementation WebView (CSS)
 
+// a missing entry always means "initial" value
+// to check for inheritance (implicit or explicit), compare with the same property of the parent
+
 - (DOMCSSStyleDeclaration *) _styleForElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement parentStyle:(DOMCSSStyleDeclaration *) parent;
 { // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
 	NSAutoreleasePool *arp=[NSAutoreleasePool new];
 	int i, cnt;
 	WebPreferences *preferences=[self preferences];
 	DOMCSSStyleDeclaration *style;
-	static DOMCSSValue *inherit;
 	static DOMCSSStyleSheet *defaultSheet;
+	static NSArray *inheritable;
+	static NSDictionary *initializable;
+	NSEnumerator *e;
+	NSString *property;
+	if(!inheritable)	// these properties are inherited (unless overwritten)
+		inheritable=[[NSArray alloc] initWithObjects:
+					 /* visuals */
+					 @"color",
+					 @"cursor",
+					 @"direction",
+					 @"font-family",
+					 @"font-size",
+					 @"font-style",
+					 @"font-variant",
+					 @"font-weight",
+					 @"letter-spacing",
+					 @"line-height",
+					 @"list-style",
+					 @"list-style-image",
+					 @"list-style-position",
+					 @"list-style-type",
+					 @"quotes",
+					 @"text-align",
+					 @"text-indent",
+					 @"text-transform",
+					 @"visibility",
+					 @"word-spacing",
+					 /* table */
+					 @"border-collapse",
+					 @"border-spacing",
+					 @"empty-cells",
+					 @"table-layout",
+					 /* page layout */
+					 @"orphans",
+					 @"page-break-inside",
+					 @"widows",
+					 nil];	
+	if(!initializable)	// these properties are initialized (unless overwritten)
+		initializable=[[NSDictionary alloc] initWithObjectsAndKeys:
+					   // FIXME: all those that are also inherited could be defined in the default.css for the <body> selector
+					   // OPTIMIZE: we could parse the values into DOMCSSValues right here
+					   /* visuals */
+					   @"scroll", @"background-attachment",
+					   @"transparent", @"background-color",
+					   @"none", @"background-image",
+					   @"0%0%", @"background-position",
+					   @"repeat", @"background-repeat",
+					   
+					   @"attr(color)", @"border-bottom-color",
+					   @"none", @"border-bottom-style",
+					   @"medium", @"border-bottom-width",
+					   @"attr(color)", @"border-left-color",
+					   @"none", @"border-left-style",
+					   @"medium", @"border-left-width",
+					   @"attr(color)", @"border-right-color",
+					   @"none", @"border-right-style",
+					   @"medium", @"border-right-width",
+					   @"attr(color)", @"border-top-color",
+					   @"none", @"border-top-style",
+					   @"medium", @"border-top-width",
+					   @"auto", @"bottom",
+					   @"none", @"clear",
+					   @"auto", @"clip",
+					   /*   @"initial", @"color", must be done by code */
+					   @"normal", @"content",
+					   /*   @"1", @"counter-increment", must be done by code */
+					   /*   @"1", @"counter-reset", must be done by code */
+					   @"auto", @"cursor",
+					   @"ltr", @"direction",
+					   @"inline", @"display",
+					   @"auto", @"height",
+					   @"none", @"float",
+					   /*   @"initial", @"font-family", must be done by code */
+					   /*   @"initial", @"font-family", must be done by code */
+					   @"medium", @"font-size",
+					   @"normal", @"font-style",
+					   @"normal", @"font-variant",
+					   @"normal", @"font-weight",
+					   @"normal", @"height",
+					   @"auto", @"left",
+					   @"normal", @"letter-spacing",
+					   @"normal", @"line-height",
+					   @"none", @"list-style-image",
+					   @"outside", @"list-style-position",
+					   @"disc", @"list-style-type",
+					   // checkme - what does margin: do? should be set to nil by default
+					   @"0", @"margin-bottom",
+					   @"0", @"margin-left",
+					   @"0", @"margin-right",
+					   @"0", @"margin-top",
+					   @"none", @"max-height",
+					   @"none", @"max-width",
+					   @"0", @"min-height",
+					   @"0", @"min-width",
+					   @"invert", @"outline-color",
+					   @"none", @"outline-style",
+					   @"medium", @"outline-width",
+					   @"visible", @"overflow",
+					   @"0", @"padding-bottom",
+					   @"0", @"padding-left",
+					   @"0", @"padding-right",
+					   @"0", @"padding-top",
+					   @"static", @"position",
+					   // CHECKME: can we parse this correctly?
+					   /* @"'\201C' '\201D' '\2018' '\2019' ", @"quotes", */
+					   @"auto", @"right",
+					   @"left", @"text-align",	/* may be defined differently */
+					   @"none", @"text-decoration",
+					   @"0", @"text-indent",
+					   @"none", @"text-transform",
+					   @"auto", @"top",
+					   @"normal", @"unicode-bidi",
+					   @"baseline", @"vertical-align",
+					   @"visible", @"visibility",
+					   @"normal", @"white-space",
+					   @"auto", @"width",
+					   @"normal", @"word-spacing",
+					   @"auto", @"z-index",
+					   /* table */
+					   @"separate", @"border-collapse",
+					   @"0", @"border-spacing",
+					   @"top", @"caption-side",
+					   @"show", @"empty-cells",
+					   @"auto", @"table-layout",
+					   /* page layout */
+					   @"2", @"orphans",
+					   @"auto", @"page-break-after",
+					   @"auto", @"page-break-before",
+					   @"auto", @"page-break-inside",
+					   @"2", @"widows",
+					   nil];
 	style=[[DOMCSSStyleDeclaration new] autorelease];
 	if([element isKindOfClass:[DOMElement class]])
 		{ // has no CSS capabilites - but should still be able to inherit default styles
@@ -2148,45 +2282,17 @@
 						}
 				}
 		}
-	if(!inherit)
-		inherit=[[DOMCSSValue alloc] initWithString:@"inherit"];
-	/* add any default values */
-	if(![style getPropertyCSSValue:@"color"]) [style setProperty:@"color" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"cursor"]) [style setProperty:@"cursor" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"direction"]) [style setProperty:@"direction" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"font-family"]) [style setProperty:@"font-family" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"font-size"]) [style setProperty:@"font-size" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"font-style"]) [style setProperty:@"font-style" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"font-variant"]) [style setProperty:@"font-variant" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"font-weight"]) [style setProperty:@"font-weight" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"letter-spacing"]) [style setProperty:@"letter-spacing" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"line-height"]) [style setProperty:@"line-height" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"list-style"]) [style setProperty:@"list-style" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"list-style-image"]) [style setProperty:@"list-style-image" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"list-style-position"]) [style setProperty:@"list-style-position" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"list-style-type"]) [style setProperty:@"list-style-type" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"quotes"]) [style setProperty:@"quotes" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"text-align"]) [style setProperty:@"text-align" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"text-indent"]) [style setProperty:@"text-indent" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"text-transform"]) [style setProperty:@"text-transform" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"visibility"]) [style setProperty:@"visibility" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"word-spacing"]) [style setProperty:@"word-spacing" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"border-collapse"]) [style setProperty:@"border-collapse" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"border-spacing"]) [style setProperty:@"border-spacing" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"empty-cells"]) [style setProperty:@"empty-cells" CSSvalue:inherit priority:nil];
-	if(![style getPropertyCSSValue:@"table-layout"]) [style setProperty:@"table-layout" CSSvalue:inherit priority:nil];
 	cnt=[style length];
 	for(i=0; i<cnt; i++)
 		{ // expand functions and inheritance
-			NSString *property=[style item:i];
+			property=[style item:i];
 			DOMCSSValue *val=[style getPropertyCSSValue:property];
 			if([val cssValueType] == DOM_CSS_INHERIT)
-				{
+				{ // try to inherit from parent (nil in the parent means "initial")
 				DOMCSSValue *newval;
 				newval=[parent getPropertyCSSValue:property];
-				if(!newval)
-					newval=[[[DOMCSSPrimitiveValue alloc] initWithString:@"initial"] autorelease];							
-				[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
+				if(newval)
+					[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
 				}
 			else
 				{
@@ -2194,6 +2300,34 @@
 				if(eval != val)
 					[style setProperty:property CSSvalue:eval priority:nil];
 				}
+		}
+	e=[inheritable objectEnumerator];
+	while((property=[e nextObject]))
+		{ // check that we inherit all default inheritances
+			DOMCSSValue *val=[style getPropertyCSSValue:property];
+			if(!val)
+				{ // not yet defined
+					DOMCSSValue *newval;
+					newval=[parent getPropertyCSSValue:property];
+					if(newval)	// inherit from parent - leave nil if still undefined
+						[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
+				}
+		}
+	e=[initializable keyEnumerator];
+	while((property=[e nextObject]))
+		{ // or we make a third loop with auto-init for still undefined values (and check for "inherit" string here)
+			DOMCSSValue *val=[style getPropertyCSSValue:property];
+			if(val)
+				{ // check if CSS explicitly specifies "initial" -> then overwrite any inheritance
+					if([val isKindOfClass:[DOMCSSPrimitiveValue class]])
+						continue;
+					if([(DOMCSSPrimitiveValue *) val primitiveType] != DOM_CSS_STRING)
+						continue;	// not a string
+					if(![[(DOMCSSPrimitiveValue *) val getStringValue] isEqualToString:@"initial"])
+						continue;
+				}
+			// FIXME: if we allow to initialize with attr(color) we have to evaluate it here - but we may not even know the color yet!
+			[style setProperty:property CSSvalue:[[[DOMCSSValue alloc] initWithString:[initializable objectForKey:property]] autorelease] priority:@""];
 		}
 	[style retain];
 	[arp release];
