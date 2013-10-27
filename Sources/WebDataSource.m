@@ -136,7 +136,7 @@
 #if 0
 		NSLog(@"start new load");
 #endif
-		subsource=[[[isa alloc] initWithRequest:[NSURLRequest requestWithURL:url]] autorelease];	// make new request
+		subsource=[[[[self class] alloc] initWithRequest:[NSURLRequest requestWithURL:url]] autorelease];	// make new request
 		[subsource _setParentDataSource:self];
 		if(!rep)
 			rep=[[_WebDocumentRepresentation new] autorelease]; // someone must handle...

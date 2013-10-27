@@ -450,7 +450,7 @@ enum
 	NSTextStorage *ts;
 	NSScrollView *sc=[view enclosingScrollView];
 #if 0
-	NSLog(@"%@ _layout: %@", NSStringFromClass(isa), view);
+	NSLog(@"%@ _layout: %@", NSStringFromClass([self class]), view);
 	NSLog(@"attribs: %@", [self _attributes]);
 #endif
 	if(![view isKindOfClass:[_WebHTMLDocumentView class]])
@@ -664,7 +664,7 @@ enum
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[_dataSource webFrame] DOMDocument] firstChild];
 	DOMHTMLElement *body=(DOMHTMLElement *) [html lastChild];	// either <body> or could be a <frameset>
 #if 0
-	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
+	NSLog(@"%@ %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
 	[body performSelector:@selector(_layout:) withObject:self afterDelay:0.0];	// process the <body> tag (could also be a <frameset>) from the runloop
@@ -780,7 +780,7 @@ enum
 	DOMHTMLHtmlElement *html=(DOMHTMLHtmlElement *) [[[[_dataSource webFrame] DOMDocument] firstChild] firstChild];
 	DOMHTMLElement *frameset=(DOMHTMLElement *) [html lastChild];	// should be a <frameset>
 #if 0
-	NSLog(@"%@ %@", NSStringFromClass(isa), NSStringFromSelector(_cmd));
+	NSLog(@"%@ %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 #endif
 	_needsLayout=NO;
 	[frameset _layout:self];	// process the <frameset> tag
@@ -1244,8 +1244,10 @@ enum
  * and keep only the handling of inheritance, block vs. inline in this method
  */
 
-// FIXME: noch mehr "inherit" bei Attributen verarbeiten und Wert aus parentAttribs übernehmen
-// unklar: was heißt 'inherit' bei pseudoElements?
+/* CHECKME:
+ * [style getPropertyCSSValue:@"prop"] == nil only for (uninherited, uninitialized) attributes
+ * we can check if a style is really inherited by [style getPropertyCSSValue:@"prop"] == [parent getPropertyCSSValue:@"prop"]
+ */
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
@@ -1296,13 +1298,8 @@ enum
 
 	string=[(DOMHTMLElement *) node _string];	// may be nil
 	
-	// FIXME: correctly handle default values!
-	// handle (ignore) incompatible/unknown values, i.e. specifying a list as the font size
-	
 	/* text modification */
 	val=[style getPropertyCSSValue:@"white-space"];
-	if(!val)
-		val=@"normal";	// here "inherit" means to use the default value
 	if(val && [string length] > 0)
 		{ // must this be defined!? What is the default?
 			BOOL nowrap=NO;
@@ -1352,10 +1349,6 @@ enum
 			string=s;
 		}
 	val=[style getPropertyCSSValue:@"text-transform"];
-#if 0	// not required since the default is a "no-op"
-	if(!val)
-		val=@"none";
-#endif
 	if(val && [string length] > 0)
 		{
 		sval=[val _toString];
@@ -1387,13 +1380,15 @@ enum
 		p=[[[NSMutableParagraphStyle alloc] init] autorelease];	// start with default paragraph style
 	[attributes setObject:p forKey:NSParagraphStyleAttributeName];
 	
+	/* replace this by attributes=[self _updateAttributes:parentAttributes forNode:node style:style]; */
+
 	if(childNodes && ([childNodes length] > 0 || [string length] > 0))
 		{ // calculate (new) string attributes to apply and pass down to children
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
 			NSFont *ff;	// temporary converted font
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
-			val=[style getPropertyCSSValue:@"font-family"];	// here "nil" means "inherit" from parentAttributes
-			if(val)
+			val=[style getPropertyCSSValue:@"font-family"];
+			if(val != [parent getPropertyCSSValue:@"font-family"])
 				{ // scan through all fonts defined by font-family until we find one that exists and provides the font
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];	// get as string array
 					NSString *fname;
@@ -1423,8 +1418,8 @@ enum
 						}
 				}
 			val=[style getPropertyCSSValue:@"font-size"];
-			if(val)
-				{
+			if(val != [parent getPropertyCSSValue:@"font-size"])
+				{ // not inherited
 				float sz;
 				float def=[f isFixedPitch]?[preferences defaultFixedFontSize]:[preferences defaultFontSize];
 				sz=[[parentAttributes objectForKey:NSFontAttributeName] pointSize]/[self textSizeMultiplier];	// inherited size
@@ -1481,8 +1476,8 @@ enum
 				if(ff) f=ff;
 				}
 			val=[style getPropertyCSSValue:@"font-style"];
-			if(val)
-				{
+			if(val != [parent getPropertyCSSValue:@"font-style"])
+				{ // not inherited
 				sval=[val _toString];
 				ff=nil;
 				if([sval isEqualToString:@"normal"])
@@ -1494,8 +1489,8 @@ enum
 				if(ff) f=ff;
 				}
 			val=[style getPropertyCSSValue:@"font-weight"];
-			if(val)
-				{
+			if(val != [parent getPropertyCSSValue:@"font-weight"])
+				{ // not inherited
 				sval=[val _toString];
 				ff=nil;
 				if([sval isEqualToString:@"normal"])
@@ -1511,7 +1506,7 @@ enum
 				if(ff) f=ff;
 				}
 			val=[style getPropertyCSSValue:@"font-variant"];
-			if(val)
+			if(val != [parent getPropertyCSSValue:@"font-variant"])
 				{
 				sval=[val _toString];
 				ff=nil;
@@ -1523,7 +1518,7 @@ enum
 				}
 			[attributes setObject:f forKey:NSFontAttributeName];
 			val=[style getPropertyCSSValue:@"text-decoration"];
-			if(val)
+			if(val != [parent getPropertyCSSValue:@"text-decoration"])
 				{ // set underline, overline, strikethrough - try to blink
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];
 					NSString *deco;
@@ -1550,14 +1545,14 @@ enum
 						}
 				}
 			val=[style getPropertyCSSValue:@"color"];
-			if(val)
+			if(val != [parent getPropertyCSSValue:@"color"])
 				{
 				NSColor *color=[val _getNSColorValue];
 				if(color)
 					[attributes setObject:color forKey:NSForegroundColorAttributeName];
 				}
 			val=[style getPropertyCSSValue:@"cursor"];
-			if(val)
+			if(val != [parent getPropertyCSSValue:@"cursor"])
 				{
 				NSCursor *cursor=nil;
 				sval=[val _toString];
@@ -1574,25 +1569,25 @@ enum
 					[attributes setObject:cursor forKey:NSCursorAttributeName];
 				}
 			val=[style getPropertyCSSValue:@"x-link"];
-			if(val)
-				{
+			if(val != [parent getPropertyCSSValue:@"x-link"])
+				{ // not inherited
 				sval=[val _toString];
 				[attributes setObject:sval forKey:NSLinkAttributeName];	// set the link (as a string)
 				}
 			val=[style getPropertyCSSValue:@"x-tooltip"];
-			if(val)
-				{
+			if(val != [parent getPropertyCSSValue:@"x-tooltip"])
+				{ // not inherited
 				sval=[val _toString];
 				[attributes setObject:sval forKey:NSToolTipAttributeName];	// set the tooltip string
 				}
 			val=[style getPropertyCSSValue:@"x-target-window"];
-			if(val)
+			if(val != [parent getPropertyCSSValue:@"x-target-window"])
 				{
 				sval=[val _toString];
 				[attributes setObject:sval forKey:DOMHTMLAnchorElementTargetWindow];	// set the target window name string
 				}
 			val=[style getPropertyCSSValue:@"x-anchor"];
-			if(val)
+			if(val != [parent getPropertyCSSValue:@"x-anchor"])
 				{
 				sval=[val _toString];
 				[attributes setObject:sval forKey:DOMHTMLAnchorElementAnchorName];	// set the anchor
@@ -1628,6 +1623,8 @@ enum
 				// attach a NSImageView subview to the textview
 				}
 #endif
+			/* replace this by paragraphStyle=[self _updateParagraphStyle:p forNode:node style:style]; */
+
 			/* paragraph style */
 			val=[style getPropertyCSSValue:@"text-align"];
 			if(val)
@@ -1664,12 +1661,13 @@ enum
 			val=[style getPropertyCSSValue:@"margin-left"];
 			if(val)
 				{
-				[p setFirstLineHeadIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p firstLineHeadIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				[p setHeadIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p headIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
-			val=[style getPropertyCSSValue:@"margin-left"];
+			val=[style getPropertyCSSValue:@"text-indent"];
 			if(val)
 				{
-				[p setHeadIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p headIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				// fixme: 100% should probably be the with of the enclosing box...
+				[p setFirstLineHeadIndent:[p headIndent]+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p firstLineHeadIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
 			// setHyphenationFactor:
 			// setLineBreakMode: -- does this depend on white-space == pre?
@@ -1732,6 +1730,9 @@ enum
 		{ // special case to implement <q>
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
+	
+	/* replace this by [self _spliceNode:node to:str displayStyle:display style:style attributes:attributes]; */
+
 	if([display isEqualToString:@"break-line"])
 		{ // special case to implement <br>
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease]];
@@ -1920,8 +1921,6 @@ enum
 			if([[str string] hasSuffix:@" "])
 				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off any trailing space
 			val=[style getPropertyCSSValue:@"height"];
-			if(!val)
-				val=@"auto";
 			if(val)
 				{
 				float height;
@@ -1929,7 +1928,7 @@ enum
 				sval=[val _toString];
 				if([sval isEqualToString:@"auto"])
 					{ // "auto" should make it as high as the content needs (0 for empty content)
-						if(initialLength != [str length])	// children or processing has added some contensts
+						if(initialLength != [str length])	// children or processing has added some contents
 							height=0.0;	// let NSTypesetter determine height that we need for our contents
 						else
 							height=1e-6;	// make a line with practically invisible height

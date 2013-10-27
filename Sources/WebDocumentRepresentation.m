@@ -39,7 +39,7 @@
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+	NSLog(@"%@ receivedError: %@", NSStringFromClass([self class]), error);
 }
 
 // default implementations

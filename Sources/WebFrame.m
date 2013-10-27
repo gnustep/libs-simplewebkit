@@ -70,7 +70,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 - (void) dealloc;
 {
 #if 0
-	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
+	NSLog(@"dealloc %@: %@", NSStringFromClass([self class]), self);
 #endif
 	[self stopLoading];	// cancel any pending actions (i.e. _provisionalDataSource)
 	[[_webView frameLoadDelegate] webView:_webView willCloseFrame:self];

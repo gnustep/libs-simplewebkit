@@ -305,7 +305,7 @@
 }
 
 - (void) dealloc; { [_value release]; [super dealloc]; }
-- (NSString *) description; { return [NSString stringWithFormat:_value?@"%@=%@":@"%@", _nodeName, _value]; }
+- (NSString *) description; { return _value?[NSString stringWithFormat:@"%@=%@", _nodeName, _value]:[NSString stringWithFormat:@"%@", _nodeName]; }
 
 - (NSString *) name; { return _nodeName; }
 - (DOMElement *) ownerElement; { return (DOMElement *) _parentNode; }

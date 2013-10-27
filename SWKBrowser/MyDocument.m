@@ -786,9 +786,10 @@
 			{
 			[domSource setString:[selectedItem nodeValue]];
 			[currentItem release];
-			currentItem=nil;
+			currentItem=[selectedItem retain];
 			[currentCSS release];
-			currentCSS=nil;
+			currentCSS=[webView computedStyleForElement:currentItem pseudoElement:@""];
+			[currentCSS retain];
 			}
 		else 
 			{
@@ -839,7 +840,7 @@
 		{
 		if([currentItem respondsToSelector:@selector(attributes)])
 			return [[(DOMElement *) currentItem attributes] length];
-		return 1;
+		return 0;
 		}
 	if(aTableView == domCSS)
 		{

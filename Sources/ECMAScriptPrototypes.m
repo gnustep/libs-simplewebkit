@@ -60,7 +60,7 @@
 }
 
 - (WebScriptObject *) _prototype; { return prototype; }
-- (NSString *) _class; { return NSStringFromClass(isa); }	// default...
+- (NSString *) _class; { return NSStringFromClass([self class]); }	// default...
 
 - (id) valueForKey:(NSString *) property;
 { // 8.6.2.1
@@ -111,34 +111,34 @@
 	if([hint isSubclassOfClass:[NSString class]] || [self isKindOfClass:[NSDate class]])	// Fixme...
 		{ // rules for String or Date hint
 		val=_GET(self, @"toString");
-		if([val isKindOfClass:isa])
+		if([val isKindOfClass:[self class]])
 			{ // is an object (step 3-4)
 			val=[val _call:self arguments:nil];
-			if(![val isKindOfClass:isa])
+			if(![val isKindOfClass:[self class]])
 				return val;	// appears to be a primitive value
 			}
 		val=_GET(self, @"valueOf");	// look for valueOf method
-		if([val isKindOfClass:isa])
+		if([val isKindOfClass:[self class]])
 			{ // is an object (step 7-8)
 			val=[val _call:self arguments:nil];
-			if(![val isKindOfClass:isa])
+			if(![val isKindOfClass:[self class]])
 				return val;	// appears to be a primitive value
 			}
 		}
 	else
 		{ // rules for Number or nil hint
 		val=_GET(self, @"valueOf");
-		if([val isKindOfClass:isa])
+		if([val isKindOfClass:[self class]])
 			{ // is an object (step 3-4)
 			val=[val _call:self arguments:nil];
-			if(![val isKindOfClass:isa])
+			if(![val isKindOfClass:[self class]])
 				return val;	// appears to be a primitive value
 			}
 		val=_GET(self, @"toString");
-		if([val isKindOfClass:isa])
+		if([val isKindOfClass:[self class]])
 			{ // is an object (step 7-8)
 			val=[val _call:self arguments:nil];
-			if(![val isKindOfClass:isa])
+			if(![val isKindOfClass:[self class]])
 				return val;	// appears to be a primitive value
 			}
 		}

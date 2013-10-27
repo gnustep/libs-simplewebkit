@@ -824,12 +824,12 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 {
-	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+	NSLog(@"%@ receivedError: %@", NSStringFromClass([self class]), error);
 }
 
 - (NSString *) title; { return @"title"; }	// should get from WebDataSource if available

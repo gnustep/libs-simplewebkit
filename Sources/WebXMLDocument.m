@@ -130,7 +130,7 @@
 
 - (void) parser:(NSXMLParser *) parser parseErrorOccurred:(NSError *) parseError;
 {
-	NSLog(@"%@ parseErrorOccurred: %@", NSStringFromClass(isa), parseError);
+	NSLog(@"%@ parseErrorOccurred: %@", NSStringFromClass([self class]), parseError);
 }
 
 - (void) parser:(NSXMLParser *) parser foundCharacters:(NSString *) string;
@@ -139,7 +139,7 @@
 		{
 		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
-		NSLog(@"%@ foundCharacters: %@", NSStringFromClass(isa), string);
+		NSLog(@"%@ foundCharacters: %@", NSStringFromClass([self class]), string);
 #endif
 		[r setData:string];
 		[_current appendChild:r];
@@ -153,7 +153,7 @@
 		{
 		DOMComment *r=[[DOMComment alloc] _initWithName:@"#comment" namespaceURI:nil];
 #if 0
-		NSLog(@"%@ foundComment: %@", NSStringFromClass(isa), comment);
+		NSLog(@"%@ foundComment: %@", NSStringFromClass([self class]), comment);
 #endif
 		[r setData:comment];
 		[_current appendChild:r];
@@ -166,7 +166,7 @@
 	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil];
 	NSString *string=[[NSString alloc] initWithData:cdata encoding:NSUTF8StringEncoding];	// which encoding???
 #if 0
-	NSLog(@"%@ foundCDATA: %@", NSStringFromClass(isa), string);
+	NSLog(@"%@ foundCDATA: %@", NSStringFromClass([self class]), string);
 #endif
 	[r setData:string];
 	[_current appendChild:r];
@@ -181,7 +181,7 @@
 		{
 		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
-		NSLog(@"%@ foundIgnorableWhitespace: %@", NSStringFromClass(isa), whitespaceString);
+		NSLog(@"%@ foundIgnorableWhitespace: %@", NSStringFromClass([self class]), whitespaceString);
 #endif
 		[r setData:whitespaceString];
 		[_current appendChild:r];

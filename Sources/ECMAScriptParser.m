@@ -1378,7 +1378,7 @@
 
 - (NSString *) description;
 { // generates the tree
-	return [NSString stringWithFormat:@"%@%@%@%@%@%@", NSStringFromClass(isa), left?@"(":@"", left?left:@"", right?left?@", ":@"(":@"", right?right:@"", left||right?@")":@""];
+	return [NSString stringWithFormat:@"%@%@%@%@%@%@", NSStringFromClass([self class]), left?@"(":@"", left?left:@"", right?left?@", ":@"(":@"", right?right:@"", left||right?@")":@""];
 }
 
 @end

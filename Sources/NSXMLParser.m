@@ -113,10 +113,12 @@ static NSDictionary *entitiesTable;
 
 - (void) dealloc;
 {
+#if 1
 	if(isStalled)
-		NSLog(@"warning - deallocating stalled %@: %@", NSStringFromClass(isa), self);
+		NSLog(@"warning - deallocating stalled %@: %@", NSStringFromClass([self class]), self);
+#endif
 #if 0
-	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
+	NSLog(@"dealloc %@: %@", NSStringFromClass([self class]), self);
 #endif
 	[data release];
 	[buffer release];
@@ -747,7 +749,7 @@ static NSDictionary *entitiesTable;
 		[delegate parserDidStartDocument:self];
 	[self _parseData:data];	// process complete data segment
 	if(isStalled)
-		NSLog(@"%@: don't call _stall in a delegate method for -parse", NSStringFromClass(isa));
+		NSLog(@"%@: don't call _stall in a delegate method for -parse", NSStringFromClass([self class]));
 	[data release];
 	data=nil;
 	if(!error)

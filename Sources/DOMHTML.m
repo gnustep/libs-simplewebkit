@@ -178,13 +178,15 @@
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // we received the next framgment of the script
 #if 0
-	NSLog(@"stalling subresource %@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+	NSLog(@"stalling subresource %@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
 #endif
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // error loading external script
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+#if 1
+	NSLog(@"%@ receivedError: %@", NSStringFromClass([self class]), error);
+#endif
 }
 
 - (void) _triggerEvent:(NSString *) event;
@@ -589,12 +591,12 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 {
-	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+	NSLog(@"%@ receivedError: %@", NSStringFromClass([self class]), error);
 }
 
 @end
@@ -963,14 +965,14 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // simply ask our NSTextView for a re-layout
-	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
 	[[self _visualRepresentation] setNeedsLayout:YES];
 	[(NSView *) [self _visualRepresentation] setNeedsDisplay:YES];
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+	NSLog(@"%@ receivedError: %@", NSStringFromClass([self class]), error);
 }
 
 - (IBAction) _imgAction:(id) sender;
@@ -1619,14 +1621,14 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // simply ask our NSTextView for a re-layout
-	NSLog(@"%@ receivedData: %u", NSStringFromClass(isa), [[source data] length]);
+	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
 	[[self _visualRepresentation] setNeedsLayout:YES];
 	[(NSView *) [self _visualRepresentation] setNeedsDisplay:YES];
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
 { // default error handler
-	NSLog(@"%@ receivedError: %@", NSStringFromClass(isa), error);
+	NSLog(@"%@ receivedError: %@", NSStringFromClass([self class]), error);
 }
 
 @end

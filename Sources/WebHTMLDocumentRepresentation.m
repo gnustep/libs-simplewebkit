@@ -59,10 +59,10 @@ static NSDictionary *tagtable;
 		{
 		if(!tagtable)
 			{
-			NSBundle *bundle=[NSBundle bundleForClass:isa];
+			NSBundle *bundle=[NSBundle bundleForClass:[self class]];
 			NSString *path=[bundle pathForResource:@"DOMHTML" ofType:@"plist"];
 #if 0
-			NSLog(@"bundle for class %@=%@", NSStringFromClass(isa), bundle);
+			NSLog(@"bundle for class %@=%@", NSStringFromClass([self class]), bundle);
 			NSLog(@"tagtable path=%@", path);
 #endif
 			tagtable=[[NSDictionary alloc] initWithContentsOfFile:path];
@@ -79,7 +79,7 @@ static NSDictionary *tagtable;
 - (void) dealloc;
 {
 #if 0
-	NSLog(@"dealloc %@: %@", NSStringFromClass(isa), self);
+	NSLog(@"dealloc %@: %@", NSStringFromClass([self class]), self);
 #endif
 	[_root _setVisualRepresentation:nil];
 	[_elementStack release];
@@ -246,7 +246,9 @@ static NSDictionary *tagtable;
 
 - (void) parser:(NSXMLParser *) parser parseErrorOccurred:(NSError *) parseError;
 {
-	NSLog(@"%@ parseErrorOccurred: %@", NSStringFromClass(isa), parseError);
+#if 1
+	NSLog(@"%@ parseErrorOccurred: %@", NSStringFromClass([self class]), parseError);
+#endif
 }
 
 - (void) parser:(NSXMLParser *) parser foundCharacters:(NSString *) string;
@@ -255,7 +257,7 @@ static NSDictionary *tagtable;
 		{
 		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
-		NSLog(@"%@ foundCharacters: %@", NSStringFromClass(isa), string);
+		NSLog(@"%@ foundCharacters: %@", NSStringFromClass([self class]), string);
 #endif
 		[r setData:string];
 		[[_elementStack lastObject] appendChild:r];
@@ -269,7 +271,7 @@ static NSDictionary *tagtable;
 		{
 		DOMComment *r=[[DOMComment alloc] _initWithName:@"#comment" namespaceURI:nil];
 #if 0
-		NSLog(@"%@ foundComment: %@", NSStringFromClass(isa), string);
+		NSLog(@"%@ foundComment: %@", NSStringFromClass([self class]), string);
 #endif
 		[r setData:comment];
 		[[_elementStack lastObject] appendChild:r];
@@ -282,7 +284,7 @@ static NSDictionary *tagtable;
 	DOMCDATASection *r=[[DOMCDATASection alloc] _initWithName:@"#CDATA" namespaceURI:nil];
 	NSString *string=[[NSString alloc] initWithData:cdata encoding:NSUTF8StringEncoding];	// which encoding???
 #if 0
-	NSLog(@"%@ foundCDATA: %@", NSStringFromClass(isa), string);
+	NSLog(@"%@ foundCDATA: %@", NSStringFromClass([self class]), string);
 #endif
 	[r setData:string];
 	[[_elementStack lastObject] appendChild:r];
@@ -304,7 +306,7 @@ static NSDictionary *tagtable;
 		{
 		DOMText *r=[[DOMText alloc] _initWithName:@"#text" namespaceURI:nil];
 #if 0
-		NSLog(@"%@ foundIgnorableWhitespace: %@", NSStringFromClass(isa), whitespaceString);
+		NSLog(@"%@ foundIgnorableWhitespace: %@", NSStringFromClass([self class]), whitespaceString);
 #endif
 		[r setData:whitespaceString];
 		[[_elementStack lastObject] appendChild:r];
@@ -322,12 +324,12 @@ static NSDictionary *tagtable;
 	NSString *key;
 	DOMHTMLNestingStyle nesting;
 #if 0
-	NSLog(@"%@ %@: <%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
+	NSLog(@"%@ %@: <%@> -> %@", NSStringFromClass([self class]), [parser _tagPath], tag, NSStringFromClass(c));
 #endif
 	if(!c)
 		{
 #if 0
-		NSLog(@"%@ %@: <%@> ignored - no class found", NSStringFromClass(isa), [parser _tagPath], tag);
+		NSLog(@"%@ %@: <%@> ignored - no class found", NSStringFromClass([self class]), [parser _tagPath], tag);
 #endif
 		return;	// ignore
 		}
@@ -413,7 +415,7 @@ static NSDictionary *tagtable;
 	DOMHTMLNestingStyle nesting=[c _nesting];
 	DOMHTMLElement *element;
 #if 0
-	NSLog(@"%@ %@: </%@> -> %@", NSStringFromClass(isa), [parser _tagPath], tag, NSStringFromClass(c));
+	NSLog(@"%@ %@: </%@> -> %@", NSStringFromClass([self class]), [parser _tagPath], tag, NSStringFromClass(c));
 #endif
 	if(!c)
 		return;	// ignore

@@ -38,7 +38,7 @@ If not, write to the Free Software Foundation,
 // default implementations for all WebScriptObjects
 
 - (WebScriptObject *) _prototype; { return nil; }
-- (NSString *) _class; { return NSStringFromClass(isa); }	// default...
+- (NSString *) _class; { return NSStringFromClass([self class]); }	// default...
 - (BOOL) _canPut:(NSString *) property; { return NO; }
 - (BOOL) _hasProperty:(NSString *) property; { return NO; }
 - (id) _defaultValue:(Class) hint; { return NIMP; }
@@ -596,7 +596,7 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 				l=[l _getValue];
 				r=[right _evaluate:context];
 				r=[r _getValue];
-				return [isa _abstractAdd:l and:r];
+				return [[self class] _abstractAdd:l and:r];
 			}
 		case Sub:
 			{
