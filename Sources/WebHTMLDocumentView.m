@@ -1774,37 +1774,26 @@ enum
 	/* replace this by [self _updateForDisplayStyle:display forNode:node to:str style:style attributes:mutableAttributes]; */
 	else if([display isEqualToString:@"list-item"])
 		{ // special case to implement <li>
-			NSArray *list;
 			NSTextList *item;
 			NSString *value;
 			NSString *listStyle;
-			int level=0;	// nesting level
 			DOMHTMLElement *listElement=(DOMHTMLElement *) [node parentNode];	// enclosing list
-			DOMHTMLElement *le;	// used for finding the nesting level
 			DOMNodeList *children;
 			unsigned int index=0;
 			// FIXME: this works for HTML but not on XHTML
 			// and only if we don't use display: list-item for non-<li> elements
 			// a good implementation uses CSS counters
+			// or we have to consult the paragraph style lists of the whole attributed string...
 			while(listElement && ![listElement isKindOfClass:[DOMHTMLUListElement class]]
 				   && ![listElement isKindOfClass:[DOMHTMLOListElement class]]
 				   && ![listElement isKindOfClass:[DOMHTMLDListElement class]])
 				{ // find enclosing <ul> <ol> or <dl>
 				listElement=(DOMHTMLTableElement *)[listElement parentNode];	// go one level up
 				}
-			le=listElement;
-			while(le)
-				{ // count total levels
-					level++;
-					le=(DOMHTMLTableElement *)[le parentNode];	// go one level up
-					while(le && ![le isKindOfClass:[DOMHTMLUListElement class]]
-						  && ![le isKindOfClass:[DOMHTMLOListElement class]]
-						  && ![le isKindOfClass:[DOMHTMLDListElement class]])
-						le=(DOMHTMLTableElement *)[le parentNode];	// skip intermediate levels
-				}
 			children=[listElement childNodes];
 			for(i=0; i<[children length]; i++)
-				{ // warning: this may not work correctly for <p style="display: list-item">
+				{ // warning: this will not work correctly for <p style="display: list-item">
+					// FIXME: use CSS counters...
 					DOMHTMLElement *item=(DOMHTMLElement *) [children item:i];
 					if([item isKindOfClass:[DOMHTMLLIElement class]])
 					   index++;
@@ -1815,16 +1804,13 @@ enum
 			val=[style getPropertyCSSValue:@"list-style-image"];	// url()
 			val=[style getPropertyCSSValue:@"list-style-position"];	// outside, inside, inherit
 #endif
-			// get nesting level (go tree upwards and count <ol>, <ul>, <dl> parents
-			// go up and find the enclosing <ol> to get the autoincrementing number by finding which index we are
-			// or use the CSS counter() mechanism
-			list=[p textLists];	// get (nested) list
 			listStyle=[[style getPropertyCSSValue:@"list-style-type"] _toString];
 			item=[[NSClassFromString(@"NSTextList") alloc] 
 				  initWithMarkerFormat:[NSString stringWithFormat:@"{%@}%@ ", listStyle, [listStyle isEqualToString:@"decimal"]?@".":@""] 
 								 options:NSTextListPrependEnclosingMarker];
-			if(0 && item)
+			if(item)
 				{
+				NSArray *list=[p textLists];	// get (nested) list
 				if(!list) 
 					list=[NSMutableArray new];	// start new one
 				else 
@@ -1839,8 +1825,8 @@ enum
 				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
 			// FIXME: indentation can and should be done by margin-left and text-indent
 			// so that we don't need the lefel!
-			[p setHeadIndent:20.0*level];
-			[p setFirstLineHeadIndent:20.0*level];
+//			[p setHeadIndent:20.0*level];
+//			[p setFirstLineHeadIndent:20.0*level];
 #if 0
 			NSLog(@"lists=%@", list);
 #endif
