@@ -910,16 +910,20 @@
 	if(aTableView == domAttribs)
 		{
 		if([currentItem respondsToSelector:@selector(attributes)])
-			{
+			{ // if it is a DOMElement it has attributes
+			DOMNamedNodeMap *attribs=[(DOMElement *) currentItem attributes];
+				// FIXME: sort by name (case-insentive)
 			if([ident isEqual: @"attribute"])
-				return [(DOMAttr *) [[(DOMElement *) currentItem attributes] item:rowIndex] name];
+				return [(DOMAttr *) [attribs item:rowIndex] name];
 			else if([ident isEqual: @"value"])
-				return [(DOMAttr *) [[(DOMElement *) currentItem attributes] item:rowIndex] value];			
+				return [(DOMAttr *) [attribs item:rowIndex] value];			
 			}
 		return @"can't display";
 		}
 	if(aTableView == domCSS)
 		{
+		// hm - we should sort the items by name!
+		// but there is no way to do it on OSX except scanning/copying all items into an array
 		NSString *prop=[(DOMCSSStyleDeclaration *) currentCSS item:rowIndex];
 		if([ident isEqual: @"property"])
 			return prop;
