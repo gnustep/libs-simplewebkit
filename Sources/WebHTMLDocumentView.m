@@ -1823,7 +1823,7 @@ enum
 			item=[[NSClassFromString(@"NSTextList") alloc] 
 				  initWithMarkerFormat:[NSString stringWithFormat:@"{%@}%@ ", listStyle, [listStyle isEqualToString:@"decimal"]?@".":@""] 
 								 options:NSTextListPrependEnclosingMarker];
-			if(item)
+			if(0 && item)
 				{
 				if(!list) 
 					list=[NSMutableArray new];	// start new one
@@ -1832,6 +1832,7 @@ enum
 				[(NSMutableArray *) list addObject:item];
 				[item release];
 				[p setTextLists:list];	// assume it is mutable
+				[list release];
 				value=[item markerForItemNumber:index];
 				}
 			else
