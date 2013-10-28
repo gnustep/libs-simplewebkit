@@ -6,15 +6,9 @@
  * see http://www.w3.org/TR/CSS21/sample.html
  */
 
-/* define defaults */
-
-*				{ display: inline; }
-
-/* fixme: there are CSS which (re)define body font-size: 95% - where do we inherit fromin this case? */
-/* fixme: line-height: and margin: interworking for paragraphs isn't correct */
 body			{ padding: 8px; line-height: 1.0em; margin: 0.83em 0; font-family: serif; font-size: medium; }
 
-/* define specific display style */
+/* define specific display style (default is "inline") */
 
 html, address,
 blockquote, 
@@ -46,7 +40,9 @@ td, th			{ display: table-cell; }
 caption			{ display: table-caption; text-align: center;  }
 li				{ display: list-item; }
 fieldset		{ display: inline-block; border: 1px; }	/* define border/box */
+br				{ display: break-line; }
 
+/* text modification - default is usually "normal" or "auto" */
 center			{ text-align: center; }
 th				{ font-weight: bolder; text-align: center; }
 pre				{ white-space: pre; font-family: monospace; }
@@ -75,7 +71,7 @@ q:after			{ content: close-quote; } pseudo elements are not yet implemented */
 q				{ x-before: '"'; }
 q				{ x-after: '"'; }
 
-/* HTML tag to style attribute translation */
+/* translation of HTML tag attributes to style properties */
 
 body[text]			{ color: attr(text, color); }
 body[bgcolor]		{ background-color: attr(bgcolor, color); }
@@ -119,7 +115,6 @@ img[name]
 img[ismap]
 */
 /* br:before		{ content: "\A"; }	pseudo elements and hex escapes are not yet implemented */
-br				{ display: break-line; }
 nobr			{ white-space: nowrap; x-linebreak: clip; }
 hr				{ height: attr(size, px, 1px); width: attr(width, px, 100%); }
 hr[noshade]		{ }

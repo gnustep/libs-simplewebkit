@@ -308,19 +308,59 @@
 		}
 	if([property isEqualToString:@"list-style"])
 		{ // list-style: [ -type || -image || -position ] | inherit -- default is inherit
-			// FIXME
-		return YES;
+			DOMCSSValue *type=inherit?val:nil;
+			DOMCSSValue *image=inherit?val:nil;
+			DOMCSSValue *position=inherit?val:nil;
+			if(!inherit)
+				{
+				NSLog(@"please implement '%@' shorthand urgently!", property);
+				// FIXME
+				}
+			if(type) [items setObject:type forKey:[property stringByAppendingString:@"-type"]];
+			if(image) [items setObject:image forKey:[property stringByAppendingString:@"-image"]];
+			if(position) [items setObject:position forKey:[property stringByAppendingString:@"-position"]];
+			return YES;
 		}
 	if([property isEqualToString:@"background"])
 		{ // background: [ -color || -image || -repeat || -attachment || -position ] | inherit -- not inherited by defaul
-			// FIXME
-		return YES;
+			DOMCSSValue *color=inherit?val:nil;
+			DOMCSSValue *image=inherit?val:nil;
+			DOMCSSValue *repeat=inherit?val:nil;
+			DOMCSSValue *attachment=inherit?val:nil;
+			DOMCSSValue *position=inherit?val:nil;
+			if(!inherit)
+				{
+				NSLog(@"please implement '%@' shorthand urgently!", property);
+				// FIXME
+				}
+			if(color) [items setObject:color forKey:[property stringByAppendingString:@"-color"]];
+			if(image) [items setObject:image forKey:[property stringByAppendingString:@"-image"]];
+			if(repeat) [items setObject:repeat forKey:[property stringByAppendingString:@"-repeat"]];
+			if(attachment) [items setObject:attachment forKey:[property stringByAppendingString:@"-attachment"]];
+			if(position) [items setObject:position forKey:[property stringByAppendingString:@"-position"]];
+			return YES;
 		}
 	if([property isEqualToString:@"font"])
 		{ // font: [[ -style || -variant || -weight] -size [ / -height ] -family ] | caption | icon | menu | ... | inherit - default is inherit
-			NSLog(@"please implement 'font' shorthand urgently!");
-			// FIXME: check for inherit or system font
-		return YES;
+			DOMCSSValue *style=val;
+			DOMCSSValue *variant=val;
+			DOMCSSValue *weight=val;
+			DOMCSSValue *size=val;
+			DOMCSSValue *height=val;
+			DOMCSSValue *family=val;
+			if(!inherit)
+				{
+				NSLog(@"please implement '%@' shorthand urgently!", property);
+				// check for caption/icon/menu/message-box/status-bar and set values
+				// otherwise parse at least size family],...]
+				}
+			if(style) [items setObject:style forKey:[property stringByAppendingString:@"-style"]];
+			if(variant) [items setObject:variant forKey:[property stringByAppendingString:@"-variant"]];
+			if(weight) [items setObject:weight forKey:[property stringByAppendingString:@"-weight"]];
+			if(size) [items setObject:size forKey:[property stringByAppendingString:@"-size"]];
+			if(height) [items setObject:height forKey:@"line-height"];
+			if(family) [items setObject:family forKey:[property stringByAppendingString:@"-family"]];
+			return YES;
 		}
 	if([property isEqualToString:@"pause"] || [property isEqualToString:@"cue"])
 		{ // pause: [[ time | percent ]{1,2} | inherit - not inherited by default
@@ -608,16 +648,17 @@
 	if([sc scanString:@"@page" intoString:NULL])
 		{ // @page optional-name :header|:footer|:left|:right { style; style; ... }
 			self=[DOMCSSPageRule new];
+			// FIXME:
 			// check for name definition
 		}	// although we cast to DOMCSSStyleRule below, the DOMCSSPageRule provides the same methods
-	if([sc scanString:@"@" intoString:NULL])
+	else if([sc scanString:@"@" intoString:NULL])
 		{ // unknown @ operator
 			NSLog(@"DOMCSSRule: unknown @ operator");
 			// FIXME: ignore up to ; or including block - must match { and }
 			// see http://www.w3.org/TR/1998/REC-CSS2-19980512/syndata.html#block section 4.2
 			return nil;
 		}
-	else
+	else	/* no operator */
 		self=[DOMCSSStyleRule new];
 	[(DOMCSSStyleRule *) self setSelectorText:(NSString *) sc];	// set from scanner
 	// how do we handle parse errors here? e.g. if selectorText is empty
@@ -1109,6 +1150,12 @@
 		case SIBLING_SELECTOR:		return [NSString stringWithFormat:@"%@ ~ %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
 	}
 	return @"?";
+}
+
+- (int) specificity;
+{
+	NIMP;
+	return 0;
 }
 
 @end
@@ -2065,9 +2112,9 @@
 					NSString *type=[args count] >= 2?[args objectAtIndex:1]:@"string";	// default type
 					NSString *attr=[element getAttribute:name];	// read attribute value as string
 					if(!attr && [args count] >= 3)
-						// NOTE: this goes beyond CSS3 spec where it is explicitly stated that it may not be another attr()
+						// NOTE: this would go beyond CSS3 spec where it is explicitly stated that it may not be another attr()
 						// return [[args objectAtIndex:2] _evaluateForElement:element];	// recursively replace default value
-						return [[DOMCSSValue alloc] initWithString:[args objectAtIndex:2]];	// can specify different units
+						return [[[DOMCSSValue alloc] initWithString:[args objectAtIndex:2]] autorelease];	// can specify different units
 					else if([type isEqualToString:@"url"])
 						{ // resolve urls - attr(name url) is different from url(string) which is relative to the CSS path
 						NSURL *document=[[[[element webFrame] dataSource] response] URL];
