@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN""http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head><title>Inherit-Test</title></head>
+<body>
+<style>div { margin-left: 20px; margin-right: 20px; }</style>
+<h1>color is automatically inherited and margings accumulate on lower levels</h1>
+initial
+<div style="color: red">
+	color: red
+	<div>
+		color - default inherit
+		<div style="color: inherit">
+			color: inherit
+			<div style="color: blue">
+				color: blue
+				<div style="color: initial">
+					color: initial
+				</div>
+				color: blue
+			</div>
+			color: inherited
+		</div>
+		color - default inherit
+	</div>
+	color: red
+</div>
+initial
+</body>
+</html>
