@@ -1265,6 +1265,7 @@
 				selObj->type=type;
 				selObj->value=[sel retain];	// save element1
 				sel=[NSMutableArray arrayWithCapacity:5];	// start to collect element2
+				// FIXME:
 				// ...
 				continue;
 			}
@@ -2145,15 +2146,16 @@
 { // get attributes to apply to this node, process appropriate CSS definition by tag, tag level, id, class, etc.
 	NSAutoreleasePool *arp=[NSAutoreleasePool new];
 	int i, cnt;
-	WebPreferences *preferences=[self preferences];
 	DOMCSSStyleDeclaration *style;
 	static DOMCSSStyleSheet *defaultSheet;
 	static NSArray *inheritable;
 	static NSDictionary *initializable;
 	NSEnumerator *e;
 	NSString *property;
+	/* predefine static objects */
 	if(!inheritable)	// these properties are inherited (unless overwritten)
 		inheritable=[[NSArray alloc] initWithObjects:
+					 /* see http://www.w3schools.com/cssref/pr_text_white-space.asp for "Inherited: yes" */
 					 /* visuals */
 					 @"color",
 					 @"cursor",
@@ -2174,6 +2176,7 @@
 					 @"text-indent",
 					 @"text-transform",
 					 @"visibility",
+					 @"white-space",	// see e.g. 
 					 @"word-spacing",
 					 /* table */
 					 @"border-collapse",
@@ -2192,8 +2195,8 @@
 					 nil];	
 	if(!initializable)	// these properties are initialized (unless overwritten)
 		initializable=[[NSDictionary alloc] initWithObjectsAndKeys:
-					   // FIXME: all those that are also inherited could be defined in the default.css for the <body> selector
-					   // OPTIMIZE: we could parse the values into DOMCSSValues right here
+					   /* see http://www.w3schools.com/cssref/pr_text_white-space.asp for "Default value:"
+					   // OPTIMIZE: we could parse the values into DOMCSSValues right here */
 					   /* visuals */
 					   @"scroll", @"background-attachment",
 					   @"transparent", @"background-color",
@@ -2284,9 +2287,10 @@
 					   @"auto", @"page-break-inside",
 					   @"2", @"widows",
 					   nil];
+	
 	style=[[DOMCSSStyleDeclaration new] autorelease];
 	if([element isKindOfClass:[DOMElement class]])
-		{ // has no CSS capabilites - but should still be able to inherit default styles
+		{ // find CSS definition matching node
 			if(!defaultSheet)
 				{ // read default.css from bundle
 					NSString *path=[[NSBundle bundleForClass:[self class]] pathForResource:@"default" ofType:@"css"];
@@ -2303,7 +2307,7 @@
 				}
 			[defaultSheet _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
 			
-			if([preferences authorAndUserStylesEnabled])
+			if([[self preferences] authorAndUserStylesEnabled])
 				{ // loaded style is not disabled
 					NSString *styleString;
 					DOMStyleSheetList *list;
@@ -2366,6 +2370,11 @@
 					if(newval)	// inherit from parent - leave nil if still undefined
 						[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
 				}
+		}
+	if(![element isKindOfClass:[DOMElement class]])
+		{ // a #text element must auto-inherit some more properties
+			// height?
+			// z-index
 		}
 	e=[initializable keyEnumerator];
 	while((property=[e nextObject]))

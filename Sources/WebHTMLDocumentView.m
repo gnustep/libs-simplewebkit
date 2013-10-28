@@ -534,9 +534,14 @@ enum
 	val=[style getPropertyCSSValue:@"background-color"];
 	if(val)
 		{
-		// FIXME: make sure the default is "transparent"
+		// FIXME: that "transparent" really becomes transparent (in WebView, WebFrameView and here)
 		if([[val _toString] isEqualToString:@"transparent"])
+			{
 			[(_WebHTMLDocumentView *) view setDrawsBackground:NO]; // disable background
+			// should we use clearColor or controlBackgroundColor?
+			// on Cocoa clearColor gives a black background - maybe our webView does not draw a white background
+			[sc setBackgroundColor:[NSColor controlBackgroundColor]];
+			}
 		else
 			{
 			NSColor *color=[val _getNSColorValue];
@@ -939,7 +944,7 @@ enum
 					   glyphPosition:(NSPoint) pos
 					  characterIndex:(unsigned) index;
 {
-	return (NSRect){ NSMakePoint(0.0, -16.0), [self cellSize] };	// move text field down a little (may depend on 
+	return (NSRect){ NSMakePoint(0.0, -14.0), [self cellSize] };	// move text field down a little (may depend on font size)
 }
 
 // add other missing methods
@@ -1279,8 +1284,8 @@ enum
 	display=[[style getPropertyCSSValue:@"display"] _toString];	/* INI: inline */
 	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];	/* INH + INI: visible */
 	// FIXME: handle "display: run-in"
-	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
-	isInline=!display || [display isEqualToString:@"inline"];	// plain text (no display: attribute) counts as inline
+	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with display:block
+	isInline=![node isKindOfClass:[DOMElement class]] || [display isEqualToString:@"inline"];	// plain text is treated as display:inline
 #if 1
 	NSLog(@"<%@ display=%@>: %@ + %@", [node nodeName], display, lastIsInline?@"inline":@"block", isInline?@"inline":@"block");
 #endif
@@ -1534,8 +1539,8 @@ enum
 			
 			/* replace this by attributes=[self _changeAttributes:parentAttributes forNode:node style:style]; */
 
-			val=[style getPropertyCSSValue:@"text-decoration"];	/* INH + INI: none */
-			if(val != [parent getPropertyCSSValue:@"text-decoration"])
+			val=[style getPropertyCSSValue:@"text-decoration"];	/* (pseudo-INH) + INI: none */
+			if(val)
 				{ // set underline, overline, strikethrough - try to blink
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];
 					NSString *deco;
@@ -1559,6 +1564,7 @@ enum
 							// [attributes setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
 #endif
 							}
+						// other values are simply ignored
 						}
 				}
 			val=[style getPropertyCSSValue:@"color"];	/* INH + INI: initial */
@@ -1574,9 +1580,10 @@ enum
 			if(val != [parent getPropertyCSSValue:@"cursor"])
 				{
 				NSCursor *cursor=nil;
+				// FIXME: there could be a list of urls and generic cursors - we should use the first one that we can load/use
 				sval=[val _toString];
 				if([sval isEqualToString:@"auto"])
-					cursor=[NSCursor arrowCursor];
+					[attributes removeObjectForKey:NSCursorAttributeName];	// use system cursor
 				else if([sval isEqualToString:@"default"])
 					cursor=[NSCursor arrowCursor];
 				else if([sval isEqualToString:@"pointer"])

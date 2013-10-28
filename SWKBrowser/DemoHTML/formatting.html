@@ -14,6 +14,9 @@ Plain text
 <i>Italics text</i>
 <u>Underlined text</u>
 <strike>Strikethrough text</strike>
+<u>Underlined and 
+<!-- text-decoration: none does not reset any inherited decoration -->
+<strike>Strikethrough text <span style="text-decoration:none"> none </span> again</strike></u>
 <tt>TT text</tt>
 <em>Emphasized text</em>
 <big>Big</big>
@@ -30,6 +33,7 @@ Plain text
 <font size=-2>smaller</font>
 <font face=Helvetica>Helvetica</font>
 <font face=Times>Times <b>Bold</b> <i>Italics</i></font>
+<font face=Times>Times <b>Bold and <i>Italics</i></b></font>
 <font face=Times>Size<br>
 <font size=1>1</font><br>
 <font size=2>2</font><br>

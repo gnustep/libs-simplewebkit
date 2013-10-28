@@ -1,3 +1,12 @@
+2013-10-25..28  Nikolaus Schaller <hns@computer.org>
+
+	* fixed issues with CSS inherit and initial
+	* improved translation of CSS styles to string attributes and fixed many smaller bugs
+	* implemented a little "height" and "width"
+	* made display:list and <li>, <ul>, <ol>, <dl> work for standard cases (HTML4)
+	* reduced number of compiler warnings
+	* fixed positions of form buttons and cells
+
 2012-08-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* GNUmakefile:
@@ -15,6 +24,7 @@
 	and in the derived_src directory.
 
 2012-08-**  Nikolaus Schaller <hns@computer.org>
+
 	* reworked CSS processing to provide computedStyleForElement:pseudoElement:
 	* reworked spliceTo: to translate CSS to NSAttributedString attributes
 	* added default.css to define HTML4 -> CSS translation
