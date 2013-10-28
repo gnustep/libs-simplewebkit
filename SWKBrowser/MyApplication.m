@@ -8,6 +8,15 @@
 #import "MyApplication.h"
 #import "MyDocument.h"
 
+@interface WebPreferences (Private)
+
+- (BOOL) authorAndUserStylesEnabled;
+- (void) setAuthorAndUserStylesEnabled:(BOOL) flag;
+- (BOOL) developerExtrasEnabled;
+- (void) setDeveloperExtrasEnabled:(BOOL) flag;
+
+@end
+
 // this is used to track subresources
 // we carry an array of these objects to show the Activity window
 

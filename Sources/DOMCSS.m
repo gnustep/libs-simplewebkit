@@ -27,6 +27,7 @@
  */
 
 #import <WebKit/WebView.h>
+#import <WebKit/WebResource.h>
 #import <WebKit/DOMHTML.h>
 #import "Private.h"
 
@@ -402,14 +403,14 @@
 		{
 		NSString *propertyName;
 		NSString *priority=@"important";	// default priority
-		BOOL sh;
+//		BOOL sh;
 		[DOMCSSRule _skip:sc];
 		if(![sc scanCharactersFromSet:propertychars intoString:&propertyName])
 			break;
 		[DOMCSSRule _skip:sc];				
 		if(![sc scanString:@":" intoString:NULL])
 			break;	// invalid
-		sh=[self _handleProperty:propertyName withScanner:sc];
+		/* sh= */[self _handleProperty:propertyName withScanner:sc];
 #if 0
 		NSLog(@"items: %@", items);
 #endif			
@@ -417,7 +418,8 @@
 		// FIXME: there may be a space between ! and "important"
 		// see e.g. http://www.yellowjug.com/web-design/the-importance-of-important-in-css/
 		// FIXME: how does this work for shorthand properties?
-		[sc scanString:@"important" intoString:&priority] || [sc scanString:@"!important" intoString:&priority];
+		if(![sc scanString:@"important" intoString:&priority])
+			[sc scanString:@"!important" intoString:&priority];
 		[priorities setObject:priority forKey:propertyName];
 		[DOMCSSRule _skip:sc];
 		// FIXME: shorthand properties are allowed without ;
@@ -1563,7 +1565,7 @@
 
 - (id) _initWithFirstElement:(DOMCSSValue *) first
 {
-	if(self=[super init])
+	if((self=[super init]))
 		{
 		values=[[NSMutableArray alloc] initWithObjects:first, nil];
 		cssValueType=DOM_CSS_VALUE_LIST;

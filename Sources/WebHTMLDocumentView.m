@@ -529,6 +529,8 @@ enum
 		}
 #endif
 
+	// FIXME: this should not be duplicated in the _splice method
+
 	val=[style getPropertyCSSValue:@"background-color"];
 	if(val)
 		{
@@ -1276,6 +1278,9 @@ enum
 	style=[self _styleForElement:(DOMElement *) node pseudoElement:@"" parentStyle:parent];
 	display=[[style getPropertyCSSValue:@"display"] _toString];	/* INI: inline */
 	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];	/* INH + INI: visible */
+	// FIXME: handle "display: run-in"
+	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
+	isInline=!display || [display isEqualToString:@"inline"];	// plain text (no display: attribute) counts as inline
 #if 1
 	NSLog(@"<%@ display=%@>: %@ + %@", [node nodeName], display, lastIsInline?@"inline":@"block", isInline?@"inline":@"block");
 #endif
@@ -1287,10 +1292,6 @@ enum
 		return;
 	if([display isEqualToString:@"none"])
 		return;
-
-	// FIXME: handle "display: run-in"
-	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
-	isInline=!display || [display isEqualToString:@"inline"];	// plain text (no display: attribute) counts as inline
 
 	if(!parentAttributes)
 		{ // top level
@@ -1338,11 +1339,7 @@ enum
 			else if([sval isEqualToString:@"initial"])
 				trim=YES, nowrap=YES;	// wasn't defined but inherited?
 			s=[[string mutableCopy] autorelease];
-			
-			/* we have no access to p here!
-			 if(nowrap)
-			 [p setLineBreakMode:NSLineBreakByClipping];
-			 */
+			[p setLineBreakMode:nowrap?NSLineBreakByClipping:NSLineBreakByWordWrapping];
 			if(nobrk)
 				{ // don't break where html says
 					[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
@@ -1699,10 +1696,11 @@ enum
 				// FIXME: can be inherited - what does that exactly mean?
 				[p setFirstLineHeadIndent:[p headIndent]+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p firstLineHeadIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
-			// setHyphenationFactor:
-			// setLineBreakMode: -- does this depend on white-space == pre?
-			// setTighteningFactorForTruncation:
-			// setLineHeightMultiple:
+			/* other attributes we might want to get from style
+			 * setHyphenationFactor:
+			 * setTighteningFactorForTruncation:
+			 * setLineHeightMultiple:
+			 */
 			val=[style getPropertyCSSValue:@"line-height"];	/* INH + INI: normal (or 1em) */
 			if(val != [parent getPropertyCSSValue:@"line-height"])
 				{
@@ -1931,7 +1929,7 @@ enum
 		isInline=YES;	// override
 #endif
 #if 0
-	else if([display isEqualToString:@"image"])
+	else if([display isEqualToString:@"x-image"])
 		{
 			// check that we are really an <img> node
 			// apply width, height etc. to the image
@@ -1939,6 +1937,13 @@ enum
 			// but leave the delayed loading there
 		}
 #endif
+#if 0
+	else if([display isEqualToString:@"x-horizontal-ruler"])
+		{
+		// define the <hr> attachment cell
+		}
+#endif
+	// FIXME: in the long run we should no more need this - if all node types are created by some display: style
 	else	// any other display: style
 		attachment=[(DOMHTMLElement *) node _attachmentForStyle:style];	// may be nil
 	if(attachment)

@@ -12,16 +12,19 @@ endif
 
 
 SWKBrowser_OBJC_FILES = \
-	main.m \
-	MyApplication.m \
-	MyComboBoxCell.m \
-	MyDocument.m
+        main.m \
+        MyApplication.m \
+        MyComboBoxCell.m \
+        MyDocument.m
 
 SWKBrowser_LANGUAGES = English
 
 SWKBrowser_LOCALIZED_RESOURCE_FILES = \
-	MainMenu.nib \
-	MyDocument.nib
+        MainMenu.nib \
+        MyDocument.nib
+
+SWKBrowser_RESOURCE_FILES = \
+        DemoHTML
 
 SWKBrowser_MAIN_MODEL_FILE = MainMenu.nib
 

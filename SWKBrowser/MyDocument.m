@@ -467,7 +467,6 @@
 
 - (void) webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame
 {
-	NSString *src;
 #if 1
 	NSLog(@"webview=%@ didFinishLoadForFrame=%@", sender, frame);
 	NSLog(@"webview subviews=%@", [sender subviews]);
@@ -730,7 +729,7 @@
 
 - (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
 {
-	[self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
+	return [self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
 }
 
 - (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
@@ -782,7 +781,6 @@
 	id selectedItem = [outlineView itemAtRow:selectedRow];
 	if(outlineView == domTree)
 		{
-		DOMCSSStyleDeclaration *css;
 		if([selectedItem isKindOfClass:[DOMText class]])
 			{
 			[domSource setString:[selectedItem nodeValue]];
@@ -874,6 +872,7 @@
 		NS_DURING
 			// can't -init a DOMRange since it is connected to a DOMDocument!
 			DOMRange *rng=[[[webView mainFrame] DOMDocument] createRange];
+			// CHECKME: does this exist and work on WebKit?
 			[rng selectNode:refNode];
 			[webView setSelectedDOMRange:rng affinity:NSSelectionAffinityDownstream];
 		NS_HANDLER

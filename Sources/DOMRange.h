@@ -25,4 +25,6 @@
 
 @interface DOMRange : DOMElement
 
+- (void) selectNode:(DOMNode *) node;
+
 @end

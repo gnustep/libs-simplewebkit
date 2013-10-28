@@ -1274,7 +1274,9 @@
 	htmlDocument=(DOMHTMLDocument *) [self ownerDocument];	// may have been changed by the onsubmit script
 	action=[self valueForKey:@"action"];
 	method=[self valueForKey:@"method"];
+#if NOT_IMPLEMENTED
 	target=[self valueForKey:@"target"];
+#endif
 	if(!action)
 		action=@"";	// we simply reuse the current - FIXME: we should remove all ? components
 #if 1

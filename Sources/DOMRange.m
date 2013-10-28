@@ -24,8 +24,14 @@
 
 #import <WebKit/DOMRange.h>
 
-// #import "Private.h"
+#import "Private.h"
 
 @implementation DOMRange
+
+- (void) selectNode:(DOMNode *) node;
+{
+	NSLog(@"should select the range to match the node %@", node);
+	NIMP;
+}
 
 @end
