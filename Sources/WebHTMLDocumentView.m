@@ -540,7 +540,7 @@ enum
 			[(_WebHTMLDocumentView *) view setDrawsBackground:NO]; // disable background
 			// should we use clearColor or controlBackgroundColor?
 			// on Cocoa clearColor gives a black background - maybe our webView does not draw a white background
-			[sc setBackgroundColor:[NSColor controlBackgroundColor]];
+			[sc setBackgroundColor:[NSColor whiteColor]];
 			}
 		else
 			{

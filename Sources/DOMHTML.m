@@ -536,7 +536,7 @@
 				{ // parse directly if already loaded
 					NSString *style=[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 #if 1
-					NSLog(@"parsing <link> directly");
+					NSLog(@"parsing <link> immediately");
 #endif
 					[sheet _setCssText:style];	// parse the style sheet to add
 					[style release];
@@ -580,8 +580,15 @@
 	if([rel isEqualToString:@"stylesheet"] && [[self valueForKey:@"type"] isEqualToString:@"text/css"])
 		{ // did load style sheet
 			NSString *style=[[NSString alloc] initWithData:[source data] encoding:NSUTF8StringEncoding];
+			if(!style)
+				style=[[NSString alloc] initWithData:[source data] encoding:NSISOLatin1StringEncoding];
 			[sheet setHref:[[[source response] URL] absoluteString]];	// replace
 			[sheet _setCssText:style];	// parse the style sheet to add
+			if(!style)
+				{
+				NSLog(@"failed to convert the data into a string");
+				return;
+				}
 #if 1
 			NSLog(@"CSS <link>: %@", sheet);
 #endif
