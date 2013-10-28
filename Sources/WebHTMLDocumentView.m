@@ -1244,9 +1244,15 @@ enum
  * and keep only the handling of inheritance, block vs. inline in this method
  */
 
-/* CHECKME:
- * [style getPropertyCSSValue:@"prop"] == nil only for (uninherited, uninitialized) attributes
- * we can check if a style is really inherited by [style getPropertyCSSValue:@"prop"] == [parent getPropertyCSSValue:@"prop"]
+/* NOTE:
+ * here we can use [style getPropertyCSSValue:@"prop"] to get the CSS styles.
+ * Some of them can be automatically inherited (INH) and others are automatically initialized (INI),
+ * but if it is neither, there is no value known.
+ * If it is not automatically initialized and not inherited, we will get a nil result.
+ * If it is automatically initialized, we can never get a nil result.
+ * To check if it was inherited or localy modified for this node, we can compare with [parent getPropertyCSSValue:@"prop"].
+ * This should be done only for INH properties.
+ * The [parent getPropertyCSSValue:@"prop"] may be nil on the first call, since parent is nil.
  */
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
@@ -1259,49 +1265,61 @@ enum
 	NSMutableDictionary *attributes;
 	NSMutableParagraphStyle *p;
 	DOMCSSStyleDeclaration *style;
-	DOMNodeList *childNodes;
+	DOMNodeList *childNodes=nil;
 	NSString *display;
 	NSString *visibility;
 	BOOL lastIsInline;
 	BOOL isInline;
 	NSTextAttachment *attachment=nil;
 	NSString *string;
-	unsigned initialLength=[str length];	// to find out if we or a child has added content to a block
+	unsigned initialLength;	// to find out if we or a child has added content to a block
 	style=[self _styleForElement:(DOMElement *) node pseudoElement:@"" parentStyle:parent];
-	if(![node isKindOfClass:[DOMElement class]])
-		{ // inherit all style for DOMText nodes
-			attributes=(NSMutableDictionary *) parentAttributes;	// inherit attributes
-			childNodes=nil;					// no children
-		}
-	else
-		{ // calculate/apply new style
-			// FIXME: make pseudoElement depend on state, e.g. :hover, :link etc.
-			attributes=[NSMutableDictionary dictionaryWithCapacity:10];	// we will create a set of new ones
-			childNodes=[node childNodes];
-		}
-	display=[[style getPropertyCSSValue:@"display"] _toString];
-	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];
-	// FIXME: handle "display: run-in"
-	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
-	isInline=!display || [display isEqualToString:@"inline"];	// plain text (no display: attribute) counts as inline
+	display=[[style getPropertyCSSValue:@"display"] _toString];	/* INI: inline */
+	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];	/* INH + INI: visible */
 #if 1
 	NSLog(@"<%@ display=%@>: %@ + %@", [node nodeName], display, lastIsInline?@"inline":@"block", isInline?@"inline":@"block");
 #endif
 	// hm. _range is only known for DOMHTMLElements!
 	//	_range.location=[str length];
 	//	_range.length=0;
-	
+
 	if([visibility isEqualToString:@"collapse"])
 		return;
 	if([display isEqualToString:@"none"])
 		return;
 
+	// FIXME: handle "display: run-in"
+	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with block
+	isInline=!display || [display isEqualToString:@"inline"];	// plain text (no display: attribute) counts as inline
+
+	if(!parentAttributes)
+		{ // top level
+		attributes=[NSMutableDictionary dictionaryWithCapacity:10];
+		p=[[NSMutableParagraphStyle alloc] init];	// start with default paragraph style
+		[attributes setObject:p forKey:NSParagraphStyleAttributeName];
+		[p release];
+		}
+	else
+		{ // modifyable copy of attributes and paragraph style
+		attributes=[[parentAttributes mutableCopy] autorelease];	// start with inherited parent attributes
+		p=[[attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];	// start with inherited paragraph style
+		[attributes setObject:p forKey:NSParagraphStyleAttributeName];
+		[p release];
+		}
+
+	if([node isKindOfClass:[DOMElement class]])
+		childNodes=[node childNodes];
+	initialLength=[str length];	// to find out if we or a child has added content to a block
+
 	string=[(DOMHTMLElement *) node _string];	// may be nil
+
+	/* apply text modification */
 	
-	/* text modification */
-	val=[style getPropertyCSSValue:@"white-space"];
-	if(val && [string length] > 0)
-		{ // must this be defined!? What is the default?
+	/* replace this by string=[self _changeString:string forNode:node style:style]; */
+
+	val=[style getPropertyCSSValue:@"white-space"];	/* INI: normal */
+	if(val)	// should never be nil
+		{
 			BOOL nowrap=NO;
 			BOOL nobrk=NO;
 			BOOL trim=NO;
@@ -1348,8 +1366,8 @@ enum
 				}
 			string=s;
 		}
-	val=[style getPropertyCSSValue:@"text-transform"];
-	if(val && [string length] > 0)
+	val=[style getPropertyCSSValue:@"text-transform"];	/* INH + INI: none */
+	if(val)	// should never be nil
 		{
 		sval=[val _toString];
 		if([sval isEqualToString:@"uppercase"])
@@ -1361,13 +1379,14 @@ enum
 		else if([sval isEqualToString:@"password"])
 			string=[@"" stringByPaddingToLength:[string length] withString:@"*" startingAtIndex:0];
 		}
-	// FIXME: now we usually have "initial" here!!!
-	val=[style getPropertyCSSValue:@"quotes"];
-	if(val)
+#if NEEDS_TO_BE_IMPLEMENTED
+	val=[style getPropertyCSSValue:@"quotes"];	/* INH + INI: some quote chatacters */
+	if(val)	// should never be nil
 		{
 		sval=[val _toString];
 		// handle "quotes: "
 		}
+#endif
 	if([visibility isEqualToString:@"hidden"])
 		{ // replace by string with spaces of same length
 		string=[@"" stringByPaddingToLength:[string length] withString:@" " startingAtIndex:0];
@@ -1375,23 +1394,21 @@ enum
 
 	/* attributes and paragraph style modifications */
 	
-	p=[[parentAttributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];	// start with inherited paragraph style
-	if(!p)
-		p=[[[NSMutableParagraphStyle alloc] init] autorelease];	// start with default paragraph style
-	[attributes setObject:p forKey:NSParagraphStyleAttributeName];
-	
-	/* replace this by attributes=[self _updateAttributes:parentAttributes forNode:node style:style]; */
+	/* replace this by [self _changeAttributes:attributes forNode:node style:style]; */
 
 	if(childNodes && ([childNodes length] > 0 || [string length] > 0))
 		{ // calculate (new) string attributes to apply and pass down to children
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
 			NSFont *ff;	// temporary converted font
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
-			val=[style getPropertyCSSValue:@"font-family"];
+			/* replace this by f=[self _changeFont:f forNode:node style:style]; */
+			val=[style getPropertyCSSValue:@"font-family"];	/* INH + INI: initial */
 			if(val != [parent getPropertyCSSValue:@"font-family"])
 				{ // scan through all fonts defined by font-family until we find one that exists and provides the font
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];	// get as string array
 					NSString *fname;
+					if(!val)	// "Initial"
+						f=[NSFont systemFontOfSize:0.0];
 					while((fname=[e nextObject]))
 						{ // modify font family
 							if([fname isEqualToString:@"sans-serif"])
@@ -1417,16 +1434,16 @@ enum
 								}
 						}
 				}
-			val=[style getPropertyCSSValue:@"font-size"];
+			val=[style getPropertyCSSValue:@"font-size"];	/* INH + INI: medium */
 			if(val != [parent getPropertyCSSValue:@"font-size"])
-				{ // not inherited
+				{ // was not inherited
 				float sz;
 				float def=[f isFixedPitch]?[preferences defaultFixedFontSize]:[preferences defaultFontSize];
 				sz=[[parentAttributes objectForKey:NSFontAttributeName] pointSize]/[self textSizeMultiplier];	// inherited size
 				if([(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_IDENT || [(DOMCSSPrimitiveValue *) val primitiveType] == DOM_CSS_STRING)
 					{
 					sval=[val _toString];
-					if([sval isEqualToString:@"initial"])
+					if(!sval || [sval isEqualToString:@"initial"])
 						sz=def;
 					else if([sval isEqualToString:@"smaller"])
 						sz/=1.2;
@@ -1475,7 +1492,7 @@ enum
 				ff=[[NSFontManager sharedFontManager] convertFont:f toSize:sz*[self textSizeMultiplier]];	// try to convert
 				if(ff) f=ff;
 				}
-			val=[style getPropertyCSSValue:@"font-style"];
+			val=[style getPropertyCSSValue:@"font-style"];	/* INH + INI: normal */
 			if(val != [parent getPropertyCSSValue:@"font-style"])
 				{ // not inherited
 				sval=[val _toString];
@@ -1488,7 +1505,7 @@ enum
 					;
 				if(ff) f=ff;
 				}
-			val=[style getPropertyCSSValue:@"font-weight"];
+			val=[style getPropertyCSSValue:@"font-weight"];	/* INH + INI: normal */
 			if(val != [parent getPropertyCSSValue:@"font-weight"])
 				{ // not inherited
 				sval=[val _toString];
@@ -1505,7 +1522,7 @@ enum
 				// - (NSFont *)fontWithFamily:[f family] traits:[f traits] weight:15*weight/10 size:[f size]
 				if(ff) f=ff;
 				}
-			val=[style getPropertyCSSValue:@"font-variant"];
+			val=[style getPropertyCSSValue:@"font-variant"];	/* INH + INI: normal */
 			if(val != [parent getPropertyCSSValue:@"font-variant"])
 				{
 				sval=[val _toString];
@@ -1517,7 +1534,10 @@ enum
 				if(ff) f=ff;
 				}
 			[attributes setObject:f forKey:NSFontAttributeName];
-			val=[style getPropertyCSSValue:@"text-decoration"];
+			
+			/* replace this by attributes=[self _changeAttributes:parentAttributes forNode:node style:style]; */
+
+			val=[style getPropertyCSSValue:@"text-decoration"];	/* INH + INI: none */
 			if(val != [parent getPropertyCSSValue:@"text-decoration"])
 				{ // set underline, overline, strikethrough - try to blink
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];
@@ -1544,14 +1564,16 @@ enum
 							}
 						}
 				}
-			val=[style getPropertyCSSValue:@"color"];
+			val=[style getPropertyCSSValue:@"color"];	/* INH + INI: initial */
 			if(val != [parent getPropertyCSSValue:@"color"])
 				{
 				NSColor *color=[val _getNSColorValue];
 				if(color)
 					[attributes setObject:color forKey:NSForegroundColorAttributeName];
+				else if([[val _toString] isEqualToString:@"initial"])
+					[attributes removeObjectForKey:NSForegroundColorAttributeName];
 				}
-			val=[style getPropertyCSSValue:@"cursor"];
+			val=[style getPropertyCSSValue:@"cursor"];	/* INH + INI: auto */
 			if(val != [parent getPropertyCSSValue:@"cursor"])
 				{
 				NSCursor *cursor=nil;
@@ -1568,25 +1590,25 @@ enum
 				if(cursor)
 					[attributes setObject:cursor forKey:NSCursorAttributeName];
 				}
-			val=[style getPropertyCSSValue:@"x-link"];
+			val=[style getPropertyCSSValue:@"x-link"];	/* INH */
 			if(val != [parent getPropertyCSSValue:@"x-link"])
 				{ // not inherited
 				sval=[val _toString];
 				[attributes setObject:sval forKey:NSLinkAttributeName];	// set the link (as a string)
 				}
-			val=[style getPropertyCSSValue:@"x-tooltip"];
+			val=[style getPropertyCSSValue:@"x-tooltip"];	/* INH */
 			if(val != [parent getPropertyCSSValue:@"x-tooltip"])
 				{ // not inherited
 				sval=[val _toString];
 				[attributes setObject:sval forKey:NSToolTipAttributeName];	// set the tooltip string
 				}
-			val=[style getPropertyCSSValue:@"x-target-window"];
+			val=[style getPropertyCSSValue:@"x-target-window"];	/* INH */
 			if(val != [parent getPropertyCSSValue:@"x-target-window"])
 				{
 				sval=[val _toString];
 				[attributes setObject:sval forKey:DOMHTMLAnchorElementTargetWindow];	// set the target window name string
 				}
-			val=[style getPropertyCSSValue:@"x-anchor"];
+			val=[style getPropertyCSSValue:@"x-anchor"];	/* INH */
 			if(val != [parent getPropertyCSSValue:@"x-anchor"])
 				{
 				sval=[val _toString];
@@ -1595,39 +1617,38 @@ enum
 			/* background */
 #if NOT_IMPLEMENTED
 			// should we really implement this here?
-			val=[style getPropertyCSSValue:@"background-attachment"];
+			val=[style getPropertyCSSValue:@"background-attachment"];	/* INI: scroll */
 			if(val)
 				{
 				}
-			val=[style getPropertyCSSValue:@"background-position"];
+			val=[style getPropertyCSSValue:@"background-position"];	/* INI: 0%0% */
 			if(val)
 				{
 				}			
-			val=[style getPropertyCSSValue:@"background-repeat"];
+			val=[style getPropertyCSSValue:@"background-repeat"];	/* INI: repeat */
 			if(val)
 				{
 				}
-			val=[style getPropertyCSSValue:@"background-color"];
+			val=[style getPropertyCSSValue:@"background-color"];	/* INI: transparent */
 			if(val)
 				{
-				// FIXME: make sure the default is "transparent"
 				if([[val _toString] isEqualToString:@"transparent"])
 					; // disable background
 				
 				// access the NSTextView used to display the attributed string
 				// and set [view setBackgroundColor:]
 				}
-			val=[style getPropertyCSSValue:@"background-image"];
+			val=[style getPropertyCSSValue:@"background-image"];	/* INI: none */
 			if(val)
 				{
 				// attach a NSImageView subview to the textview
 				}
 #endif
-			/* replace this by paragraphStyle=[self _updateParagraphStyle:p forNode:node style:style]; */
+			/* replace this by p=[self _changeParagraphStyle:p forNode:node style:style]; */
 
 			/* paragraph style */
-			val=[style getPropertyCSSValue:@"text-align"];
-			if(val)
+			val=[style getPropertyCSSValue:@"text-align"];	/* INH + INI: system dependent */
+			if(val != [parent getPropertyCSSValue:@"text-align"])
 				{
 				sval=[val _toString];
 				if([sval isEqualToString:@"left"])
@@ -1641,12 +1662,16 @@ enum
 				// if([align isEqualToString:@"char"])
 				//    [p setAlignment:NSNaturalTextAlignment];
 				}
-			val=[style getPropertyCSSValue:@"vertical-align"];
-			// default: baseline
-			if(val)
+			val=[style getPropertyCSSValue:@"vertical-align"];	/* INI: baseline */
+			if(val != [parent getPropertyCSSValue:@"vertical-align"])
 				{
 				sval=[val _toString];
-				if([sval isEqualToString:@"super"])
+				if([sval isEqualToString:@"baseline"])
+					{
+					[attributes removeObjectForKey:NSSuperscriptAttributeName];
+					; // modify table cell if possible
+					}
+				else if([sval isEqualToString:@"super"])
 					[attributes setObject:[NSNumber numberWithInt:1] forKey:NSSuperscriptAttributeName];
 				else if([sval isEqualToString:@"sub"])
 					[attributes setObject:[NSNumber numberWithInt:-1] forKey:NSSuperscriptAttributeName];
@@ -1656,50 +1681,56 @@ enum
 					; // modify table cell if possible
 				else if([sval isEqualToString:@"bottom"])
 					; // modify table cell if possible
+				else {
+					// FIXME: text-top, text-bottom, % or absolute
 				}
-			// CHECKME: can we really change both through CSS?
-			val=[style getPropertyCSSValue:@"margin-left"];
+
+				}
+			// this is ot inherited - i.e. we don't need to check - or do we? does inherit mean to inherit the offset of the calculated position?
+			val=[style getPropertyCSSValue:@"margin-left"];	/* INI: 0 */
+			if(val)
+				{ // cumulatively make smaller (used e.g. for <li> elements)
+				[p setHeadIndent:[p headIndent]+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p headIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				}
+			val=[style getPropertyCSSValue:@"text-indent"];	/* INH + INI: 0 */
 			if(val)
 				{
-				[p setHeadIndent:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p headIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
-				}
-			val=[style getPropertyCSSValue:@"text-indent"];
-			if(val)
-				{
-				// fixme: 100% should probably be the with of the enclosing box...
+				// FIXME: 100% should probably be the with of the enclosing box...
+				// FIXME: can be inherited - what does that exactly mean?
 				[p setFirstLineHeadIndent:[p headIndent]+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p firstLineHeadIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
 			// setHyphenationFactor:
 			// setLineBreakMode: -- does this depend on white-space == pre?
 			// setTighteningFactorForTruncation:
 			// setLineHeightMultiple:
-			val=[style getPropertyCSSValue:@"line-height"];
-			if(val)
+			val=[style getPropertyCSSValue:@"line-height"];	/* INH + INI: normal (or 1em) */
+			if(val != [parent getPropertyCSSValue:@"line-height"])
 				{
+				// handle @"normal"
 				// check for simple numerical value -> factor instead of 100%
 				float s=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p lineSpacing]+[f ascender]+[f descender] andFont:[attributes objectForKey:NSFontAttributeName]];
 				s-=[f ascender]+[f descender];	// paragraph style does not define a line-height but a spacing
 				if(s < 0.0) s=0.0;
 				[p setLineSpacing:s];
 				}
-			val=[style getPropertyCSSValue:@"margin-bottom"];
+			val=[style getPropertyCSSValue:@"margin-bottom"];	/* INI: 0 */
 			if(val)
 				{
-				[p setParagraphSpacing:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p paragraphSpacing] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				[p setParagraphSpacing:[p paragraphSpacing]+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p paragraphSpacing] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
-			val=[style getPropertyCSSValue:@"margin-top"];
+			val=[style getPropertyCSSValue:@"margin-top"];	/* INI: 0 */
 			if(val)
 				{
-				[p setParagraphSpacingBefore:[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p paragraphSpacingBefore] andFont:[attributes objectForKey:NSFontAttributeName]]];
+				[p setParagraphSpacingBefore:[p paragraphSpacingBefore]+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p paragraphSpacingBefore] andFont:[attributes objectForKey:NSFontAttributeName]]];
 				}
-			val=[style getPropertyCSSValue:@"margin-right"];
+			val=[style getPropertyCSSValue:@"margin-right"];	/* INI: 0 */
 			if(val)
 				{
 				// FIXME: % is relative to enclosing block!
-				[p setTailIndent:-[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:-[p tailIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];	// positive tailIndent means total line width
+				[p setTailIndent:[p tailIndent]-[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:-[p tailIndent] andFont:[attributes objectForKey:NSFontAttributeName]]];	// positive tailIndent means total line width
 				}
-			val=[style getPropertyCSSValue:@"direction"];
-			if(val)
+			val=[style getPropertyCSSValue:@"direction"];	/* INH + INI: ltr */
+			if(val != [parent getPropertyCSSValue:@"direction"])
 				{		
 					sval=[val _toString];
 					if([sval isEqualToString:@"ltr"])
@@ -1709,7 +1740,7 @@ enum
 					// else NSWritingDirectionNatural?
 				}
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-			val=[style getPropertyCSSValue:@"x-header-level"];
+			val=[style getPropertyCSSValue:@"x-header-level"];	/* */
 			if(val)
 				{
 				[p setHeaderLevel:[[val _toString] intValue]];	// if someone wants to convert the attributed string back to HTML...					
@@ -1731,12 +1762,11 @@ enum
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	
-	/* replace this by [self _spliceNode:node to:str displayStyle:display style:style attributes:attributes]; */
-
 	if([display isEqualToString:@"break-line"])
 		{ // special case to implement <br>
 			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease]];
 		}
+	/* replace this by [self _updateForDisplayStyle:display forNode:node to:str style:style attributes:mutableAttributes]; */
 	else if([display isEqualToString:@"list-item"])
 		{ // special case to implement <li>
 			NSArray *list;
@@ -1748,6 +1778,9 @@ enum
 			DOMHTMLElement *le;	// used for finding the nesting level
 			DOMNodeList *children;
 			unsigned int index=0;
+			// FIXME: this works for HTML but not on XHTML
+			// and only if we don't use display: list-item for non-<li> elements
+			// a good implementation uses CSS counters
 			while(listElement && ![listElement isKindOfClass:[DOMHTMLUListElement class]]
 				   && ![listElement isKindOfClass:[DOMHTMLOListElement class]]
 				   && ![listElement isKindOfClass:[DOMHTMLDListElement class]])
@@ -1799,6 +1832,8 @@ enum
 				}
 			else
 				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
+			// FIXME: indentation can and should be done by margin-left and text-indent
+			// so that we don't need the lefel!
 			[p setHeadIndent:20.0*level];
 			[p setFirstLineHeadIndent:20.0*level];
 #if 0
@@ -1828,7 +1863,7 @@ enum
 			NSLog(@"  cell: %@", cell);
 #endif
 		}
-#if NOT_IMPLEMENTED	// needs to be implemented (+ the other table related display: styles)
+#if NOT_IMPLEMENTED	// needs to be implemented (+ the other table related display: styles) - but remove the table management in DOMHTMLTableElement
 	else if([display isEqualToString:@"table"])
 		{ // display as table
 		unsigned cols=[[self valueForKey:@"cols"] intValue];
@@ -1843,7 +1878,6 @@ enum
 		// should reset to default paragraph
 		// should reset font style, color etc. to defaults!
 		[_style setObject:@"table" forKey:@"display"];	// a table is a block element, i.e. force a \n before table starts
-		[p release];
 #if 0
 		NSLog(@"<table> _style=%@", _style);
 #endif
@@ -1891,6 +1925,19 @@ enum
 		NSLog(@"<td> _style=%@", _style);
 #endif
 	}	
+#endif
+#if 1
+	else if([display isEqualToString:@"run-in"])
+		isInline=YES;	// override
+#endif
+#if 0
+	else if([display isEqualToString:@"image"])
+		{
+			// check that we are really an <img> node
+			// apply width, height etc. to the image
+			// i.e. move the attribute management code from DOMHTMLIMGElement here
+			// but leave the delayed loading there
+		}
 #endif
 	else	// any other display: style
 		attachment=[(DOMHTMLElement *) node _attachmentForStyle:style];	// may be nil

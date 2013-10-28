@@ -829,8 +829,6 @@
 
 @implementation DOMHTMLDivElement
 
-+ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
-
 @end
 
 @implementation DOMHTMLSpanElement
