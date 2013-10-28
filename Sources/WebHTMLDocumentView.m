@@ -1833,7 +1833,6 @@ enum
 				[item release];
 				[p setTextLists:list];	// assume it is mutable
 				value=[item markerForItemNumber:index];
-				[item release];
 				}
 			else
 				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
