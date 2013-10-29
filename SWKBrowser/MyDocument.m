@@ -648,7 +648,7 @@
 		else if([ident isEqual: @"class"])
 			return NSStringFromClass([item class]);
 		else if([ident isEqual: @"value"])
-			return [item nodeValue];
+			return [[item nodeValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 		}
 	else if(outlineView == viewTree)
 		{
