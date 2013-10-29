@@ -1,6 +1,6 @@
 //
 //  main.m
-//  myAfrica
+//  SWKBrowser
 //
 //  Created by Dr. H. Nikolaus Schaller on Wed Jul 30 2003.
 //  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
