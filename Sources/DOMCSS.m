@@ -2112,8 +2112,6 @@
 				if([args count] > 0)
 					{
 					NSString *name=[args objectAtIndex:0];
-					if([name isEqualToString:@"color"])
-						NSLog(@"attr(color)");
 					NSString *type=[args count] >= 2?[args objectAtIndex:1]:@"string";	// default type
 					NSString *attr=[element getAttribute:name];	// read attribute value as string
 					if(!attr && [args count] >= 3)

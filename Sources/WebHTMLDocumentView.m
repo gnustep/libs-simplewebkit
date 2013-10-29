@@ -1763,9 +1763,9 @@ enum
 			if([[str string] hasSuffix:@" "])
 				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@"\n"];	// replace if it did end with a space
 			else
-				[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation inherits attributes of the previous section
+				[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
 		}
-	// to implement the :before pseudo element, we must extract the attribute/style calculation to a separate method
+	// to implement this with a :before pseudo element, we must extract the attribute/style calculation to a separate method
 	// and use style=[self _styleForElement:node pseudoElement:@"before" parentStyle:parent];
 	val=[style getPropertyCSSValue:@"x-before"];
 	if(val)
@@ -1775,7 +1775,8 @@ enum
 	
 	if([display isEqualToString:@"break-line"])
 		{ // special case to implement <br>
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease]];
+			NSAttributedString *nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
+			[str appendAttributedString:nl];
 		}
 	/* replace this by [self _updateForDisplayStyle:display forNode:node to:str style:style attributes:mutableAttributes]; */
 	else if([display isEqualToString:@"list-item"])
@@ -1965,8 +1966,7 @@ enum
 		}
 	if(!isInline)
 		{ // close our block and set the maxmimum line height
-			if([[str string] hasSuffix:@" "])
-				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@""];	// strip off any trailing space
+			NSAttributedString *nl;
 			val=[style getPropertyCSSValue:@"height"];
 			if(val)
 				{
@@ -1986,8 +1986,13 @@ enum
 				if(height < 0.0) height=0.0;
 				[p setMinimumLineHeight:(height==1e-6)?0.0:height];
 				[p setMaximumLineHeight:height];
+				// we may need to apply the paragraph style to all characters from initialLength to the end
 				}
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease]];	// close this block
+			nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
+			if([[str string] hasSuffix:@" "])
+				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withAttributedString:nl];	// replace any trailing space
+			else
+				[str appendAttributedString:nl];	// close this block
 		}
 	// FIXME range handling to map nodes <-> character indexes
 	//	_range.length=[str length]-_range.location;	// store resulting range
