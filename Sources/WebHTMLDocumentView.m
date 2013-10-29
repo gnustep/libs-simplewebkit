@@ -1570,12 +1570,18 @@ enum
 			val=[style getPropertyCSSValue:@"color"];	/* INH + INI: initial */
 			if(val != [parent getPropertyCSSValue:@"color"])
 				{
-				NSColor *color=[val _getNSColorValue];
-				if(color)
-					[attributes setObject:color forKey:NSForegroundColorAttributeName];
-				else if([[val _toString] isEqualToString:@"initial"])
-					[attributes removeObjectForKey:NSForegroundColorAttributeName];
+				if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE)
+					{
+					NSColor *color=[val _getNSColorValue];
+					if(color)
+						[attributes setObject:color forKey:NSForegroundColorAttributeName];
+					else if([[val _toString] isEqualToString:@"initial"])
+						[attributes removeObjectForKey:NSForegroundColorAttributeName];
+					}
+				else
+					NSLog(@"problem encountered");	// loading http://en.wikipedia.org/wiki/Data:_URI_scheme has unresolved(!) color:inherit although it is auto-inherited!
 				}
+			// FIXME: should we set NSBackgroundColorAttributeName?
 			val=[style getPropertyCSSValue:@"cursor"];	/* INH + INI: auto */
 			if(val != [parent getPropertyCSSValue:@"cursor"])
 				{
@@ -1816,17 +1822,13 @@ enum
 				else 
 					list=[list mutableCopy];	// make mutable
 				[(NSMutableArray *) list addObject:item];
-				[item release];
 				[p setTextLists:list];	// assume it is mutable
-				[list release];
 				value=[item markerForItemNumber:index];
+				[item release];	// should now be stored in list array
+				[list release];	// should be stored in NSMutableParagraphStyle
 				}
 			else
 				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
-			// FIXME: indentation can and should be done by margin-left and text-indent
-			// so that we don't need the lefel!
-//			[p setHeadIndent:20.0*level];
-//			[p setFirstLineHeadIndent:20.0*level];
 #if 0
 			NSLog(@"lists=%@", list);
 #endif

@@ -2027,8 +2027,8 @@
 { // convert to given unitType
 	switch(primitiveType) {
 		case DOM_CSS_PERCENTAGE: return 0.01*[value floatValue]*base;
-		case DOM_CSS_EMS: return [value floatValue]*([font ascender]+[font descender]);
-		case DOM_CSS_EXS: return [value floatValue]*[font xHeight];
+		case DOM_CSS_EMS: return font?[value floatValue]*([font ascender]+[font descender]):0.0;
+		case DOM_CSS_EXS: return font?[value floatValue]*[font xHeight]:0.0;
 	}
 	return [self getFloatValue:unitType];	// absolute
 }
@@ -2112,6 +2112,8 @@
 				if([args count] > 0)
 					{
 					NSString *name=[args objectAtIndex:0];
+					if([name isEqualToString:@"color"])
+						NSLog(@"attr(color)");
 					NSString *type=[args count] >= 2?[args objectAtIndex:1]:@"string";	// default type
 					NSString *attr=[element getAttribute:name];	// read attribute value as string
 					if(!attr && [args count] >= 3)
@@ -2351,6 +2353,8 @@
 				newval=[parent getPropertyCSSValue:property];
 				if(newval)
 					[style setProperty:property CSSvalue:newval priority:[parent getPropertyPriority:property]];
+				else
+					[style removeProperty:property], cnt--; // we have no explicit default value yet, so remove this "inherit"
 				}
 			else
 				{
@@ -2404,37 +2408,6 @@
 	// efficiency without caching is very questionable!!! */
 	DOMCSSStyleDeclaration *parent=[element parentNode]?[self computedStyleForElement:(DOMElement *) [element parentNode] pseudoElement:pseudoElement]:nil;
 	DOMCSSStyleDeclaration *style=[self _styleForElement:element pseudoElement:pseudoElement parentStyle:parent];
-#if 0
-	DOMCSSStyleDeclaration *parent=nil;
-	unsigned int i, cnt=[style length];
-	/* evaluate inheritance - recursively go upwards only if needed */
-	for(i=0; i<cnt; i++)
-		{ // replace (recursively) inherited values
-			NSString *property=[style item:i];
-			DOMCSSValue *val=[style getPropertyCSSValue:property];
-			
-			// or should we expand attr() and uri() here?
-			
-			if([val cssValueType] == DOM_CSS_INHERIT)
-				{
-				if(![element parentNode])
-					{
-					; // substitute system default					
-					}
-				else
-					{
-					if(!parent)
-						parent=[self computedStyleForElement:(DOMElement *) [element parentNode] pseudoElement:pseudoElement];	// recursively expand
-					if(parent)
-						[style setProperty:property CSSvalue:[parent getPropertyCSSValue:property] priority:[parent getPropertyPriority:property]];	// inherit
-					else
-						; // substitute system default					
-					}
-				}
-		}
-#endif
-	/* handle special case where the default value is a copy of some other property */
-//	if(![style getPropertyCSSValue:@"border-top-color"]) [style setProperty:@"border-top-color" CSSvalue:[style getPropertyCSSValue:@"color"] priority:nil];
 	return style;
 }
 
