@@ -338,18 +338,50 @@ static NSDictionary *tagtable;
 		return;	// ignore
 	if(nesting == DOMHTMLLazyNesting)
 		{ // virtually close previous node if both are lazily nested -- <p>xxx<p>yyy</p></p>
+#if OLD
 #if 0	// some test code
 		id last=[_elementStack lastObject];
 		Class class=[last class];
 		DOMHTMLNestingStyle nesting=[class _nesting];
+#if 0
 		if([newElement isKindOfClass:[DOMHTMLParagraphElement class]])
 			NSLog(@"last %@", last);
+#endif
 #endif
 		if([[[_elementStack lastObject] class] _nesting] == DOMHTMLLazyNesting)
 			{ // has been pushed
 			[[_elementStack lastObject] _elementLoaded];	// run any finalizing code
 			[_elementStack removeLastObject];	// go up one level
 			}
+#else
+		/*
+		 * we check if we would be nested in a node of the same type
+		 * if yes, we close all open children of that node
+		 * and make us a sibling
+		 * this guarantees that
+		 * e.g. <li><p><p> becomes <li><p></p><p></p></li>
+		 *
+		 * FIXME: <h1> elements should break a <p> or <li> as well, but not a <td>
+		 */
+		unsigned int i=[_elementStack count], j=i;
+		tag=[tag uppercaseString];
+		while(i > 0)
+			{
+//			NSLog(@"%@ vs. %@", [[_elementStack objectAtIndex:i-1] tagName], tag);
+			// instead of comparing names we might need sort of "priority"
+			// so that we end a <p> or <li> as well by a <h1> which goes even further up in the tree
+			if([[[_elementStack objectAtIndex:--i] tagName] isEqualToString:tag])
+				{ // we found someone at index i whom we consider a sibling and not a parent
+					while(j > i)
+						{ // close all elements between our sibling and us
+						DOMHTMLElement *e=[_elementStack objectAtIndex:--j];
+						[e _elementLoaded];
+						[_elementStack removeLastObject];
+						}
+					break;
+				}
+			}
+#endif
 		}
 	parent=[c _designatedParentNode:self];
 #if 0

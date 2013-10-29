@@ -1115,8 +1115,6 @@
 
 @implementation DOMHTMLTableElement
 
-+ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
-
 - (void) dealloc;
 {
 	[table release];
@@ -1199,6 +1197,8 @@
 
 @implementation DOMHTMLTableRowElement
 
+// + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
+
 + (DOMHTMLElement *) _designatedParentNode:(_WebHTMLDocumentRepresentation *) rep;
 { // find matching <tbody> or <table> node to become child
 	DOMHTMLElement *n=[rep _lastObject];
@@ -1234,6 +1234,8 @@
 @end
 
 @implementation DOMHTMLTableCellElement
+
++ (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
 @end
 
