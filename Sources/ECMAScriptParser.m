@@ -310,7 +310,7 @@
 				[sc _scanToken:@","];	// skip if present
 				}
 			}
-		r=[_WebScriptTreeNodeArrayLiteralConstructor node:nil :values];	// should call constructor on the Array object like "new Array()"
+		r=[_WebScriptTreeNodeArrayLiteralConstructor newNode:nil :values];	// should call constructor on the Array object like "new Array()"
 		[values release];
 		}
 	else if([sc _scanToken:@"{"])
@@ -338,7 +338,7 @@
 					break;
 				}
 			}
-		r=[_WebScriptTreeNodeObjectLiteralConstructor node:keys :values];	// should call constructor on the Object object like "new Object()"
+		r=[_WebScriptTreeNodeObjectLiteralConstructor newNode:keys :values];	// should call constructor on the Object object like "new Object()"
 		[keys release];
 		[values release];
 		}
@@ -441,7 +441,7 @@
 			else if([string isEqualToString:@"false"])
 				r=[NSNumber numberWithBool:NO];
 			else if([string isEqualToString:@"this"])
-				r=[_WebScriptTreeNodeThis node:nil :nil];
+				r=[_WebScriptTreeNodeThis newNode:nil :nil];
 			else
 				{ // either keyword or a variable/method reference
 				static NSArray *reservedWords;
@@ -510,7 +510,7 @@
 					}
 				if([reservedWords containsObject:string])
 					[sc _scanError:[NSString stringWithFormat:@"unexpected keyword: %@", string]];	// raises exception
-				r=[_WebScriptTreeNodeIdentifier node:nil :string];	// return the identifier (evaluation will form a reference)
+				r=[_WebScriptTreeNodeIdentifier newNode:nil :string];	// return the identifier (evaluation will form a reference)
 				}
 			}
 		else
@@ -533,9 +533,9 @@
 		[self _skipComments:sc];
 		l=[self _lhsExpressionWithScanner:sc forNew:YES];
 		if([l isKindOfClass:[_WebScriptTreeNodeCall class]])
-			l=[_WebScriptTreeNodeNew node:((_WebScriptTreeNodeCall*)l)->left :((_WebScriptTreeNodeCall *)l)->right];
+			l=[_WebScriptTreeNodeNew newNode:((_WebScriptTreeNodeCall*)l)->left :((_WebScriptTreeNodeCall *)l)->right];
 		else
-			l=[_WebScriptTreeNodeNew node:l :nil];	// no arguments
+			l=[_WebScriptTreeNodeNew newNode:l :nil];	// no arguments
 		}
 	else if([sc _scanKeyword:@"function"])
 		{ // function xx (arguments) { body }
@@ -561,7 +561,7 @@
 				if(![sc _scanToken:@")"])
 					[sc _scanError:@"missing ) in function(arguments)"];
 				}
-			l=[_WebScriptTreeNodeCall node:l :arglist];
+			l=[_WebScriptTreeNodeCall newNode:l :arglist];
 			[arglist release];
 			if(flag)
 				break;	// only one argument list for each new
@@ -569,7 +569,7 @@
 		else if([sc _scanToken:@"["])
 			{ // array/object indexing - 11.2.1
 			[self _skipComments:sc];
-			l=[_WebScriptTreeNodeIndex node:l :[self _expressionWithScanner:sc noIn:NO]];
+			l=[_WebScriptTreeNodeIndex newNode:l :[self _expressionWithScanner:sc noIn:NO]];
 			[self _skipComments:sc];
 			if(![sc _scanToken:@"]"])
 				[sc _scanError:@"missing ] in object[index]"];
@@ -581,7 +581,7 @@
 			r=[self _primaryExpressionWithScanner:sc];
 			if(![r _isIdentifier])
 				[sc _scanError:@"not an identifier in object.identifier"];
-			l=[_WebScriptTreeNodeIndex node:l :[r getIdentifier]];	// convert to index expression
+			l=[_WebScriptTreeNodeIndex newNode:l :[r getIdentifier]];	// convert to index expression
 			}
 		else
 			break;
@@ -596,12 +596,12 @@
 	// no new line allowed here but comments...
 	if([sc _scanToken:@"++"])
 		{ // 11.3.1
-		l=[_WebScriptTreeNodePostfix node:l :nil];
+		l=[_WebScriptTreeNodePostfix newNode:l :nil];
 		((_WebScriptTreeNodePostfix *)l)->op=PlusPlus;
 		}
 	else if([sc _scanToken:@"--"])
 		{ // 11.3.2
-		l=[_WebScriptTreeNodePostfix node:l :nil];
+		l=[_WebScriptTreeNodePostfix newNode:l :nil];
 		((_WebScriptTreeNodePostfix *)l)->op=MinusMinus;
 		}
 	return l;
@@ -613,47 +613,47 @@
 	[self _skipComments:sc];
 	if([sc _scanKeyword:@"delete"])
 		{ // 11.4.1
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Delete;
 		}
 	else if([sc _scanKeyword:@"void"])
 		{ // 11.4.2
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Void;
 		}
 	else if([sc _scanKeyword:@"typeof"])
 		{ // 11.4.3
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Typeof;
 		}
 	else if([sc _scanToken:@"++"])
 		{ // 11.4.4
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=UPlusPlus;
 		}
 	else if([sc _scanToken:@"--"])
 		{ // 11.4.5
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=UMinusMinus;
 		}
 	else if([sc _scanMultiToken:@"+"])
 		{ // 11.4.6
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Plus;
 		}
 	else if([sc _scanMultiToken:@"-"])
 		{ // 11.4.7
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Minus;
 		}
 	else if([sc _scanMultiToken:@"~"])
 		{ // 11.4.8
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Neg;
 		}
 	else if([sc _scanMultiToken:@"!"])
 		{ // logical not
-		r=[_WebScriptTreeNodeUnary node:nil :[self _unaryExpressionWithScanner:sc]];
+		r=[_WebScriptTreeNodeUnary newNode:nil :[self _unaryExpressionWithScanner:sc]];
 		((_WebScriptTreeNodeUnary *)r)->op=Not;
 		}
 	else
@@ -670,17 +670,17 @@
 		[self _skipComments:sc];
 		if([sc _scanMultiToken:@"*"])
 			{ // 11.5.1
-			l=[_WebScriptTreeNodeMultiplicative node:l :[self _unaryExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeMultiplicative newNode:l :[self _unaryExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeMultiplicative *)l)->op=Mult;
 			}
 		else if([sc _scanMultiToken:@"/"])
 			{ // 11.5.2
-			l=[_WebScriptTreeNodeMultiplicative node:l :[self _unaryExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeMultiplicative newNode:l :[self _unaryExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeMultiplicative *)l)->op=Div;
 			}
 		else if([sc _scanMultiToken:@"%"])
 			{ // 11.5.3
-			l=[_WebScriptTreeNodeMultiplicative node:l :[self _unaryExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeMultiplicative newNode:l :[self _unaryExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeMultiplicative *)l)->op=Mod;
 			}
 		else
@@ -698,12 +698,12 @@
 		[self _skipComments:sc];
 		if([sc _scanMultiToken:@"+"])
 			{ // 11.6.1
-			l=[_WebScriptTreeNodeAdditive node:l :[self _multiplicativeExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeAdditive newNode:l :[self _multiplicativeExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeAdditive *)l)->op=Add;
 			}
 		else if([sc _scanMultiToken:@"-"])
 			{ // 11.6.2
-			l=[_WebScriptTreeNodeAdditive node:l :[self _multiplicativeExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeAdditive newNode:l :[self _multiplicativeExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeAdditive *)l)->op=Sub;
 			}
 		else
@@ -721,17 +721,17 @@
 		[self _skipComments:sc];
 		if([sc _scanMultiToken:@"<<"])
 			{ // 11.7.1
-			l=[_WebScriptTreeNodeShift node:l :[self _additiveExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeShift newNode:l :[self _additiveExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeShift *)l)->op=Shl;
 			}
 		else if([sc _scanMultiToken:@">>>"])
 			{ // 11.7.3
-			l=[_WebScriptTreeNodeShift node:l :[self _additiveExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeShift newNode:l :[self _additiveExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeShift *)l)->op=UShr;
 			}
 		else if([sc _scanMultiToken:@">>"])
 			{ // 11.7.2
-			l=[_WebScriptTreeNodeShift node:l :[self _additiveExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeShift newNode:l :[self _additiveExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeShift *)l)->op=Shr;
 			}
 		else
@@ -749,32 +749,32 @@
 		[self _skipComments:sc];
 		if([sc _scanToken:@"<="])
 			{ // 11.8.3
-			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeRelational newNode:l :[self _shiftExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeRelational *)l)->op=LessEqual;
 			}
 		else if([sc _scanToken:@">="])
 			{ // 11.8.4
-			l=[_WebScriptTreeNodeRelational node:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
+			l=[_WebScriptTreeNodeRelational newNode:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
 			((_WebScriptTreeNodeRelational *)l)->op=LessEqual;
 			}
 		else if([sc _scanMultiToken:@"<"])
 			{ // 11.8.1
-			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeRelational newNode:l :[self _shiftExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeRelational *)l)->op=LessThan;
 			}
 		else if([sc _scanMultiToken:@">"])
 			{ // 11.8.2
-			l=[_WebScriptTreeNodeRelational node:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
+			l=[_WebScriptTreeNodeRelational newNode:[self _shiftExpressionWithScanner:sc] :l];	// swapped operands
 			((_WebScriptTreeNodeRelational *)l)->op=LessThan;
 			}
 		else if([sc _scanKeyword:@"instanceof"])
 			{ // 11.8.6
-			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeRelational newNode:l :[self _shiftExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeRelational *)l)->op=InstanceOf;
 			}
 		else if(!flag && [sc _scanKeyword:@"in"])
 			{ // 11.8.7
-			l=[_WebScriptTreeNodeRelational node:l :[self _shiftExpressionWithScanner:sc]];
+			l=[_WebScriptTreeNodeRelational newNode:l :[self _shiftExpressionWithScanner:sc]];
 			((_WebScriptTreeNodeRelational *)l)->op=In;
 			}
 		else 
@@ -792,23 +792,23 @@
 		[self _skipComments:sc];
 		if([sc _scanToken:@"==="])
 			{ // 11.9.4
-			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeEquality newNode:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeEquality *)l)->equal=YES;
 			((_WebScriptTreeNodeEquality *)l)->strict=YES;
 			}
 		else if([sc _scanToken:@"!=="])
 			{ // 11.9.5
-			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeEquality newNode:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeEquality *)l)->strict=YES;
 			}
 		else if([sc _scanMultiToken:@"=="])
 			{ // 11.9.1
-			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeEquality newNode:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeEquality *)l)->equal=YES;
 			}
 		else if([sc _scanMultiToken:@"!="])
 			{ // 11.9.2
-			l=[_WebScriptTreeNodeEquality node:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeEquality newNode:l :[self _relationalExpressionWithScanner:sc noIn:flag]];
 			}
 		else
 			break;
@@ -825,7 +825,7 @@
 		[self _skipComments:sc];
 		if([sc _scanMultiToken:@"&"])
 			{
-			l=[_WebScriptTreeNodeBitwise node:l :[self _equalityExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeBitwise newNode:l :[self _equalityExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeBitwise *)l)->op=And;
 			}
 		else
@@ -843,7 +843,7 @@
 		[self _skipComments:sc];
 		if([sc _scanMultiToken:@"^"])
 			{
-			l=[_WebScriptTreeNodeBitwise node:l :[self _bitwiseAndExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeBitwise newNode:l :[self _bitwiseAndExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeBitwise *)l)->op=Xor;
 			}
 		else
@@ -861,7 +861,7 @@
 		[self _skipComments:sc];
 		if([sc _scanMultiToken:@"|"])
 			{
-			l=[_WebScriptTreeNodeBitwise node:l :[self _bitwiseXorExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeBitwise newNode:l :[self _bitwiseXorExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeBitwise *)l)->op=Or;
 			}
 		else
@@ -879,7 +879,7 @@
 		[self _skipComments:sc];
 		if([sc _scanToken:@"&&"])
 			{ // logical and operator
-			l=[_WebScriptTreeNodeLogical node:l :[self _bitwiseOrExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeLogical newNode:l :[self _bitwiseOrExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeLogical *)l)->op=LAnd;
 			}
 		else
@@ -897,7 +897,7 @@
 		[self _skipComments:sc];
 		if([sc _scanToken:@"||"])
 			{ // logical or operator
-			l=[_WebScriptTreeNodeLogical node:l :[self _logicalAndExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeLogical newNode:l :[self _logicalAndExpressionWithScanner:sc noIn:flag]];
 			((_WebScriptTreeNodeLogical *)l)->op=LOr;
 			}
 		else
@@ -917,7 +917,7 @@
 		[self _skipComments:sc];
 		if(![sc _scanToken:@":"])
 			[sc _scanError:@"missing : in c?a:b"];
-		l=[_WebScriptTreeNodeConditional node:l :r];
+		l=[_WebScriptTreeNodeConditional newNode:l :r];
 		((_WebScriptTreeNodeConditional *)l)->otherwise=[[self _assignmentExpressionWithScanner:sc noIn:flag] retain];
 		}
 	return l;
@@ -930,62 +930,62 @@
 	[self _skipComments:sc];
 	if([sc _scanToken:@"="])
 		{ // assignment operator - right associative
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=Assign;
 		}
 	else if([sc _scanToken:@"*="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=MultAssign;
 		}
 	else if([sc _scanToken:@"/="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=DivAssign;
 		}
 	else if([sc _scanToken:@"%="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=ModAssign;
 		}
 	else if([sc _scanToken:@"+="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=PlusAssign;
 		}
 	else if([sc _scanToken:@"-="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=MinusAssign;
 		}
 	else if([sc _scanToken:@"<<="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=ShlAssign;
 		}
 	else if([sc _scanToken:@">>>="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=UShrAssign;
 		}
 	else if([sc _scanToken:@">>="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=ShrAssign;
 		}
 	else if([sc _scanToken:@"&="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=AndAssign;
 		}
 	else if([sc _scanToken:@"^="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=XorAssign;
 		}
 	else if([sc _scanToken:@"|="])
 		{
-		l=[_WebScriptTreeNodeAssignment node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+		l=[_WebScriptTreeNodeAssignment newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeAssignment *)l)->op=OrAssign;
 		}
 	// etc.
@@ -1002,7 +1002,7 @@
 		if([sc _scanToken:@","])
 			{ // comma operator
 			[self _skipComments:sc];
-			l=[_WebScriptTreeNodeComma node:l :[self _assignmentExpressionWithScanner:sc noIn:flag]];
+			l=[_WebScriptTreeNodeComma newNode:l :[self _assignmentExpressionWithScanner:sc noIn:flag]];
 			}
 		else
 			break;
@@ -1026,7 +1026,7 @@
 				[sc _scanError:@"missing } in { statement block }"];
 			if([sc _scanToken:@";"])
 				continue;	// ignore empty statements
-			r=[_WebScriptTreeNodeStatementList node:r :[self _statementWithScanner:sc]];
+			r=[_WebScriptTreeNodeStatementList newNode:r :[self _statementWithScanner:sc]];
 			[self _skipComments:sc];
 			}
 		return r;
@@ -1044,14 +1044,14 @@
 				[sc _scanError:@"missing identifier in var statement"];
 			[self _skipComments:sc];
 			if([sc _scanToken:@"="])
-				l=[_WebScriptTreeNodeVar node:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
+				l=[_WebScriptTreeNodeVar newNode:l :[self _assignmentExpressionWithScanner:sc noIn:NO]];
 			else
-				l=[_WebScriptTreeNodeVar node:l :nil];	// will assign undefined
+				l=[_WebScriptTreeNodeVar newNode:l :nil];	// will assign undefined
 			[self _skipComments:sc];
 			if(![sc _scanToken:@","])
 				break;
 			if(r)
-				r=[_WebScriptTreeNodeStatementList node:r :l];	// chain
+				r=[_WebScriptTreeNodeStatementList newNode:r :l];	// chain
 			else
 				r=l;
 			}
@@ -1067,7 +1067,7 @@
 		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
 			[sc _scanError:@"missing ) in if(expr) statement"];
-		r=[_WebScriptTreeNodeIf node:l :[self _statementWithScanner:sc]];
+		r=[_WebScriptTreeNodeIf newNode:l :[self _statementWithScanner:sc]];
 		[self _skipComments:sc];
 		if([sc _scanKeyword:@"else"])
 			{
@@ -1088,7 +1088,7 @@
 		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
 			[sc _scanError:@"missing ) in do statement while(expr)"];
-		r=[_WebScriptTreeNodeIteration node:l :r];
+		r=[_WebScriptTreeNodeIteration newNode:l :r];
 		((_WebScriptTreeNodeIteration *)r)->op=Do;
 		}
 	else if([sc _scanKeyword:@"while"])
@@ -1102,7 +1102,7 @@
 		if(![sc _scanToken:@")"])
 			[sc _scanError:@"missing ) in while(expr) statement"];
 		[self _skipComments:sc];
-		r=[_WebScriptTreeNodeIteration node:l :[self _statementWithScanner:sc]];
+		r=[_WebScriptTreeNodeIteration newNode:l :[self _statementWithScanner:sc]];
 		((_WebScriptTreeNodeIteration *)r)->op=While;
 		}
 	else if([sc _scanKeyword:@"for"])
@@ -1135,7 +1135,7 @@
 				if(![sc _scanToken:@")"])
 					[sc _scanError:@"missing ) in for(x in expr) statement"];
 				[self _skipComments:sc];
-				r=[_WebScriptTreeNodeIteration node:cond :[self _statementWithScanner:sc]];
+				r=[_WebScriptTreeNodeIteration newNode:cond :[self _statementWithScanner:sc]];
 				((_WebScriptTreeNodeIteration *)r)->op=ForIn;	// make virtual while loop with inc part
 				}
 			else if(![sc _scanToken:@";"])
@@ -1158,12 +1158,12 @@
 					[sc _scanError:@"missing ) in for(...) statement"];
 				}
 			[self _skipComments:sc];
-			r=[_WebScriptTreeNodeIteration node:cond :[self _statementWithScanner:sc]];
+			r=[_WebScriptTreeNodeIteration newNode:cond :[self _statementWithScanner:sc]];
 			((_WebScriptTreeNodeIteration *)r)->op=While;	// make virtual while loop with inc part
 			((_WebScriptTreeNodeIteration *)r)->inc=inc;
 			}
 		if(init)
-			r=[_WebScriptTreeNodeIteration node:init :r];	// initialize first and then loop
+			r=[_WebScriptTreeNodeIteration newNode:init :r];	// initialize first and then loop
 		}
 	else if([sc _scanKeyword:@"continue"])
 		{ // 12.7
@@ -1171,7 +1171,7 @@
 		if(![sc _scanToken:@";"] && ![sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			r=[self _primaryExpressionWithScanner:sc];
 			// Check that it is really an identifier!
-		r=[_WebScriptTreeNodeIteration node:nil :r];
+		r=[_WebScriptTreeNodeIteration newNode:nil :r];
 		((_WebScriptTreeNodeIteration *)r)->op=Continue;		
 		}
 	else if([sc _scanKeyword:@"break"])
@@ -1180,7 +1180,7 @@
 		if(![sc _scanToken:@";"] && ![sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			r=[self _primaryExpressionWithScanner:sc];
 		// Check that it is really an identifier!
-		r=[_WebScriptTreeNodeIteration node:nil :r];
+		r=[_WebScriptTreeNodeIteration newNode:nil :r];
 		((_WebScriptTreeNodeIteration *)r)->op=Break;		
 		}
 	else if([sc _scanKeyword:@"return"])
@@ -1188,7 +1188,7 @@
 		r=nil;
 		if(![sc _scanToken:@";"] && ![sc scanCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:NULL])
 			r=[self _expressionWithScanner:sc noIn:NO];
-		r=[_WebScriptTreeNodeReturn node:nil :r];
+		r=[_WebScriptTreeNodeReturn newNode:nil :r];
 		((_WebScriptTreeNodeReturn *) r)->op=Return;
 		}
 	else if([sc _scanKeyword:@"with"])
@@ -1201,13 +1201,13 @@
 		[self _skipComments:sc];
 		if(![sc _scanToken:@")"])
 			[sc _scanError:@"missing ) in with(object) expression"];
-		r=[_WebScriptTreeNodeWith node:l :[self _expressionWithScanner:sc noIn:NO]];
+		r=[_WebScriptTreeNodeWith newNode:l :[self _expressionWithScanner:sc noIn:NO]];
 		}
 	else if([sc _scanKeyword:@"switch"])
 		{ // 12.11
 		NSMutableArray *cases=[NSMutableArray new];
 		NSMutableArray *statements=[NSMutableArray new];
-		r=[_WebScriptTreeNodeSwitch node:cases :statements];
+		r=[_WebScriptTreeNodeSwitch newNode:cases :statements];
 		[self _skipComments:sc];
 		if(![sc _scanToken:@"("])
 			[sc _scanError:@"missing ( in switch(expr) block"];
@@ -1225,7 +1225,7 @@
 	else if([sc _scanKeyword:@"throw"])
 		{ // 12.13
 		[self _skipComments:sc];
-		r=[_WebScriptTreeNodeReturn node:nil :[self _expressionWithScanner:sc noIn:NO]];
+		r=[_WebScriptTreeNodeReturn newNode:nil :[self _expressionWithScanner:sc noIn:NO]];
 		((_WebScriptTreeNodeReturn *) r)->op=Throw;
 		}
 	else if([sc _scanKeyword:@"try"])
@@ -1246,7 +1246,7 @@
 				[sc _scanError:@"missing ) in catch(ident) block"];
 			catch=[self _statementWithScanner:sc];	// should enforce to be a block!
 			}
-		r=[_WebScriptTreeNodeTry node:ident :r];
+		r=[_WebScriptTreeNodeTry newNode:ident :r];
 		((_WebScriptTreeNodeTry *) r)->catch=[catch retain];
 		[self _skipComments:sc];
 		if([sc _scanKeyword:@"finally"])
@@ -1263,7 +1263,7 @@
 		[self _skipComments:sc];
 		if([r isKindOfClass:[_WebScriptTreeNodeIdentifier class]] && [sc _scanToken:@":"])
 			{ // label
-			r=[_WebScriptTreeNodeLabel node:r :[self _statementWithScanner:sc]];
+			r=[_WebScriptTreeNodeLabel newNode:r :[self _statementWithScanner:sc]];
 			}
 		}
 	[self _skipComments:sc];
@@ -1304,7 +1304,7 @@
 		if(![sc _scanToken:@")"])
 			[sc _scanError:@"missing ) in function (parameters) { body }"];
 		}
-	r=[_WebScriptTreeNodeFunction node:ident :[self _programWithScanner:sc block:YES]];	// return on closing }
+	r=[_WebScriptTreeNodeFunction newNode:ident :[self _programWithScanner:sc block:YES]];	// return on closing }
 	((_WebScriptTreeNodeFunction *)r)->params=params;
 	return r;
 }
@@ -1350,7 +1350,7 @@
 		else
 			s=[self _statementWithScanner:sc];
 		if(r)
-			r=[_WebScriptTreeNodeStatementList node:r :s];	// concatentate
+			r=[_WebScriptTreeNodeStatementList newNode:r :s];	// concatentate
 		else
 			r=s;	// first
 		}
@@ -1359,11 +1359,10 @@
 
 /* *** */
 
-// rename this to allocNode so that it is better covered by Analyze
-
-+ (id) node:(id) l :(id) r;
-{ // create a new node (not released and initialized!)
++ (id) newNode:(id) l :(id) r;
+{ // create a new node (not autoreleased!)
 	_WebScriptTreeNode *n=[self alloc];
+	// skip -init for performance reasons
 	n->left=[l retain];
 	n->right=[r retain];
 	return n;

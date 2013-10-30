@@ -40,7 +40,7 @@
 	id right;
 }
 
-+ (id) node:(id) left :(id) right;	// create a new node
++ (id) newNode:(id) left :(id) right;	// create a new node (not autoreleased!)
 
 + (void) _skipComments:(NSScanner *) sc;
 + (id) _primaryExpressionWithScanner:(NSScanner *) sc;	// 11.1

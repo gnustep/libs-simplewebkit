@@ -225,10 +225,10 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 	while(context)
 		{ // walk through scope chain
 		if([context->this _hasProperty:right])
-			return [_WebScriptTreeNodeReference node:context->this :right];	// form a real reference
+			return [_WebScriptTreeNodeReference newNode:context->this :right];	// form a real reference
 		context=context->nextContext;
 		}
-	return [[_WebScriptTreeNodeReference node:[NSNull null] :right] autorelease];	// undefined reference
+	return [[_WebScriptTreeNodeReference newNode:[NSNull null] :right] autorelease];	// undefined reference
 }
 
 @end
@@ -403,7 +403,7 @@ static Class __boolClass;	// class cluster subclass for numberWithBool
 	r=[r _getValue];				// 4.
 	l=[l _toObject];				// 5.
 	r=[r _toString];				// 6.
-	return [_WebScriptTreeNodeReference node:l :r];	// 7. make it a dynamic reference
+	return [_WebScriptTreeNodeReference newNode:l :r];	// 7. make it a dynamic reference
 }
 
 @end
