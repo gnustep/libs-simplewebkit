@@ -661,7 +661,7 @@
 			return nil;
 		}
 	else	/* no operator */
-		self=[DOMCSSStyleRule new];
+		self=[[DOMCSSStyleRule alloc] init];
 	[(DOMCSSStyleRule *) self setSelectorText:(NSString *) sc];	// set from scanner
 	// how do we handle parse errors here? e.g. if selectorText is empty
 	// i.e. unknown @rule
@@ -1028,7 +1028,6 @@
 
 @interface DOMCSSStyleRuleSelector : NSObject
 { // see http://www.w3.org/TR/css3-selectors/
-@public
 	enum
 	{
 	// leaf elements (simple selector)
@@ -1054,10 +1053,31 @@
 	id value;				// attr value, element1
 	int specificity;
 }
++ (DOMCSSStyleRuleSelector *) newWithSelector:(NSString *) selector;
+- (void) setValue:(id) value;
+- (void) setType:(int) type;
 - (int) specificity;
 @end
 
 @implementation DOMCSSStyleRuleSelector
+
++ (DOMCSSStyleRuleSelector *) newWithSelector:(NSString *) selector
+{
+	DOMCSSStyleRuleSelector *s=[self new];
+	s->selector=[selector retain];
+	return s;
+}
+
+- (void) setValue:(id) val
+{
+	[value autorelease];
+	value=[val retain];
+}
+
+- (void) setType:(int) t;
+{
+	type=t;
+}
 
 - (void) dealloc
 {
@@ -1261,12 +1281,14 @@
 			type=SIBLING_SELECTOR;
 		if(type != TAG_SELECTOR)
 			{ // is a real combinator
-				selObj=[DOMCSSStyleRuleSelector new];
-				selObj->type=type;
-				selObj->value=[sel retain];	// save element1
+				selObj=[DOMCSSStyleRuleSelector newWithSelector:nil];
+				[selObj setType:type];
+				[selObj setValue:sel];	// save element1
 				sel=[NSMutableArray arrayWithCapacity:5];	// start to collect element2
-				// FIXME:
-				// ...
+				// FIXME: - we leak the selObject generated here because we don't process > + ~
+				// this may have to be parsed recursively
+				// and finally create a combinator node
+				// where do we store the second element the first one is combined with?
 				continue;
 			}
 		else
@@ -1296,8 +1318,7 @@
 						}
 					break;	// no element name follows where required
 					}
-				selObj=[DOMCSSStyleRuleSelector new];
-				selObj->selector=[entry retain];
+				selObj=[DOMCSSStyleRuleSelector newWithSelector:entry];
 				if(type == ATTRIBUTE_SELECTOR)
 					{ // handle tag[attrib=value]
 #if 0
@@ -1317,7 +1338,7 @@
 							type=ATTRIBUTE_MATCH_SELECTOR;
 						if(![sc scanString:@"]" intoString:NULL])
 							{
-							selObj->value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+							[selObj setValue:[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease]];
 							[sc scanString:@"]" intoString:NULL];							
 							}
 					}
@@ -1325,11 +1346,11 @@
 					{ // handle :pseudo(n)
 						if([sc scanString:@"(" intoString:NULL])
 							{
-							selObj->value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+							[selObj setValue:[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease]];
 							[sc scanString:@")" intoString:NULL];							
 							}
 					}
-				selObj->type=type;
+				[selObj setType:type];
 			}
 		[sel addObject:selObj];
 		[selObj release];
