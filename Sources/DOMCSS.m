@@ -2329,7 +2329,7 @@
 			[defaultSheet _applyRulesMatchingElement:element pseudoElement:pseudoElement toStyle:style];
 			
 			if([[self preferences] authorAndUserStylesEnabled])
-				{ // loaded style is not disabled
+				{ // user has not requested to ignore this style
 					NSString *styleString;
 					DOMStyleSheetList *list;
 					DOMCSSStyleDeclaration *css;
@@ -2360,6 +2360,10 @@
 							[css release];
 						}
 				}
+			else {
+				NSLog(@"authorAndUserStyles are disabled");
+			}
+
 		}
 	cnt=[style length];
 	for(i=0; i<cnt; i++)

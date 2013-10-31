@@ -1264,15 +1264,13 @@ enum
 
 - (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) astr parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
-	unsigned i;
-	NSAutoreleasePool *arp;
+	unsigned i, cnt;
 	DOMCSSValue *val;
 	NSString *sval;
-	WebPreferences *preferences=[self preferences];
 	NSMutableDictionary *attributes;
 	NSMutableParagraphStyle *p;
 	DOMCSSStyleDeclaration *style;
-	DOMNodeList *childNodes=nil;
+	DOMNodeList *childNodes;
 	NSString *display;
 	NSString *visibility;
 	BOOL lastIsInline;
@@ -1313,11 +1311,10 @@ enum
 		[p release];
 		}
 
-	if([node isKindOfClass:[DOMElement class]])
-		childNodes=[node childNodes];
+	childNodes=[node isKindOfClass:[DOMElement class]]?[node childNodes]:nil;
 	initialLength=[astr length];	// to find out if we or a child has added content to a block
 
-	string=[(DOMHTMLElement *) node _string];	// may be nil
+	string=[(DOMHTMLElement *) node _string];	// may be nil or empty
 
 	/* apply text modification */
 	
@@ -1329,7 +1326,6 @@ enum
 			BOOL nowrap=NO;
 			BOOL nobrk=NO;
 			BOOL trim=NO;
-			NSMutableString *s;
 			sval=[val _toString];
 			if([sval isEqualToString:@"normal"])
 				trim=YES, nobrk=YES;
@@ -1343,43 +1339,33 @@ enum
 				trim=YES, nowrap=YES;
 			else if([sval isEqualToString:@"initial"])
 				trim=YES, nowrap=YES;	// wasn't defined but inherited?
-			s=[[string mutableCopy] autorelease];
 			[p setLineBreakMode:nowrap?NSLineBreakByClipping:NSLineBreakByWordWrapping];
-			if(nobrk)
-				{ // don't break where html says
-					[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-					[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
-					[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space				
-				}
-			if(trim)
-				{ // trim multiple spaces
+			if([string length] > 0)
+				{
+				NSMutableString *s=[[string mutableCopy] autorelease];
+				if(nobrk)
+					{ // don't break where html says
+						[s replaceOccurrencesOfString:@"\t" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+						[s replaceOccurrencesOfString:@"\r" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space
+						[s replaceOccurrencesOfString:@"\n" withString:@" " options:0 range:NSMakeRange(0, [s length])];	// convert to space				
+					}
+				if(trim)
+					{ // trim multiple spaces
 #if 1	// QUESTIONABLE_OPTIMIZATION
-					while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
-						;
+						while([s replaceOccurrencesOfString:@"        " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert long space sequences into single one
+							;
 #endif
-					while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
-						;	// trim multiple spaces to single ones as long as we find them
-					if([s hasPrefix:@" "])
-						{ // new fragment starts with a space
-							NSString *ss=[astr string];	// previous string
-							if([ss length] == 0 || [ss hasSuffix:@"\n"] || [ss hasSuffix:@" "])
-								s=(NSMutableString *) [s substringFromIndex:1];	// strip off leading spaces if last fragment indicates that						
-						}
+						while([s replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [s length])])	// convert double spaces into single one
+							;	// trim multiple spaces to single ones as long as we find them
+						if([s hasPrefix:@" "])
+							{ // new fragment starts with a space
+								NSString *ss=[astr string];	// previous string
+								if([ss length] == 0 || [ss hasSuffix:@"\n"] || [ss hasSuffix:@" "])
+									s=(NSMutableString *) [s substringFromIndex:1];	// strip off leading spaces if last fragment indicates that						
+							}
+					}
+				string=s;				
 				}
-			string=s;
-		}
-	val=[style getPropertyCSSValue:@"text-transform"];	/* INH + INI: none */
-	if(val)	// should never be nil
-		{
-		sval=[val _toString];
-		if([sval isEqualToString:@"uppercase"])
-			string=[string uppercaseString];
-		else if([sval isEqualToString:@"lowercase"])
-			string=[string lowercaseString];
-		else if([sval isEqualToString:@"capitalize"])
-			string=[string capitalizedString];
-		else if([sval isEqualToString:@"password"])
-			string=[@"" stringByPaddingToLength:[string length] withString:@"*" startingAtIndex:0];
 		}
 #if NEEDS_TO_BE_IMPLEMENTED
 	val=[style getPropertyCSSValue:@"quotes"];	/* INH + INI: some quote chatacters */
@@ -1389,17 +1375,35 @@ enum
 		// handle "quotes: "
 		}
 #endif
-	if([visibility isEqualToString:@"hidden"])
-		{ // replace by string with spaces of same length
-		string=[@"" stringByPaddingToLength:[string length] withString:@" " startingAtIndex:0];
+	if([string length] > 0)
+		{ // we need to do this only if the string is not empty
+			val=[style getPropertyCSSValue:@"text-transform"];	/* INH + INI: none */
+			if(val && [string length] > 0)	// val should never be nil
+				{
+				sval=[val _toString];
+				if([sval isEqualToString:@"uppercase"])
+					string=[string uppercaseString];
+				else if([sval isEqualToString:@"lowercase"])
+					string=[string lowercaseString];
+				else if([sval isEqualToString:@"capitalize"])
+					string=[string capitalizedString];
+				else if([sval isEqualToString:@"password"])
+					string=[@"" stringByPaddingToLength:[string length] withString:@"*" startingAtIndex:0];
+				}
+			// FIXME: what has precedence: hidden or password?
+			if([visibility isEqualToString:@"hidden"])
+				{ // replace by string with spaces of same length
+					string=[@"" stringByPaddingToLength:[string length] withString:@" " startingAtIndex:0];
+				}			
 		}
-
+	
 	/* attributes and paragraph style modifications */
 	
 	/* replace this by [self _changeAttributes:attributes forNode:node style:style]; */
 
 	if(childNodes && ([childNodes length] > 0 || [string length] > 0))
 		{ // calculate (new) string attributes to apply and pass down to children
+			WebPreferences *preferences=[self preferences];
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
 			NSFont *ff;	// temporary converted font
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
@@ -1535,7 +1539,7 @@ enum
 					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSSmallCapsFontMask];
 				if(ff) f=ff;
 				}
-			[attributes setObject:f forKey:NSFontAttributeName];
+			[attributes setObject:f forKey:NSFontAttributeName];	// OPTIMIZE: do only if really changed
 			
 			/* replace this by attributes=[self _changeAttributes:parentAttributes forNode:node style:style]; */
 
@@ -1758,19 +1762,21 @@ enum
 				}
 #endif
 		}
+	NSLog(@"[astr beginEditing]");
 	[astr beginEditing];
 	if(lastIsInline && !isInline)
 		{ // we need to close the last inline segment and prefix new block mode segment
 			if([[astr string] hasSuffix:@" "])
-				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withString:@"\n"];	// replace if it did end with a space
+				NSLog(@"[astr replaceCharactersInRange:{%u,1} withString:nl]", [astr length]-1), [astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withString:@"\n"];	// replace if it did end with a space
 			else
-				[astr replaceCharactersInRange:NSMakeRange([astr length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
+				NSLog(@"[astr replaceCharactersInRange:{%u,0} withString:nl]", [astr length]), [astr replaceCharactersInRange:NSMakeRange([astr length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
 		}
 	// to implement this with a :before pseudo element, we must extract the attribute/style calculation to a separate method
 	// and use style=[self _styleForElement:node pseudoElement:@"before" parentStyle:parent];
 	val=[style getPropertyCSSValue:@"x-before"];
 	if(val)
 		{ // special case to implement <q>
+			NSLog(@"[astr appendAttributedString:q]");
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	
@@ -1810,7 +1816,7 @@ enum
 				}
 #if NOT_IMPLEMENTED	// to be evaluated
 			val=[style getPropertyCSSValue:@"list-style-image"];	// url()
-			val=[style getPropertyCSSValue:@"list-style-position"];	// outside, inside, inherit
+			val=[style getPropertyCSSValue:@"list-style-position"];	// outside, inside, inherit -> options
 #endif
 			listStyle=[[style getPropertyCSSValue:@"list-style-type"] _toString];
 			item=[[NSClassFromString(@"NSTextList") alloc] 
@@ -1824,7 +1830,7 @@ enum
 				else 
 					list=[list mutableCopy];	// make mutable
 				[(NSMutableArray *) list addObject:item];
-				[p setTextLists:list];	// assume it is mutable
+				[p setTextLists:list];	// assume p is already mutable
 				value=[item markerForItemNumber:index];
 				[item release];	// should now be stored in list array
 				[list release];	// should be stored in NSMutableParagraphStyle
@@ -1834,6 +1840,7 @@ enum
 #if 0
 			NSLog(@"lists=%@", list);
 #endif
+			NSLog(@"[astr appendAttributedString:%@ - %@]", value, attributes);
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:value attributes:attributes] autorelease]];
 		}
 	else if([display isEqualToString:@"inline-block"])
@@ -1951,18 +1958,25 @@ enum
 		}
 	if([string length] > 0)	
 		{ // add attributed string
+			NSLog(@"[astr appendAttributedString:%@ - %@]", string, attributes);
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:attributes] autorelease]];
 		}
-	arp=[NSAutoreleasePool new];
-	for(i=0; i<[childNodes length]; i++)
-		{ // add child nodes
-			// NSLog(@"splice child %@", [_childNodes item:i]);
-			[self _spliceNode:[childNodes item:i] to:astr parentStyle:style parentAttributes:attributes];
+	if((cnt=[childNodes length]) > 0)
+		{
+		NSLog(@"[ARP new]");
+		NSAutoreleasePool *arp=[NSAutoreleasePool new];
+		for(i=0; i<cnt; i++)
+			{ // add child nodes
+				// NSLog(@"splice child %@", [_childNodes item:i]);
+				[self _spliceNode:[childNodes item:i] to:astr parentStyle:style parentAttributes:attributes];
+			}
+		NSLog(@"[ARP release]");
+		[arp release];		
 		}
-	[arp release];
 	val=[style getPropertyCSSValue:@"x-after"];
 	if(val)
 		{ // special case to implement <q>
+			NSLog(@"[astr appendAttributedString:q]");
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	if(!isInline)
@@ -1991,10 +2005,11 @@ enum
 				}
 			nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
 			if([[astr string] hasSuffix:@" "])
-				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
+				NSLog(@"[astr replaceCharactersInRange:nl - %@]", attributes), [astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
 			else
-				[astr appendAttributedString:nl];	// close this block
+				NSLog(@"[astr appendAttributedString:nl - %@]", attributes), [astr appendAttributedString:nl];	// close this block
 		}
+	NSLog(@"[astr endEditing]");
 	[astr endEditing];
 	// FIXME range handling to map nodes <-> character indexes
 	//	_range.length=[str length]-_range.location;	// store resulting range
