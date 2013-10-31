@@ -104,7 +104,7 @@ extern NSString *DOMHTMLAnchorElementAnchorName;
 
 @interface WebView (NSAttributedString)
 
-- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
+- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) astr parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 
 @end
 

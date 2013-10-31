@@ -1262,7 +1262,7 @@ enum
  * The [parent getPropertyCSSValue:@"prop"] may be nil on the first call, since parent is nil.
  */
 
-- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) str parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
+- (void) _spliceNode:(DOMNode *) node to:(NSMutableAttributedString *) astr parentStyle:(DOMCSSStyleDeclaration *) parent parentAttributes:(NSDictionary *) parentAttributes;
 { // recursively splice this node and any subnodes, taking end of last fragment into account
 	unsigned i;
 	NSAutoreleasePool *arp;
@@ -1284,7 +1284,7 @@ enum
 	display=[[style getPropertyCSSValue:@"display"] _toString];	/* INI: inline */
 	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];	/* INH + INI: visible */
 	// FIXME: handle "display: run-in"
-	lastIsInline=([str length] != 0 && ![[str string] hasSuffix:@"\n"]);	// did not end with display:block
+	lastIsInline=([astr length] != 0 && ![[astr string] hasSuffix:@"\n"]);	// did not end with display:block
 	isInline=![node isKindOfClass:[DOMElement class]] || [display isEqualToString:@"inline"];	// plain text is treated as display:inline
 #if 1
 	NSLog(@"<%@ display=%@>: %@ + %@", [node nodeName], display, lastIsInline?@"inline":@"block", isInline?@"inline":@"block");
@@ -1315,7 +1315,7 @@ enum
 
 	if([node isKindOfClass:[DOMElement class]])
 		childNodes=[node childNodes];
-	initialLength=[str length];	// to find out if we or a child has added content to a block
+	initialLength=[astr length];	// to find out if we or a child has added content to a block
 
 	string=[(DOMHTMLElement *) node _string];	// may be nil
 
@@ -1361,7 +1361,7 @@ enum
 						;	// trim multiple spaces to single ones as long as we find them
 					if([s hasPrefix:@" "])
 						{ // new fragment starts with a space
-							NSString *ss=[str string];	// previous string
+							NSString *ss=[astr string];	// previous string
 							if([ss length] == 0 || [ss hasSuffix:@"\n"] || [ss hasSuffix:@" "])
 								s=(NSMutableString *) [s substringFromIndex:1];	// strip off leading spaces if last fragment indicates that						
 						}
@@ -1758,25 +1758,26 @@ enum
 				}
 #endif
 		}
+	[astr beginEditing];
 	if(lastIsInline && !isInline)
 		{ // we need to close the last inline segment and prefix new block mode segment
-			if([[str string] hasSuffix:@" "])
-				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withString:@"\n"];	// replace if it did end with a space
+			if([[astr string] hasSuffix:@" "])
+				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withString:@"\n"];	// replace if it did end with a space
 			else
-				[str replaceCharactersInRange:NSMakeRange([str length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
+				[astr replaceCharactersInRange:NSMakeRange([astr length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
 		}
 	// to implement this with a :before pseudo element, we must extract the attribute/style calculation to a separate method
 	// and use style=[self _styleForElement:node pseudoElement:@"before" parentStyle:parent];
 	val=[style getPropertyCSSValue:@"x-before"];
 	if(val)
 		{ // special case to implement <q>
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
+			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	
 	if([display isEqualToString:@"break-line"])
 		{ // special case to implement <br>
 			NSAttributedString *nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
-			[str appendAttributedString:nl];
+			[astr appendAttributedString:nl];
 		}
 	/* replace this by [self _updateForDisplayStyle:display forNode:node to:str style:style attributes:mutableAttributes]; */
 	else if([display isEqualToString:@"list-item"])
@@ -1833,7 +1834,7 @@ enum
 #if 0
 			NSLog(@"lists=%@", list);
 #endif
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:value attributes:attributes] autorelease]];
+			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:value attributes:attributes] autorelease]];
 		}
 	else if([display isEqualToString:@"inline-block"])
 		{ // create an inline-block
@@ -1944,25 +1945,25 @@ enum
 		attachment=[(DOMHTMLElement *) node _attachmentForStyle:style];	// may be nil
 	if(attachment)
 		{ // add attribute attachment (if available)
-			NSMutableAttributedString *astr=(NSMutableAttributedString *)[NSMutableAttributedString attributedStringWithAttachment:attachment];
-			[astr addAttributes:attributes range:NSMakeRange(0, [astr length])];
-			[str appendAttributedString:astr];
+			NSMutableAttributedString *att=(NSMutableAttributedString *)[NSMutableAttributedString attributedStringWithAttachment:attachment];
+			[att addAttributes:attributes range:NSMakeRange(0, [att length])];
+			[astr appendAttributedString:att];
 		}
 	if([string length] > 0)	
 		{ // add attributed string
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:attributes] autorelease]];
+			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:attributes] autorelease]];
 		}
 	arp=[NSAutoreleasePool new];
 	for(i=0; i<[childNodes length]; i++)
 		{ // add child nodes
 			// NSLog(@"splice child %@", [_childNodes item:i]);
-			[self _spliceNode:[childNodes item:i] to:str parentStyle:style parentAttributes:attributes];
+			[self _spliceNode:[childNodes item:i] to:astr parentStyle:style parentAttributes:attributes];
 		}
 	[arp release];
 	val=[style getPropertyCSSValue:@"x-after"];
 	if(val)
 		{ // special case to implement <q>
-			[str appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
+			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	if(!isInline)
 		{ // close our block and set the maxmimum line height
@@ -1975,7 +1976,7 @@ enum
 				sval=[val _toString];
 				if([sval isEqualToString:@"auto"])
 					{ // "auto" should make it as high as the content needs (0 for empty content)
-						if(initialLength != [str length])	// children or processing has added some contents
+						if(initialLength != [astr length])	// children or processing has added some contents
 							height=0.0;	// let NSTypesetter determine height that we need for our contents
 						else
 							height=1e-6;	// make a line with practically invisible height
@@ -1989,11 +1990,12 @@ enum
 				// we may need to apply the paragraph style to all characters from initialLength to the end
 				}
 			nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
-			if([[str string] hasSuffix:@" "])
-				[str replaceCharactersInRange:NSMakeRange([str length]-1, 1) withAttributedString:nl];	// replace any trailing space
+			if([[astr string] hasSuffix:@" "])
+				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
 			else
-				[str appendAttributedString:nl];	// close this block
+				[astr appendAttributedString:nl];	// close this block
 		}
+	[astr endEditing];
 	// FIXME range handling to map nodes <-> character indexes
 	//	_range.length=[str length]-_range.location;	// store resulting range
 	// FIXME: caching not implemented
