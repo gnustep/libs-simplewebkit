@@ -432,7 +432,8 @@
 					recover=[[NSCharacterSet characterSetWithCharactersInString:@";}"] retain];
 				[sc scanUpToCharactersFromSet:recover intoString:&skipped];
 #if 1
-				NSLog(@"skipped: %@", skipped);
+				if([skipped length] > 0)
+					NSLog(@"CSS text skipped: %@", skipped);
 #endif
 				[sc scanString:@";" intoString:NULL];
 				break;
@@ -629,7 +630,10 @@
 				{ // not closed properly - try to recover
 					NSString *skipped=@"";
 					[sc scanUpToString:@"}" intoString:&skipped];
-					NSLog(@"skipped: %@", skipped);
+#if 1
+					if([skipped length] > 0)
+						NSLog(@"CSS text skipped: %@", skipped);
+#endif
 					[sc scanString:@"}" intoString:NULL];
 				}
 			return self;
@@ -678,7 +682,8 @@
 			NSString *skipped=@"";
 			[sc scanUpToString:@"}" intoString:&skipped];	// try to recover from parse errors
 #if 1
-			NSLog(@"missing } for style; skipped: %@", skipped);
+		if([skipped length] > 0)
+			NSLog(@"CSS text skipped: %@", skipped);
 #endif
 			[sc scanString:@"}" intoString:NULL];		// and skip!
 		}
@@ -2351,10 +2356,10 @@
 					styleString=[element getAttribute:@"style"];	// style="" attribute (don't use KVC here since it may return the (NSArray *) style!)
 					if(styleString)
 						{ // parse style attribute
-#if 1
+#if 0
 							NSLog(@"add style=\"%@\"", styleString);
 #endif
-							// we should somehow cache this or we will parse this again and again...
+							// we should somehow cache this in the element or we will parse this again and again...
 							css=[[DOMCSSStyleDeclaration alloc] initWithString:styleString];	// parse
 							[style _append:css];	// append/overwrite
 							[css release];

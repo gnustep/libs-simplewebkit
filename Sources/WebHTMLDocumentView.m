@@ -1762,21 +1762,19 @@ enum
 				}
 #endif
 		}
-	NSLog(@"[astr beginEditing]");
 	[astr beginEditing];
 	if(lastIsInline && !isInline)
 		{ // we need to close the last inline segment and prefix new block mode segment
 			if([[astr string] hasSuffix:@" "])
-				NSLog(@"[astr replaceCharactersInRange:{%u,1} withString:nl]", [astr length]-1), [astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withString:@"\n"];	// replace if it did end with a space
+				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withString:@"\n"];	// replace if it did end with a space
 			else
-				NSLog(@"[astr replaceCharactersInRange:{%u,0} withString:nl]", [astr length]), [astr replaceCharactersInRange:NSMakeRange([astr length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
+				[astr replaceCharactersInRange:NSMakeRange([astr length], 0) withString:@"\n"];	// this operation appends a \n and inherits attributes of the previous section
 		}
 	// to implement this with a :before pseudo element, we must extract the attribute/style calculation to a separate method
 	// and use style=[self _styleForElement:node pseudoElement:@"before" parentStyle:parent];
 	val=[style getPropertyCSSValue:@"x-before"];
 	if(val)
 		{ // special case to implement <q>
-			NSLog(@"[astr appendAttributedString:q]");
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	
@@ -1840,7 +1838,6 @@ enum
 #if 0
 			NSLog(@"lists=%@", list);
 #endif
-			NSLog(@"[astr appendAttributedString:%@ - %@]", value, attributes);
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:value attributes:attributes] autorelease]];
 		}
 	else if([display isEqualToString:@"inline-block"])
@@ -1958,25 +1955,21 @@ enum
 		}
 	if([string length] > 0)	
 		{ // add attributed string
-			NSLog(@"[astr appendAttributedString:%@ - %@]", string, attributes);
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:string attributes:attributes] autorelease]];
 		}
 	if((cnt=[childNodes length]) > 0)
 		{
-		NSLog(@"[ARP new]");
 		NSAutoreleasePool *arp=[NSAutoreleasePool new];
 		for(i=0; i<cnt; i++)
 			{ // add child nodes
 				// NSLog(@"splice child %@", [_childNodes item:i]);
 				[self _spliceNode:[childNodes item:i] to:astr parentStyle:style parentAttributes:attributes];
 			}
-		NSLog(@"[ARP release]");
 		[arp release];		
 		}
 	val=[style getPropertyCSSValue:@"x-after"];
 	if(val)
 		{ // special case to implement <q>
-			NSLog(@"[astr appendAttributedString:q]");
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	if(!isInline)
@@ -1986,7 +1979,6 @@ enum
 			if(val)
 				{
 				float height;
-				NSLog(@"height:%@", val);
 				sval=[val _toString];
 				if([sval isEqualToString:@"auto"])
 					{ // "auto" should make it as high as the content needs (0 for empty content)
@@ -1999,17 +1991,19 @@ enum
 					// specifying "auto" in the parent and 50% here will not return a useful result!
 					height=1e-6+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p maximumLineHeight] andFont:[attributes objectForKey:NSFontAttributeName]];
 				if(height < 0.0) height=0.0;
+#if 1
+				NSLog(@"height:%@ -> %g", val, height);
+#endif
 				[p setMinimumLineHeight:(height==1e-6)?0.0:height];
 				[p setMaximumLineHeight:height];
 				// we may need to apply the paragraph style to all characters from initialLength to the end
 				}
 			nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
 			if([[astr string] hasSuffix:@" "])
-				NSLog(@"[astr replaceCharactersInRange:nl - %@]", attributes), [astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
+				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
 			else
-				NSLog(@"[astr appendAttributedString:nl - %@]", attributes), [astr appendAttributedString:nl];	// close this block
+				[astr appendAttributedString:nl];	// close this block
 		}
-	NSLog(@"[astr endEditing]");
 	[astr endEditing];
 	// FIXME range handling to map nodes <-> character indexes
 	//	_range.length=[str length]-_range.location;	// store resulting range
