@@ -40,6 +40,7 @@
 @end
 
 @interface DOMCSSRule (Private)
++ (NSScanner *) _scannerForString:(NSString *) string;	// string may already be a scanner!
 + (void) _skip:(NSScanner *) sc;
 - (void) _setParentStyleSheet:(DOMCSSStyleSheet *) sheet;
 - (void) _setParentRule:(DOMCSSRule *) rule;
@@ -573,6 +574,13 @@
 
 @implementation DOMCSSRule
 
++ (NSScanner *) _scannerForString:(NSString *) string
+{
+	if([string isKindOfClass:[NSScanner class]])
+		return (NSScanner *) string;	// we already got a NSScanner
+	return [NSScanner scannerWithString:string];
+}
+
 + (void) _skip:(NSScanner *) sc
 { // skip comments
 	while([sc scanString:@"/*" intoString:NULL])
@@ -667,7 +675,7 @@
 	else	/* no operator */
 		self=[[DOMCSSStyleRule alloc] init];
 	[(DOMCSSStyleRule *) self setSelectorText:(NSString *) sc];	// set from scanner
-	// how do we handle parse errors here? e.g. if selectorText is empty
+	// how do we handle parse errors here? e.g. if selector is empty
 	// i.e. unknown @rule
 	[DOMCSSRule _skip:sc];
 	if(![sc scanString:@"{" intoString:NULL])
@@ -1049,39 +1057,56 @@
 	ATTRIBUTE_MATCH_SELECTOR,		// [attr=val]
 	PSEUDO_SELECTOR,		// :component
 	// tree elements (combinators) - the right side may itself be a full rule as in tag > *[attr] (i.e. we must build a tree)
+	CONDITIONAL_SELECTOR,	// element1element2
 	DESCENDANT_SELECTOR,	// element1 element2
+	ALTERNATIVE_SELECTOR,	// element1, element2
 	CHILD_SELECTOR,			// element1>element2
 	PRECEDING_SELECTOR,		// element1+element2
 	SIBLING_SELECTOR,		// element1~element2
 	} type;
-	NSString *selector;		// tag, class, id, attr, component
-	id value;				// attr value, element1
+	id selector;			// tag, class, id, attr, component, left combinator
+	id value;				// attr value, right combinator
 	int specificity;
 }
-+ (DOMCSSStyleRuleSelector *) newWithSelector:(NSString *) selector;
-- (void) setValue:(id) value;
-- (void) setType:(int) type;
+- (NSString *) cssText;
+- (void) setCSSText:(NSString *) rule;
+- (int) type;
+- (id) selector;
+- (id) value;
 - (int) specificity;
 @end
 
 @implementation DOMCSSStyleRuleSelector
 
-+ (DOMCSSStyleRuleSelector *) newWithSelector:(NSString *) selector
+- (DOMCSSStyleRuleSelector *) copyWithZone:(NSZone *) zone
 {
-	DOMCSSStyleRuleSelector *s=[self new];
+	DOMCSSStyleRuleSelector *s=[DOMCSSStyleRuleSelector new];
 	s->selector=[selector retain];
+	s->value=[value retain];
+	s->type=type;
+	s->specificity=specificity;
 	return s;
 }
 
-- (void) setValue:(id) val
+- (int) type
 {
-	[value autorelease];
-	value=[val retain];
+	return type;
 }
 
-- (void) setType:(int) t;
+- (id) selector
 {
-	type=t;
+	return selector;
+}
+
+- (id) value
+{
+	return value;
+}
+
+- (int) specificity;
+{
+	NIMP;
+	return 0;
 }
 
 - (void) dealloc
@@ -1093,20 +1118,17 @@
 
 - (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 {
-	switch(type)
-	{
+	switch(type) {
 		case UNIVERSAL_SELECTOR:
 			return YES;	// any
 		case TAG_SELECTOR:
 			// can/should we check for HTML vs. XHTML? XHTML may require case sensitive compare
 			return [selector caseInsensitiveCompare:[element tagName]] == NSOrderedSame;	// match tags case-insensitive
-		case ID_SELECTOR:
-			{
+		case ID_SELECTOR: {
 			NSString *val=[element getAttribute:@"id"];
 			return val && [selector isEqualToString:val];	// id must be defined and match
 			}
-		case CLASS_SELECTOR:
-			{
+		case CLASS_SELECTOR: {
 			NSString *val=[element getAttribute:@"class"];
 			// FIXME: class can be a space separated list of classes
 			// order of class names must match the order in the list, i.e. a.class1.class2 matches only if there is <a class="class1 class2">
@@ -1143,19 +1165,29 @@
 		}
 		case PSEUDO_SELECTOR:
 			return [selector isEqualToString:pseudoElement];
+		case ALTERNATIVE_SELECTOR:
+			return [selector _ruleMatchesElement:element pseudoElement:pseudoElement] || [value _ruleMatchesElement:element pseudoElement:pseudoElement];
+		case CONDITIONAL_SELECTOR:
+			return [selector _ruleMatchesElement:element pseudoElement:pseudoElement] && [value _ruleMatchesElement:element pseudoElement:pseudoElement];
 		case DESCENDANT_SELECTOR:
-			// any parent of the Element must match the whole value style rule (which is again an Array)
+			// any parent of the Element must match the whole value style rule
+			;
 		case CHILD_SELECTOR:
-			// direct parent of the Element must match the whole value style rule (which is again an Array)
-		default:
-			return NO;	// NOT IMPLEMENTED
+			// direct parent of the Element must match the whole value style rule
+			;
+		case PRECEDING_SELECTOR:
+			// previous sibling of the Element must match the whole value style rule
+			;
+		case SIBLING_SELECTOR:
+			// sibling of the Element must match the whole value style rule
+			;
 	}
+	return NO;	// NOT IMPLEMENTED
 }
 
 - (NSString *) cssText;
 {
-	switch(type)
-	{
+	switch(type) {
 		case UNIVERSAL_SELECTOR:	return @"*";
 		case TAG_SELECTOR:			return selector;
 		case CLASS_SELECTOR:		return [NSString stringWithFormat:@".%@", selector];
@@ -1171,19 +1203,176 @@
 			if(value)
 				return [NSString stringWithFormat:@":%@(%@)", selector, [(DOMCSSValue *) value cssText]];	// may have a paramter!
 			return [NSString stringWithFormat:@":%@", selector];
-		case DESCENDANT_SELECTOR:	return [NSString stringWithFormat:@"%@ %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
-		case CHILD_SELECTOR:		return [NSString stringWithFormat:@"%@ > %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
-		case PRECEDING_SELECTOR:	return [NSString stringWithFormat:@"%@ + %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
-		case SIBLING_SELECTOR:		return [NSString stringWithFormat:@"%@ ~ %@", [(DOMCSSStyleRuleSelector *) value cssText], selector];
+		case CONDITIONAL_SELECTOR:	return [NSString stringWithFormat:@"%@%@", [(DOMCSSStyleRuleSelector *) selector cssText], [(DOMCSSStyleRuleSelector *) value cssText]];
+		case DESCENDANT_SELECTOR:	return [NSString stringWithFormat:@"%@ %@", [(DOMCSSStyleRuleSelector *) selector cssText], [(DOMCSSStyleRuleSelector *) value cssText]];
+		case ALTERNATIVE_SELECTOR:	return [NSString stringWithFormat:@"%@, %@", [(DOMCSSStyleRuleSelector *) selector cssText], [(DOMCSSStyleRuleSelector *) value cssText]];
+		case CHILD_SELECTOR:		return [NSString stringWithFormat:@"%@ > %@", [(DOMCSSStyleRuleSelector *) selector cssText], [(DOMCSSStyleRuleSelector *) value cssText]];
+		case PRECEDING_SELECTOR:	return [NSString stringWithFormat:@"%@ + %@", [(DOMCSSStyleRuleSelector *) selector cssText], [(DOMCSSStyleRuleSelector *) value cssText]];
+		case SIBLING_SELECTOR:		return [NSString stringWithFormat:@"%@ ~ %@", [(DOMCSSStyleRuleSelector *) selector cssText], [(DOMCSSStyleRuleSelector *) value cssText]];
 	}
 	return @"?";
 }
 
-- (int) specificity;
-{
-	NIMP;
-	return 0;
+- (void) _scanPrimitiveSelector:(NSScanner *) sc;
+{ // a single primitive, e.g. * or tag or #id
+	static NSCharacterSet *tagchars;
+	if(!tagchars)
+		// FIXME: CSS identifiers follow slightly more complex rules, therefore we should define - (NString *) [DOMCSSRule _identifier:sc]
+		tagchars=[[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"] retain];
+	type=TAG_SELECTOR;	// default
+	if([sc scanString:@"." intoString:NULL])
+		type=CLASS_SELECTOR;
+	else if([sc scanString:@"#" intoString:NULL])
+		type=ID_SELECTOR;
+	else if([sc scanString:@"[" intoString:NULL])
+		type=ATTRIBUTE_SELECTOR;
+	else if([sc scanString:@"::" intoString:NULL])
+		type=PSEUDO_SELECTOR;
+	else if([sc scanString:@":" intoString:NULL])
+		type=PSEUDO_SELECTOR;
+	else if([sc scanString:@"*" intoString:NULL])
+		type=UNIVERSAL_SELECTOR;
+	else if([sc scanString:@"|" intoString:NULL])
+		;	// namespace
+	if(type != UNIVERSAL_SELECTOR && ![sc scanCharactersFromSet:tagchars intoString:&selector])
+		return;	// no match with a tag
+	[selector retain];	// take ownership from scanCharactersFromSet:intoString:
+	// handle additional parameters
+	if(type == ATTRIBUTE_SELECTOR)
+		{ // handle tag[attrib=value]
+#if 0
+			NSLog(@"attribute selector");
+#endif
+			if([sc scanString:@"~=" intoString:NULL])
+				type=ATTRIBUTE_LIST_SELECTOR;
+			else if([sc scanString:@"|=" intoString:NULL])
+				type=ATTRIBUTE_DASHED_SELECTOR;
+			else if([sc scanString:@"^=" intoString:NULL])
+				type=ATTRIBUTE_PREFIX_SELECTOR;
+			else if([sc scanString:@"$=" intoString:NULL])
+				type=ATTRIBUTE_SUFFIX_SELECTOR;
+			else if([sc scanString:@"*=" intoString:NULL])
+				type=ATTRIBUTE_CONTAINS_SELECTOR;
+			else if([sc scanString:@"=" intoString:NULL])
+				type=ATTRIBUTE_MATCH_SELECTOR;
+			if(![sc scanString:@"]" intoString:NULL])
+				{
+				value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+				[sc scanString:@"]" intoString:NULL];							
+				}
+		}
+	else if(type == PSEUDO_SELECTOR)
+		{ // handle :pseudo(n)
+			if([sc scanString:@"(" intoString:NULL])
+				{
+				value=[[DOMCSSValue alloc] initWithString:(NSString *) sc];
+				[sc scanString:@")" intoString:NULL];							
+				}
+		}
 }
+
+- (void) _scanConditionalSelector:(NSScanner *) sc;
+{
+	DOMCSSStyleRuleSelector *left, *right;
+	NSCharacterSet *set;
+	[self _scanPrimitiveSelector:sc];
+	if(!selector)
+		return;
+	set=[sc charactersToBeSkipped];
+	[sc setCharactersToBeSkipped:nil];	// we can't scan whitespace if it is being skipped
+	if([sc scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL])
+		{
+		[sc setCharactersToBeSkipped:set];
+		return;		// sequence of conditional selectors explicitly ends and forms a descendant selector
+		}
+	[sc setCharactersToBeSkipped:set];
+	right=[DOMCSSStyleRuleSelector new];	// try to parse following selector element
+	[right _scanConditionalSelector:sc];	// recursively try to get right argument
+	if(![right selector])
+		{ // end of sequence reached
+			[right release];
+			return;
+		}
+	// FIXME: how do we treat a[attr]b? is this a descendant a[attr] b?
+	left=[self copy];	// make a copy so that we can use the existing selector as a child node
+//	NSLog(@"%@", self);
+	[selector release];	// has been copied
+	selector=left;	// mutate us into a combinator
+	value=right;
+	type=CONDITIONAL_SELECTOR;
+//	NSLog(@"%@", self);
+}
+
+- (void) _scanCombinatorSelector:(NSScanner *) sc;
+{
+	int combinator;
+	DOMCSSStyleRuleSelector *left, *right;
+	[DOMCSSRule _skip:sc];	// skip initial spaces only - other spaces may create a DESCENDANT_SELECTOR
+	[self _scanConditionalSelector:sc];
+	if(!selector)
+		return;
+	if([sc scanString:@">" intoString:NULL])
+		combinator=CHILD_SELECTOR;
+	else if([sc scanString:@"+" intoString:NULL])
+		combinator=PRECEDING_SELECTOR;
+	else if([sc scanString:@"~" intoString:NULL])
+		combinator=SIBLING_SELECTOR;
+	else
+		combinator=DESCENDANT_SELECTOR;	// assume plain space character
+	right=[DOMCSSStyleRuleSelector new];	// try to parse following selector element
+	[right _scanCombinatorSelector:sc];	// recursively try to get right argument
+	if(![right selector])
+		{ // missing right selector
+			[right release];
+			if(combinator != DESCENDANT_SELECTOR)
+				;	// real syntax error
+		return;	// wasn't able to parse more
+		}
+	left=[self copy];	// make a copy so that we can use the existing selector as a child node
+//	NSLog(@"%@", self);
+	[selector release];	// has been copied
+	selector=left;	// mutate us into a combinator
+	value=right;
+	type=combinator;
+//	NSLog(@"%@", self);
+}
+
+- (void) _scanAlternativeSelector:(NSScanner *) sc;
+{
+	DOMCSSStyleRuleSelector *left, *right;
+	[self _scanCombinatorSelector:sc];
+	if(!selector)
+		return;
+	[DOMCSSRule _skip:sc];	// skip initial spaces only - other spaces may create a DESCENDANT_SELECTOR
+	if(![sc scanString:@"," intoString:NULL])
+		return;	// done
+	right=[DOMCSSStyleRuleSelector new];	// try to parse following selector element
+	[right _scanAlternativeSelector:sc];	// recursively try to get right argument
+	if(![right selector])
+		{ // real syntax error, i.e. missing right selector
+			[right release];
+			return;	// wasn't able to parse
+		}
+	left=[self copy];	// make a copy so that we can use the existing selector as a child node
+//	NSLog(@"%@", self);
+	[selector release];	// has been copied
+	selector=left;	// mutate us into a combinator
+	value=right;
+	type=ALTERNATIVE_SELECTOR;
+//	NSLog(@"%@", self);
+}
+
+- (void) setCSSText:(NSString *) rule;
+{ // parse selector into array of DOMCSSStyleRuleSelectors
+	NSScanner *sc=[DOMCSSRule _scannerForString:rule];
+	[value release];
+	value=nil;
+	[selector release];
+	selector=nil;
+	[self _scanAlternativeSelector:sc];	// top level
+}
+
+- (NSString *) description; { return [self cssText]; }
 
 @end
 
@@ -1191,33 +1380,10 @@
 
 - (BOOL) _ruleMatchesElement:(DOMElement *) element pseudoElement:(NSString *) pseudoElement
 { // check if rule matches given element
-	NSEnumerator *e=[selector objectEnumerator];	// sequence of elements, i.e. >element.class1.class2#id1:pseudo
-	NSArray *sequence;
-	while((sequence=[e nextObject]))
-		{
-		NSEnumerator *f=[sequence objectEnumerator];
-		DOMCSSStyleRuleSelector *sel;
-		while((sel=[f nextObject]))
-			{
-			if(![sel _ruleMatchesElement:element pseudoElement:pseudoElement])
-				break;	// no match
-			}
-		if(!sel)
-			return YES;	// all selectors did match
-		}
-	return NO;	// no alternative did match
+	return [selector _ruleMatchesElement:element pseudoElement:pseudoElement];
 }
 
 - (unsigned short) type; { return DOM_STYLE_RULE; }
-
-- (id) init;
-{
-	if((self=[super init]))
-		{
-		selector=[NSMutableArray new];
-		}
-	return self;
-}
 
 - (void) dealloc
 {
@@ -1228,159 +1394,51 @@
 
 - (NSString *) selectorText;
 { // tag class patterns
-	NSMutableString *s=[NSMutableString stringWithCapacity:50];
-	NSEnumerator *e=[selector objectEnumerator];
-	NSArray *alternative;
-	while((alternative=[e nextObject]))
-		{
-		NSEnumerator *f=[alternative objectEnumerator];
-		DOMCSSStyleRuleSelector *sel;
-		if([s length] > 0)
-			[s appendString:@", "];
-		while((sel=[f nextObject]))
-			{
-			if([s length] > 0)
-				[s appendFormat:@" %@", [sel cssText]];
-			else
-				[s appendString:[sel cssText]];
-			}
-		}
-	return s;
+	return [selector cssText];
 }
 
 - (void) setSelectorText:(NSString *) rule;
-{ // parse selector into array
-	NSScanner *sc;
-	static NSCharacterSet *tagchars;
-	NSMutableArray *sel;	// selector sequence
-	if(!tagchars)
-		// FIXME: CSS identifiers follow slightly more complex rules, therefore we should define - (NString *) [DOMCSSRule _identifier:sc]
-		tagchars=[[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"] retain];
-	if([rule isKindOfClass:[NSScanner class]])
-		sc=(NSScanner *) rule;	// we already got a NSScanner
-	else
-		sc=[NSScanner scannerWithString:rule];
-	sel=[NSMutableArray arrayWithCapacity:5];
-	[(NSMutableArray *) selector removeAllObjects];
-	[DOMCSSRule _skip:sc];	// skip initial spaces only - other spaces may create a DESCENDANT_SELECTOR
-	while(YES)
-		{
-		DOMCSSStyleRuleSelector *selObj;
-		int type=TAG_SELECTOR;	// default
-		if([sc scanString:@" " intoString:NULL])
-			{ // potentially a DESCENDANT_SELECTOR - or may be space around other combinator
-				NSString *str;
-				[DOMCSSRule _skip:sc];
-				if([sc scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"+>~{,;"] intoString:&str])
-					{ // not a descendant selector; back up and parse again
-						[sc setScanLocation:[sc scanLocation]-[str length]];	// back up
-						continue;
-					}
-				type=DESCENDANT_SELECTOR;
-			}
-		else if([sc scanString:@">" intoString:NULL])
-			type=CHILD_SELECTOR;
-		else if([sc scanString:@"+" intoString:NULL])
-			type=PRECEDING_SELECTOR;
-		else if([sc scanString:@"~" intoString:NULL])
-			type=SIBLING_SELECTOR;
-		if(type != TAG_SELECTOR)
-			{ // is a real combinator
-				selObj=[DOMCSSStyleRuleSelector newWithSelector:nil];
-				[selObj setType:type];
-				[selObj setValue:sel];	// save element1
-				sel=[NSMutableArray arrayWithCapacity:5];	// start to collect element2
-				// FIXME: - we leak the selObject generated here because we don't process > + ~
-				// this may have to be parsed recursively
-				// and finally create a combinator node
-				// where do we store the second element the first one is combined with?
-				continue;
-			}
-		else
-			{ // primitive selector
-				NSString *entry=nil;
-				if([sc scanString:@"." intoString:NULL])
-					type=CLASS_SELECTOR;
-				else if([sc scanString:@"#" intoString:NULL])
-					type=ID_SELECTOR;
-				else if([sc scanString:@"[" intoString:NULL])
-					type=ATTRIBUTE_SELECTOR;
-				else if([sc scanString:@"::" intoString:NULL])
-					type=PSEUDO_SELECTOR;
-				else if([sc scanString:@":" intoString:NULL])
-					type=PSEUDO_SELECTOR;
-				else if([sc scanString:@"*" intoString:NULL])
-					type=UNIVERSAL_SELECTOR;
-				else if([sc scanString:@"|" intoString:NULL])
-					;	// namespace
-				if(type != UNIVERSAL_SELECTOR && ![sc scanCharactersFromSet:tagchars intoString:&entry])
-					{
-					if(type != TAG_SELECTOR)
-						{ // invalid -> drop the complete rule
-						[sel removeAllObjects];
-						[(NSMutableArray *) selector removeAllObjects];
-							// FIXME: we should ship everything until a { appears
-						}
-					break;	// no element name follows where required
-					}
-				selObj=[DOMCSSStyleRuleSelector newWithSelector:entry];
-				if(type == ATTRIBUTE_SELECTOR)
-					{ // handle tag[attrib=value]
-#if 0
-						NSLog(@"attribute selector");
-#endif
-						if([sc scanString:@"~=" intoString:NULL])
-							type=ATTRIBUTE_LIST_SELECTOR;
-						else if([sc scanString:@"|=" intoString:NULL])
-							type=ATTRIBUTE_DASHED_SELECTOR;
-						else if([sc scanString:@"^=" intoString:NULL])
-							type=ATTRIBUTE_PREFIX_SELECTOR;
-						else if([sc scanString:@"$=" intoString:NULL])
-							type=ATTRIBUTE_SUFFIX_SELECTOR;
-						else if([sc scanString:@"*=" intoString:NULL])
-							type=ATTRIBUTE_CONTAINS_SELECTOR;
-						else if([sc scanString:@"=" intoString:NULL])
-							type=ATTRIBUTE_MATCH_SELECTOR;
-						if(![sc scanString:@"]" intoString:NULL])
-							{
-							[selObj setValue:[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease]];
-							[sc scanString:@"]" intoString:NULL];							
-							}
-					}
-				else if(type == PSEUDO_SELECTOR)
-					{ // handle :pseudo(n)
-						if([sc scanString:@"(" intoString:NULL])
-							{
-							[selObj setValue:[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease]];
-							[sc scanString:@")" intoString:NULL];							
-							}
-					}
-				[selObj setType:type];
-			}
-		[sel addObject:selObj];
-		[selObj release];
-		if([sc scanString:@"," intoString:NULL])
-			{ // alternative rule set
-				[(NSMutableArray *) selector addObject:sel];
-				sel=[NSMutableArray arrayWithCapacity:5];
-				[DOMCSSRule _skip:sc];	// skip comments
-			}
-		}
-	if([sel count] > 0)
-		[(NSMutableArray *) selector addObject:sel];
+{ // parse selector into array of DOMCSSStyleRuleSelectors
+	[selector release];
+	selector=[DOMCSSStyleRuleSelector new];
+	[selector setCSSText:rule];
 }
 
 - (DOMCSSStyleDeclaration *) style; { return style; }
 
-// FIXME: should we parse the style here??
+// FIXME: should we be able to parse the style here? i.e. set from a string
 
 - (void) setStyle:(DOMCSSStyleDeclaration *) s; { ASSIGN(style, s); }
 
 - (NSString *) cssText; { return [NSString stringWithFormat:@"%@ { %@ }", [self selectorText], style]; }
 
-- (NSString *) description; { return [self cssText]; }
+- (void) setCSSText:(NSString *) rule;
+{
+	NIMP;
+#if NOT_YET_IMPLEMENTED
+	[self setSelectorText:rule];
+	[DOMCSSRule _skip:sc];
+	if(![sc scanString:@"{" intoString:NULL])
+		{ // missing style
+			[self release];
+			return nil;	// invalid
+		}
+	[(DOMCSSStyleRule *) self setStyle:[[[DOMCSSStyleDeclaration alloc] initWithString:(NSString *) sc] autorelease]];	// set from scanner
+	[DOMCSSRule _skip:sc];
+	if(![sc scanString:@"}" intoString:NULL])
+		{
+		NSString *skipped=@"";
+		[sc scanUpToString:@"}" intoString:&skipped];	// try to recover from parse errors
+#if 1
+		if([skipped length] > 0)
+			NSLog(@"CSS text skipped: %@", skipped);
+#endif
+		[sc scanString:@"}" intoString:NULL];		// and skip!
+		}
+#endif
+}
 
-// setCssText: selector + style?
+- (NSString *) description; { return [self cssText]; }
 
 @end
 

@@ -188,9 +188,11 @@ enum DOMCSSRuleType
 
 @end
 
+@class DOMCSSStyleRuleSelector;
+
 @interface DOMCSSStyleRule : DOMCSSRule
 { // standard style rule
-	NSArray *selector;	// array of alternatives (, separated) - each one is an array of tags, classes etc.
+	DOMCSSStyleRuleSelector *selector;
 	DOMCSSStyleDeclaration *style;
 }
 

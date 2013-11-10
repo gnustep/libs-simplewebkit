@@ -1536,6 +1536,7 @@ enum
 				if([sval isEqualToString:@"normal"])
 					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSSmallCapsFontMask];
 				else if([sval isEqualToString:@"small-caps"])
+					// FIXME: if this does not work, try to simulate by uppercaseString and smaller font
 					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSSmallCapsFontMask];
 				if(ff) f=ff;
 				}
@@ -1746,7 +1747,8 @@ enum
 				}
 			val=[style getPropertyCSSValue:@"direction"];	/* INH + INI: ltr */
 			if(val != [parent getPropertyCSSValue:@"direction"])
-				{		
+				{
+				// FIXME: should this reverse the individual words?
 					sval=[val _toString];
 					if([sval isEqualToString:@"ltr"])
 						[p setBaseWritingDirection:NSWritingDirectionLeftToRight];

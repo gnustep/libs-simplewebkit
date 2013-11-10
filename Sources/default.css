@@ -91,6 +91,7 @@ ul[align],
 td[align], th[align],
 input[align]	{ text-align: attr(align); }
 font[face]		{ font-family: attr(face); }
+/* we could define font[size="+1"] { font-size: 120% } font[size="+2"] { font-size: 150% } etc. */
 font[size]		{ font-size: attr(size, string); }
 font[color]		{ color: attr(color, color); }
 a[href]			{ x-link: attr(href, url); x-tooltip: attr(href, url); }
