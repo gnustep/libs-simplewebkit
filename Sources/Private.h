@@ -115,3 +115,79 @@
 - (void) setDeveloperExtrasEnabled:(BOOL) flag;
 
 @end
+
+#if !defined (GNUSTEP) && !defined (__mySTEP__)
+#if (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_3)	
+
+// Tiger (10.4) and later - include (through WebKit/WebView.h and Cocoa/Cocoa.h) and implements Tables
+
+#else
+
+// declarations for headers of classes introduced in OSX 10.4 (#import <NSTextTable.h>) on systems that don't have it
+
+@interface NSTextBlock : NSObject <NSCoding, NSCopying>
+- (void) setBackgroundColor:(NSColor *) color;
+- (void) setBorderColor:(NSColor *) color;
+- (void) setWidth:(float) width type:(int) type forLayer:(int) layer;
+
+// NOTE: values must match implementation in Apple AppKit!
+
+#define NSTextBlockBorder 0
+#define NSTextBlockPadding -1
+#define NSTextBlockMargin 1
+
+#define NSTextBlockAbsoluteValueType 0
+#define NSTextBlockPercentageValueType 1
+
+#define NSTextBlockTopAlignment	0
+#define NSTextBlockMiddleAlignment 1
+#define NSTextBlockBottomAlignment 2
+#define NSTextBlockBaselineAlignment 3
+
+#define NSTextBlockWidth	0
+#define NSTextBlockMinimumWidth	1
+#define NSTextBlockMaximumWidth	2
+#define NSTextBlockHeight	4
+#define NSTextBlockMinimumHeight	5
+#define NSTextBlockMaximumHeight	6
+
+#define NSTextTableAutomaticLayoutAlgorithm	0
+#define NSTextTableFixedLayoutAlgorithm	1
+
+@end
+
+@interface NSTextTable : NSTextBlock
+- (int) numberOfColumns;
+- (void) setHidesEmptyCells:(BOOL) flag;
+- (void) setNumberOfColumns:(unsigned) cols;
+@end
+
+@interface NSTextTableBlock : NSTextBlock
+- (id) initWithTable:(NSTextTable *) table startingRow:(int) r rowSpan:(int) rs startingColumn:(int) c columnSpan:(int) cs;
+@end
+
+@interface NSTextList : NSObject <NSCoding, NSCopying>
+- (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
+- (unsigned) listOptions;
+- (NSString *) markerForItemNumber:(int) item;
+- (NSString *) markerFormat;
+@end
+
+enum
+{
+    NSTextListPrependEnclosingMarker = 1
+};
+
+@interface NSParagraphStyle (NSTextBlock)
+- (NSArray *) textBlocks;
+- (NSArray *) textLists;
+@end
+
+@interface NSMutableParagraphStyle (NSTextBlock)
+- (void) setTextBlocks:(NSArray *) array;
+- (void) setTextLists:(NSArray *) array;
+@end
+
+#endif
+#endif
+
