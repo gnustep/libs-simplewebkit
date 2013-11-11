@@ -1359,18 +1359,19 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 
 	if(childNodes && ([childNodes length] > 0 || [string length] > 0))
 		{ // calculate (new) string attributes to apply and pass down to children
+			NSFontManager *fm=[NSFontManager sharedFontManager];
 			WebPreferences *preferences=[self preferences];
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
 			NSFont *ff;	// temporary converted font
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
 			/* replace this by f=[self _changeFont:f forNode:node style:style]; */
 			val=[style getPropertyCSSValue:@"font-family"];	/* INH + INI: initial */
+			// should we compare strings??? e.g. switching from @"serif" to @"serif" is not necessary...
+			// maybe we should #define equalStyle(A, B) (A == B || (A && B && [A isEqual:B]))
 			if(val != [parent getPropertyCSSValue:@"font-family"])
 				{ // scan through all fonts defined by font-family until we find one that exists and provides the font
 					NSEnumerator *e=[[val _toStringArray] objectEnumerator];	// get as string array
 					NSString *fname;
-					if(!val)	// "Initial"
-						f=[NSFont systemFontOfSize:0.0];
 					while((fname=[e nextObject]))
 						{ // modify font family
 							if([fname isEqualToString:@"sans-serif"])
@@ -1386,8 +1387,8 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 							else if([fname isEqualToString:@"default"])
 								fname=[preferences standardFontFamily];
 							if(fname)
-								{
-								ff=[[NSFontManager sharedFontManager] fontWithFamily:fname traits:0 weight:5 size:12.0];
+								{ // try to inherit traits, weight and size from parent
+								ff=[fm fontWithFamily:fname traits:[fm traitsOfFont:f] weight:[fm weightOfFont:f] size:[f pointSize]];
 								if(ff)
 									{ // first matching font found!
 									f=ff;
@@ -1396,6 +1397,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 								}
 						}
 				}
+			// FIXME: changing the font family from non-fixed to fixed may need to recalculate the size!
 			val=[style getPropertyCSSValue:@"font-size"];	/* INH + INI: medium */
 			if(val != [parent getPropertyCSSValue:@"font-size"])
 				{ // was not inherited
@@ -1451,7 +1453,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 					}
 				if(sz < [preferences minimumFontSize])
 					sz=[preferences minimumFontSize];
-				ff=[[NSFontManager sharedFontManager] convertFont:f toSize:sz*[self textSizeMultiplier]];	// try to convert
+				ff=[fm convertFont:f toSize:sz*[self textSizeMultiplier]];	// try to convert
 				if(ff) f=ff;
 				}
 			val=[style getPropertyCSSValue:@"font-style"];	/* INH + INI: normal */
@@ -1460,9 +1462,9 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				sval=[val _toString];
 				ff=nil;
 				if([sval isEqualToString:@"normal"])
-					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSItalicFontMask];
+					ff=[fm convertFont:f toNotHaveTrait:NSItalicFontMask];
 				else if([sval isEqualToString:@"italic"])
-					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSItalicFontMask];
+					ff=[fm convertFont:f toHaveTrait:NSItalicFontMask];
 				else if([sval isEqualToString:@"oblique"])
 					;
 				if(ff) f=ff;
@@ -1473,13 +1475,13 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				sval=[val _toString];
 				ff=nil;
 				if([sval isEqualToString:@"normal"])
-					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSBoldFontMask];
+					ff=[fm convertFont:f toNotHaveTrait:NSBoldFontMask];
 				else if([sval isEqualToString:@"bold"])
-					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
+					ff=[fm convertFont:f toHaveTrait:NSBoldFontMask];
 				else if([sval isEqualToString:@"bolder"])
-					ff=[[NSFontManager sharedFontManager] convertWeight:YES ofFont:f];
+					ff=[fm convertWeight:YES ofFont:f];
 				else if([sval isEqualToString:@"lighter"])
-					ff=[[NSFontManager sharedFontManager] convertWeight:NO ofFont:f];
+					ff=[fm convertWeight:NO ofFont:f];
 				// handle numeric values (how? we may have to loop over convertWeight until we get close enough...)
 				// - (NSFont *)fontWithFamily:[f family] traits:[f traits] weight:15*weight/10 size:[f size]
 				if(ff) f=ff;
@@ -1490,10 +1492,10 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				sval=[val _toString];
 				ff=nil;
 				if([sval isEqualToString:@"normal"])
-					ff=[[NSFontManager sharedFontManager] convertFont:f toNotHaveTrait:NSSmallCapsFontMask];
+					ff=[fm convertFont:f toNotHaveTrait:NSSmallCapsFontMask];
 				else if([sval isEqualToString:@"small-caps"])
 					// FIXME: if this does not work, try to simulate by uppercaseString and smaller font
-					ff=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSSmallCapsFontMask];
+					ff=[fm convertFont:f toHaveTrait:NSSmallCapsFontMask];
 				if(ff) f=ff;
 				}
 			[attributes setObject:f forKey:NSFontAttributeName];	// OPTIMIZE: do only if really changed
@@ -1865,7 +1867,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 		if([[self nodeName] isEqualToString:@"TH"])
 			{ // make centered and bold paragraph for header cells
 				NSFont *f=[_style objectForKey:NSFontAttributeName];	// get current font
-				f=[[NSFontManager sharedFontManager] convertFont:f toHaveTrait:NSBoldFontMask];
+				f=[fm convertFont:f toHaveTrait:NSBoldFontMask];
 				if(f) [_style setObject:f forKey:NSFontAttributeName];
 				[paragraph setAlignment:NSCenterTextAlignment];	// modify alignment
 			}

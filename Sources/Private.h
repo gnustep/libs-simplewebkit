@@ -132,27 +132,38 @@
 
 // NOTE: values must match implementation in Apple AppKit!
 
-#define NSTextBlockBorder 0
-#define NSTextBlockPadding -1
-#define NSTextBlockMargin 1
+typedef enum {
+	NSTextBlockPadding = -1,
+	NSTextBlockBorder = 0,
+	NSTextBlockMargin = 1
+} NSTextBlockLayer;
 
-#define NSTextBlockAbsoluteValueType 0
-#define NSTextBlockPercentageValueType 1
+typedef enum
+{
+	NSTextBlockAbsoluteValueType = 0,
+	NSTextBlockPercentageValueType = 1,
+} NSTextBlockValueType;
 
-#define NSTextBlockTopAlignment	0
-#define NSTextBlockMiddleAlignment 1
-#define NSTextBlockBottomAlignment 2
-#define NSTextBlockBaselineAlignment 3
+typedef enum {
+	NSTextBlockTopAlignment = 0,
+	NSTextBlockMiddleAlignment = 1,
+	NSTextBlockBottomAlignment = 2,
+	NSTextBlockBaselineAlignment = 3,
+} NSTextBlockVerticalAlignment;
 
-#define NSTextBlockWidth	0
-#define NSTextBlockMinimumWidth	1
-#define NSTextBlockMaximumWidth	2
-#define NSTextBlockHeight	4
-#define NSTextBlockMinimumHeight	5
-#define NSTextBlockMaximumHeight	6
+typedef enum {
+	NSTextBlockWidth = 0,
+	NSTextBlockMinimumWidth = 1,
+	NSTextBlockMaximumWidth = 2,
+	NSTextBlockHeight = 4,
+	NSTextBlockMinimumHeight = 5,
+	NSTextBlockMaximumHeight = 6,
+} NSTextBlockDimension;
 
-#define NSTextTableAutomaticLayoutAlgorithm	0
-#define NSTextTableFixedLayoutAlgorithm	1
+enum {
+	NSTextTableAutomaticLayoutAlgorithm = 0,
+	NSTextTableFixedLayoutAlgorithm = 1,
+} NSTextTableLayoutAlgorithm;
 
 @end
 
