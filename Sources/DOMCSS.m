@@ -1912,7 +1912,7 @@
 	[DOMCSSRule _skip:sc];
 	if([sc scanString:@"\"" intoString:NULL])
 		{ // double-quoted
-			// FIXME: handle \"
+			// FIXME: handle escapes
 			if([sc scanUpToString:@"\"" intoString:&value])
 				{
 				value=[value mutableCopy];
@@ -1928,7 +1928,7 @@
 		}
 	if([sc scanString:@"\'" intoString:NULL])
 		{ // single-quoted
-			// FIXME: handle \'
+			// FIXME: handle escapes
 			if([sc scanUpToString:@"\'" intoString:&value])
 				{
 				value=[value mutableCopy];

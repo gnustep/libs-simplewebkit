@@ -13,7 +13,6 @@ body			{ padding: 8px; line-height: 1.0em; margin: 0.83em 0; font-family: serif;
 html, address,
 blockquote, 
 body, dd, div, 
-dl, dt, 
 form,
 frame, frameset,
 h1, h2, h3, h4, 
@@ -40,7 +39,6 @@ td, th			{ display: table-cell; }
 caption			{ display: table-caption; text-align: center;  }
 li				{ display: list-item; }
 fieldset		{ display: inline-block; border: 1px; }	/* define border/box */
-br				{ display: break-line; }
 
 /* text modification - default is usually "normal" or "auto" */
 center			{ text-align: center; }
@@ -116,6 +114,7 @@ img[name]
 img[ismap]
 */
 /* br:before		{ content: "\A"; }	pseudo elements and hex escapes are not yet implemented */
+br				{ x-before: "\n"; }
 nobr			{ white-space: nowrap; x-linebreak: clip; }
 hr				{ height: attr(size, px, 1px); width: attr(width, px, 100%); }
 hr[noshade]		{ }

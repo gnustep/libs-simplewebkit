@@ -1759,12 +1759,6 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 		{ // special case to implement <q>
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
-	
-	if([display isEqualToString:@"break-line"])
-		{ // special case to implement <br>
-			NSAttributedString *nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
-			[astr appendAttributedString:nl];
-		}
 	/* replace this by [self _updateForDisplayStyle:display forNode:node to:str style:style attributes:mutableAttributes]; */
 	else if([display isEqualToString:@"list-item"])
 		{ // special case to implement <li>
