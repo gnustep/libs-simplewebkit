@@ -438,25 +438,21 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #endif
 		}
 	ts=[(NSTextView *) view textStorage];
+	[ts beginEditing];	// don't notify the NSTextView about each individual change
 	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear current content
 
 	NS_DURING
-		[[[(DOMHTMLElement *) self webFrame] webView] _spliceNode:self to:ts parentStyle:nil parentAttributes:nil];
-	
-	// to correctly handle <pre>:
-	// scan through all paragraphs
-	// find all non-breaking paras, i.e. those with lineBreakMode == NSLineBreakByClipping
-	// determine unlimited width of any such paragraph
-	// resize textView to MIN(clipView.width, maxWidth+2*inset)
-	// also look for oversized attachments!
-	
+		[[[(DOMHTMLElement *) self webFrame] webView] _spliceNode:self to:ts parentStyle:nil parentAttributes:nil];	
+
 	// FIXME: we should recognize this element:
 	// <meta name = "format-detection" content = "telephone=no">
 	// as described at http://developer.apple.com/documentation/AppleApplications/Reference/SafariWebContent/UsingiPhoneApplications/chapter_6_section_3.html
 	
 		[self _processPhoneNumbers:ts];	// update content
-	
+		[ts endEditing];	// batch notify NSTextView
+
 	NS_HANDLER
+		[ts endEditing];	// batch notify NSTextView even in case of exceptions
 		if(NSRunAlertPanel(@"An internal layout exception occurred\nPlease report to <http://projects.goldelico.com/p/swk/issues>",
 						   @"URL: <%@>\nException: %@",
 						   @"Continue",
@@ -467,7 +463,6 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 						   ) == NSAlertAlternateReturn)
 			[localException raise];	// should end any processing
 	NS_ENDHANDLER
-	
 	style=[webView computedStyleForElement:self pseudoElement:@""];
 
 #if 0
