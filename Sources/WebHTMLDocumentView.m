@@ -63,7 +63,8 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 @implementation NSTextList
 - (id) initWithMarkerFormat:(NSString *) fmt options:(unsigned) mask;
 {
-	return [self init];
+	[self release];
+	return nil;
 }
 - (unsigned) listOptions; { return 0; }
 - (NSString *) markerForItemNumber:(int) item; { return @"*"; }	// is used for drawing lists
@@ -1207,6 +1208,26 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
  * and keep only the handling of inheritance, block vs. inline in this method
  */
 
+- (NSString *) _changeString:(NSString *) string forNode:(DOMNode *) node style:(DOMCSSStyleDeclaration *) style;
+{ // whitespace, text-transform etc.
+	// ...
+	return string;
+}
+
+- (NSParagraphStyle *) _changeParagraphStyle:(NSParagraphStyle *) pstyle forNode:(DOMNode *) node style:(DOMCSSStyleDeclaration *) style;
+{ // text-align, vertical-align, margin, text-indent, line-height, direction
+	// ...
+	return pstyle;
+}
+
+- (NSDictionary *) _changeAtributes:(NSDictionary *) attributes forNode:(DOMNode *) node style:(DOMCSSStyleDeclaration *) style;
+{ // font, text-decoration, color, cursor
+	NSParagraphStyle *p;
+	// ...
+	p=[self _changeParagraphStyle:p forNode:node style:style];
+	return attributes;
+}
+
 /* NOTE:
  * here we can use [style getPropertyCSSValue:@"prop"] to get the CSS styles.
  * Some of them can be automatically inherited (INH) and others are automatically initialized (INI),
@@ -1239,7 +1260,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 	visibility=[[style getPropertyCSSValue:@"visibility"] _toString];	/* INH + INI: visible */
 	// FIXME: handle "display: run-in"
 	lastIsInline=([astr length] != 0 && ![[astr string] hasSuffix:@"\n"]);	// did not end with display:block
-	isInline=![node isKindOfClass:[DOMElement class]] || [display isEqualToString:@"inline"];	// plain text is treated as display:inline
+	isInline=[node isKindOfClass:[DOMCharacterData class]] || [display isEqualToString:@"inline"];	// plain text is treated as display:inline
 #if 1
 	NSLog(@"<%@ display=%@>: %@ + %@", [node nodeName], display, lastIsInline?@"inline":@"block", isInline?@"inline":@"block");
 #endif
@@ -1363,6 +1384,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 			WebPreferences *preferences=[self preferences];
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
 			NSFont *ff;	// temporary converted font
+			BOOL fontchanged=NO;
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
 			/* replace this by f=[self _changeFont:f forNode:node style:style]; */
 			val=[style getPropertyCSSValue:@"font-family"];	/* INH + INI: initial */
@@ -1391,16 +1413,16 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 								ff=[fm fontWithFamily:fname traits:[fm traitsOfFont:f] weight:[fm weightOfFont:f] size:[f pointSize]];
 								if(ff)
 									{ // first matching font found!
-									f=ff;
-									break;									
+										fontchanged=([f isFixedPitch] != [ff isFixedPitch]);	// switching between fixed and non-fixed pitch needs to recalculate e.g. "medium" which depends on the font
+										f=ff;
+										break;									
 									}
 								}
 						}
 				}
-			// FIXME: changing the font family from non-fixed to fixed may need to recalculate the size!
 			val=[style getPropertyCSSValue:@"font-size"];	/* INH + INI: medium */
-			if(val != [parent getPropertyCSSValue:@"font-size"])
-				{ // was not inherited
+			if(fontchanged || val != [parent getPropertyCSSValue:@"font-size"])
+				{ // was not inherited or needs to recalculate size
 				float sz;
 				float def=[f isFixedPitch]?[preferences defaultFixedFontSize]:[preferences defaultFontSize];
 				sz=[[parentAttributes objectForKey:NSFontAttributeName] pointSize]/[self textSizeMultiplier];	// inherited size
@@ -1724,7 +1746,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 		}
 	[astr beginEditing];
 	if(lastIsInline && !isInline)
-		{ // we need to close the last inline segment and prefix new block mode segment
+		{ // we need to close the last inline segment and prefix new block-mode segment
 			if([[astr string] hasSuffix:@" "])
 				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withString:@"\n"];	// replace if it did end with a space
 			else
@@ -1754,8 +1776,9 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 			unsigned int index=0;
 			// FIXME: this works for HTML but not on XHTML
 			// and only if we don't use display: list-item for non-<li> elements
-			// a good implementation uses CSS counters
-			// or we have to consult the paragraph style lists of the whole attributed string...
+			// a flawless implementation must use CSS counters
+			// alternatively we can consult the paragraph style's attributed strings to find the numbering...
+			// FIXME: we need to calculate the index only for numerical list styles
 			while(listElement && ![listElement isKindOfClass:[DOMHTMLUListElement class]]
 				   && ![listElement isKindOfClass:[DOMHTMLOListElement class]]
 				   && ![listElement isKindOfClass:[DOMHTMLDListElement class]])
@@ -1793,8 +1816,10 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				[item release];	// should now be stored in list array
 				[list release];	// should be stored in NSMutableParagraphStyle
 				}
+			else if([listStyle isEqualToString:@"decimal"])
+				value=[NSString stringWithFormat:@"%u. ", index];	// decimal
 			else
-				value=[NSString stringWithFormat:@"%C", 0x2022];	// default
+				value=[NSString stringWithFormat:@"%C ", 0x2022];	// default
 #if 0
 			NSLog(@"lists=%@", list);
 #endif
@@ -1886,10 +1911,8 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 	}	
 #endif
 #if 1
-	else if([display isEqualToString:@"run-in"])
-		isInline=YES;	// override
 #endif
-#if 0
+#if NOT_IMPLEMENTED
 	else if([display isEqualToString:@"x-image"])
 		{
 			// check that we are really an <img> node
@@ -1898,13 +1921,15 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 			// but leave the delayed loading there
 		}
 #endif
-#if 0
+#if NOT_IMPLEMENTED
 	else if([display isEqualToString:@"x-horizontal-ruler"])
 		{
 		// define the <hr> attachment cell
 		}
 #endif
-	// FIXME: in the long run we should no more need this - if all node types are created by some display: style
+	else if([display isEqualToString:@"run-in"])
+		isInline=YES;	// override
+	// FIXME: in the long run we should no more need this - if all node types are created by some display: style we don't need to ask the HTML nodes for attachments
 	else	// any other display: style
 		attachment=[(DOMHTMLElement *) node _attachmentForStyle:style];	// may be nil
 	if(attachment)
@@ -1933,7 +1958,9 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 			[astr appendAttributedString:[[[NSAttributedString alloc] initWithString:[val _toString] attributes:attributes] autorelease]];
 		}
 	if(!isInline)
-		{ // close our block and set the maxmimum line height
+		{
+		if(initialLength != [astr length])
+		   { // close our (non-empty) block and set the maxmimum line height
 			NSAttributedString *nl;
 			val=[style getPropertyCSSValue:@"height"];
 			if(val)
@@ -1944,6 +1971,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 					{ // "auto" should make it as high as the content needs (0 for empty content)
 						if(initialLength != [astr length])	// children or processing has added some contents
 							height=0.0;	// let NSTypesetter determine height that we need for our contents
+						// FIXME: isn't the following dead code?
 						else
 							height=1e-6;	// make a line with practically invisible height
 					}
@@ -1958,11 +1986,19 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				[p setMaximumLineHeight:height];
 				// we may need to apply the paragraph style to all characters from initialLength to the end
 				}
-			nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
-			if([[astr string] hasSuffix:@" "])
-				[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
-			else
-				[astr appendAttributedString:nl];	// close this block
+			if(![[astr string] hasSuffix:@"\n"])
+				{ // only if children did end in an open and non-empty inline segment
+				nl=[[[NSAttributedString alloc] initWithString:@"\n" attributes:attributes] autorelease];
+				if([[astr string] hasSuffix:@" "])
+					[astr replaceCharactersInRange:NSMakeRange([astr length]-1, 1) withAttributedString:nl];	// replace any trailing space
+				else
+					[astr appendAttributedString:nl];	// close this block
+				}
+		   }
+		else
+		   { // empty block
+		   
+		   }
 		}
 	[astr endEditing];
 	// FIXME range handling to map nodes <-> character indexes

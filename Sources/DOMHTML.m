@@ -1932,33 +1932,6 @@
 
 + (DOMHTMLNestingStyle) _nesting;		{ return DOMHTMLLazyNesting; }
 
-#if 0
-- (NSString *) _stringBefore;
-{
-	NSParagraphStyle *paragraph=[_style objectForKey:NSParagraphStyleAttributeName];
-	NSArray *lists=[paragraph textLists];	// get (nested) list
-	NSString *node=[self nodeName];
-	if([node isEqualToString:@"LI"])
-		{
-		int i=[lists count];
-		NSString *str=@"\t";
-		while(i-- > 0)
-			{
-			NSTextList *list=[lists objectAtIndex:i];
-			// where do we get the correct item number from? we must track in parent ol/ul nodes!
-			str=[[list markerForItemNumber:1] stringByAppendingString:str];
-			if(!([list listOptions] & NSTextListPrependEnclosingMarker))
-				break;	// don't prepend
-			}
-		return str;
-		}
-	else if([node isEqualToString:@"DT"])
-		return @"";
-	else	// <DL>
-		return @"\t";
-}
-#endif
-
 @end
 
 @implementation DOMHTMLDListElement		// <dl>
