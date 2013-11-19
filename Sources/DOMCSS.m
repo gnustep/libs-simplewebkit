@@ -324,7 +324,7 @@
 			return YES;
 		}
 	if([property isEqualToString:@"background"])
-		{ // background: [ -color || -image || -repeat || -attachment || -position ] | inherit -- not inherited by defaul
+		{ // background: [ -color || -image || -repeat || -attachment || -position ] | inherit -- not inherited by default
 			DOMCSSValue *color=inherit?val:nil;
 			DOMCSSValue *image=inherit?val:nil;
 			DOMCSSValue *repeat=inherit?val:nil;
@@ -334,6 +334,8 @@
 				{
 				NSLog(@"please implement '%@' shorthand urgently!", property);
 				// FIXME
+				// we must loop over arguments and check if they are color, image, repeat, position etc.
+				// and distribute/overwrite the DOMCSSValue
 				}
 			if(color) [items setObject:color forKey:[property stringByAppendingString:@"-color"]];
 			if(image) [items setObject:image forKey:[property stringByAppendingString:@"-image"]];

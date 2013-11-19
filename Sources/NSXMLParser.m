@@ -386,57 +386,19 @@ static NSDictionary *entitiesTable;
 							cp++;	// include ? in tag string
 						}
 					if(bang)
-						{ // handle comment, DOCTYPE, [CDATA[
+						{ // handle --comment--, DOCTYPE, [CDATA[data]]
 							while(cp < ep)
 								{ // simply eat comments and [CDATA[ here
-									// FIXME: don't take a new -- as the start of another comment!
-									if(cp < ep-2 && strncmp(cp, "--", 2) == 0)
-										{ // comment starts - see: http://htmlhelp.com/reference/wilbur/misc/comment.html
-											tp=cp+=2;	// beginning of comment - search for end
-											while(cp < ep-2)
-												{
-													const char *cep;	// comment end pointer
-													if(cp[0] != '-' || cp[1] != '-')
-														{
-														cp++; // try again
-														continue;
-														}
-													cep=cp;	// the comment ends before the --
-													cp+=2;
-													while(cp < ep && isspace(*cp))
-														cp++;	// skip whitespace
-													if(cp < ep && cp[0] == '>')
-														{ // found
-															if([delegate respondsToSelector:@selector(parser:foundComment:)])
-																[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cep-tp]];
-															break;
-														}
-												}
-											if(cp[0] != '>')
-												{ // not found - badly formed comment at the end
-													if(!done)
-														{
-														cp=vp;
-														return;	// still incomplete
-														}
-													if(!acceptHTML)
-														; // XML malformed comment
-													if([delegate respondsToSelector:@selector(parser:foundComment:)])
-														[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
-												}
-											if(isStalled)
-												break;	// delegate wants to stall after comment
-											continue;
-										}
-									// FIXME: should we accept spaces between [ CDATA [
-									else if(cp < ep-7 && strncmp((char *) cp, "[CDATA[", 7) == 0)
+									while(cp < ep && isspace(*cp))
+										cp++;
+									if(cp < ep-7 && strncmp((char *) cp, "[CDATA[", 7) == 0)
 										{ // start of CDATA
 											tp=cp+=7;
 											// FIXME: should we accept spaces ] ]
 											while(cp < ep-2 && (*cp != ']' || strncmp((char *)cp, "]]", 2) != 0))
 												cp++; // scan up to ]]> without processing entities and other tags
 											if(cp >= ep-2)
-												{
+												{ // end of data but no ]]
 												if(done)
 													; // error
 												cp=vp;
@@ -449,11 +411,30 @@ static NSDictionary *entitiesTable;
 												[delegate parser:self foundCDATA:[NSData dataWithBytes:tp length:cp-tp]];
 											cp+=2;	// eat
 											if(isStalled)
+												break;	// delegate wants to stall after CDATA
+											continue;
+										}
+									if(cp < ep-2 && strncmp(cp, "--", 2) == 0)
+										{ // comment starts - see: http://htmlhelp.com/reference/wilbur/misc/comment.html
+											tp=cp+=2;	// beginning of comment - search for matching end
+											// add a special rule for <!------> separators
+											while(cp < ep-2 && (cp[0] != '-' || cp[1] != '-'))
+												cp++;	// did find the end
+											if(cp >= ep-2)
+												{ // end of data but no --
+												if(done)
+													; // error
+												cp=vp;
+												return;	// still incomplete
+												}
+											if([delegate respondsToSelector:@selector(parser:foundComment:)])
+												[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
+											cp+=2;	// skip closing --
+											if(isStalled)
 												break;	// delegate wants to stall after comment
 											continue;
 										}
-									else
-										break;	// no special treatment (e.g. > or <!DOCTYPE>)
+									break;	// this also covers <!> = empty comment
 								}
 							if(isStalled)
 								break;
@@ -557,7 +538,8 @@ static NSDictionary *entitiesTable;
 							if(*cp == '>')
 								{
 								cp++;	// eat >
-								[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
+								if(!bang)
+									[self _processTag:tag isEnd:(*tp=='/') withAttributes:parameters];	// handle tag
 								break;
 								}
 							sq=(*cp == '\'');	// single quoted argument
