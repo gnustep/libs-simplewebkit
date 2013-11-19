@@ -211,20 +211,6 @@
 	return [_subresources objectForKey:url];
 }
 
-- (NSStringEncoding) _textEncoding;
-{
-	NSStringEncoding enc=NSASCIIStringEncoding;	// default
-	NSString *textEncoding=[self textEncodingName];
-	if([textEncoding caseInsensitiveCompare:@"utf-8"] == NSOrderedSame)
-		enc=NSUTF8StringEncoding;
-	else if([textEncoding caseInsensitiveCompare:@"iso-8859-1"] == NSOrderedSame)
-		enc=NSISOLatin1StringEncoding;
-	else
-		NSLog(@"unknown _textEncoding: %@", textEncoding);
-	// FIXME: add others
-	return enc;
-}
-
 - (NSString *) textEncodingName;
 {
 	NSString *encoding=[[_webFrame webView] customTextEncodingName]; // get from WebView (if set)

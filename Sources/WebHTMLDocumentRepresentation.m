@@ -98,6 +98,24 @@ static NSDictionary *tagtable;
 
 // methods from WebDocumentRepresentation protocol
 
+- (NSStringEncoding) _textEncodingByName:(NSString *) textEncoding;
+{
+	NSStringEncoding enc=NSASCIIStringEncoding;	// default
+	if([textEncoding caseInsensitiveCompare:@"utf-8"] == NSOrderedSame)
+		enc=NSUTF8StringEncoding;
+	else if([textEncoding caseInsensitiveCompare:@"iso-8859-1"] == NSOrderedSame)
+		enc=NSISOLatin1StringEncoding;
+	else
+		NSLog(@"unknown _textEncoding: %@", textEncoding);
+	// FIXME: add others
+	return enc;
+}
+
+- (void) _setEncodingByName:(NSString *) encoding;
+{
+	[_parser _setEncoding:[self _textEncodingByName:encoding]];
+}
+
 - (void) setDataSource:(WebDataSource *) dataSource;
 {
 	Class viewclass;
@@ -120,7 +138,7 @@ static NSDictionary *tagtable;
 	[_html appendChild:_body];
 	_parser=[[NSXMLParser alloc] init];	// initialize for incremental parsing
 	[_parser setDelegate:self];
-	[_parser _setEncoding:[dataSource _textEncoding]];
+	[self _setEncodingByName:[dataSource textEncodingName]];
 #if 0
 	NSLog(@"parser: %@", _parser);
 #endif
@@ -233,7 +251,7 @@ static NSDictionary *tagtable;
 
 - (NSString *) documentSource;
 {
-	NSStringEncoding enc=[_dataSource _textEncoding];
+	NSStringEncoding enc=[self _textEncodingByName:[_dataSource textEncodingName]];
 	NSString *r=[[[NSString alloc] initWithData:[_dataSource data] encoding:enc] autorelease];
 	if(!r)
 		r=[[[NSString alloc] initWithData:[_dataSource data] encoding:NSASCIIStringEncoding] autorelease];

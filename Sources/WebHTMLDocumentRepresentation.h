@@ -46,6 +46,7 @@
 - (DOMHTMLElement *) _lastObject;	// the last node on stack
 
 - (id) _parser;		// get access to the parser
+- (void) _setEncodingByName:(NSString *) encoding;
 
 @end
 

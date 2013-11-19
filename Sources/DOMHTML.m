@@ -498,6 +498,15 @@
 				// else raise some error...
 				}
 		}
+	else if([cmd caseInsensitiveCompare:@"content-type"] == NSOrderedSame)
+		{ // <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+		NSString *type=[self valueForKey:@"content"];
+			// what do we do if content is not "text/html"?
+			// can we switch from xml to xhtml?
+			NSString *charset=[[type componentsSeparatedByString:@"charset="] lastObject];
+			[rep _setEncodingByName:charset];
+			// notify parser about new character set
+		}
 	// decode other meta
 	[super _elementDidAwakeFromDocumentRepresentation:rep];
 }

@@ -46,7 +46,6 @@
 @end
 
 @interface WebDataSource (Private)
-- (NSStringEncoding) _textEncoding;
 - (void) _setUnreachableURL:(NSURL *) url;
 - (void) _setWebFrame:(WebFrame *) wframe;
 - (WebDataSource *) _subresourceWithURL:(NSURL *) url delegate:(id <WebDocumentRepresentation>) rep;	// triggers loading if not (yet) available and optionally stalls main data source
