@@ -389,14 +389,31 @@ static NSDictionary *entitiesTable;
 						{ // handle comment, DOCTYPE, [CDATA[
 							while(cp < ep)
 								{ // simply eat comments and [CDATA[ here
+									// FIXME: don't take a new -- as the start of another comment!
 									if(cp < ep-2 && strncmp(cp, "--", 2) == 0)
 										{ // comment starts - see: http://htmlhelp.com/reference/wilbur/misc/comment.html
-											tp=cp+=2;	// beginning of comment
-											// FIME: if someone has speed concerns, we could do a strchr for all - and check for a second one to follow
-											while(cp < ep-2 && (cp[0] != '-' || cp[1] != '-'))
-												cp++;	// search for end of this comment
-											if(cp >= ep-2)
-												{ // not found - badly formed comment; search again for simple -->
+											tp=cp+=2;	// beginning of comment - search for end
+											while(cp < ep-2)
+												{
+													const char *cep;	// comment end pointer
+													if(cp[0] != '-' || cp[1] != '-')
+														{
+														cp++; // try again
+														continue;
+														}
+													cep=cp;	// the comment ends before the --
+													cp+=2;
+													while(cp < ep && isspace(*cp))
+														cp++;	// skip whitespace
+													if(cp < ep && cp[0] == '>')
+														{ // found
+															if([delegate respondsToSelector:@selector(parser:foundComment:)])
+																[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cep-tp]];
+															break;
+														}
+												}
+											if(cp[0] != '>')
+												{ // not found - badly formed comment at the end
 													if(!done)
 														{
 														cp=vp;
@@ -404,13 +421,9 @@ static NSDictionary *entitiesTable;
 														}
 													if(!acceptHTML)
 														; // XML malformed comment
-													cp=tp;
-													while(cp < ep-3 && strncmp(cp, "-->", 3) != 0)
-														cp++;	// search again for "simple" end of this comment
+													if([delegate respondsToSelector:@selector(parser:foundComment:)])
+														[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
 												}
-											if([delegate respondsToSelector:@selector(parser:foundComment:)])
-												[delegate parser:self foundComment:[NSString _string:(char *)tp withEncoding:encoding length:cp-tp]];
-											cp+=2;	// skip -- of comment
 											if(isStalled)
 												break;	// delegate wants to stall after comment
 											continue;
