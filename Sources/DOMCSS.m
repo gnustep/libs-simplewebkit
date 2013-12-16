@@ -1131,11 +1131,8 @@
 			return val && [selector isEqualToString:val];	// id must be defined and match
 			}
 		case CLASS_SELECTOR: {
-			NSString *val=[element getAttribute:@"class"];
-			// FIXME: class can be a space separated list of classes
-			// order of class names must match the order in the list, i.e. a.class1.class2 matches only if there is <a class="class1 class2">
-			// FIXME: what about nesting of clases? Is it sufficient that any parent element defines the class???
-			return val && [selector isEqualToString:val];
+			NSArray *val=[[element getAttribute:@"class"] componentsSeparatedByString:@" "]; // class can be a space separated list of classes
+			return val && [val containsObject:selector];	// the class in the selector matches any class specified
 			}
 		case ATTRIBUTE_SELECTOR: { // existence of attribute
 				return [element hasAttribute:selector];
@@ -1171,18 +1168,45 @@
 			return [selector _ruleMatchesElement:element pseudoElement:pseudoElement] || [value _ruleMatchesElement:element pseudoElement:pseudoElement];
 		case CONDITIONAL_SELECTOR:
 			return [selector _ruleMatchesElement:element pseudoElement:pseudoElement] && [value _ruleMatchesElement:element pseudoElement:pseudoElement];
-		case DESCENDANT_SELECTOR:
+		case DESCENDANT_SELECTOR: {
 			// any parent of the Element must match the whole value style rule
-			;
-		case CHILD_SELECTOR:
+			// e.g. "*.class1 td.class2 means that any parent on any level above the td can match class1
+			DOMElement *parent=element;
+			if(![value _ruleMatchesElement:element pseudoElement:pseudoElement])
+				return NO;	// right side does not match
+			while((parent=(DOMElement *)[parent parentNode]) && [parent isKindOfClass:[DOMElement class]])
+				{
+				if([value _ruleMatchesElement:parent pseudoElement:pseudoElement])
+					return YES;	// left side rule does match this parent level
+				}
+			return NO;	// no parent matches left side
+			}
+		case CHILD_SELECTOR: {
 			// direct parent of the Element must match the whole value style rule
-			;
-		case PRECEDING_SELECTOR:
+			DOMElement *parent;
+			if(![value _ruleMatchesElement:element pseudoElement:pseudoElement])
+				return NO;	// right side does not match
+			parent=(DOMElement *)[element parentNode];
+			return [parent isKindOfClass:[DOMElement class]] && [value _ruleMatchesElement:parent pseudoElement:pseudoElement];
+			}
+		case PRECEDING_SELECTOR: {
 			// previous sibling of the Element must match the whole value style rule
-			;
-		case SIBLING_SELECTOR:
-			// sibling of the Element must match the whole value style rule
-			;
+			DOMElement *sibling;
+			if(![value _ruleMatchesElement:element pseudoElement:pseudoElement])
+				return NO;	// right side does not match
+			sibling=(DOMElement *)[element previousSibling];
+			return [sibling isKindOfClass:[DOMElement class]] && [value _ruleMatchesElement:sibling pseudoElement:pseudoElement];
+		}
+		case SIBLING_SELECTOR: {
+			// any sibling of the Element must match the whole value style rule
+#ifdef FIXME
+			DOMElement *sibling;
+			if(![value _ruleMatchesElement:element pseudoElement:pseudoElement])
+				return NO;	// right side does not match
+			sibling=[element previousSibling];
+			return sibling && [value _ruleMatchesElement:sibling pseudoElement:pseudoElement];
+#endif
+		}
 	}
 	return NO;	// NOT IMPLEMENTED
 }
