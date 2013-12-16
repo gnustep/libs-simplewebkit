@@ -354,9 +354,60 @@
 			DOMCSSValue *family=val;
 			if(!inherit)
 				{
-				NSLog(@"please implement '%@' shorthand urgently!", property);
-				// check for caption/icon/menu/message-box/status-bar and set values
-				// otherwise parse at least size family],...]
+				NSString *str=[val _toString];
+				if([str isEqualToString:@"caption"])
+					;
+				else if([str isEqualToString:@"icon"])
+					;
+				else if([str isEqualToString:@"menu"])
+					;
+				else if([str isEqualToString:@"messge-box"])
+					;
+				else if([str isEqualToString:@"status-bar"])
+					;
+				else
+					{
+					while(val && ([val cssValueType] != DOM_CSS_PRIMITIVE_VALUE || [(DOMCSSPrimitiveValue *) val primitiveType] != DOM_CSS_UNKNOWN))
+						{ // collect values
+#if 1
+							NSLog(@"val: %@", val);
+#endif
+							if([(DOMCSSPrimitiveValue *) val cssValueType] == DOM_CSS_VALUE_LIST)
+								family=val;
+							else if([val cssValueType] == DOM_CSS_PRIMITIVE_VALUE)
+								{
+								switch([(DOMCSSPrimitiveValue *) val primitiveType]) {
+									case DOM_CSS_RGBCOLOR:
+									case DOM_CSS_RGBACOLOR:
+										break;
+									case DOM_CSS_IDENT: {
+										NSString *str=[(DOMCSSPrimitiveValue *) val getStringValue];
+										if([str isEqualToString:@"normal"] || [str isEqualToString:@"bold"] || [str isEqualToString:@"bolder"] || [str isEqualToString:@"lighter"])
+											weight=val;
+										else if([str isEqualToString:@"small-caps"])
+											variant=val;
+										else if([str isEqualToString:@"italic"] || [str isEqualToString:@"oblique"])
+											style=val;
+										else if([str isEqualToString:@"xx-small"] || [str isEqualToString:@"x-small"] || [str isEqualToString:@"small"] ||
+												[str isEqualToString:@"medium"] || [str isEqualToString:@"large"] || [str isEqualToString:@"x-large"] ||
+												[str isEqualToString:@"xx-large"] || [str isEqualToString:@"smaller"] || [str isEqualToString:@"larger"])
+											size=val;
+										else
+											family=val;	// take as a font-family name
+										}
+									case DOM_CSS_NUMBER:
+										weight=val;	// some absolute value is treated as font-weight and not as font-size
+									default:
+										size=val;
+										break;
+									}
+								}
+							[DOMCSSRule _skip:sc];
+							if([sc scanString:@"/" intoString:NULL])
+								height=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];						
+							val=[[[DOMCSSValue alloc] initWithString:(NSString *) sc] autorelease];
+						}
+					}
 				}
 			if(style) [items setObject:style forKey:[property stringByAppendingString:@"-style"]];
 			if(variant) [items setObject:variant forKey:[property stringByAppendingString:@"-variant"]];
