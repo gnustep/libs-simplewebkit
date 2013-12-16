@@ -127,8 +127,14 @@ static NSDictionary *entitiesTable;
 	[super dealloc];
 }
 
+// FIXME: why is this a BOOL if it always returns NO?
+
 - (BOOL) _parseError:(NSXMLParserError) err message:(NSString *) msg;
 {
+/*
+	if(!done)
+		return NO;	// ignore error if not yet done
+ */
 	NSError *e=[NSError errorWithDomain:NSXMLParserErrorDomain code:err userInfo:[NSDictionary dictionaryWithObjectsAndKeys:msg, @"Message", nil]];
 #if 0
 	NSLog(@"XML parseError: %u - %@", err, msg);
@@ -136,11 +142,14 @@ static NSDictionary *entitiesTable;
 	ASSIGN(error, e);
 	if([delegate respondsToSelector:@selector(parser:parseErrorOccurred:)])
 		[delegate parser:self parseErrorOccurred:error];	// pass error to delegate
+	// if(!_continueOnError) [self abortParsing]
+	// make sure that we really abort...
 	return NO;
 }
 
 - (void) abortParsing;
 {
+//	cp=ep;
 	[self _parseError:NSXMLParserDelegateAbortedParseError message:@"abortParsing called"];
 }
 
@@ -218,12 +227,17 @@ static NSDictionary *entitiesTable;
 		}
 }
 
-#define eat(C) { }
-#define eatstr(STR) { }
+// or use static inline functions?
+
+#define eat(C) { return cp < ep?*cp++:0; }
+#define eatstr(STR) { int len=strlen(STR); if(cp+len > ep || strncmp(cp, STR) != 0) return 0; cp+=len; return 1; }
 
 - (NSString *) _stringFromXMLEntity:(const char *) vp length:(int) len		// vp is position of & and length gives position of ;
 {
 	NSString *entity;
+	NSString *e;
+	if(len < 2)
+		return nil;	// empty entity
 	if(vp[1] == '#')
 		{ // &#ddd; or &#xhh; --- NOTE: vp+1 is usually not 0-terminated - but by ;
 			unsigned int val;
@@ -246,9 +260,15 @@ static NSDictionary *entitiesTable;
 	if(strncmp((char *)vp+1, "apos;", 5) == 0)
 		return @"'";
 	entity=[NSString _string:(char *)vp+1 withEncoding:encoding length:len-1];	// start with entity name and ask table and/or delegate to translate
-	if(acceptHTML)
-		{
-		NSString *e;
+	e=nil;
+	if(!acceptHTML)
+		{ // we must take entities from the DTD
+			// for this to make work, we should have parsed the DTD and the
+			// <!ENTITY name "entity_value"> (internal parsed) declarations
+			// should also try [delegate parser:self resolveExternalEntityName:entity systemID:(NSString *)systemID]
+		}
+	if(!e /* acceptHTML */)
+		{ // try default
 		if(!entitiesTable)
 			{ // dynamically load entity translation table on first use
 				NSAutoreleasePool *arp=[NSAutoreleasePool new];
@@ -272,11 +292,8 @@ static NSDictionary *entitiesTable;
 				[arp release];
 			}
 		e=[entitiesTable objectForKey:entity];	// look up string in entity translation table
-		if(e)
-			return e;	// found
 		}
-	// should we also try [delegate parser:self resolveExternalEntityName:entity systemID:(NSString *)systemID]
-	return entity;
+	return e;	// return what we have found
 }
 
 - (void) _parseData:(NSData *) d;
@@ -586,18 +603,17 @@ static NSDictionary *entitiesTable;
 									if(entityp < cp)
 										{ // append entity (if it can be translated)
 											const char *ee=entityp+1;	// start after &
+											NSString *e;
 											while(ee < cp && isalnum(*ee))
 												ee++;	// collect alphanumericals
-											if(ee < cp && *ee == ';')
-												{ // was an entity - try to translate
-													fragment=[fragment stringByAppendingString:[self _stringFromXMLEntity:entityp length:ee-entityp]];
-													entityp=ee+1;
-												}
+											e=[self _stringFromXMLEntity:entityp length:ee-entityp];	// try to translate entity
+											if(e)
+												fragment=[fragment stringByAppendingString:e];
 											else
-												{
-												fragment=[fragment stringByAppendingString:@"&"];	// can't translate
+												fragment=[fragment stringByAppendingString:[NSString _string:(char *) entityp withEncoding:encoding length:ee-entityp]];	// can't translate - take &entity verbatim
+											entityp=ee;
+											if(entityp < cp && *entityp == ';')
 												entityp++;
-												}
 										}
 									if([arg length] == 0) arg=fragment;	// first fragment
 									else arg=[arg stringByAppendingString:fragment];	// append
@@ -671,26 +687,20 @@ static NSDictionary *entitiesTable;
 							cp=vp;	// reset
 							return;	// still incomplete - try again on next call
 						}
-					if(*cp != ';')
-						{ // invalid entity
-							if(!acceptHTML)
-								{
-								[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ; for entity"];
-								return;
-								}
-							if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
-								[delegate parser:self foundCharacters:[NSString _string:(char *)vp withEncoding:encoding length:cp-vp]];	// pass unchanged
-							continue;	// just notify as plain characters
-						}
 					entity=[self _stringFromXMLEntity:vp length:cp-vp];	// vp is position of & and cp is position of ;
+					if(!acceptHTML && !entity)
+						[self _parseError:NSXMLParserParsedEntityRefNoNameError message:@"unknown entity"];
 					if(!entity)
-						{
-						[self _parseError:NSXMLParserParsedEntityRefNoNameError message:@"empty entity"];
-						return;
-						}
-					if([delegate respondsToSelector:@selector(parser:foundCharacters:)])
+						entity=[NSString _string:(char *) vp withEncoding:encoding length:cp-vp];	// entity string verbatim incl. &
+					if(entity && [delegate respondsToSelector:@selector(parser:foundCharacters:)])
 						[delegate parser:self foundCharacters:entity];	// send entity
-					cp++;	// skip ;
+					if(*cp == ';')
+						cp++;	// skip ;
+					else if(!acceptHTML)
+						{ // invalid entity
+							[self _parseError:NSXMLParserEntityBoundaryError message:@"missing ; for entity"];
+							return;
+						}
 					continue;
 				}
 		}
