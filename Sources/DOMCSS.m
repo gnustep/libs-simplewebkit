@@ -705,7 +705,8 @@
 			return [[DOMCSSCharsetRule alloc] initWithEncoding:[val _toString]];
 		}
 	if([sc scanString:@"@font-face" intoString:NULL])
-		{ // @font-face
+		{ // @font-face { font-family: name src: url(path) ... more properties } http://www.w3schools.com/cssref/css3_pr_font-face_rule.asp
+			// for an example we should be compatible with see http://www.fontspring.com/blog/further-hardening-of-the-bulletproof-syntax
 			return [DOMCSSFontFaceRule new];
 		}
 	if([sc scanString:@"@namespace" intoString:NULL])	// is not standard (?)
