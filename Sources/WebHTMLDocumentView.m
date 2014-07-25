@@ -465,22 +465,6 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 	NS_ENDHANDLER
 	style=[webView computedStyleForElement:self pseudoElement:@""];
 
-#if 0
-	
-	val=[style getPropertyCSSValue:@"background-attachment"];
-	if(val)
-		{
-		}
-	val=[style getPropertyCSSValue:@"background-position"];
-	if(val)
-		{
-		}			
-	val=[style getPropertyCSSValue:@"background-repeat"];
-	if(val)
-		{
-		}
-#endif
-
 	// FIXME: this should not be duplicated in the _splice method
 
 	val=[style getPropertyCSSValue:@"background-color"];
@@ -517,21 +501,29 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 			}
 		}
 	val=[style getPropertyCSSValue:@"background-image"];
+	if(val && ![[val _toString] isEqualToString:@"none"])
+		{
+		NSImage *img=nil;
+		// FIXME: load the image
+		[(_WebHTMLDocumentView *) view setBackgroundImage:img];
+		}
+#if 0
+	val=[style getPropertyCSSValue:@"background-attachment"];
 	if(val)
 		{
-		NSImage *img;
-		img=nil;
-		NSImageView *iv;
-		// FIXME: load the image
-		// FIXME: handle background-repeat: we could create tiles sharing the NSImage...
-		// scan all subviews
-		// remove/reuse existing NSImageViews
-		iv=[[NSImageView alloc] initWithFrame:[view frame]];
-		// attach a NSImageView subview to the textview
-		// FIXME: this adds a new subview each time we call _layout!
-		[view addSubview:iv];
-		[iv release];
+		[(_WebHTMLDocumentView *) view setBackgroundAttachment:[val _toString]];
 		}
+	val=[style getPropertyCSSValue:@"background-position"];
+	if(val)
+		{
+		[(_WebHTMLDocumentView *) view setBackgroundPosition:[val _toString]];
+		}
+	val=[style getPropertyCSSValue:@"background-repeat"];
+	if(val)
+		{
+		[(_WebHTMLDocumentView *) view setBackgroundRepeat:[val _toString]];
+		}
+#endif
 	val=[style getPropertyCSSValue:@"x-visited-color"];
 	if(val)
 		{
