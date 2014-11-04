@@ -75,7 +75,7 @@
 
 - (void) goToItem:(WebHistoryItem *) item;
 {
-	unsigned idx;
+	NSUInteger idx;
 	if(item == _currentItem)
 		return;	// already there!
 	idx=[_backList indexOfObjectIdenticalTo:item];	// is it here?
