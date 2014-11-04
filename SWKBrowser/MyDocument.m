@@ -260,6 +260,18 @@
 	[[docSource window] makeKeyAndOrderFront:sender];
 }
 
+- (IBAction) archiveAttributedString:(id) sender
+{
+    NSSavePanel *s=[NSSavePanel savePanel];
+    [s setTitle:@"Archive Attributed String"];
+    if([s runModal] == NSFileHandlingPanelOKButton)
+    {
+        NSTextStorage *t=[(NSTextView *) [[[webView mainFrame] frameView] documentView] textStorage];
+        NSData *d=[NSKeyedArchiver archivedDataWithRootObject:t];
+        [d writeToURL:[s URL] atomically:YES];
+    }
+}
+
 - (IBAction) showAttributedString:(id) sender
 {
 	NSString *src=[[(NSTextView *) [[[webView mainFrame] frameView] documentView] textStorage] description];
