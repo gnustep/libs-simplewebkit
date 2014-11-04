@@ -1691,8 +1691,8 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				{
 				// handle @"normal"
 				// check for simple numerical value -> factor instead of 100%
-				float s=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p lineSpacing]+[f ascender]+[f descender] andFont:[attributes objectForKey:NSFontAttributeName]];
-				s-=[f ascender]+[f descender];	// paragraph style does not define a line-height but a spacing
+				float s=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p lineSpacing]+[f ascender]-[f descender] andFont:[attributes objectForKey:NSFontAttributeName]];
+				s-=[f ascender]-[f descender];	// paragraph style does not define a line-height but a spacing
 				if(s < 0.0) s=0.0;
 				[p setLineSpacing:s];
 				}

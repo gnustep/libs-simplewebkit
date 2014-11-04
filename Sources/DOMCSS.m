@@ -2189,7 +2189,7 @@
 { // convert to given unitType
 	switch(primitiveType) {
 		case DOM_CSS_PERCENTAGE: return 0.01*[value floatValue]*base;
-		case DOM_CSS_EMS: return font?[value floatValue]*([font ascender]+[font descender]):0.0;
+		case DOM_CSS_EMS: return font?[value floatValue]*([font ascender]-[font descender]):0.0;
 		case DOM_CSS_EXS: return font?[value floatValue]*[font xHeight]:0.0;
 	}
 	return [self getFloatValue:unitType];	// absolute
