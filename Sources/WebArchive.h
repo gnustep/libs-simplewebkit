@@ -31,8 +31,8 @@ extern NSString *WebArchivePboardType;
 @interface WebArchive : NSObject
 {
 	WebResource *_mainResource;
-	NSMutableArray *_subframeArchives;
-	NSMutableArray *_subresources;
+	NSArray *_subframeArchives;
+	NSArray *_subresources;
 }
 
 - (id) initWithData:(NSData *) data;
