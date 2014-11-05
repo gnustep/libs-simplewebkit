@@ -1209,7 +1209,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 
 - (NSDictionary *) _changeAtributes:(NSDictionary *) attributes forNode:(DOMNode *) node style:(DOMCSSStyleDeclaration *) style;
 { // font, text-decoration, color, cursor
-	NSParagraphStyle *p;
+	NSParagraphStyle *p=nil;
 	// ...
 	p=[self _changeParagraphStyle:p forNode:node style:style];
 	return attributes;

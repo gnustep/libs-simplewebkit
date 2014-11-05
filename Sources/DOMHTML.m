@@ -607,7 +607,7 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 {
-	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
+	NSLog(@"%@ receivedData: %lu", NSStringFromClass([self class]), (unsigned long)[[source data] length]);
 }
 
 - (void) receivedError:(NSError *) error withDataSource:(WebDataSource *) source;
@@ -979,7 +979,7 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // simply ask our NSTextView for a re-layout
-	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
+	NSLog(@"%@ receivedData: %lu", NSStringFromClass([self class]), (unsigned long)[[source data] length]);
 	[[self _visualRepresentation] setNeedsLayout:YES];
 	[(NSView *) [self _visualRepresentation] setNeedsDisplay:YES];
 }
@@ -1639,7 +1639,7 @@
 
 - (void) receivedData:(NSData *) data withDataSource:(WebDataSource *) source;
 { // simply ask our NSTextView for a re-layout
-	NSLog(@"%@ receivedData: %u", NSStringFromClass([self class]), [[source data] length]);
+	NSLog(@"%@ receivedData: %lu", NSStringFromClass([self class]), (unsigned long)[[source data] length]);
 	[[self _visualRepresentation] setNeedsLayout:YES];
 	[(NSView *) [self _visualRepresentation] setNeedsDisplay:YES];
 }

@@ -350,7 +350,7 @@
 #if 1
 	NSLog(@"response received: %@", response);
 	if([response respondsToSelector:@selector(allHeaderFields)])
-		NSLog(@"status code: %d all headers: %@", [(NSHTTPURLResponse *) response statusCode], [(NSHTTPURLResponse *) response allHeaderFields]);
+		NSLog(@"status code: %ld all headers: %@", (long)[(NSHTTPURLResponse *) response statusCode], [(NSHTTPURLResponse *) response allHeaderFields]);
 	NSLog(@"mimeType: %@", [response MIMEType]);
 	NSLog(@"expectedContentLength: %lld", [response expectedContentLength]);
 	NSLog(@"suggestedFilename: %@", [response suggestedFilename]);
@@ -464,7 +464,7 @@
 
 - (NSURL *) URL
 { // provide a unique name useful for caching
-	return [NSURL URLWithString:[NSString stringWithFormat:@"webdata://%p-%u", _data, [_data length]]];
+	return [NSURL URLWithString:[NSString stringWithFormat:@"webdata://%p-%lu", _data, (unsigned long)[_data length]]];
 }
 
 @end

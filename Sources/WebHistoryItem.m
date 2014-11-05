@@ -31,7 +31,7 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 - (void) _notify; { [[NSNotificationCenter defaultCenter] postNotificationName:WebHistoryItemChangedNotification object:self]; }
 - (void) _touch; { _lastVisitedTimeInterval=[NSDate timeIntervalSinceReferenceDate]; _visitCount++; }
 - (void) _setIcon:(NSImage *) icon; { ASSIGN(_icon, icon); [self _notify]; }
-- (void) _setURL:(NSURL *) url; { ASSIGN(_URLString, url); [self _notify]; }
+- (void) _setURL:(NSURL *) url; { ASSIGN(_URLString, [url absoluteString]); [self _notify]; }
 - (int) _visitCount; { return _visitCount; }
 - (void) _setVisitCount:(int) v; { _visitCount=v; }
 
@@ -65,7 +65,7 @@ NSString *WebHistoryItemChangedNotification=@"WebHistoryItemChangedNotification"
 - (id) copyWithZone:(NSZone *) zone;
 {
 	WebHistoryItem *c;
-	if((c=[[NSObject allocWithZone:zone] init]))
+	if((c=[[WebHistoryItem allocWithZone:zone] init]))
 		{
 		c->_originalURLString=[_originalURLString retain];
 		c->_URLString=[_URLString retain];

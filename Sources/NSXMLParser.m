@@ -244,7 +244,7 @@ static NSDictionary *entitiesTable;
 			char temp[10];
 			strncpy(temp, vp+2, sizeof(temp)-1);	// make it a 0 terminated string since some sscanf() implementations have problems otherwise
 			if(sscanf(temp, "x%x;", &val) == 1 || sscanf(temp, "X%x;", &val) == 1 || sscanf(temp, "X%x;", &val) == 1 || sscanf(temp, "%u;", &val) == 1)
-				return [NSString stringWithFormat:@"%C", val];	// &#xhhhh; hex value; &ddd; decimal value
+				return [NSString stringWithFormat:@"%C", (unichar)val];	// &#xhhhh; hex value; &ddd; decimal value
 			else
 				return [NSString _string:(char *)vp withEncoding:encoding length:cp-vp];	// pass through
 		}
@@ -657,7 +657,7 @@ static NSDictionary *entitiesTable;
 								{ // XML does not allow "singletons" ecxept if *tp == '!'
 									if(!acceptHTML && ![tag hasPrefix:@"!"])
 										{
-										[self _parseError:NSXMLParserAttributeHasNoValueError message:[NSString stringWithFormat:@"<%@> attribute %@ has no value - attributes", tag, arg, parameters]];
+										[self _parseError:NSXMLParserAttributeHasNoValueError message:[NSString stringWithFormat:@"<%@> attribute %@ has no value - %@", tag, arg, parameters]];
 										return;
 										}
 									[parameters setObject:[NSNull null] forKey:arg];
