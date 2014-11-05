@@ -456,7 +456,7 @@
 			{
 			[currentURL setStringValue:[url absoluteString]];
 			[self showStatus:[NSString stringWithFormat:@"Loading %@...", [url absoluteString]]];
-			[[NSApp delegate] removeSubresourcesForFrame:frame];
+			[(MyApplication *) [NSApp delegate] removeSubresourcesForFrame:frame];
 			}
 		else
 			{
@@ -674,7 +674,7 @@
 		else if([ident isEqual: @"flags"])
 			{ // show some standard attributes
 				NSMutableString *s;
-				s=[NSMutableString stringWithFormat:@"autores=%08x", [item autoresizingMask]];
+				s=[NSMutableString stringWithFormat:@"autores=%08lx", [item autoresizingMask]];
 				if([item autoresizesSubviews])
 					[s appendFormat:@", autoSubviews"];
 				if([item isFlipped])
@@ -969,7 +969,7 @@
 	if(title)
 		[bookmarkTitle setStringValue:title]; 
 	if([NSApp runModalForWindow:addBookmarkWindow] == NSOKButton)
-		[[NSApp delegate] addBookmark:[bookmarkTitle stringValue] forURL:[bookmarkURL stringValue]];
+		[(MyApplication *) [NSApp delegate] addBookmark:[bookmarkTitle stringValue] forURL:[bookmarkURL stringValue]];
 }
 
 @end

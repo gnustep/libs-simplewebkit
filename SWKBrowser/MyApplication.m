@@ -251,7 +251,7 @@
 						 name:WebHistoryItemsAddedNotification object:myHistory];
 	[nc addObserver:self selector:@selector(historyDidRemoveItems:)
 						 name:WebHistoryItemsRemovedNotification object:myHistory];
-	bookmarks=[[NSDictionary alloc] initWithContentsOfFile:[self plistPath:@"Bookmarks.plist"]];
+	bookmarks=[[NSMutableDictionary alloc] initWithContentsOfFile:[self plistPath:@"Bookmarks.plist"]];
 	[bookmarksTable reloadData];
 }
 
@@ -460,7 +460,7 @@
 							else
 									{ // status
 										// error status???
-										return [NSString stringWithFormat:@"%@", [[src data] length]];
+										return [NSString stringWithFormat:@"%lu", (unsigned long)[[src data] length]];
 									}
 						}
 				if([item isKindOfClass:[WebFrame class]])
@@ -479,7 +479,7 @@
 									}
 							else
 									{
-										return [NSString stringWithFormat:@"%u Objects", 1+[[src subresources] count]];
+										return [NSString stringWithFormat:@"%lu Objects", 1+[[src subresources] count]];
 									}
 						}
 				if([item isKindOfClass:[SubResource class]])
