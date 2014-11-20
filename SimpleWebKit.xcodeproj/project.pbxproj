@@ -6,20 +6,6 @@
 	objectVersion = 42;
 	objects = {
 
-/* Begin PBXAggregateTarget section */
-		EE29B0681205617B00B8C7CA /* Commit CVS */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = EE29B06F1205619D00B8C7CA /* Build configuration list for PBXAggregateTarget "Commit CVS" */;
-			buildPhases = (
-				EE29B0671205617B00B8C7CA /* ShellScript */,
-			);
-			dependencies = (
-			);
-			name = "Commit CVS";
-			productName = Publish;
-		};
-/* End PBXAggregateTarget section */
-
 /* Begin PBXBuildFile section */
 		EE01D4560B7786570089A538 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB590A188F970045B88D /* MainMenu.nib */; };
 		EE01D4590B7786570089A538 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5B0A188F970045B88D /* main.m */; };
@@ -30,18 +16,6 @@
 		EE01D46D0B7786930089A538 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE01D46C0B7786930089A538 /* WebKit.framework */; };
 		EE044A920CF0A0040003D697 /* WebPreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = EE044A900CF0A0040003D697 /* WebPreferences.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE044A930CF0A0040003D697 /* WebPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = EE044A910CF0A0040003D697 /* WebPreferences.m */; };
-		EE05407F1727C2BC0004EA72 /* DemoHTML in Resources */ = {isa = PBXBuildFile; fileRef = EE8A012B0B6CD10D00346917 /* DemoHTML */; };
-		EE0540801727C2BC0004EA72 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = EE5EBB590A188F970045B88D /* MainMenu.nib */; };
-		EE0540811727C2BC0004EA72 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = EEE9B5AA0BC9621900757F02 /* MyDocument.nib */; };
-		EE0540831727C2BC0004EA72 /* WebKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
-		EE0540851727C2BC0004EA72 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5B0A188F970045B88D /* main.m */; };
-		EE0540861727C2BC0004EA72 /* MyApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5EBB5D0A188F970045B88D /* MyApplication.m */; };
-		EE0540871727C2BC0004EA72 /* MyDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE9B0D10BC8280700757F02 /* MyDocument.m */; };
-		EE0540881727C2BC0004EA72 /* MyComboBoxCell.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE9B0D90BC828EA00757F02 /* MyComboBoxCell.m */; };
-		EE05408A1727C2BC0004EA72 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE6FE352076F05AF009CC969 /* WebKit.framework */; };
-		EE05408B1727C2BC0004EA72 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
-		EE05408C1727C2BC0004EA72 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4536030A166D7F00C660D5 /* Foundation.framework */; };
-		EE05408D1727C2BC0004EA72 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4537030A166D9A00C660D5 /* Cocoa.framework */; };
 		EE1396B50BA5B0EE00A9A16C /* WebDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */; };
 		EE1396B60BA5B0EE00A9A16C /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
 		EE1AB3940C20544A005F3F98 /* DemoHTML in Resources */ = {isa = PBXBuildFile; fileRef = EE8A012B0B6CD10D00346917 /* DemoHTML */; };
@@ -104,81 +78,7 @@
 		EE6FBBC50C21DBD00095EEA6 /* WebTextDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBBC30C21DBD00095EEA6 /* WebTextDocument.h */; };
 		EE6FBBC60C21DBD00095EEA6 /* WebTextDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBBC40C21DBD00095EEA6 /* WebTextDocument.m */; };
 		EE77A01215DE317C00B07FCE /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = EE77A01115DE317C00B07FCE /* default.css */; };
-		EE77A01315DE317C00B07FCE /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = EE77A01115DE317C00B07FCE /* default.css */; };
 		EE7A7D3A0BB68A9100A5C0FC /* WebPluginContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C197A15D0339C004127D0 /* DOM.h in Headers */ = {isa = PBXBuildFile; fileRef = EE9BEB460AFA868500D445DA /* DOM.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C197B15D0339C004127D0 /* DOMCore.h in Headers */ = {isa = PBXBuildFile; fileRef = EE4729240B99D8F700559020 /* DOMCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C197C15D0339C004127D0 /* DOMCSS.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FC830BA6993E00503BB4 /* DOMCSS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C197D15D0339C004127D0 /* DOMHTML.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AFF880B6C8F9200346917 /* DOMHTML.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C197E15D0339C004127D0 /* DOMRange.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FCB40BA69A8D00503BB4 /* DOMRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C197F15D0339C004127D0 /* ECMAScriptEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = EED0DD360BAED3C4005B0381 /* ECMAScriptEvaluator.h */; };
-		EE7C198015D0339C004127D0 /* ECMAScriptParser.h in Headers */ = {isa = PBXBuildFile; fileRef = EED0DD380BAED3C4005B0381 /* ECMAScriptParser.h */; };
-		EE7C198115D0339C004127D0 /* ECMAScriptPrototypes.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA7DF390BB05AC6006B2FDA /* ECMAScriptPrototypes.h */; };
-		EE7C198215D0339C004127D0 /* Private.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBC7F0A1926F00045B88D /* Private.h */; };
-		EE7C198315D0339C004127D0 /* WebArchive.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FA780BA6928400503BB4 /* WebArchive.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198415D0339C004127D0 /* WebBackForwardList.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCE00A1A4CB70045B88D /* WebBackForwardList.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198515D0339C004127D0 /* WebDataSource.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D393095468BA001244CF /* WebDataSource.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198615D0339C004127D0 /* WebDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D395095468BA001244CF /* WebDocument.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198715D0339C004127D0 /* WebDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */; };
-		EE7C198815D0339C004127D0 /* WebDOMOperations.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCDE0A1A4CB70045B88D /* WebDOMOperations.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198915D0339C004127D0 /* WebDownload.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FA790BA6928400503BB4 /* WebDownload.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198A15D0339C004127D0 /* WebFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D396095468BA001244CF /* WebFrame.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198B15D0339C004127D0 /* WebFrameLoadDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AC8B50B6BA09900346917 /* WebFrameLoadDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198C15D0339C004127D0 /* WebFrameView.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D398095468BA001244CF /* WebFrameView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198D15D0339C004127D0 /* WebHistory.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCE30A1A4CB70045B88D /* WebHistory.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198E15D0339C004127D0 /* WebHistoryItem.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCE10A1A4CB70045B88D /* WebHistoryItem.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C198F15D0339C004127D0 /* WebHTMLDocumentRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = EE9BE9BB0AFA534600D445DA /* WebHTMLDocumentRepresentation.h */; };
-		EE7C199015D0339C004127D0 /* WebHTMLDocumentView.h in Headers */ = {isa = PBXBuildFile; fileRef = EE475F3E0B9AF3B600559020 /* WebHTMLDocumentView.h */; };
-		EE7C199115D0339C004127D0 /* WebImageDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB110C21D9E50095EEA6 /* WebImageDocument.h */; };
-		EE7C199215D0339C004127D0 /* WebKit.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D39A095468BA001244CF /* WebKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199315D0339C004127D0 /* WebPDFDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB150C21D9F80095EEA6 /* WebPDFDocument.h */; };
-		EE7C199415D0339C004127D0 /* WebPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCF00A1A4E270045B88D /* WebPlugin.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199515D0339C004127D0 /* WebPluginContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199615D0339C004127D0 /* WebResource.h in Headers */ = {isa = PBXBuildFile; fileRef = EE428B340A4819A2003437D2 /* WebResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199715D0339C004127D0 /* WebResourceLoadDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EEE9AE680BC6D85100757F02 /* WebResourceLoadDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199815D0339C004127D0 /* WebScriptObject.h in Headers */ = {isa = PBXBuildFile; fileRef = EE5EBCDF0A1A4CB70045B88D /* WebScriptObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199915D0339C004127D0 /* WebTextDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBBC30C21DBD00095EEA6 /* WebTextDocument.h */; };
-		EE7C199A15D0339C004127D0 /* WebXMLDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = EE6FBB190C21D9F80095EEA6 /* WebXMLDocument.h */; };
-		EE7C199B15D0339C004127D0 /* WebView.h in Headers */ = {isa = PBXBuildFile; fileRef = EEA3D39B095468BA001244CF /* WebView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199C15D0339C004127D0 /* WebUIDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199D15D0339C004127D0 /* WebUndefined.h in Headers */ = {isa = PBXBuildFile; fileRef = EE60FA7C0BA6943F00503BB4 /* WebUndefined.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199E15D0339C004127D0 /* WebPreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = EE044A900CF0A0040003D697 /* WebPreferences.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EE7C199F15D0339C004127D0 /* DOMSVG.h in Headers */ = {isa = PBXBuildFile; fileRef = EEBA300D0F2F50F200FA7110 /* DOMSVG.h */; };
-		EE7C19A115D0339C004127D0 /* WebKitIMG.png in Resources */ = {isa = PBXBuildFile; fileRef = EECCF3990BA037EF0001C219 /* WebKitIMG.png */; };
-		EE7C19A215D0339C004127D0 /* HTMLEntities.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE443FBD0BDBE6B80031F556 /* HTMLEntities.strings */; };
-		EE7C19A315D0339C004127D0 /* DOMHTML.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE24FD190C209B37001947BB /* DOMHTML.plist */; };
-		EE7C19A415D0339C004127D0 /* DOMHTMLColors.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE6635651219BA8B00761982 /* DOMHTMLColors.plist */; };
-		EE7C19A615D0339C004127D0 /* WebDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D394095468BA001244CF /* WebDataSource.m */; };
-		EE7C19A715D0339C004127D0 /* WebFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D397095468BA001244CF /* WebFrame.m */; };
-		EE7C19A815D0339C004127D0 /* WebFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D399095468BA001244CF /* WebFrameView.m */; };
-		EE7C19A915D0339C004127D0 /* WebView.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA3D39C095468BA001244CF /* WebView.m */; };
-		EE7C19AA15D0339C004127D0 /* WebBackForwardList.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5D27D60A1A677A000E507B /* WebBackForwardList.m */; };
-		EE7C19AB15D0339C004127D0 /* WebHistoryItem.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5D27DD0A1A69BE000E507B /* WebHistoryItem.m */; };
-		EE7C19AC15D0339C004127D0 /* WebHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = EE5D27E40A1B0708000E507B /* WebHistory.m */; };
-		EE7C19AD15D0339C004127D0 /* WebResource.m in Sources */ = {isa = PBXBuildFile; fileRef = EE428B350A4819A2003437D2 /* WebResource.m */; };
-		EE7C19AE15D0339C004127D0 /* WebDOMOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */; };
-		EE7C19AF15D0339C004127D0 /* WebScriptObject.m in Sources */ = {isa = PBXBuildFile; fileRef = EE291C080AD78194004A1CA6 /* WebScriptObject.m */; };
-		EE7C19B015D0339C004127D0 /* WebHTMLDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE9BE91F0AF9321400D445DA /* WebHTMLDocumentRepresentation.m */; };
-		EE7C19B115D0339C004127D0 /* DOMHTML.m in Sources */ = {isa = PBXBuildFile; fileRef = EE8AFF890B6C8F9200346917 /* DOMHTML.m */; };
-		EE7C19B215D0339C004127D0 /* DOMCore.m in Sources */ = {isa = PBXBuildFile; fileRef = EE4727070B99AC6500559020 /* DOMCore.m */; };
-		EE7C19B315D0339C004127D0 /* WebHTMLDocumentView.m in Sources */ = {isa = PBXBuildFile; fileRef = EE475F3F0B9AF3B600559020 /* WebHTMLDocumentView.m */; };
-		EE7C19B415D0339C004127D0 /* WebDocumentRepresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */; };
-		EE7C19B515D0339C004127D0 /* DOMCSS.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FC840BA6993E00503BB4 /* DOMCSS.m */; };
-		EE7C19B615D0339C004127D0 /* DOMRange.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FCB50BA69A8D00503BB4 /* DOMRange.m */; };
-		EE7C19B715D0339C004127D0 /* WebArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = EE60FCDC0BA69BFC00503BB4 /* WebArchive.m */; };
-		EE7C19B815D0339C004127D0 /* ECMAScriptEvaluator.m in Sources */ = {isa = PBXBuildFile; fileRef = EED0DD370BAED3C4005B0381 /* ECMAScriptEvaluator.m */; };
-		EE7C19B915D0339C004127D0 /* ECMAScriptParser.m in Sources */ = {isa = PBXBuildFile; fileRef = EED0DD390BAED3C4005B0381 /* ECMAScriptParser.m */; };
-		EE7C19BA15D0339C004127D0 /* ECMAScriptPrototypes.m in Sources */ = {isa = PBXBuildFile; fileRef = EEA7DF3A0BB05AC6006B2FDA /* ECMAScriptPrototypes.m */; };
-		EE7C19BB15D0339C004127D0 /* WebImageDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB120C21D9E50095EEA6 /* WebImageDocument.m */; };
-		EE7C19BC15D0339C004127D0 /* WebPDFDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB160C21D9F80095EEA6 /* WebPDFDocument.m */; };
-		EE7C19BD15D0339C004127D0 /* WebXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBB1A0C21D9F80095EEA6 /* WebXMLDocument.m */; };
-		EE7C19BE15D0339C004127D0 /* WebTextDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = EE6FBBC40C21DBD00095EEA6 /* WebTextDocument.m */; };
-		EE7C19BF15D0339C004127D0 /* WebPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = EE044A910CF0A0040003D697 /* WebPreferences.m */; };
-		EE7C19C015D0339C004127D0 /* WebPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = EEFA5A840E288A2500B86693 /* WebPlugin.m */; };
-		EE7C19C115D0339C004127D0 /* DOMSVG.m in Sources */ = {isa = PBXBuildFile; fileRef = EEBA300C0F2F50F200FA7110 /* DOMSVG.m */; };
-		EE7C19C315D0339C004127D0 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE45355C0A166D6F00C660D5 /* AppKit.framework */; };
-		EE7C19C415D0339C004127D0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4536030A166D7F00C660D5 /* Foundation.framework */; };
-		EE7C19C515D0339C004127D0 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE4537030A166D9A00C660D5 /* Cocoa.framework */; };
 		EE8A01C60B6CD7F800346917 /* WebUIDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8A01C50B6CD7F800346917 /* WebUIDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE8AC8B60B6BA09900346917 /* WebFrameLoadDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AC8B50B6BA09900346917 /* WebFrameLoadDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EE8AFF8A0B6C8F9200346917 /* DOMHTML.h in Headers */ = {isa = PBXBuildFile; fileRef = EE8AFF880B6C8F9200346917 /* DOMHTML.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -230,13 +130,6 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
-		EE05407D1727C2BC0004EA72 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = EE7C197815D0339C004127D0;
-			remoteInfo = "SimpleWebKit for SWKBrowser";
-		};
 		EE05409E1727C2EB0004EA72 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -254,17 +147,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		EE0540821727C2BC0004EA72 /* Copy Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				EE0540831727C2BC0004EA72 /* WebKit.framework in Copy Frameworks */,
-			);
-			name = "Copy Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		EE1AB3970C20544A005F3F98 /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -296,13 +178,11 @@
 		EE01D56C0B77A1A30089A538 /* NSXMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParser.m; sourceTree = "<group>"; };
 		EE044A900CF0A0040003D697 /* WebPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPreferences.h; sourceTree = "<group>"; };
 		EE044A910CF0A0040003D697 /* WebPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPreferences.m; sourceTree = "<group>"; };
-		EE0540921727C2BC0004EA72 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1396B30BA5B0EE00A9A16C /* WebDocumentRepresentation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebDocumentRepresentation.h; sourceTree = "<group>"; };
 		EE1396B40BA5B0EE00A9A16C /* WebDocumentRepresentation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebDocumentRepresentation.m; sourceTree = "<group>"; };
 		EE147E840A16668700E60AF8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE24FD190C209B37001947BB /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = DOMHTML.plist; sourceTree = "<group>"; };
-		EE27270005426A7F0000013C /* mySTEP.make */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mySTEP.make; path = ../mySTEP.make; sourceTree = SOURCE_ROOT; };
 		EE291C030AD780EE004A1CA6 /* WebDOMOperations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebDOMOperations.m; sourceTree = "<group>"; };
 		EE291C080AD78194004A1CA6 /* WebScriptObject.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = WebScriptObject.m; sourceTree = "<group>"; };
 		EE428B340A4819A2003437D2 /* WebResource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebResource.h; sourceTree = "<group>"; };
@@ -351,7 +231,6 @@
 		EE6FE352076F05AF009CC969 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE77A01115DE317C00B07FCE /* default.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = default.css; path = Sources/default.css; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.css; };
 		EE7A7D390BB68A9100A5C0FC /* WebPluginContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPluginContainer.h; sourceTree = "<group>"; };
-		EE7C19CA15D0339C004127D0 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE8721C10D0214F600B2037D /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile; path = SWKBrowser/GNUmakefile; sourceTree = "<group>"; };
 		EE8721C20D0214F600B2037D /* GNUmakefile.postamble */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile.postamble; path = SWKBrowser/GNUmakefile.postamble; sourceTree = "<group>"; };
 		EE87B3120D0015A300B2037D /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GNUmakefile; path = Sources/GNUmakefile; sourceTree = "<group>"; };
@@ -410,17 +289,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EE0540891727C2BC0004EA72 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE05408A1727C2BC0004EA72 /* WebKit.framework in Frameworks */,
-				EE05408B1727C2BC0004EA72 /* AppKit.framework in Frameworks */,
-				EE05408C1727C2BC0004EA72 /* Foundation.framework in Frameworks */,
-				EE05408D1727C2BC0004EA72 /* Cocoa.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		EE147E820A16668700E60AF8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -453,23 +321,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EE7C19C215D0339C004127D0 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE7C19C315D0339C004127D0 /* AppKit.framework in Frameworks */,
-				EE7C19C415D0339C004127D0 /* Foundation.framework in Frameworks */,
-				EE7C19C515D0339C004127D0 /* Cocoa.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		29B97314FDCFA39411CA2CEA /* BrowserTester */ = {
 			isa = PBXGroup;
 			children = (
-				EE27270005426A7F0000013C /* mySTEP.make */,
 				EEF7EAE316DB51E500CD94B5 /* SimpleWebKit.qcodeproj */,
 				EEF7EAE416DB51E500CD94B5 /* SWKBrowser.qcodeproj */,
 				EE8721B30D0214A900B2037D /* GNUmakefile */,
@@ -502,8 +359,6 @@
 				EE147E840A16668700E60AF8 /* SWKBrowser.app */,
 				EE1AB3A70C20544A005F3F98 /* SWKBrowser.app */,
 				EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */,
-				EE7C19CA15D0339C004127D0 /* WebKit.framework */,
-				EE0540921727C2BC0004EA72 /* SWKBrowser.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -745,51 +600,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EE7C197915D0339C004127D0 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE7C197A15D0339C004127D0 /* DOM.h in Headers */,
-				EE7C197B15D0339C004127D0 /* DOMCore.h in Headers */,
-				EE7C197C15D0339C004127D0 /* DOMCSS.h in Headers */,
-				EE7C197D15D0339C004127D0 /* DOMHTML.h in Headers */,
-				EE7C197E15D0339C004127D0 /* DOMRange.h in Headers */,
-				EE7C197F15D0339C004127D0 /* ECMAScriptEvaluator.h in Headers */,
-				EE7C198015D0339C004127D0 /* ECMAScriptParser.h in Headers */,
-				EE7C198115D0339C004127D0 /* ECMAScriptPrototypes.h in Headers */,
-				EE7C198215D0339C004127D0 /* Private.h in Headers */,
-				EE7C198315D0339C004127D0 /* WebArchive.h in Headers */,
-				EE7C198415D0339C004127D0 /* WebBackForwardList.h in Headers */,
-				EE7C198515D0339C004127D0 /* WebDataSource.h in Headers */,
-				EE7C198615D0339C004127D0 /* WebDocument.h in Headers */,
-				EE7C198715D0339C004127D0 /* WebDocumentRepresentation.h in Headers */,
-				EE7C198815D0339C004127D0 /* WebDOMOperations.h in Headers */,
-				EE7C198915D0339C004127D0 /* WebDownload.h in Headers */,
-				EE7C198A15D0339C004127D0 /* WebFrame.h in Headers */,
-				EE7C198B15D0339C004127D0 /* WebFrameLoadDelegate.h in Headers */,
-				EE7C198C15D0339C004127D0 /* WebFrameView.h in Headers */,
-				EE7C198D15D0339C004127D0 /* WebHistory.h in Headers */,
-				EE7C198E15D0339C004127D0 /* WebHistoryItem.h in Headers */,
-				EE7C198F15D0339C004127D0 /* WebHTMLDocumentRepresentation.h in Headers */,
-				EE7C199015D0339C004127D0 /* WebHTMLDocumentView.h in Headers */,
-				EE7C199115D0339C004127D0 /* WebImageDocument.h in Headers */,
-				EE7C199215D0339C004127D0 /* WebKit.h in Headers */,
-				EE7C199315D0339C004127D0 /* WebPDFDocument.h in Headers */,
-				EE7C199415D0339C004127D0 /* WebPlugin.h in Headers */,
-				EE7C199515D0339C004127D0 /* WebPluginContainer.h in Headers */,
-				EE7C199615D0339C004127D0 /* WebResource.h in Headers */,
-				EE7C199715D0339C004127D0 /* WebResourceLoadDelegate.h in Headers */,
-				EE7C199815D0339C004127D0 /* WebScriptObject.h in Headers */,
-				EE7C199915D0339C004127D0 /* WebTextDocument.h in Headers */,
-				EE7C199A15D0339C004127D0 /* WebXMLDocument.h in Headers */,
-				EE7C199B15D0339C004127D0 /* WebView.h in Headers */,
-				EE7C199C15D0339C004127D0 /* WebUIDelegate.h in Headers */,
-				EE7C199D15D0339C004127D0 /* WebUndefined.h in Headers */,
-				EE7C199E15D0339C004127D0 /* WebPreferences.h in Headers */,
-				EE7C199F15D0339C004127D0 /* DOMSVG.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -811,26 +621,6 @@
 			productReference = EE8C14DC0C8AAF9000FFBD30 /* WebKitBrowser.app */;
 			productType = "com.apple.product-type.application";
 		};
-		EE05407B1727C2BC0004EA72 /* SWK Browser without cross-compile */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = EE05408F1727C2BC0004EA72 /* Build configuration list for PBXNativeTarget "SWK Browser without cross-compile" */;
-			buildPhases = (
-				EE05407E1727C2BC0004EA72 /* Resources */,
-				EE0540821727C2BC0004EA72 /* Copy Frameworks */,
-				EE0540841727C2BC0004EA72 /* Sources */,
-				EE0540891727C2BC0004EA72 /* Frameworks */,
-				EE05408E1727C2BC0004EA72 /* ShellScript */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				EE05407C1727C2BC0004EA72 /* PBXTargetDependency */,
-			);
-			name = "SWK Browser without cross-compile";
-			productName = WebKitTest;
-			productReference = EE0540921727C2BC0004EA72 /* SWKBrowser.app */;
-			productType = "com.apple.product-type.application";
-		};
 		EE147E830A16668700E60AF8 /* SWK Browser */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EE147E880A1666A700E60AF8 /* Build configuration list for PBXNativeTarget "SWK Browser" */;
@@ -839,7 +629,6 @@
 				EEE9B4A20BC9294200757F02 /* Copy Frameworks */,
 				EE147E810A16668700E60AF8 /* Sources */,
 				EE147E820A16668700E60AF8 /* Frameworks */,
-				EE453C8A0A166ECD00C660D5 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -859,7 +648,6 @@
 				EE1AB3970C20544A005F3F98 /* Copy Frameworks */,
 				EE1AB3990C20544A005F3F98 /* Sources */,
 				EE1AB39E0C20544A005F3F98 /* Frameworks */,
-				EE1AB3A30C20544A005F3F98 /* ShellScript */,
 			);
 			buildRules = (
 				EE1AB3AA0C20547C005F3F98 /* PBXBuildRule */,
@@ -880,7 +668,6 @@
 				EE6FE34E076F05AF009CC969 /* Resources */,
 				EE6FE34F076F05AF009CC969 /* Sources */,
 				EE6FE350076F05AF009CC969 /* Frameworks */,
-				EE6FE354076F05C9009CC969 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -890,25 +677,6 @@
 			name = SimpleWebKit;
 			productName = Calendar;
 			productReference = EE6FE352076F05AF009CC969 /* WebKit.framework */;
-			productType = "com.apple.product-type.framework";
-		};
-		EE7C197815D0339C004127D0 /* SimpleWebKit without cross-compile */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit without cross-compile" */;
-			buildPhases = (
-				EE7C197915D0339C004127D0 /* Headers */,
-				EE7C19A015D0339C004127D0 /* Resources */,
-				EE7C19A515D0339C004127D0 /* Sources */,
-				EE7C19C215D0339C004127D0 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			comments = "Todo:\n\nDistribute System-Info.plist to AB-Framework and AppKit-Framework\n";
-			dependencies = (
-			);
-			name = "SimpleWebKit without cross-compile";
-			productName = Calendar;
-			productReference = EE7C19CA15D0339C004127D0 /* WebKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -935,12 +703,9 @@
 			projectRoot = "";
 			targets = (
 				EE6FE351076F05AF009CC969 /* SimpleWebKit */,
-				EE7C197815D0339C004127D0 /* SimpleWebKit without cross-compile */,
 				EE147E830A16668700E60AF8 /* SWK Browser */,
-				EE05407B1727C2BC0004EA72 /* SWK Browser without cross-compile */,
 				EE01D4520B7786570089A538 /* SWK Browser linked to System WebKit */,
 				EE1AB38F0C20544A005F3F98 /* SWK Browser 10.2 */,
-				EE29B0681205617B00B8C7CA /* Commit CVS */,
 			);
 		};
 /* End PBXProject section */
@@ -953,16 +718,6 @@
 				EEE9A52E0BC42AF200757F02 /* DemoHTML in Resources */,
 				EE01D4560B7786570089A538 /* MainMenu.nib in Resources */,
 				EEE9B5AD0BC9621900757F02 /* MyDocument.nib in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EE05407E1727C2BC0004EA72 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE05407F1727C2BC0004EA72 /* DemoHTML in Resources */,
-				EE0540801727C2BC0004EA72 /* MainMenu.nib in Resources */,
-				EE0540811727C2BC0004EA72 /* MyDocument.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -998,86 +753,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EE7C19A015D0339C004127D0 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE7C19A115D0339C004127D0 /* WebKitIMG.png in Resources */,
-				EE7C19A215D0339C004127D0 /* HTMLEntities.strings in Resources */,
-				EE7C19A315D0339C004127D0 /* DOMHTML.plist in Resources */,
-				EE7C19A415D0339C004127D0 /* DOMHTMLColors.plist in Resources */,
-				EE77A01315DE317C00B07FCE /* default.css in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		EE05408E1727C2BC0004EA72 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# QuantumSTEP=/usr/share/QuantumSTEP ./SWKBrowser.qcodeproj\n";
-		};
-		EE1AB3A30C20544A005F3F98 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# project settings\nexport SOURCES=\"SWKBrowser/*.m\"  \t   \t\t # all source codes\nexport LIBS=  \t\t\t\t\t# add any additional libraries like -ltiff etc.\nexport FRAMEWORKS=WebKit\t\t\t\t# add any additional Frameworks etc.\nexport INSTALL_PATH=/Applications/Test   # override INSTALL_PATH for MacOS X machine Zaurus\n\n# global/compile settings\n#export STRIP_Framework=true        # set to true if you want to strip headers etc.\n#export STRIP_MacOS=true            # set to true if you want a Linux-ARM only bundle\n#export INSTALL=true                # true (or empty) will install locally to $ROOT/$INSTALL_PATH\n#export SEND2ZAURUS=true\t\t\t# true (or empty) will try to install on the Zaurus at /$INSTALL_PATH (using ssh)\n#export RUN=true                    # true (or empty) will finally try to run on the Zaurus (using X11 on host)\nexport ROOT=/usr/share/QuantumSTEP\t# project root\n[ -r $ROOT/System/Sources/Frameworks/mySTEP.make ] && /usr/bin/make -f $ROOT/System/Sources/Frameworks/mySTEP.make $ACTION\n";
-		};
-		EE29B0671205617B00B8C7CA /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# shell script goes here\ncvs ci -m 'update'\n\nexit 0";
-		};
-		EE453C8A0A166ECD00C660D5 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "QuantumSTEP=/usr/share/QuantumSTEP ./SWKBrowser.qcodeproj\n";
-		};
-		EE6FE354076F05C9009CC969 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "QuantumSTEP=/usr/share/QuantumSTEP ./SimpleWebKit.qcodeproj\n";
-		};
 		EEAA53860DDB4F6E00D42522 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1102,17 +780,6 @@
 				EE01D45A0B7786570089A538 /* MyApplication.m in Sources */,
 				EEE9B0D30BC8280700757F02 /* MyDocument.m in Sources */,
 				EEE9B0DB0BC828EA00757F02 /* MyComboBoxCell.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EE0540841727C2BC0004EA72 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE0540851727C2BC0004EA72 /* main.m in Sources */,
-				EE0540861727C2BC0004EA72 /* MyApplication.m in Sources */,
-				EE0540871727C2BC0004EA72 /* MyDocument.m in Sources */,
-				EE0540881727C2BC0004EA72 /* MyComboBoxCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1173,49 +840,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EE7C19A515D0339C004127D0 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE7C19A615D0339C004127D0 /* WebDataSource.m in Sources */,
-				EE7C19A715D0339C004127D0 /* WebFrame.m in Sources */,
-				EE7C19A815D0339C004127D0 /* WebFrameView.m in Sources */,
-				EE7C19A915D0339C004127D0 /* WebView.m in Sources */,
-				EE7C19AA15D0339C004127D0 /* WebBackForwardList.m in Sources */,
-				EE7C19AB15D0339C004127D0 /* WebHistoryItem.m in Sources */,
-				EE7C19AC15D0339C004127D0 /* WebHistory.m in Sources */,
-				EE7C19AD15D0339C004127D0 /* WebResource.m in Sources */,
-				EE7C19AE15D0339C004127D0 /* WebDOMOperations.m in Sources */,
-				EE7C19AF15D0339C004127D0 /* WebScriptObject.m in Sources */,
-				EE7C19B015D0339C004127D0 /* WebHTMLDocumentRepresentation.m in Sources */,
-				EE7C19B115D0339C004127D0 /* DOMHTML.m in Sources */,
-				EE7C19B215D0339C004127D0 /* DOMCore.m in Sources */,
-				EE7C19B315D0339C004127D0 /* WebHTMLDocumentView.m in Sources */,
-				EE7C19B415D0339C004127D0 /* WebDocumentRepresentation.m in Sources */,
-				EE7C19B515D0339C004127D0 /* DOMCSS.m in Sources */,
-				EE7C19B615D0339C004127D0 /* DOMRange.m in Sources */,
-				EE7C19B715D0339C004127D0 /* WebArchive.m in Sources */,
-				EE7C19B815D0339C004127D0 /* ECMAScriptEvaluator.m in Sources */,
-				EE7C19B915D0339C004127D0 /* ECMAScriptParser.m in Sources */,
-				EE7C19BA15D0339C004127D0 /* ECMAScriptPrototypes.m in Sources */,
-				EE7C19BB15D0339C004127D0 /* WebImageDocument.m in Sources */,
-				EE7C19BC15D0339C004127D0 /* WebPDFDocument.m in Sources */,
-				EE7C19BD15D0339C004127D0 /* WebXMLDocument.m in Sources */,
-				EE7C19BE15D0339C004127D0 /* WebTextDocument.m in Sources */,
-				EE7C19BF15D0339C004127D0 /* WebPreferences.m in Sources */,
-				EE7C19C015D0339C004127D0 /* WebPlugin.m in Sources */,
-				EE7C19C115D0339C004127D0 /* DOMSVG.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		EE05407C1727C2BC0004EA72 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = EE7C197815D0339C004127D0 /* SimpleWebKit without cross-compile */;
-			targetProxy = EE05407D1727C2BC0004EA72 /* PBXContainerItemProxy */;
-		};
 		EE05409F1727C2EB0004EA72 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EE6FE351076F05AF009CC969 /* SimpleWebKit */;
@@ -1304,63 +931,6 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = WebKitBrowser;
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-		EE0540901727C2BC0004EA72 /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = SWKBrowser;
-				SYMROOT = "$(HOME)/build";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		EE0540911727C2BC0004EA72 /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "SWKBrowser/SWKBrowser-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = SimpleBrowser;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
@@ -1482,99 +1052,6 @@
 			};
 			name = Deployment;
 		};
-		EE29B0691205617B00B8C7CA /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				PRODUCT_NAME = Publish;
-			};
-			name = Development;
-		};
-		EE29B06A1205617B00B8C7CA /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				PRODUCT_NAME = Publish;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-		EE7C19C815D0339C004127D0 /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
-				COPY_PHASE_STRIP = NO;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				FRAMEWORK_SEARCH_PATHS = "";
-				FRAMEWORK_VERSION = A;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "";
-				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "Sources/SimpleWebKit-Info.plist";
-				INSTALL_PATH = "@executable_path/../Frameworks";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-seg1addr",
-					0x20200000,
-				);
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = WebKit;
-				SECTORDER_FLAGS = "";
-				SYMROOT = "$(HOME)/build";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		EE7C19C915D0339C004127D0 /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
-				COPY_PHASE_STRIP = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				FRAMEWORK_SEARCH_PATHS = "";
-				FRAMEWORK_VERSION = A;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "";
-				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = "Sources/SimpleWebKit-Info.plist";
-				INSTALL_PATH = /Library/Frameworks;
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-seg1addr",
-					0x20200000,
-				);
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = WebKit;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
 		EEEB9D6809A7586C00626AB7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1589,10 +1066,11 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
-				GCC_VERSION = 4.0;
+				GCC_VERSION = "";
 				INFOPLIST_FILE = "Sources/SimpleWebKit-Info.plist";
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				OTHER_CFLAGS = "";
@@ -1625,9 +1103,10 @@
 				FRAMEWORK_SEARCH_PATHS = "";
 				FRAMEWORK_VERSION = A;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
-				GCC_VERSION = 4.0;
+				GCC_VERSION = "";
 				INFOPLIST_FILE = "SimpleWebKit-Info.plist";
 				INSTALL_PATH = /Library/Frameworks;
 				OTHER_CFLAGS = "";
@@ -1652,7 +1131,8 @@
 			buildSettings = {
 				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SYMROOT = "$(PROJECT_DIR)/build";
 			};
 			name = Development;
 		};
@@ -1660,7 +1140,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SYMROOT = "$(PROJECT_DIR)/build";
 			};
 			name = Deployment;
 		};
@@ -1672,15 +1153,6 @@
 			buildConfigurations = (
 				EE01D4620B7786570089A538 /* Development */,
 				EE01D4630B7786570089A538 /* Deployment */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
-		};
-		EE05408F1727C2BC0004EA72 /* Build configuration list for PBXNativeTarget "SWK Browser without cross-compile" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				EE0540901727C2BC0004EA72 /* Development */,
-				EE0540911727C2BC0004EA72 /* Deployment */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
@@ -1699,24 +1171,6 @@
 			buildConfigurations = (
 				EE1AB3A50C20544A005F3F98 /* Development */,
 				EE1AB3A60C20544A005F3F98 /* Deployment */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
-		};
-		EE29B06F1205619D00B8C7CA /* Build configuration list for PBXAggregateTarget "Commit CVS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				EE29B0691205617B00B8C7CA /* Development */,
-				EE29B06A1205617B00B8C7CA /* Deployment */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
-		};
-		EE7C19C715D0339C004127D0 /* Build configuration list for PBXNativeTarget "SimpleWebKit without cross-compile" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				EE7C19C815D0339C004127D0 /* Development */,
-				EE7C19C915D0339C004127D0 /* Deployment */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
