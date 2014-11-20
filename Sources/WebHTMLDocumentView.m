@@ -1,7 +1,7 @@
 /* simplewebkit
    WebHTMLDocumentView.m
 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
    Author: Dr. H. Nikolaus Schaller
 
@@ -653,7 +653,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"setLinkColor: %@", color);
 #endif
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
+#if defined(__mySTEP__) || defined(GNUSTEP) || MAC_OS_X_VERSION_10_3 < MAC_OS_X_VERSION_MAX_ALLOWED
 	if(color)
 		[self setLinkTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSUnderlineColorAttributeName,
 			[NSNumber numberWithInt:NSUnderlineStyleSingle], NSUnderlineStyleAttributeName,
@@ -1520,9 +1520,9 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 						{
 						if([deco isEqualToString:@"underline"])
 							{ // make underlined
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+#if defined(__mySTEP__) || defined(GNUSTEP)|| MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 							[attributes setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName];
-#else	// MacOS X < 10.3 and GNUstep
+#else	// MacOS X < 10.3 
 							[attributes setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSUnderlineStyleAttributeName];
 #endif					
 							}
@@ -1530,10 +1530,10 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 							;	// FIXME: not available as NSAttributedString attribute
 						else if([deco isEqualToString:@"line-through"])
 							{ // make strike-through
-#if defined(__mySTEP__) || MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
+#if defined(__mySTEP__) || defined(GNUSTEP)|| MAC_OS_X_VERSION_10_2 < MAC_OS_X_VERSION_MAX_ALLOWED
 							[attributes setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
-#else	// MacOS X < 10.3 and GNUstep
-							// [attributes setObject:[NSNumber numberWithInt:NSSingleUnderlineStyle] forKey:NSStrikethroughStyleAttributeName];
+#else	// MacOS X < 10.3 
+							[attributes setObject:[NSNumber numberWithInt:NSUnderlineStrikethroughMask] forKey:NSUnderlineStyleAttributeName];
 #endif
 							}
 						// other values are simply ignored

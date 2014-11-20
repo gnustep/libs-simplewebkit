@@ -1,5 +1,10 @@
 2014-11-04 Riccardo Mottola <rm@gnu.org>
 
+	* Sources/WebHTMLDocumentView.m
+	By Fred: Enable underlining and strikethrough for GNUstep, provide better fallback for old MacOS.
+
+2014-11-04 Riccardo Mottola <rm@gnu.org>
+
 	* Sources/DOMCSS.m
 	* Sources/WebHTMLDocumentView.m
 	Descend returns negative values, fix accordingly.
