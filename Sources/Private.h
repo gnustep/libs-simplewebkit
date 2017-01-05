@@ -39,6 +39,11 @@
 #define ASSIGN(var, val) ([var release], var=[val retain])
 #endif
 
+#if !defined (GNUSTEP) &&  (MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4)
+#define NSUInteger unsigned
+#define NSInteger int
+#endif
+
 @interface WebFrameView (Private)
 - (void) _setDocumentView:(NSView *) view;
 - (void) _setWebFrame:(WebFrame *) wframe;
