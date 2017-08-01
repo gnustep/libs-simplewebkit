@@ -1,3 +1,8 @@
+2017-08-02 Riccardo Mottola <rm@gnu.org>
+
+	* Sources/WebHTMLDocumentView.m
+	store "auto" and "zero" with using -1 and 0 instead of a microscopic quantity.
+
 2014-11-04 Riccardo Mottola <rm@gnu.org>
 
 	* Sources/WebHTMLDocumentView.m

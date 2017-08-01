@@ -1951,19 +1951,21 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 				if([sval isEqualToString:@"auto"])
 					{ // "auto" should make it as high as the content needs (0 for empty content)
 						if(initialLength != [astr length])	// children or processing has added some contents
-							height=0.0;	// let NSTypesetter determine height that we need for our contents
+							height=-1.0;	// let NSTypesetter determine height that we need for our contents
 						// FIXME: isn't the following dead code?
 						else
-							height=1e-6;	// make a line with practically invisible height
+                                                  height=0.0;	// make a line with practically invisible height
 					}
 				else // add some epsilon so that we can set the maximum height to virtually 0
 					// specifying "auto" in the parent and 50% here will not return a useful result!
-					height=1e-6+[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p maximumLineHeight] andFont:[attributes objectForKey:NSFontAttributeName]];
-				if(height < 0.0) height=0.0;
+					height=[(DOMCSSPrimitiveValue *) val getFloatValue:DOM_CSS_PT relativeTo100Percent:[p maximumLineHeight] andFont:[attributes objectForKey:NSFontAttributeName]];
+
+				if(height < 0.0)
+                                  height=0.0;
 #if 1
 				NSLog(@"height:%@ -> %g", val, height);
 #endif
-				[p setMinimumLineHeight:(height==1e-6)?0.0:height];
+				[p setMinimumLineHeight:height];
 				[p setMaximumLineHeight:height];
 				// we may need to apply the paragraph style to all characters from initialLength to the end
 				}
