@@ -86,6 +86,8 @@
 		856A50460E2BF009007A0793 /* WebTextDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 853AB7580E2909B000B8A749 /* WebTextDocument.m */; };
 		856A50470E2BF009007A0793 /* WebPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 853AB7A50E290E2A00B8A749 /* WebPlugin.m */; };
 		856A50490E2BF009007A0793 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */; };
+		85E19E6A1F3D0FD00043E15E /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = 85E19E691F3D0FD00043E15E /* default.css */; };
+		85E19E6E1F3D111A0043E15E /* DOMHTMLColors.plist in Resources */ = {isa = PBXBuildFile; fileRef = 85E19E6D1F3D111A0043E15E /* DOMHTMLColors.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,8 +95,8 @@
 		0867D6A5FE840307C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		850F8E7E10D5156E00F4E3C8 /* SWKBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		850F8EB310D516C300F4E3C8 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "SWKBrowser-Info.plist"; path = "SWKBrowser/SWKBrowser-Info.plist"; sourceTree = "<group>"; };
+		850F8E7E10D5156E00F4E3C8 /* SWKBrowser.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SWKBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		850F8EB310D516C300F4E3C8 /* SWKBrowser-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = "SWKBrowser-Info.plist"; path = "SWKBrowser/SWKBrowser-Info.plist"; sourceTree = "<group>"; };
 		853AB73D0E2909B000B8A749 /* DOMCSS.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DOMCSS.h; path = Sources/DOMCSS.h; sourceTree = "<group>"; };
 		853AB73E0E2909B000B8A749 /* DOMCSS.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = DOMCSS.m; path = Sources/DOMCSS.m; sourceTree = "<group>"; };
 		853AB73F0E2909B000B8A749 /* DOMRange.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DOMRange.h; path = Sources/DOMRange.h; sourceTree = "<group>"; };
@@ -133,10 +135,12 @@
 		853AB7DA0E29157A00B8A749 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = SWKBrowser/English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		853AB7DC0E29157A00B8A749 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = SWKBrowser/English.lproj/MyDocument.nib; sourceTree = "<group>"; };
 		853AB7DF0E29159700B8A749 /* DemoHTML */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DemoHTML; path = SWKBrowser/DemoHTML; sourceTree = "<group>"; };
-		853AB8460E2917AD00B8A749 /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = DOMHTML.plist; path = Sources/DOMHTML.plist; sourceTree = "<group>"; };
+		853AB8460E2917AD00B8A749 /* DOMHTML.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = DOMHTML.plist; path = Sources/DOMHTML.plist; sourceTree = "<group>"; };
 		853AB8470E2917AD00B8A749 /* HTMLEntities.strings */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = HTMLEntities.strings; path = Sources/HTMLEntities.strings; sourceTree = "<group>"; };
 		8563F1170F2BCC8C001A1F08 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		856A504C0E2BF009007A0793 /* WebKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		85E19E691F3D0FD00043E15E /* default.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = default.css; path = Sources/default.css; sourceTree = "<group>"; };
+		85E19E6D1F3D111A0043E15E /* DOMHTMLColors.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = DOMHTMLColors.plist; path = Sources/DOMHTMLColors.plist; sourceTree = "<group>"; };
 		F51E75708B9F4A2701A8012E /* DOMCore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = DOMCore.m; path = Sources/DOMCore.m; sourceTree = "<group>"; };
 		F51E75718B9F4A2701A8012E /* DOM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DOM.h; path = Sources/DOM.h; sourceTree = "<group>"; };
 		F51E75728B9F4A2701A8012E /* DOMCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DOMCore.h; path = Sources/DOMCore.h; sourceTree = "<group>"; };
@@ -231,6 +235,8 @@
 		089C1665FE841158C02AAC07 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				85E19E691F3D0FD00043E15E /* default.css */,
+				85E19E6D1F3D111A0043E15E /* DOMHTMLColors.plist */,
 				853AB8460E2917AD00B8A749 /* DOMHTML.plist */,
 				853AB8470E2917AD00B8A749 /* HTMLEntities.strings */,
 				853AB7520E2909B000B8A749 /* WebKitIMG.png */,
@@ -443,7 +449,6 @@
 			isa = PBXProject;
 			buildConfigurationList = 85A7680310C6525E0086E0D3 /* Build configuration list for PBXProject "SimpleWebKitTiger" */;
 			compatibilityVersion = "Xcode 2.4";
-			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				English,
@@ -481,6 +486,8 @@
 				856A50280E2BF009007A0793 /* WebKitIMG.png in Resources */,
 				856A50290E2BF009007A0793 /* DOMHTML.plist in Resources */,
 				856A502A0E2BF009007A0793 /* HTMLEntities.strings in Resources */,
+				85E19E6A1F3D0FD00043E15E /* default.css in Resources */,
+				85E19E6E1F3D111A0043E15E /* DOMHTMLColors.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
