@@ -1,3 +1,8 @@
+2017-08-20 Riccardo Mottola <rm@gnu.org>
+
+	* Sources/DOMCSS.m
+	Escape relative part before forming URL.
+
 2017-08-02 Riccardo Mottola <rm@gnu.org>
 
 	* Sources/WebHTMLDocumentView.m

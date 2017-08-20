@@ -1,7 +1,7 @@
 /* simplewebkit
  DOMCSS.m
  
- Copyright (C) 2007 Free Software Foundation, Inc.
+ Copyright (C) 2007-2017 Free Software Foundation, Inc.
  
  Author: Dr. H. Nikolaus Schaller
  
@@ -2282,8 +2282,11 @@
 						return [[[DOMCSSValue alloc] initWithString:[args objectAtIndex:2]] autorelease];	// can specify different units
 					else if([type isEqualToString:@"url"])
 						{ // resolve urls - attr(name url) is different from url(string) which is relative to the CSS path
+						NSString *relPath = [attr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 						NSURL *document=[[[[element webFrame] dataSource] response] URL];
-						NSURL *url=[NSURL URLWithString:attr relativeToURL:document];
+						NSURL *url=[NSURL URLWithString:relPath relativeToURL:document];
+                                                if (!url)
+                                                  NSLog(@"DOMCSS url element evaluate error, name: %@", attr);
 						// FIXME: make relative URLs absolute (relative to the loading document)
 						return [DOMCSSPrimitiveValue _valueWithString:[url absoluteString] andType:type];
 						}
