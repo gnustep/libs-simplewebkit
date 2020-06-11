@@ -21,20 +21,6 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#if __GNUC__ == 2
-#define MUST_RENAME_CLASSES 1
-#endif
-
-#if MUST_RENAME_CLASSES
-// gcc 2.95.3 does not allow methods with the same name as a class, i.e.
-// - (DOMDocument *) DOMDocument;
-// you should wrap the class name with this macro i.e.
-// - (RENAME(DOMDocument) *) DOMDocument;
-#define RENAME(X) _class_##X
-#else
-#define RENAME(X) X
-#endif
-
 #import <Foundation/Foundation.h>
 
 // #import <WebKit/DOMCore.h>
@@ -45,7 +31,7 @@
 @class DOMAttr;
 @class DOMCDATASection;
 @class DOMComment;
-@class RENAME(DOMDocument); 
+@class DOMDocument; 
 @class DOMDocumentFragment; 
 @class DOMDocumentType;
 @class DOMElement;
@@ -104,7 +90,7 @@
 - (unsigned short) nodeType;
 - (NSString *) nodeValue;
 - (void) normalize;
-- (RENAME(DOMDocument) *) ownerDocument;
+- (DOMDocument *) ownerDocument;
 - (DOMNode *) parentNode;
 - (NSString *) prefix;
 - (DOMNode *) previousSibling;
@@ -167,7 +153,7 @@
 
 @end
 
-@interface RENAME(DOMDocument) : DOMNode
+@interface DOMDocument : DOMNode
 
 - (DOMAttr *) createAttribute:(NSString *) name;
 - (DOMAttr *) createAttributeNS:(NSString *) uri :(NSString *) name;

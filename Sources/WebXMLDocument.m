@@ -67,7 +67,7 @@
 	[view setDataSource:dataSource];
 	[frameView _setDocumentView:view];
 	[view release];
-	_root=[[[RENAME(DOMDocument) alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
+	_root=[[[DOMDocument alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
 	[_root _setVisualRepresentation:view];	// make the view receive change notifications
 	[frame _setDOMDocument:_root];
 	_current=(DOMElement *) _root;		// append all to this root

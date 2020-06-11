@@ -33,7 +33,7 @@
 @interface _WebCSSDocumentRepresentation : _WebDocumentRepresentation
 {
 	// FIXME: the DOMDocument or DOMHTMLDocument should own the CSS database
-	RENAME(DOMDocument) *_doc;		// current HTML document - just a pointer to the object created by WebFrame
+	DOMDocument *_doc;		// current HTML document - just a pointer to the object created by WebFrame
 	// DOMCSSDocument *_root;
 }
 

@@ -44,7 +44,7 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 		_frameView=[frameView retain];
 		_webView=[webView retain];
 		[frameView _setWebFrame:self];
-		_domDocument=[[RENAME(DOMDocument) alloc] _initWithName:@"#document" namespaceURI:nil];	// attach empty default DOMDocument
+		_domDocument=[[DOMDocument alloc] _initWithName:@"#document" namespaceURI:nil];	// attach empty default DOMDocument
 		}
    return self;
 }
@@ -315,8 +315,8 @@ static NSMutableArray *_pageCache;	// global page cache - retains WebDataSource 
 - (WebView *) webView; { return _webView; }
 - (NSString *) name; { return _name; }
 - (void) _setFrameName:(NSString *) n; { ASSIGN(_name, n); }
-- (RENAME(DOMDocument) *) DOMDocument; { return _domDocument; }
-- (void) _setDOMDocument:(RENAME(DOMDocument) *) doc; { ASSIGN(_domDocument, doc); }
+- (DOMDocument *) DOMDocument; { return _domDocument; }
+- (void) _setDOMDocument:(DOMDocument *) doc; { ASSIGN(_domDocument, doc); }
 - (DOMHTMLElement *) frameElement; { return _frameElement; }
 - (void) _setFrameElement:(DOMHTMLElement *) e; { ASSIGN(_frameElement, e); }
 

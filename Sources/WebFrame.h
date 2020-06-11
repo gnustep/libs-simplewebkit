@@ -36,7 +36,7 @@
 	WebDataSource *_provisionalDataSource;
 	NSString *_name;			// our name
 	WebFrameView *_frameView;	// our frame view
-	RENAME(DOMDocument) *_domDocument;
+	DOMDocument *_domDocument;
 	DOMHTMLElement *_frameElement;
 	WebView *_webView;			// our web view
 	WebFrame *_parent;
@@ -47,7 +47,7 @@
 
 - (NSArray *) childFrames;
 - (WebDataSource *) dataSource;
-- (RENAME(DOMDocument) *) DOMDocument;
+- (DOMDocument *) DOMDocument;
 - (WebFrame *) findFrameNamed:(NSString *) name;
 - (DOMHTMLElement *) frameElement;
 - (WebFrameView *) frameView;

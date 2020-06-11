@@ -129,7 +129,7 @@ static NSDictionary *tagtable;
 	[view release];
 	_root=[[[DOMHTMLDocument alloc] _initWithName:@"#document" namespaceURI:nil] autorelease];	// a new root
 	[_root _setVisualRepresentation:view];	// make the view receive change notifications
-	[frame _setDOMDocument:(RENAME(DOMDocument) *) _root];
+	[frame _setDOMDocument:(DOMDocument *) _root];
 	[(DOMHTMLDocument *) _root _setWebFrame:frame];
 	[(DOMHTMLDocument *) _root _setWebDataSource:dataSource];
 	_html=[[[DOMHTMLHtmlElement alloc] _initWithName:@"HTML" namespaceURI:nil] autorelease];	// build a minimal tree

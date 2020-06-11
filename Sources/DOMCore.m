@@ -218,7 +218,7 @@
 	return;
 }
 
-- (RENAME(DOMDocument) *) ownerDocument; { return [_parentNode ownerDocument]; }	// walk the tree upwards; DOMDocument overrides to return self;
+- (DOMDocument *) ownerDocument; { return [_parentNode ownerDocument]; }	// walk the tree upwards; DOMDocument overrides to return self;
 
 - (DOMNode *) parentNode; { return _parentNode; }
 - (NSString *) prefix; { return _prefix; }
@@ -469,7 +469,7 @@
 
 @end
 
-@implementation RENAME(DOMDocument)
+@implementation DOMDocument
 
 - (DOMAttr *) createAttribute:(NSString *) name; { return [[[DOMAttr alloc] _initWithName:name value:nil] autorelease]; }
 
@@ -535,7 +535,7 @@
 
 - (DOMElement *) documentElement; { return (DOMElement *) self; }
 
-- (RENAME(DOMDocument) *) ownerDocument; { return self; }	// end recursion
+- (DOMDocument *) ownerDocument; { return self; }	// end recursion
 
 - (DOMElement *) getElementById:(NSString *) element; {return NIMP; }
 - (DOMNodeList *) getElementsByTagName:(NSString * ) name; { return NIMP; }
