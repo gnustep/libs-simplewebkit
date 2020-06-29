@@ -1370,6 +1370,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 			NSFontManager *fm=[NSFontManager sharedFontManager];
 			WebPreferences *preferences=[self preferences];
 			NSFont *f=[parentAttributes objectForKey:NSFontAttributeName];	// start with inherited font
+			NSFont *f0=f;
 			NSFont *ff;	// temporary converted font
 			BOOL fontchanged=NO;
 			if(!f) f=[NSFont systemFontOfSize:0.0];	// default system font (should be overridden by <body> in default CSS)
@@ -1507,7 +1508,8 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 					ff=[fm convertFont:f toHaveTrait:NSSmallCapsFontMask];
 				if(ff) f=ff;
 				}
-			[attributes setObject:f forKey:NSFontAttributeName];	// OPTIMIZE: do only if really changed
+			if(f != f0)
+				[attributes setObject:f forKey:NSFontAttributeName];
 			
 			/* replace this by attributes=[self _changeAttributes:parentAttributes forNode:node style:style]; */
 
