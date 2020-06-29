@@ -807,21 +807,21 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
 								proposedLineFragment:(NSRect) fragment
 											 glyphPosition:(NSPoint) pos
-											characterIndex:(unsigned) index;
+											characterIndex:(NSUInteger) index;
 {
 	return (NSRect){ NSMakePoint(0.0, -10.0), [self cellSize] };	// move buttons etc. down a little
 }
 
 - (void) drawWithFrame:(NSRect)cellFrame
 								inView:(NSView *)controlView
-				characterIndex:(unsigned) index;
+				characterIndex:(NSUInteger) index;
 {
 	[self drawWithFrame:cellFrame inView:controlView];
 }
 
 - (void) drawWithFrame:(NSRect)cellFrame
 								inView:(NSView *)controlView
-				characterIndex:(unsigned) index
+				characterIndex:(NSUInteger) index
 				 layoutManager:(NSLayoutManager *) manager;
 {
 	[self drawWithFrame:cellFrame inView:controlView];
@@ -830,7 +830,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (BOOL) trackMouse:(NSEvent *)event 
 			 inRect:(NSRect)cellFrame 
 			 ofView:(NSView *)controlTextView 
-   atCharacterIndex:(unsigned) index
+   atCharacterIndex:(NSUInteger) index
 	   untilMouseUp:(BOOL)flag;
 {
 	BOOL done=NO;
@@ -870,7 +870,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (BOOL) wantsToTrackMouseForEvent:(NSEvent *) event
 							inRect:(NSRect) rect
 							ofView:(NSView *) controlView
-				  atCharacterIndex:(unsigned) index;
+				  atCharacterIndex:(NSUInteger) index;
 { // this could make tracking only on parts of the cell or depend on the attributes of the character
 	return [self wantsToTrackMouse];
 }
@@ -886,7 +886,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
 				proposedLineFragment:(NSRect) fragment
 					   glyphPosition:(NSPoint) pos
-					  characterIndex:(unsigned) index;
+					  characterIndex:(NSUInteger) index;
 {
 	return (NSRect){ NSMakePoint(0.0, -14.0), [self cellSize] };	// move text field down a little (may depend on font size)
 }
@@ -902,7 +902,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
 				proposedLineFragment:(NSRect) fragment
 					   glyphPosition:(NSPoint) pos
-					  characterIndex:(unsigned) index;
+					  characterIndex:(NSUInteger) index;
 {
 	return (NSRect){ NSMakePoint(0.0, -7.0), [self cellSize] };	// move text field down a little
 }
@@ -910,7 +910,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (BOOL) trackMouse:(NSEvent *)event 
 			 inRect:(NSRect)cellFrame 
 			 ofView:(NSView *)controlTextView 
-   atCharacterIndex:(unsigned) index
+   atCharacterIndex:(NSUInteger) index
 	   untilMouseUp:(BOOL)flag;
 { // click into text field
 	if(![self isEditable])
@@ -1004,7 +1004,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (BOOL) trackMouse:(NSEvent *)event 
 						 inRect:(NSRect)cellFrame 
 						 ofView:(NSView *)controlTextView 
-   atCharacterIndex:(unsigned) index
+   atCharacterIndex:(NSUInteger) index
 			 untilMouseUp:(BOOL)flag;
 { // click into text field
 	if(![[controlTextView window] makeFirstResponder:view])
@@ -1038,7 +1038,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 - (NSRect) cellFrameForTextContainer:(NSTextContainer *) container
 				proposedLineFragment:(NSRect) fragment
 					   glyphPosition:(NSPoint) pos
-					  characterIndex:(unsigned) index;
+					  characterIndex:(NSUInteger) index;
 { // make a text attachment cell that eats up the remaining space up to the end of the current fragment (minus line padding)
 	fragment.size.width-=pos.x+2*[container lineFragmentPadding];	// should be the same as the containerInset.width
 	fragment.size.height=5.0;
