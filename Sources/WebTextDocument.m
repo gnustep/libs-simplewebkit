@@ -53,7 +53,7 @@
 #if 0
 	NSLog(@"%@ drawRect:%@", self, NSStringFromRect(rect));
 #endif
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	[super drawRect:rect];
 }
@@ -90,7 +90,7 @@
 #if 0
 	NSLog(@"setNeedsLayout");
 #endif
-	_needsLayout=flag;
+	[super setNeedsLayout: flag];
 	[self setNeedsDisplay:YES];
 }
 

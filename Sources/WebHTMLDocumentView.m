@@ -590,7 +590,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"%@ drawRect:%@", self, NSStringFromRect(rect));
 #endif
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	if(_backgroundImage)
 		; // draw
@@ -617,7 +617,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"%@ %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 #endif
-	_needsLayout=NO;
+	[super setNeedsLayout: NO];
 	[body performSelector:@selector(_layout:) withObject:self afterDelay:0.0];	// process the <body> tag (could also be a <frameset>) from the runloop
 }
 
@@ -631,9 +631,9 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"setNeedsLayout");
 #endif
-	if(_needsLayout == flag)
-		return;	// we already know
-	_needsLayout=flag;
+	if ([self needsLayout] == flag)
+	  return;
+	[super setNeedsLayout:flag];
 	if(flag)
 		[self setNeedsDisplay:YES];	// trigger a drawRect
 }
@@ -713,7 +713,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"%@ drawRect:%@", self, NSStringFromRect(rect));
 #endif
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	[[NSColor lightGrayColor] set];
 	NSRectFill(rect);	// draw a splitter background
@@ -733,7 +733,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"%@ %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 #endif
-	_needsLayout=NO;
+	[super setNeedsLayout: NO];
 	[frameset _layout:self];	// process the <frameset> tag
 }
 
@@ -744,7 +744,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 
 - (void) setNeedsLayout:(BOOL) flag;
 {
-	_needsLayout=flag;
+	[super setNeedsLayout: flag];
 	[self setNeedsDisplay:YES];
 }
 

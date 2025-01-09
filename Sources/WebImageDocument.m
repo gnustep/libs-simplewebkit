@@ -137,11 +137,6 @@ If not, write to the Free Software Foundation,
 	_dataSource=source;
 }
 
-- (void) setNeedsLayout:(BOOL) flag;
-{
-	_needsLayout=flag;
-}
-
 - (void) viewDidMoveToHostWindow;
 {
 	// FIXME:
@@ -154,7 +149,7 @@ If not, write to the Free Software Foundation,
 
 - (void) drawRect:(NSRect) rect
 {
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	[super drawRect:rect];
 }

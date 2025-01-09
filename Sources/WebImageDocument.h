@@ -44,7 +44,6 @@
 @interface _WebImageDocumentView : NSImageView <WebDocumentView>
 {
 	WebDataSource *_dataSource;
-	BOOL _needsLayout;
 }
 
 @end
