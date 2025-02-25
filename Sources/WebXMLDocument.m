@@ -305,6 +305,7 @@
 #if 0
 	NSLog(@"layout %@", root);
 #endif
+        [super layout];
 	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear
 	[root _layoutXML:ts];
 }

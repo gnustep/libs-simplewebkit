@@ -78,6 +78,7 @@
 
 - (void) layout;
 { // do the layout
+  [super layout];
 }
 
 - (void) setDataSource:(WebDataSource *) source;

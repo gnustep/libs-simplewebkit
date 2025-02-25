@@ -56,6 +56,7 @@
 
 - (void) layout;
 {
+  [super layout];
 	// update contents from binary data
 }
 

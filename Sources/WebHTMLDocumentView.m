@@ -617,7 +617,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"%@ %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 #endif
-	[super setNeedsLayout: NO];
+        [super layout];
 	[body performSelector:@selector(_layout:) withObject:self afterDelay:0.0];	// process the <body> tag (could also be a <frameset>) from the runloop
 }
 
@@ -634,7 +634,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 	if ([self needsLayout] == flag)
 	  return;
 	[super setNeedsLayout:flag];
-	if(flag)
+        if(flag)
 		[self setNeedsDisplay:YES];	// trigger a drawRect
 }
 
@@ -733,7 +733,7 @@ NSString *DOMHTMLAnchorElementAnchorName=@"DOMHTMLAnchorElementAnchorName";
 #if 0
 	NSLog(@"%@ %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 #endif
-	[super setNeedsLayout: NO];
+        [super layout]; // Apple Doc explicitely requires this
 	[frameset _layout:self];	// process the <frameset> tag
 }
 
