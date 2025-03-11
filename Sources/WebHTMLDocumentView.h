@@ -45,7 +45,6 @@ extern NSString *DOMHTMLAnchorElementAnchorName;
 {
 	WebDataSource *_dataSource;
 	NSImage *_backgroundImage;
-	BOOL _needsLayout;
 }
 - (void) setLinkColor:(NSColor *) color;
 - (void) setBackgroundImage:(NSImage *) img;
@@ -57,7 +56,6 @@ extern NSString *DOMHTMLAnchorElementAnchorName;
 @interface _WebHTMLDocumentFrameSetView : NSSplitView <WebDocumentView, WebDocumentText>	
 {
 	WebDataSource *_dataSource;
-	BOOL _needsLayout;
 }
 @end
 

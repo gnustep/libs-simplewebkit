@@ -128,6 +128,7 @@ If not, write to the Free Software Foundation,
 #if 0
 	NSLog(@"WebImageView layout img=%@", image);
 #endif
+        [super layout];
 	[self setImage:image];
 	//	[self setFrame:(NSRect){ NSZeroPoint, [image size] }];	// resize to fit
 }
@@ -135,11 +136,6 @@ If not, write to the Free Software Foundation,
 - (void) setDataSource:(WebDataSource *) source;
 {
 	_dataSource=source;
-}
-
-- (void) setNeedsLayout:(BOOL) flag;
-{
-	_needsLayout=flag;
 }
 
 - (void) viewDidMoveToHostWindow;
@@ -154,7 +150,7 @@ If not, write to the Free Software Foundation,
 
 - (void) drawRect:(NSRect) rect
 {
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	[super drawRect:rect];
 }

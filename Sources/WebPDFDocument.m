@@ -56,17 +56,13 @@
 
 - (void) layout;
 {
+  [super layout];
 	// update contents from binary data
 }
 
 - (void) setDataSource:(WebDataSource *) source;
 {
 	_dataSource=source;
-}
-
-- (void) setNeedsLayout:(BOOL) flag;
-{ // getImage from our rep.
-	_needsLayout=flag;
 }
 
 - (void) viewDidMoveToHostWindow;
@@ -81,7 +77,7 @@
 
 - (void) drawRect:(NSRect) rect
 {
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	[super drawRect:rect];
 }

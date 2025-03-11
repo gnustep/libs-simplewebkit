@@ -42,7 +42,6 @@
 @interface _WebXMLDocumentView : NSTextView <WebDocumentView>
 {
 	WebDataSource *_dataSource;
-	BOOL _needsLayout;
 }
 
 @end

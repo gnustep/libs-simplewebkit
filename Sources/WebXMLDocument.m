@@ -305,6 +305,7 @@
 #if 0
 	NSLog(@"layout %@", root);
 #endif
+        [super layout];
 	[ts replaceCharactersInRange:NSMakeRange(0, [ts length]) withString:@""];	// clear
 	[root _layoutXML:ts];
 }
@@ -312,11 +313,6 @@
 - (void) setDataSource:(WebDataSource *) source;
 {
 	_dataSource=source;
-}
-
-- (void) setNeedsLayout:(BOOL) flag;
-{ // getImage from our rep.
-	_needsLayout=flag;
 }
 
 - (void) viewDidMoveToHostWindow;
@@ -331,7 +327,7 @@
 
 - (void) drawRect:(NSRect) rect
 {
-	if(_needsLayout)
+	if([self needsLayout])
 		[self layout];
 	[super drawRect:rect];
 }
